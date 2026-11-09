@@ -1,6 +1,6 @@
 /**
  * TOP SPEED's things' pictures as course images ([TOP SPEED road data](../../../docs/top-speed-road-data.md#its-things)):
- * each descriptor's pieces whose zoom scales on both axes at their full size (`top-speed-things`), the head over its
+ * each descriptor's pieces but those across the view at their full size (`top-speed-things`), the head over its
  * parts as the sprite list is drawn from its first entry, each in its palette's colors as the program sets them at its
  * start, pen 0 transparent; one picture, its colors as [Things of several
  * pieces](../../../docs/original-road-data.md#things-of-several-pieces)' (`joinedColors`), by chosen lines and the
@@ -9,11 +9,12 @@
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
+import { bandBoards } from '../shared/band-boards.js';
 import { croppedPieces, joinedColors, layPieces } from '../shared/joined-pictures.js';
 import { namedBoardMaster, paletteName, texelsAPixel } from '../shared/pixel-grid.js';
 import { partsOnGrid, pictureParts } from '../shared/sprite-rules.js';
 import { BIG_SPRITE, topSpeedBigSprite, topSpeedSpriteMap } from './top-speed-sprites.js';
-import { thingPalettes, topSpeedThing, type TopSpeedPiece } from './top-speed-things.js';
+import { SCREEN_WIDE, thingPalettes, topSpeedThing, type TopSpeedPiece } from './top-speed-things.js';
 
 /** The largest picture the course format admits (`imageMasterTexels`). */
 const MASTER_TEXELS = 1024 * 1024;
@@ -43,8 +44,8 @@ export function topSpeedBoards(
     .map((index) => {
       const name = thingName(index);
       const thing = topSpeedThing(sub, index);
-      const pieces = thing.pieces.filter((p) => !p.fixed);
-      if (!pieces.length) throw contractUnmet(`${name} has no piece of its own zoom`);
+      const pieces = thing.pieces.filter((p) => p.type !== SCREEN_WIDE);
+      if (!pieces.length) throw contractUnmet(`${name} has no piece but across the view`);
       const map = topSpeedSpriteMap(main, sub, thing.load ? [thing.load] : []);
       const pensOf = (p: TopSpeedPiece) => {
         const pens = topSpeedBigSprite(gfx, map, p.sprite);
@@ -95,6 +96,87 @@ export function topSpeedBoards(
         distinct: joined.distinct,
         replaced: joined.replaced,
         image: courseImageFile(master),
+      };
+    });
+}
+
+/**
+ * The descriptors' pieces across the view (their type 5, at screen columns) as bands across the road
+ * ([Strips](../../../docs/original-road-data.md#strips)), a pixel `pixel` metres across and down: each descriptor's such
+ * pieces drawn once at their full size, laid by their screen columns, its middle the thing's lateral, and beyond its
+ * edges its band, the columns of its last piece, a board extending right and its mirror left, all cut from one grid
+ * (`bandBoards`), floating at its lowest colored row's height (`groundOffset`, metres), the bands `rise` metres higher
+ * where their last row lies above it; the names the picture's and `-band`, `-band-mirrored`.
+ */
+export function topSpeedBands(
+  main: Uint8Array,
+  sub: Uint8Array,
+  gfx: Uint8Array,
+  indices: readonly number[],
+  pixel: number,
+) {
+  const palettes = thingPalettes(main);
+  const texels = texelsAPixel(pixel, PIXEL_ASPECT);
+  return [...new Set(indices)]
+    .sort((a, b) => a - b)
+    .map((index) => {
+      const name = `${thingName(index)}-across`;
+      const thing = topSpeedThing(sub, index);
+      const pieces = thing.pieces.filter((p) => p.type === SCREEN_WIDE);
+      if (!pieces.length) throw contractUnmet(`${name} has no piece across the view`);
+      const map = topSpeedSpriteMap(main, sub, thing.load ? [thing.load] : []);
+      const pensOf = (p: TopSpeedPiece) => {
+        const pens = topSpeedBigSprite(gfx, map, p.sprite);
+        return Uint8Array.from({ length: pens.length }, (_, at) => {
+          const [x, y] = [at % BIG_SPRITE, Math.floor(at / BIG_SPRITE)];
+          return pens[(p.flipY ? BIG_SPRITE - 1 - y : y) * BIG_SPRITE + (p.flipX ? BIG_SPRITE - 1 - x : x)]!;
+        });
+      };
+      // The pieces laid by their columns, and beyond the right edge its last piece's columns, their mirror left.
+      const x0 = Math.min(...pieces.map((p) => p.x));
+      const last = pieces.reduce((a, p) => (p.x > a.x ? p : a));
+      const shifted = pieces.map((p) => ({ ...p, x: p.x - x0 + BIG_SPRITE }));
+      const width = Math.max(...shifted.map((p) => p.x)) + 2 * BIG_SPRITE;
+      const lastPiece = { ...last, x: width - BIG_SPRITE };
+      const mirrored = { ...last, x: 0, flipX: !last.flipX };
+      const all = [...shifted, lastPiece, mirrored];
+      const laid = layPieces(
+        all.map((p, k) => ({
+          unit: name,
+          s: 0,
+          pixels: { width: BIG_SPRITE, height: BIG_SPRITE, pixels: pensOf(p) },
+          pixel,
+          aspect: PIXEL_ASPECT,
+          left: p.x * pixel,
+          bottom: -(p.y + BIG_SPRITE) * pixel * PIXEL_ASPECT,
+          floats: true,
+          joins: true,
+          order: all.length - 1 - k,
+        })),
+      );
+      const joined = joinedColors(
+        laid,
+        all.map((p) => [{ name: paletteName(p.palette), colors: palettes(p.palette) }]),
+      );
+      const h = laid.height;
+      const ground = Math.round(laid.top / (pixel * PIXEL_ASPECT)) - 1;
+      const edges = [BIG_SPRITE, width - BIG_SPRITE] as const;
+      const { picture, bands, rise } = bandBoards(
+        { picture: name, band: `${name}-band`, mirrored: `${name}-band-mirrored` },
+        joined.picture,
+        pictureParts(joined.picture, undefined),
+        edges,
+        (edges[0] + edges[1]) / 2,
+        texels,
+        joined.palettes,
+      );
+      return {
+        index,
+        names: [picture.name, ...bands.map((b) => b.name)],
+        palette: joined.palettes[0]!.name,
+        groundOffset: (ground - h + 1) * pixel * PIXEL_ASPECT,
+        rise,
+        images: [picture, ...bands].map((master) => courseImageFile(master)),
       };
     });
 }

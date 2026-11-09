@@ -41,13 +41,13 @@ import {
 } from './top-speed-road-across.js';
 import { hills, PENS, RASTER, stripeWords, topSpeedRoadColors, topSpeedRoadPicture } from './top-speed-road-picture.js';
 import { assembleTopSpeedMain, assembleTopSpeedSub, assembleTopSpeedTiles } from './top-speed-rom.js';
-import { topSpeedBoards } from './top-speed-boards.js';
+import { topSpeedBands, topSpeedBoards } from './top-speed-boards.js';
 import { topSpeedPlacements, type TopSpeedHit } from './top-speed-objects.js';
 import { assembleTopSpeedSprites } from './top-speed-sprites.js';
-import { pixelLaterals, topSpeedThing } from './top-speed-things.js';
+import { pixelLaterals, SCREEN_WIDE, topSpeedThing } from './top-speed-things.js';
 import { COURSES, courseSections, LANE_METRES, POSITION_METRES, readStages, STAGES } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 5;
+export const TOP_SPEED_CONVERSION_VERSION = 6;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -113,16 +113,39 @@ export function topSpeedCourses(set: RomSet) {
         // Its picture: the next descriptor's where it stands left of P and has one (S 0x16634 to 0x1664A).
         const shown = thing.leftVariant && p.lateral < P ? p.index + 1 : p.index;
         const pictured = topSpeedThing(sub, shown);
-        if (!pictured.pieces.some((piece) => !piece.fixed)) return [];
-        if (pictured.curve !== STANDING_CURVE)
-          throw contractUnmet(`TOP SPEED's thing ${shown} is not a standing thing`);
+        // A flat thing (its size curve not the standing things') is not placed; an empty one neither.
+        if (pictured.curve !== STANDING_CURVE || !pictured.pieces.length) return [];
         return [{ record: i, ...p, shown }];
       }),
     );
   });
+  const shownOf = (pick: (types: readonly number[]) => boolean) => [
+    ...new Set(
+      placed
+        .flat()
+        .map((t) => t.shown)
+        .filter((i) => pick(topSpeedThing(sub, i).pieces.map((p) => p.type))),
+    ),
+  ];
   const boards = new Map(
-    topSpeedBoards(main, sub, sprites, [...new Set(placed.flat().map((t) => t.shown))], pixel).map((b) => [b.index, b]),
+    topSpeedBoards(
+      main,
+      sub,
+      sprites,
+      shownOf((types) => types.some((t) => t !== SCREEN_WIDE)),
+      pixel,
+    ).map((b) => [b.index, b]),
   );
+  const bands = new Map(
+    topSpeedBands(
+      main,
+      sub,
+      sprites,
+      shownOf((types) => types.includes(SCREEN_WIDE)),
+      pixel,
+    ).map((b) => [b.index, b]),
+  );
+  for (const b of bands.values()) for (const image of b.images) outputs.file(image.path, image.bytes);
   for (const b of boards.values()) outputs.file(b.image.path, b.image.bytes);
   const skies = new Set<string>();
   const courses = Array.from({ length: COURSES }, (_, course) => {
@@ -152,18 +175,33 @@ export function topSpeedCourses(set: RomSet) {
     const back = Math.ceil(gridReach(stand(go)) + cameraDistance(CAMERA_DEFINITION));
     // Its things at their stations, in station order.
     const things = placed[course]!.map((t) => {
-      const board = boards.get(t.shown)!;
+      const [board, band] = [boards.get(t.shown), bands.get(t.shown)];
       const lateral = (t.lateral - P) * metresAcross;
+      // Its picture, with its body; and its band across the road, floating, with none.
+      const picture = board
+        ? [
+            {
+              image: board.name,
+              palette: board.palette,
+              lateral: 0,
+              groundOffset: 0,
+              body: bodyOf(t.hit, lateral, metresAcross, board.colored),
+            },
+          ]
+        : [];
+      const across = band
+        ? band.names.map((image, k) => ({
+            image,
+            palette: band.palette,
+            lateral: 0,
+            groundOffset: band.groundOffset + (k ? band.rise : 0),
+            body: null,
+          }))
+        : [];
       return {
         s: back + t.record * RECORD_METRES + t.ahead * POSITION_METRES,
         lateral,
-        sprite: {
-          image: board.name,
-          palette: board.palette,
-          lateral: 0,
-          groundOffset: 0,
-          body: bodyOf(t.hit, lateral, metresAcross, board.colored),
-        },
+        sprites: [...picture, ...across],
       };
     }).sort((a, b) => a.s - b.s || a.lateral - b.lateral);
     const at = (s: number) => s - back;
@@ -505,7 +543,9 @@ export function topSpeedCourses(set: RomSet) {
           strips: [...bands, ...lines, ...centreLines, ...notTakenParts.flatMap((n) => n.strips)],
           sprites: things
             .filter((t) => t.s >= span.from && (t.s < span.to || (span.to >= length - 1e-6 && t.s <= span.to)))
-            .map((t) => spriteElement({ ...t.sprite, at: positionAt(t.s), lateral: t.lateral })),
+            .flatMap((t) =>
+              t.sprites.map((sprite) => spriteElement({ ...sprite, at: positionAt(t.s), lateral: t.lateral })),
+            ),
           boundaries: notTakenParts.flatMap((n) => n.boundaries),
           outermost: [
             {

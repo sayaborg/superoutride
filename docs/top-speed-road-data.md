@@ -225,11 +225,17 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
     the byte's low 5 bits, its pattern its top 3 (S 0x6812 to 0x6886); right at the mask's rightmost lane's centre
     0x940 out and left at its leftmost's, each pushed out by its descriptor's word at S 0xC132 (S 0x68A6 to 0x68CE).
     The START gate, the CHECK POINT gates at the next stages' starts and the GOAL gate are roadside things;
-  - a tunnel's lamps by its parameter from 0x50, the code and the code 0x40 on, 0x600 left of the leftmost lane's
-    centre and 0x160 right of the rightmost's (S 0x6A60 to 0x6AE2);
+  - a tunnel's mouths by its parameter below 0x50, the code and the code 0x40 on, 0xB0 beyond its mask's outermost
+    lanes' centres, at the record's middle (S 0x6A60 to 0x6AA8); and its lamps by its parameter from 0x50, 0x600 left
+    of the leftmost lane's centre and 0x160 right of the rightmost's (S 0x6AAA to 0x6AE2);
   - a gantry by its event 6 at the lanes' middle, its code by the camera's section, odd or even (S 0x6B78).
 
-  A thing left of P whose head's byte 6 bit 7 is set shows the next descriptor (S 0x16634). A descriptor with no
+  A thing left of P whose head's byte 6 bit 7 is set shows the next descriptor (S 0x16634). A thing's pieces of a
+  fixed width (type 1: its wall continued outward, a negative offset its pixels and any other its step of 0, 0x80,
+  0x100 or 0x180 pixels, S 0x16A30 to 0x16A44) are drawn once in its picture at their full size, as a tunnel's mouth is
+  ([Strips](original-road-data.md#strips)); its pieces across the view (type 5, at screen columns 0, 112 and 240: a
+  tunnel's ceiling above its right mouth) are a band across the road at its lateral, floating at their height, its
+  last piece's columns extended outward each way (`topSpeedBands`, `topspeed-<index>-across`). A descriptor with no
   piece of its own zoom places no picture: the gates' right halves, which hold only their right posts' hits, and the
   flat things, laid as bands (default; K confirms at the stage's end). The things the original spawns on the branch
   not taken, and the GOAL gate it stands 12.3 m past the run's end on the next stage's records, are not placed
@@ -245,5 +251,5 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
 ## TOP SPEED's conversion
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
-crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things' 64
-pictures (`topspeed-<index>`) to `content/originals/images/` (`top-speed-course`; its conversion's version 5).
+crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
+pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 6).

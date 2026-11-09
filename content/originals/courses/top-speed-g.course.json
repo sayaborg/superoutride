@@ -33570,6 +33570,56 @@
       "openLimits": [],
       "sprites": [
         {
+          "kind": "sprite",
+          "image": "topspeed-057",
+          "palette": "p098",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": -9.535135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-056",
+          "palette": "p098",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-056-across",
+          "palette": "p098",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-056-across-band",
+          "palette": "p098",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-056-across-band-mirrored",
+          "palette": "p098",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
           "kind": "repeat",
           "every": 24.570807,
           "count": 4,
@@ -33577,7 +33627,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-062",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "s0", "offset": 24.570806 },
               "lateral": -13.67027,
               "groundOffset": 0,
@@ -33594,7 +33644,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-081",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "s0", "offset": 24.570806 },
               "lateral": 6.47027,
               "groundOffset": 0,
@@ -34103,6 +34153,56 @@
       "walls": [],
       "openLimits": [],
       "sprites": [
+        {
+          "kind": "sprite",
+          "image": "topspeed-079",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": -9.535135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-080",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-080-across",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-080-across-band",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-080-across-band-mirrored",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
         {
           "kind": "sprite",
           "image": "topspeed-097",
@@ -36716,6 +36816,56 @@
       "openLimits": [],
       "sprites": [
         {
+          "kind": "sprite",
+          "image": "topspeed-127",
+          "palette": "p099",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": -9.535135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-126",
+          "palette": "p099",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 2.335135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-126-across",
+          "palette": "p099",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 2.335135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-126-across-band",
+          "palette": "p099",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 2.335135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-126-across-band-mirrored",
+          "palette": "p099",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 2.335135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
           "kind": "repeat",
           "every": 24.570807,
           "count": 6,
@@ -36723,7 +36873,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-062",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "s0", "offset": 24.570806 },
               "lateral": -13.67027,
               "groundOffset": 0,
@@ -36740,7 +36890,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-062",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "c1", "offset": -12.285404 },
               "lateral": -13.67027,
               "groundOffset": 0,
@@ -36757,7 +36907,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-081",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "s0", "offset": 24.570806 },
               "lateral": 2.87027,
               "groundOffset": 0,
@@ -36774,7 +36924,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-081",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "c1", "offset": -12.285404 },
               "lateral": 2.87027,
               "groundOffset": 0,
@@ -37173,6 +37323,56 @@
       "walls": [],
       "openLimits": [],
       "sprites": [
+        {
+          "kind": "sprite",
+          "image": "topspeed-090",
+          "palette": "p100",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": -9.535135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091",
+          "palette": "p100",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 2.335135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091-across",
+          "palette": "p100",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 2.335135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091-across-band",
+          "palette": "p100",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 2.335135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091-across-band-mirrored",
+          "palette": "p100",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 2.335135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
         {
           "kind": "sprite",
           "image": "topspeed-019",
@@ -38640,6 +38840,56 @@
       "openLimits": [],
       "sprites": [
         {
+          "kind": "sprite",
+          "image": "topspeed-055",
+          "palette": "p159",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": -9.535135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-054",
+          "palette": "p159",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-054-across",
+          "palette": "p159",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-054-across-band",
+          "palette": "p159",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-054-across-band-mirrored",
+          "palette": "p159",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
           "kind": "repeat",
           "every": 24.570807,
           "count": 6,
@@ -38647,7 +38897,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-062",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "s0", "offset": 24.570806 },
               "lateral": -13.67027,
               "groundOffset": 0,
@@ -38659,7 +38909,7 @@
         {
           "kind": "sprite",
           "image": "topspeed-062",
-          "palette": "p160",
+          "palette": "p160+p100",
           "at": { "joint": "end", "offset": -12.285404 },
           "lateral": -13.67027,
           "groundOffset": 0,
@@ -38674,7 +38924,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-081",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "s0", "offset": 24.570806 },
               "lateral": 6.47027,
               "groundOffset": 0,
@@ -38686,7 +38936,7 @@
         {
           "kind": "sprite",
           "image": "topspeed-081",
-          "palette": "p160",
+          "palette": "p160+p100",
           "at": { "joint": "end", "offset": -12.285404 },
           "lateral": 6.47027,
           "groundOffset": 0,
@@ -39165,7 +39415,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-062",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "s0", "offset": 12.285403 },
               "lateral": -10.07027,
               "groundOffset": 0,
@@ -39182,7 +39432,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-081",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "s0", "offset": 12.285403 },
               "lateral": 6.47027,
               "groundOffset": 0,
@@ -39199,7 +39449,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-093",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "c1", "offset": -12.285403 },
               "lateral": -10.07027,
               "groundOffset": 0,
@@ -39216,7 +39466,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-094",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "c1", "offset": -12.285403 },
               "lateral": 6.47027,
               "groundOffset": 0,
@@ -40328,6 +40578,56 @@
       "walls": [],
       "openLimits": [],
       "sprites": [
+        {
+          "kind": "sprite",
+          "image": "topspeed-090",
+          "palette": "p100",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": -5.935135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091",
+          "palette": "p100",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091-across",
+          "palette": "p100",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091-across-band",
+          "palette": "p100",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091-across-band-mirrored",
+          "palette": "p100",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
         {
           "kind": "sprite",
           "image": "topspeed-025",
@@ -64320,6 +64620,56 @@
       "openLimits": [],
       "sprites": [
         {
+          "kind": "sprite",
+          "image": "topspeed-059",
+          "palette": "p098",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": -5.935135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-058",
+          "palette": "p098",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-058-across",
+          "palette": "p098",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-058-across-band",
+          "palette": "p098",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-058-across-band-mirrored",
+          "palette": "p098",
+          "at": { "joint": "c0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
           "kind": "repeat",
           "every": 24.570807,
           "count": 2,
@@ -64327,7 +64677,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-093",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "c0", "offset": 24.570806 },
               "lateral": -10.07027,
               "groundOffset": 0,
@@ -64344,7 +64694,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-094",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "c0", "offset": 24.570806 },
               "lateral": 6.47027,
               "groundOffset": 0,
@@ -65149,6 +65499,56 @@
       "walls": [],
       "openLimits": [],
       "sprites": [
+        {
+          "kind": "sprite",
+          "image": "topspeed-090",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": -5.935135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091-across",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091-across-band",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-091-across-band-mirrored",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 5.935135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
         {
           "kind": "sprite",
           "image": "topspeed-012",
@@ -74227,6 +74627,56 @@
       "openLimits": [],
       "sprites": [
         {
+          "kind": "sprite",
+          "image": "topspeed-061",
+          "palette": "p099",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": -5.935135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-060",
+          "palette": "p099",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 9.535135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-060-across",
+          "palette": "p099",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 9.535135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-060-across-band",
+          "palette": "p099",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 9.535135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-060-across-band-mirrored",
+          "palette": "p099",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 9.535135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
           "kind": "repeat",
           "every": 49.141613,
           "count": 2,
@@ -74234,7 +74684,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-062",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "s0", "offset": 24.570806 },
               "lateral": -10.07027,
               "groundOffset": 0,
@@ -74251,7 +74701,7 @@
             {
               "kind": "sprite",
               "image": "topspeed-081",
-              "palette": "p160",
+              "palette": "p160+p100",
               "at": { "joint": "s0", "offset": 24.570806 },
               "lateral": 10.07027,
               "groundOffset": 0,
@@ -74759,7 +75209,58 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "topspeed-079",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": -5.935135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-080",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 9.535135,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-080-across",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 9.535135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-080-across-band",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 9.535135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "topspeed-080-across-band-mirrored",
+          "palette": "p100",
+          "at": { "joint": "s0", "offset": 0 },
+          "lateral": 9.535135,
+          "groundOffset": 12.651737,
+          "unselectedLink": null,
+          "body": null
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "s0", "offset": 0 },

@@ -1,6 +1,7 @@
 /**
  * TOP SPEED's things' places and hits as its sub program spawns and tests them ([TOP SPEED road data](../../../docs/top-speed-road-data.md#its-things)):
- * each record's roadside things by its bytes 4 and 5, a gantry by its event 6 and a tunnel's lamps by its event 3,
+ * each record's roadside things by its bytes 4 and 5, a gantry by its event 6 and a tunnel's mouths and lamps by its
+ * event 3,
  * each at its pattern's offsets along the record, beside its mask's outermost lanes or at their middle, with its hit
  * box and the side of P a car meets it from; each found by the instructions that read it.
  */
@@ -47,6 +48,10 @@ function tables(sub: Uint8Array) {
     right: instruction(sub, 0x681c, [0x3c3c, null], "a right roadside thing's lateral (move.w)")[0],
     left: instruction(sub, 0x6840, [0x3c3c, null], "a left roadside thing's lateral (move.w)")[0],
     base: instruction(sub, 0x6886, [0x0642, null], "the roadside codes' base (addi.w)")[0],
+    mouthLeft: instruction(sub, 0x6a72, [0x3c3c, null], "a tunnel's left mouth's lateral (move.w)")[0],
+    mouthRight: instruction(sub, 0x6a90, [0x3c3c, null], "a tunnel's right mouth's lateral (move.w)")[0],
+    mouthPair: instruction(sub, 0x6a8a, [0x0642, null], "the right mouth's code (addi.w)")[0],
+    mouthPattern: instruction(sub, 0x6a82, [0x363c, null], "the mouths' pattern's row (move.w)")[0],
     lampLeft: instruction(sub, 0x6aac, [0x3c3c, null], "a tunnel's left lamp's lateral (move.w)")[0],
     lampRight: instruction(sub, 0x6aca, [0x3c3c, null], "a tunnel's right lamp's lateral (move.w)")[0],
     inside: instruction(sub, 0x6a6a, [0x0c02, null], "a tunnel's lamps' parameters (cmpi.b)")[0],
@@ -123,7 +128,12 @@ export function topSpeedPlacements(sub: Uint8Array) {
       const lateral = right ? rightmost(record.mask, t.right) + push : leftmost(record.mask, t.left) - push;
       place(code, byte >> 5, lateral, (index) => ({ middles: [0], half: box(index).half, ownSide: true }));
     }
-    // A tunnel's lamps, met by no car (their mouths, bands, are laid apart).
+    // A tunnel's mouths, met by no car (its walls its limits), beside the outermost lanes' centres.
+    if (record.event === TUNNEL && record.parameter && record.parameter < t.inside) {
+      place(record.parameter, t.mouthPattern >> 3, leftmost(record.mask, t.mouthLeft), () => null);
+      place(record.parameter + t.mouthPair, t.mouthPattern >> 3, rightmost(record.mask, t.mouthRight), () => null);
+    }
+    // A tunnel's lamps, met by no car.
     if (record.event === TUNNEL && record.parameter >= t.inside) {
       place(record.parameter, t.lampPattern >> 3, leftmost(record.mask, t.lampLeft), () => null);
       place(record.parameter + t.lampPair, t.lampPattern >> 3, rightmost(record.mask, t.lampRight), () => null);

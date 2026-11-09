@@ -14,10 +14,16 @@ import { BIG_SPRITE } from './top-speed-sprites.js';
 /** A head's bytes and a part's. */
 const HEAD_BYTES = 0x0e;
 const PART_BYTES = 0x0c;
-/** A piece's type of its zoom on both axes, the only one a picture is composed of; the others are bands (`fixed`). */
-const BOTH_SCALED = 0;
+/** The pieces' types the courses use: its zoom on both axes, its width fixed, and its width fixed at a screen column. */
+export const SCALED = 0;
+export const FIXED_WIDTH = 1;
+export const SCREEN_WIDE = 5;
 
-/** A piece at its full size: its big sprite and its palette, its cell's top left (pixels from the thing's point on the ground, down positive), its flips, and whether its zoom is fixed on an axis (its type other than 0). */
+/**
+ * A piece at its full size: its big sprite and its palette, its cell's top left (pixels from the thing's point on the
+ * ground, down positive; a screen-wide piece's x its screen column), its flips and its type: 0 its zoom on both axes, 1
+ * its width fixed (a band continued from its thing), 5 its width fixed at a screen column (a band across the view).
+ */
 export interface TopSpeedPiece {
   readonly sprite: number;
   readonly palette: number;
@@ -25,7 +31,7 @@ export interface TopSpeedPiece {
   readonly y: number;
   readonly flipX: boolean;
   readonly flipY: boolean;
-  readonly fixed: boolean;
+  readonly type: number;
 }
 
 /** A thing as its descriptor holds it: its pieces, the head's first, its size curve and its load record (0 none). */
@@ -48,6 +54,8 @@ function tables(sub: Uint8Array) {
   instruction(sub, 0x168d0, [0x47eb, HEAD_BYTES], "a head's bytes (lea $e(a3))");
   instruction(sub, 0x168e4, [0x362b, 0x0002, 0x0243, 0xfffe], "a part's y offset's word (move.w $2(a3), andi.w)");
   instruction(sub, 0x16902, [0x182b, 0x0006, 0x0244, 0x001c], "a part's type (move.b $6(a3), andi.w #$1c)");
+  instruction(sub, 0x16a30, [0x382b, 0x0004, 0x6b0e], "a fixed width's offset, pixels where negative (move.w, bmi)");
+  instruction(sub, 0x16a3a, [0x3a2b, 0x0008, 0x0245, 0x0180], "a fixed width's step (move.w $8, andi.w #$180)");
   return { indices: ih * 0x10000 + il, descriptors: dh * 0x10000 + dl };
 }
 
@@ -71,7 +79,7 @@ export function topSpeedThing(sub: Uint8Array, index: number): TopSpeedThing {
   const anchor = sword(sub, at + 4);
   const head = word(sub, at + 2);
   const pieces: TopSpeedPiece[] = [];
-  const piece = (w: number, x: number, y: number, flags7: number, flags8: number, fixed: boolean) =>
+  const piece = (w: number, x: number, y: number, flags7: number, flags8: number, type: number) =>
     w &&
     pieces.push({
       sprite: w & 0xff,
@@ -80,20 +88,23 @@ export function topSpeedThing(sub: Uint8Array, index: number): TopSpeedThing {
       y,
       flipX: !!(flags7 & 0x40),
       flipY: !!(flags8 & 0x80),
-      fixed,
+      type,
     });
-  piece(head, -anchor, -BIG_SPRITE, sub[at + 7]!, sub[at + 8]!, false);
+  piece(head, -anchor, -BIG_SPRITE, sub[at + 7]!, sub[at + 8]!, SCALED);
   for (let k = 1; k < count; k++) {
     const p = at + HEAD_BYTES + (k - 1) * PART_BYTES;
     const type = (sub[p + 6]! >> 2) & 7;
-    piece(
-      word(sub, p),
-      -anchor + BIG_SPRITE * (sword(sub, p + 4) >> 1),
-      -BIG_SPRITE - BIG_SPRITE * (sword(sub, p + 2) >> 1),
-      sub[p + 7]!,
-      sub[p + 8]!,
-      type !== BOTH_SCALED,
-    );
+    // Its x: a screen-wide piece's its word, a screen column; a fixed width's a negative word as pixels, else its
+    // offset and a step of its bytes 8 and 9 (S 0x16A30 to 0x16A44); any other's its offset.
+    const offset = sword(sub, p + 4);
+    const step = word(sub, p + 8) & 0x180;
+    const x =
+      type === SCREEN_WIDE
+        ? offset
+        : type === FIXED_WIDTH
+          ? -anchor + (offset < 0 ? offset : BIG_SPRITE * (offset >> 1) + step)
+          : -anchor + BIG_SPRITE * (offset >> 1);
+    piece(word(sub, p), x, -BIG_SPRITE - BIG_SPRITE * (sword(sub, p + 2) >> 1), sub[p + 7]!, sub[p + 8]!, type);
   }
   return {
     index,
