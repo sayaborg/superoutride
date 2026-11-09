@@ -16,6 +16,7 @@ import { AT_SPEED_COMMANDS } from './at-speed-commands.js';
 import { HEIGHT_TICKS_COMMANDS } from './height-ticks-commands.js';
 import { GOAL_TICKS_COMMANDS } from './goal-ticks-commands.js';
 import { RESEARCH_COMMANDS } from './research-commands.js';
+import { TOP_SPEED_COMMANDS } from './top-speed/top-speed-commands.js';
 
 /** Every registered original's commands by name, the one raising them all, and the checks across them. */
 const COMMANDS: RoadDataCommands = Object.freeze({
@@ -27,6 +28,7 @@ const COMMANDS: RoadDataCommands = Object.freeze({
   ...HEIGHT_TICKS_COMMANDS,
   ...GOAL_TICKS_COMMANDS,
   ...RESEARCH_COMMANDS,
+  ...TOP_SPEED_COMMANDS,
 });
 
 const [command, ...rest] = process.argv.slice(2);
