@@ -76,6 +76,12 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
 - **Its skies.** Each Section takes the sky in force at its start and each change within it at its record's start,
   at once (default, K confirms at the stage's end): the original wipes its horizon band in a column a frame over 44
   frames (M 0x894C) and copies a color set whole ([Its skies](#its-skies)).
+- **Its tunnels.** Where a tunnel's walls hold the car ([Its road across](#its-road-across)), the road and the sky are
+  dark, at once at the walls' ends (default; K confirms at the stage's end): the original darkens the road's lines
+  between its tunnel mouths' sprites' lines on the screen (M 0x3A0C, the sub program listing them, S 0x1689E), ORing
+  0xFFE0 into their raster words, which MAME's description reads as each pen's tunnel pen, 10 on, with no other shades
+  (a dark surface, a black ground, an orange inner band, grey lines and outer band, the dashes kept); and turns the
+  sky's lines to the black color set 0 by the sub program's flags (M 0x85F8 to 0x864A).
 - **Its bands.** As the road picture draws them ([Its road picture](#its-road-picture)): its body over its lanes, each
   edge's inner band from 0.073 m within the lanes to 0.219 m beyond them and its outer band on to 0.535 m, the ground
   beyond, and its lines 0.146 m wide about its lanes' sides within; at P the right half's line, its right half where
@@ -176,5 +182,5 @@ never set, so that it turns by its rows' scrolls alone: two bands of pictures ov
 ## TOP SPEED's conversion
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
-crest trials, and their 27 skies (`top-speed-sky-<horizon>-<clouds>-<set>`) to `content/originals/images/`
-(`top-speed-course`; its conversion's version 2).
+crest trials, and their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) to
+`content/originals/images/` (`top-speed-course`; its conversion's version 3).

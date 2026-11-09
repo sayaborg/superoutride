@@ -118,6 +118,8 @@ export interface LimitStretch {
   readonly to: number;
   readonly left: number;
   readonly right: number;
+  /** Whether a tunnel's walls hold the car there. */
+  readonly walled: boolean;
 }
 
 /**
@@ -132,6 +134,7 @@ export function limitStretches(sub: Uint8Array, records: readonly CourseRecord[]
   const metres = lateralMetres(sub);
   const out: LimitStretch[] = [];
   const push = (from: number, to: number, record: TopSpeedRecord, w: number) => {
+    const walledThere = w === wall;
     const set = BITS.map((bit, k) => ((record.mask >> bit) & 1 ? k : -1)).filter((k) => k >= 0);
     if (set.length === 0) throw romDiffers('A record sets no lane');
     const [left, right] = [
@@ -139,8 +142,9 @@ export function limitStretches(sub: Uint8Array, records: readonly CourseRecord[]
       (set.at(-1)! - CENTRE + 0.5) * LANE_METRES + w * metres,
     ];
     const last = out.at(-1);
-    if (last && last.left === left && last.right === right) out[out.length - 1] = { ...last, to };
-    else if (to > from) out.push({ from, to, left, right });
+    if (last && last.left === left && last.right === right && last.walled === walledThere)
+      out[out.length - 1] = { ...last, to };
+    else if (to > from) out.push({ from, to, left, right, walled: walledThere });
   };
   records.forEach(({ record }, i) => {
     const s = i * RECORD_METRES;

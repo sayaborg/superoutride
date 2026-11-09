@@ -41,13 +41,15 @@ import { hills, PENS, RASTER, stripeWords, topSpeedRoadColors, topSpeedRoadPictu
 import { assembleTopSpeedMain, assembleTopSpeedSub, assembleTopSpeedTiles } from './top-speed-rom.js';
 import { COURSES, courseSections, LANE_METRES, POSITION_METRES, readStages, STAGES } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 2;
+export const TOP_SPEED_CONVERSION_VERSION = 3;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
 const GO_LANE = 'd';
 /** A stage's records: five sections of 32. */
 const STAGE_RECORDS = 5 * 32;
+/** A pen's tunnel pen, 10 on (MAME's description). */
+const TUNNEL_PENS = 10;
 /** The road's material. */
 const ROAD: Material = 'ASPHALT';
 /** The sky's picture of a horizon picture, a cloud picture and a color set. */
@@ -138,12 +140,24 @@ export function topSpeedCourses(set: RomSet) {
     // Its limits' stretches at the course's stations, the first from its start.
     const along = stretches.map((x, i) => ({ ...x, from: i === 0 ? 0 : x.from + back, to: x.to + back }));
     const reach = Math.max(...stretches.map((s) => Math.max(Math.abs(s.left), Math.abs(s.right))));
-    // Its skies: its start's, then each change of picture or color set where its record starts, at once.
-    const skyKnots = skyChanges(main, records).map((c, i) => ({
-      s: i === 0 ? 0 : c.record * RECORD_METRES + back,
-      image: skyName(c.a, c.b, c.set),
-      sky: c,
-    }));
+    // Its tunnels, where their walls hold the car (`limitStretches`): its road and its sky dark there, at once at
+    // their ends (default; K confirms at the stage's end).
+    const tunnels = along.filter((x) => x.walled);
+    const inTunnel = (s: number) => tunnels.some((t) => s >= t.from - 1e-9 && s < t.to - 1e-9);
+    const tunnelEnds = tunnels.flatMap((t) => [t.from, t.to]);
+    // The stations where a record's colors or a tunnel may change, in order.
+    const changeStations = (starts: readonly number[]) =>
+      [...new Set([...starts, ...tunnelEnds])].filter((s) => s > 1e-9 && s < length - 1e-9).sort((a, b) => a - b);
+    // Its skies: its start's, then each change of picture or color set where its record starts, black (color set 0)
+    // in its tunnels, each at once.
+    const recordSkies = skyChanges(main, records);
+    const skyAt = (s: number) => {
+      const c = [...recordSkies].reverse().find((k) => k.record * RECORD_METRES + back <= s + 1e-9) ?? recordSkies[0]!;
+      return { a: c.a, b: c.b, set: inTunnel(s) ? 0 : c.set };
+    };
+    const skyKnots = [0, ...changeStations(recordSkies.slice(1).map((c) => c.record * RECORD_METRES + back))]
+      .map((s) => ({ s, sky: skyAt(s), image: skyName(skyAt(s).a, skyAt(s).b, skyAt(s).set) }))
+      .filter((k, i, all) => i === 0 || k.image !== all[i - 1]!.image);
     for (const k of skyKnots)
       if (!skies.has(k.image)) {
         skies.add(k.image);
@@ -160,17 +174,17 @@ export function topSpeedCourses(set: RomSet) {
       main,
       records.map((r) => r.record),
     );
-    const sets = records.map((r, i) => ({
-      set: colorSet(main, r.stage, r.section),
-      scene: r.record.scene,
-      hill: onHills[i]!,
-    }));
-    const setChanges = sets.flatMap((c, i) =>
-      i > 0 && JSON.stringify(c) !== JSON.stringify(sets[i - 1]) ? [{ at: back + i * RECORD_METRES, set: c }] : [],
-    );
+    const setAt = (s: number) => {
+      const i = Math.min(records.length - 1, Math.max(0, Math.floor(at(s) / RECORD_METRES + 1e-9)));
+      const r = records[i]!;
+      return { set: colorSet(main, r.stage, r.section), scene: r.record.scene, hill: onHills[i]!, tunnel: inTunnel(s) };
+    };
+    const setKnots = [0, ...changeStations(records.map((_, i) => back + i * RECORD_METRES))]
+      .map((s) => ({ s, set: setAt(s) }))
+      .filter((k, i, all) => i === 0 || JSON.stringify(k.set) !== JSON.stringify(all[i - 1]!.set));
     const colorRuns = colorStretches(
-      [sets[0]!, ...setChanges.map((c) => c.set)],
-      setChanges.map((c) => ({ at: c.at, length: 0 })),
+      setKnots.map((k) => k.set),
+      setKnots.slice(1).map((k) => ({ at: k.s, length: 0 })),
       0,
       length,
     );
@@ -179,26 +193,29 @@ export function topSpeedCourses(set: RomSet) {
     type Part = 'body' | 'ground' | 'line' | 'inner' | 'outer';
     const partColors =
       (part: Part) =>
-      (c: (typeof sets)[number]): readonly number[] =>
+      (c: ReturnType<typeof setAt>): readonly number[] =>
         (c.hill ? words.hill : words.flat).map((w) => {
-          const surface = roadColors.surface(c.set, c.scene);
-          const body = w & RASTER.surface ? shade(surface) : surface;
+          // In a tunnel each pen's tunnel pen (10 on), with no other shades (MAME's description).
+          const pen = (p: number) => roadColors.pen(c.hill, c.tunnel ? p + TUNNEL_PENS : p);
+          const surface = c.tunnel ? pen(PENS.surface) : roadColors.surface(c.set, c.scene);
+          const groundColor = c.tunnel ? pen(PENS.ground) : ground(c.set, c.scene);
+          const body = w & RASTER.surface && !c.tunnel ? shade(surface) : surface;
           const color =
             part === 'body'
               ? body
               : part === 'ground'
-                ? w & RASTER.ground
-                  ? shade(ground(c.set, c.scene))
-                  : ground(c.set, c.scene)
+                ? w & RASTER.ground && !c.tunnel
+                  ? shade(groundColor)
+                  : groundColor
                 : part === 'outer'
                   ? w & RASTER.outer
                     ? body
-                    : roadColors.pen(c.hill, PENS.outer)
+                    : pen(PENS.outer)
                   : w & RASTER.lines
                     ? body
-                    : roadColors.pen(c.hill, part === 'line' ? PENS.line : PENS.inner);
+                    : pen(part === 'line' ? PENS.line : PENS.inner);
           // Line 0x100's pen 1, which draws no lines, takes the surface's.
-          return rgb555Of(part === 'line' && c.hill ? body : color);
+          return rgb555Of(part === 'line' && c.hill && !c.tunnel ? body : color);
         });
     // A lane's width at `s`, at a cut the one after it, or with `before` the one before it.
     const laneWidthAt = (k: number, s: number, before = false) => {
@@ -340,7 +357,7 @@ export function topSpeedCourses(set: RomSet) {
         const outerBand = (from: number, to: number) => ({
           left: from,
           right: to,
-          colors: partColors('outer')(sets[Math.max(0, Math.floor(at(span.from) / RECORD_METRES + 1e-9))]!),
+          colors: partColors('outer')(setAt(span.from)),
           material: ROAD,
         });
         const set = LANES.map((_, k) => k).filter((k) => widthOf(k, span.from) > 0);
