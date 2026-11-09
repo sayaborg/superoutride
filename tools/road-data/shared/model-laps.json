@@ -4,7 +4,7 @@
     {
       "course": "pole-position-ii-fuji",
       "model": "fuji_1975_1983",
-      "inputs": "7879cf9b5dd4813727104979963c7931d26802d5d5c16cc37f652a793c3dc829",
+      "inputs": "c9b0509e2e9ee691c47059cbbf725550b519efec98a37749a76e37f918ad168a",
       "turnScale": 0.8680000000000001,
       "start": 3.554150449524059,
       "factors": [
@@ -15,7 +15,7 @@
     {
       "course": "pole-position-ii-suzuka",
       "model": "suzuka_1983_1984",
-      "inputs": "e792a2e2bdf312044613fda4ad991604c129a2a216265bac045247e564e2f51d",
+      "inputs": "5246ebdc04a331ac5de6853b9d680dbb10620291f2cd3f4efe3ed2fc03989ef5",
       "turnScale": 0.8160000000000001,
       "start": 73.8902383403447,
       "factors": [
@@ -31,7 +31,7 @@
     {
       "course": "pole-position-ii-seaside",
       "model": "long_beach_1982",
-      "inputs": "d03c95e6cf5a3d11844d909e7eb83d939122fc9dd6fba0d07c6a131d5a09b8fc",
+      "inputs": "6fe9d10a83c3a2ff98fed6383c98bb59e6b45aecfb701b3f0027cef0ecf9e68e",
       "turnScale": 0.8160000000000001,
       "start": 3416.0154433148273,
       "factors": [
@@ -48,7 +48,7 @@
     {
       "course": "final-lap-2-japan",
       "model": "suzuka_1985_1987",
-      "inputs": "0a2b3b0baed44d482071a98532019302b782bfe322da709779d62cce4d91ffe3",
+      "inputs": "6b8b347bf8dd65712f5e7b56115543edeae5ffa58398c96a80b9e63232f20ef1",
       "turnScale": 0.8360000000000001,
       "start": 5690.597796921405,
       "factors": [
@@ -65,7 +65,7 @@
     {
       "course": "final-lap-2-monaco",
       "model": "monaco_1986_1996",
-      "inputs": "611b8729cd9ed0636c45949f02f47faa9643871c0a616590ee1770ce225057dc",
+      "inputs": "d73e4916ac1d469a39ce4c037424120b93515b73517b57bd69f87d64a960da1c",
       "turnScale": 0.56,
       "start": 3192.1490142307794,
       "factors": [
@@ -79,7 +79,7 @@
     {
       "course": "final-lap-2-italy",
       "model": "monza_1976_1993",
-      "inputs": "d1e1141580dcb9dd25f82681edf3c25a073d8fb5fd5fff1aee873eaa03114f7e",
+      "inputs": "971f563ddbfee66ef91abfe06c8ea9d784aed6a0e35c439aa0b6fbf067e4de7b",
       "turnScale": 0.68,
       "start": 5301.974225670698,
       "factors": [

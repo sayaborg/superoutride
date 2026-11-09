@@ -431,13 +431,14 @@ position, and each widened turn's most; the road data commands report them.
 
 A curve table, a value at each interval of the road (as POLE POSITION II's), becomes straights and arcs (`curvePlan`,
 `curve-plan`) by one number, the course's turn scale s: an interval of value v and length l is an arc turning v × s × l
-radians, left positive, a straight where v is 0, and neighbouring intervals of one value are one piece. The table is
+radians, left positive, a straight where v is 0, and neighbouring intervals of one value are one piece. A record of its
+own length is one interval of that length (CONTINENTAL CIRCUS's); a table's intervals are otherwise alike. The table is
 read round as a loop (`curveRuns`): a run is the most intervals in turn of one sign, a corner one of values of one sign
 and a straight one of zeros, and the table's start parts no run. A course with no model takes its intervals' lengths
 from its clock (`metresAPosition`) and the turn scale that turns it once in its lap, 2π over its values' sum times its
 interval; a course with a model takes its runs' lengths and its turn scale from its model ([A lap on its
-model](#a-lap-on-its-model)). A road that closes no lap is not read round, its table's start and end parting it, and
-its turn scale is its original's farthest sky layer's (K, 2026-11-06): each value the pixels that layer turns over an
+model](#a-lap-on-its-model)). A road that closes no lap is not read round, its table's start and end parting it, and its
+turn scale is its original's farthest sky layer's (K, 2026-11-06): each value the pixels that layer turns over an
 interval, the scale 2π over a turn's pixels times the interval's length (`skyTurnPlan`), so that the road turns as the
 sky does, its sign, which way a positive value turns, its conversion's. No arc is tighter than its lanes' least radius
 (`leastLaneRadius`); a plan that would be stops its conversion.
@@ -449,9 +450,10 @@ FINAL LAP 2's JAPAN, MONACO and ITALY) is laid as the lap on its model (`model-l
 
 - **Runs.** Its curve table is read round as a loop, its runs as [Plan from a curve table](#plan-from-a-curve-table)'s.
   An interval's curvature is the course's turn scale times its value over the lap's mean interval (its model's length
-  over its table's intervals); the turn scale is not the scale across. Its corners keep each value's curvature and their
-  order, its straights stay straight, and only each run's length moves, all its intervals by one factor: a corner made
-  longer turns the more, and what lies within a run, the start line too, keeps its share of it.
+  over its table's intervals, a record of its own length counting its length in its original's units, `lengths`); the
+  turn scale is not the scale across. Its corners keep each value's curvature and their order, its straights stay
+  straight, and only each run's length moves, all its intervals by one factor: a corner made longer turns the more, and
+  what lies within a run, the start line too, keeps its share of it.
 - **Closed.** Its heading and place close exactly at its model's length, and it turns as many times as its model (once;
   a figure of eight none).
 - **Apart.** Where its model's road keeps off itself, so does the lap, by its original's road width (two lanes): of

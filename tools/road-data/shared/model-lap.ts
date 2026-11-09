@@ -23,9 +23,14 @@ import {
   type Linearized,
 } from './least-squares.js';
 
-/** What a lap on its model is solved from: its curve table from its start, its model, its road's width and least radius. */
+/**
+ * What a lap on its model is solved from: its curve table from its start, its model, its road's width and least radius.
+ * A table whose records are of their own lengths gives each its length, in its original's units; a table's intervals
+ * are otherwise alike.
+ */
 export interface LapInputs {
   readonly values: readonly number[];
+  readonly lengths?: readonly number[];
   readonly model: CourseModel;
   readonly roadWidth: number;
   readonly leastLaneRadius: number;
@@ -42,15 +47,15 @@ export interface LapAnswer {
 }
 
 /**
- * The SHA-256 of what a lap is solved from: its table's bytes, its model's geometry, its road's width and least radius,
+ * The SHA-256 of what a lap is solved from: its table's values and lengths, its model's geometry, its road's width and least radius,
  * and the procedure's numbers (`PROCEDURE`), so that an answer solved by another rule or procedure is stale.
  */
 export function lapDigest(inputs: LapInputs): string {
-  const table = Buffer.from(Int8Array.from(inputs.values).buffer).toString('hex');
   return createHash('sha256')
     .update(
       JSON.stringify({
-        table,
+        table: inputs.values,
+        lengths: inputs.lengths,
         model: inputs.model.geometry,
         roadWidth: inputs.roadWidth,
         leastLaneRadius: inputs.leastLaneRadius,
@@ -159,20 +164,26 @@ class ModelLap {
   /** Each interval's run. */
   readonly runOf: Int32Array;
   readonly n: number;
+  /** Each interval's own length, its original's units (1 where its table's intervals are alike). */
+  readonly own: Float64Array;
+  /** The lap's mean interval: its model's length over its table's, metres a unit of its own length. */
   readonly mean: number;
   /** A value's curvature at turn scale 1, a metre: the table's turns' sum of magnitudes at its mean is its model's. */
   readonly unit: number;
   constructor(readonly inputs: LapInputs) {
-    const { values, model } = inputs;
+    const { values, lengths, model } = inputs;
     this.n = values.length;
-    this.mean = model.length / this.n;
+    if (lengths && !(lengths.length === this.n && lengths.every((l) => Number.isFinite(l) && l > 0)))
+      throw contractUnmet("A curve table's lengths are its intervals' own, each more than 0");
+    this.own = Float64Array.from(lengths ?? values.map(() => 1));
+    this.mean = model.length / this.own.reduce((sum, l) => sum + l, 0);
     this.runs = curveRuns(values);
     this.runOf = new Int32Array(this.n);
     this.runs.forEach((run, k) => {
       for (let j = 0; j < run.count; j++) this.runOf[(run.from + j) % this.n] = k;
     });
     const modelTurn = model.path.elements.reduce((sum, e) => sum + Math.abs(e.turn), 0);
-    this.unit = modelTurn / values.reduce((sum, v) => sum + Math.abs(v), 0) / this.mean;
+    this.unit = modelTurn / values.reduce((sum, v, i) => sum + Math.abs(v) * this.own[i]!, 0) / this.mean;
   }
 
   /** The tightest radius at turn scale `scale`, whatever the runs' lengths. */
@@ -184,7 +195,10 @@ class ModelLap {
   intervals(answer: LapAnswer): { intervals: CurveInterval[]; scale: number } {
     const factors = answer.factors.map((a) => 2 ** a);
     return {
-      intervals: this.inputs.values.map((value, i) => ({ value, length: this.mean * factors[this.runOf[i]!]! })),
+      intervals: this.inputs.values.map((value, i) => ({
+        value,
+        length: this.mean * this.own[i]! * factors[this.runOf[i]!]!,
+      })),
       scale: answer.turnScale * this.unit,
     };
   }
@@ -227,7 +241,7 @@ class ModelLap {
     const sums = Array.from({ length: d ? runs : 0 }, () => new Float64Array(6));
     for (let i = 0; i < n; i++) {
       const r = this.runOf[i]!;
-      const length = mean * 2 ** p[r]!;
+      const length = mean * this.own[i]! * 2 ** p[r]!;
       const curvature = scale * this.unit * values[i]!;
       const half = (curvature * length) / 2;
       const chord = Math.abs(half) < 1e-9 ? length : (length * Math.sin(half)) / half;
