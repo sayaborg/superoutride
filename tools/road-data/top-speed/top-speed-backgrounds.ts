@@ -11,6 +11,10 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import type { SkyBand, SkyBands } from '../shared/sky-baking.js';
 import { rgb555Of } from '../taito/palette.js';
 import { tilePen } from '../taito/tc0100scn.js';
+import type { TopSpeedRecord } from './top-speed-road.js';
+
+/** A record's event a tunnel. */
+const TUNNEL = 3;
 
 /** A tile's pixels across and down, a picture's columns and the horizon band's pixels a turn. */
 const TILE = 8;
@@ -149,4 +153,65 @@ export function topSpeedSky(main: Uint8Array, gfx: Uint8Array, a: number, b: num
     seam: SKY_SEAM,
     ramp: { rows: [cloudColors[1]!], below: cloudColors[1]! },
   };
+}
+
+/** A course's record as its sky reads it: its record and its section, and its stage's. */
+interface SkyRecord {
+  readonly record: TopSpeedRecord;
+  readonly stage: number;
+  readonly section: number;
+}
+
+/** A sky along a course: from record `record` on, its horizon picture, its cloud picture and its color set. */
+export interface SkyChange {
+  readonly record: number;
+  readonly a: number;
+  readonly b: number;
+  readonly set: number;
+}
+
+/**
+ * Where a course's sky changes, from its start: the pictures a run starts with (M 0x744: the city and the white clouds,
+ * which each stage's start takes, M 0x2F20), the color set by its stage and section (`colorSet`), and each record
+ * whose word at 2 masked by 0x1C00 is 0x1000 or 0x1800 (M 0x890C to 0x891E), which changes the horizon picture to
+ * twice the word's bit 11 and the next record's byte 2's bit 4, and the cloud picture to that byte's bits 3 and 2 (the
+ * table at M 0x8A2A, M 0x8920 to 0x8936), the cloud picture only in a tunnel (M 0x8938 to 0x8944), a tunnel's record
+ * as the records give it.
+ */
+export function skyChanges(main: Uint8Array, records: readonly SkyRecord[]): SkyChange[] {
+  const [start, startB] = instruction(main, 0x744, [0x23fc, null, null, 0x0040, 0x0038], "a run's pictures (move.l)");
+  instruction(main, 0x2f20, [0x23f9, 0x0040, 0x0038, 0x0040, 0x1180], "a stage's pictures (move.l)");
+  const [field, first, second] = instruction(
+    main,
+    0x8910,
+    [0x0240, null, 0x0c40, null, 0x6706, 0x0c40, null],
+    'a change record (andi.w, cmpi.w)',
+  );
+  const [high] = instruction(
+    main,
+    0x8920,
+    [0x0240, null, 0xec48],
+    "the field's high bit, 8 entries (andi.w, lsr.w #6)",
+  );
+  const [displacement] = instruction(main, 0x8926, [0x49fa, null], "the pictures' table (lea)");
+  instruction(main, 0x892e, [0x102b, 0x0008, 0x0200, 0x001c], "the next record's field (move.b, andi.b)");
+  instruction(main, 0x8938, [0x4a68, 0x003c, 0x670c], 'the cloud picture only in a tunnel (tst.w, beq.b)');
+  // The field is a record's word at 2's bits 12 to 10, its scene.
+  if (field !== 0x1c00 || high !== 0x800) throw romDiffers("TOP SPEED's sky changes are not its records' field's");
+  const changing = [first, second].map((w) => w >> 10);
+  const table = 0x8928 + displacement;
+  const out: SkyChange[] = [];
+  let [a, b] = [start, startB];
+  records.forEach(({ record, stage, section }, i) => {
+    const next = records[i + 1]?.record;
+    if (next && changing.includes(record.scene)) {
+      const entry = table + 4 * ((record.scene & (high >> 10) ? 8 : 0) + next.scene);
+      a = word(main, entry);
+      if (record.event === TUNNEL) b = word(main, entry + 2);
+    }
+    const set = colorSet(main, stage, section);
+    const last = out.at(-1);
+    if (!last || last.a !== a || last.b !== b || last.set !== set) out.push({ record: i, a: a!, b: b!, set });
+  });
+  return out;
 }

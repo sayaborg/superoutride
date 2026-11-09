@@ -131,4 +131,8 @@ never set, so that it turns by its rows' scrolls alone: two bands of pictures ov
   stage plus 1, one more from the camera's section 7 on, a path's last and its goal (M 0x4898, `colorSet`).
 - **Their changes.** The pictures start at the city and the white clouds (3 and 2) and carry over from stage to stage;
   a record whose word at 2 masked by 0x1C00 is 0x1000 or 0x1800 changes them by the next record's byte 2 (M 0x88BE, the
-  table at M 0x8A2A), the horizon band at once and the cloud band only in a tunnel. The courses read where (TA-10).
+  table at M 0x8A2A), the horizon band at once and the cloud band only in a tunnel, which the sub program's flags tell
+  the main program as the run goes; a course takes the cloud band's change where its change record is a tunnel's (its
+  event 3), as the records give it (`skyChanges`; default, K confirms at the stage's end). Every change record but the
+  goal sections' lies in a tunnel; the goal sections' change the horizon band alone. Along the seven courses the sky
+  changes 15 to 17 times, of 27 skies.
