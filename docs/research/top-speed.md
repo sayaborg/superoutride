@@ -46,3 +46,9 @@ Read statically; MAME's driver (commit 9c0b6db1) for the hardware alone.
 - The car's limits are its outer lanes' centres ± 0xDE0 (S 0x6354), off the road beyond ± 0x3E0 and half off from
   ± 0x2E0 (S 0x5DFE), a tunnel's walls ± 0x1E0 (S 0x75EE), as CHASE H.Q.'s; the half not taken at a fork slides out to
   0x2800 positions (M 0x5F62).
+
+## Heights
+
+- S keeps a car's height as its record's base, which takes the record before it's grade × 0x100 as the record changes
+  (S 0x582C to 0x5836), and the record's grade × 8 × the position's step within it (S 0x5942 to 0x595E), so a height
+  rises straight through a record; neither program clamps a grade or blends one into the next.

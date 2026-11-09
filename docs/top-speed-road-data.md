@@ -56,6 +56,15 @@ records of 8 bytes a section, each section its next for the left and for the rig
   the camera, turns it round and stands it at 0x260 (1.82 m), lane d (S 0x5344, 0x7C7E to 0x7D58, 0x7CF2), before the
   count to GO (S 0x7BE0).
 
+## Its heights
+
+A course's heights are a [rise table](original-road-data.md#profile-from-a-rise-table)'s (`top-speed-heights`): the sub
+program gives a car its record's base, each record before it adding its grade × 0x100 height units, and the record's
+grade × 8 at each step of 0x100 positions into it (S 0x5942 to 0x595E), with no limit on the grade and no blending
+between records. So each step's grade is its record's, 8 height units a step a unit of grade, a height unit 2.884 mm
+(the main program's pitch at M 0x75C8 read back through its eye, whose focal length is 266 pixels), a step 0.768 m:
+the rise table's resolution is 3.0 % a unit of grade.
+
 ## Its skies
 
 TOP SPEED's sky is the second PC080SN's bottom layer ([research notes](research/top-speed.md#the-sky)), its x scroll
