@@ -7,7 +7,8 @@ import { courseImageFile } from '../../graphics/sprite-import.js';
 import { keptColors, type Color } from '../../graphics/screen-pictures.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { romDiffers } from '../shared/conversion-errors.js';
-import { boardMaster, chosenGrid, coloredColumns, texelsAPixel, turned } from '../shared/pixel-grid.js';
+import { bandBoards } from '../shared/band-boards.js';
+import { boardMaster, coloredColumns, paletteName, texelsAPixel } from '../shared/pixel-grid.js';
 import { partsOnGrid, pictureParts, type ExtractPicture } from '../shared/sprite-rules.js';
 import { PIXEL_ASPECT } from '../namco-system-2/display.js';
 import { SPRITE_CLEAR, SPRITE_SIZE, spritePens } from '../namco-system-2/sprites.js';
@@ -159,55 +160,15 @@ export function underpassBoards(p: FinalLap2, c: number, pixel: number) {
     base: source.height - 1 - layout.y,
     reason: "the slave's layout's base point",
   });
-  const grid = partsOnGrid(source, parts, texels.across, texels.down);
-  // The grid's columns, as `partsOnGrid` chose them: the sprites' from their left edge to their right.
-  const { columns } = chosenGrid(source.pixels, source.width, texels.across, texels.down);
-  const before = (x: number) => columns.filter((column) => column < x).length;
-  const [left, right] = [before(BAND_BESIDE), before(BAND_BESIDE + width)];
-  const point = before(BAND_BESIDE + layout.x);
-  const slice = (from: number, to: number, top = 0) =>
-    Array.from({ length: (grid.height - top) * (to - from) }, (_, k) => {
-      const [y, x] = [top + Math.floor(k / (to - from)), from + (k % (to - from))];
-      return grid.indices[y * grid.width + x]!;
-    });
-  const master = boardMaster(
-    UNDERPASS_NAMES.joined,
-    { width: right - left, height: grid.height },
-    slice(left, right),
-    { x: point - left - 0.5, y: grid.anchorY },
-    [0],
-    () => colors,
+  const { picture: master, bands } = bandBoards(
+    { picture: UNDERPASS_NAMES.joined, band: UNDERPASS_NAMES.band, mirrored: UNDERPASS_NAMES.mirrored },
+    source,
+    parts,
+    [BAND_BESIDE, BAND_BESIDE + width],
+    BAND_BESIDE + layout.x,
+    texels,
+    [{ name: paletteName(0), colors }],
   );
-  // The band: the right one's columns, from its first row holding a pixel; the left one its mirror.
-  const band = slice(right, grid.width);
-  const across = grid.width - right;
-  let top = 0;
-  while (top < grid.height && band.slice(top * across, (top + 1) * across).every((v) => !v)) top++;
-  const rows = { width: across, height: grid.height - top };
-  const bandIndices = slice(right, grid.width, top);
-  if (bandIndices.some((v) => !v)) throw new Error("The underpass's band has a hole");
-  const bands = [
-    boardMaster(
-      UNDERPASS_NAMES.band,
-      rows,
-      bandIndices,
-      { x: point - right - 0.5, y: grid.anchorY - top },
-      [0],
-      () => colors,
-      {
-        extend: 'right',
-      },
-    ),
-    boardMaster(
-      UNDERPASS_NAMES.mirrored,
-      rows,
-      turned(bandIndices, across, true),
-      { x: across + point - left - 0.5, y: grid.anchorY - top },
-      [0],
-      () => colors,
-      { extend: 'left' },
-    ),
-  ];
   const sprites = {
     width,
     height,
@@ -217,7 +178,7 @@ export function underpassBoards(p: FinalLap2, c: number, pixel: number) {
     name: UNDERPASS_NAMES.joined,
     colored: coloredColumns(sprites.pixels, width) * pixel,
     reach: reach(sprites, layout.x, pixel),
-    width: (right - left) / SPRITE_SOURCE_TEXELS_PER_METER,
+    width: master.width / SPRITE_SOURCE_TEXELS_PER_METER,
     distinct,
     replaced,
     image: courseImageFile(master),

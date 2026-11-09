@@ -36,7 +36,8 @@ holds and links the section here that states its rule; this is their one map.
   - _pictures_: the originals' pixels on this game's texel grid (`pixel-grid`: a pixel's texels at its width in metres
     and its original's aspect, its pixels by [chosen lines](#chosen-lines) `chosenLines`, a picture turned as shown,
     palettes' names and a board's master), the [sprites' rules](#pictures-from-the-extract) (`sprite-rules`: a picture
-    of the extract made its body, its shadow frame and its base), and a background baked into one sky
+    of the extract made its body, its shadow frame and its base), a picture and the band it lies in cut from one grid
+    ([`band-boards`](#strips)), and a background baked into one sky
     ([`sky-baking`](#sky-baking));
   - _writing_: a course document by the course format's types, its Links one rule (`course-writing`); how Sections
     are written by the format's types (`section-writing`: knots simplified, a sprite element, a Strip, a lane's
@@ -968,7 +969,8 @@ SPEED's (K, 2026-11-06).
 
 ### Strips
 
-A strip, OUTRUN's or TURBO OUTRUN's, is drawn from its edge nearest the road outward, a size for each depth (each
+OUTRUN's and TURBO OUTRUN's strips, and the bands every original draws fixed on the screen (below), are boards of this
+rule. A strip, OUTRUN's or TURBO OUTRUN's, is drawn from its edge nearest the road outward, a size for each depth (each
 chapter's strips). Its board (`stripBoard`, `strips.ts`) is made from its nearest size, its edge nearest the road on the
 left (a mirrored one's columns mirrored), by [the sprites' rules](#pictures-from-the-extract): a looping one casts no
 shadow, its pen 10 a color (K, 2026-10-28), and any other is one picture by those rules as every other picture is. How it meets the ground is K's table's (K,
@@ -987,6 +989,18 @@ the board's base point across. Whether it loops is K's decision by what it shows
   edge on its side the farthest picture on the ground (at height 0) reaches: a picture's outer edge is its base point
   and half its width, a strip's its edge nearest the road and its nearest picture's colored columns outward, not its
   board, whose width the reach decides. Each original's reach is its chapter's.
+- **Bands fixed on the screen** (K, 2026-11-06). Pieces an original draws at a width or a period on the screen whatever
+  their distance (the TAITO originals' among them) are boards of this rule too, outside [things of several
+  pieces](#things-of-several-pieces) and with no body, each extended (`extend`), repeating to the frame's edge in its
+  plane as the original's reach the screen's edge. A band across the road stands at its thing's station, floating at
+  the original's height (`groundOffset`) or standing: its picture, the original's pieces drawn once at their full size
+  as a thing's are, its middle the thing's lateral; and beyond each of its edges its band, the columns of its outermost
+  piece or of the piece the original repeats, from its first row holding a pixel to its last, a board extending outward,
+  the left one mirrored, all cut from one texel grid so that their rows agree, a band standing as much higher than the
+  picture as its last row lies above the picture's base (`bandBoards`, as FINAL LAP 2's underpass and its bank are
+  laid). Letters and tunnel
+  mouths are not repeated: their picture alone is drawn. That the original's bands keep their width and period on the
+  screen however near, where a board shrinks with distance, is a replacement that cannot be avoided, each chapter's.
 
 ### Chosen lines
 

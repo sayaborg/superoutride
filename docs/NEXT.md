@@ -503,14 +503,9 @@ K's decisions (2026-11-05):
   original draws from a description for each side keeps a picture for each side, unmirrored. Each PR of things (TA-8,
   TA-11, TA-16) writes in its chapter where the original's code decides what it puts out at once, its drawing order and
   its rounding.
-- **Bands fixed on the screen** (K, 2026-11-06), pieces an original draws at a width or a period on the screen whatever
-  their distance, are boards of [the strips' rule](original-road-data.md#strips), outside things of several pieces and
-  with no body, each extended (`extend`), repeating to the frame's edge in its plane as the original's reach the
-  screen's edge. One form is added, a band across the road: from its middle, the thing's lateral, a board outward each
-  way, the left one mirrored, floating at the original's height (`groundOffset`) or standing, the format and the drawing
-  as they are. A band's picture is the original's pieces drawn once at full size, as a thing's are, and repeated beyond
-  by its outermost piece, or by the piece the original repeats (CONTINENTAL CIRCUS's 128-pixel period); letters and
-  tunnel mouths are not repeated. CONTINENTAL CIRCUS's side faces (its type 0 and zone 0x8003) are looping strips as
+- **Bands fixed on the screen** (K, 2026-11-06) are boards of [the strips' rule](original-road-data.md#strips), the band
+  across the road among them, its band the piece the original repeats where it repeats one (CONTINENTAL CIRCUS's
+  128-pixel period). CONTINENTAL CIRCUS's side faces (its type 0 and zone 0x8003) are looping strips as
   they are; MONACO's tunnel ceiling (type −1, 30 beams about 23.6 m apart) is bands across the road at the original's
   height; CHASE H.Q.'s full-width pieces (its gates' centres, its tunnel mouths and its kinds 0x500 to 0x57F) are bands
   across the road, clear where the road passes ([Tunnels](content-and-gameplay.md#tunnels)); TOP SPEED's stage gates'
@@ -519,10 +514,7 @@ K's decisions (2026-11-05):
   across the road, the steps so fine that the eye at the player's height sees nothing through them, their count TA-16's,
   as [Tunnels](content-and-gameplay.md#tunnels) and Suzuka's crossing in [Reference and remaster
   goals](#reference-and-remaster-goals) are drawn with ordinary boards; its crossing road is no bridge, the passages not
-  drawn to each other and its heights the ROM's. That the original's bands keep their width and period on the screen
-  however near, where a board shrinks with distance, is a replacement that cannot be avoided, each chapter's. TA-8
-  writes the band across the road and a band's picture into the strips' rule, its opening naming the TAITO originals'
-  bands too; OUTRUN's and TURBO OUTRUN's strips stay as they are.
+  drawn to each other and its heights the ROM's.
 - **CONTINENTAL CIRCUS's models** are the circuits the original drew, in the shapes its lengths and corners show, as
   POLE POSITION II's SEASIDE is Long Beach in 1982 for a 1983 original: the circuits whose lengths its ROM lists (at
   0x046FA). BRAZIL is Jacarepaguá (5.031 km); AMERICA Watkins Glen as it was from 1975 to 1985 (5.435 km), its esses
@@ -605,10 +597,10 @@ before TA-18 (K, 2026-11-09).
 The PRs, in order:
 
 - **TA-8** CHASE H.Q.'s objects, continued: the things its tunnels' and gates' records place, their full-width pieces
-  bands across the road, with the bands fixed on the screen, the band across the road among them, in [the strips'
-  rule](original-road-data.md#strips); the dark stretch the main program sets from an object's place among them; its
-  dustbins and their like movable where the original knocks them away, which stand without a body until then and
-  whose pictures the original draws no shadow for (default; K confirms at the stage's end).
+  bands across the road ([the strips' rule](original-road-data.md#strips)); the dark stretch the main program sets from
+  an object's place among them; its dustbins and their like movable where the original knocks them away, which stand
+  without a body until then and whose pictures the original draws no shadow for (default; K confirms at the stage's
+  end).
 - **TA-12, TA-10 and TA-11** TOP SPEED: its skies (the PC080SN tile layers' reader as its skies need it); its seven
   courses without objects (the reader's road and the course tables' reader shared with CHASE H.Q.); its objects.
 - **TA-13** [A course's model](original-road-data.md#rules-of-the-originals) as the circuit the original drew, in the
