@@ -22,7 +22,7 @@ holds and links the section here that states its rule; this is their one map.
     model](#a-lap-on-its-model): K's models (`course-models`, the folder `course-sources/`), the lap laid, measured and
     solved (`model-lap`, by `least-squares`) and the answers kept (the file `model-laps.json`);
   - _the profile_: the profile and a Section's profile knots (`road-profile`), a rise table's profile (`rise-profile`), a jump's or a dip's mound and its slopes' colors (`jump-mound`), where a road passes
-    over itself (`overpasses`: its cells, and what stands on another passage), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
+    over itself (`overpasses`: its cells, what stands on another passage, and where a plan crosses itself), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
     pieces K's researcher solved and their reader (`screen-pieces`, the file `screen-pieces.json`);
   - _across_: a function of the road position in straight pieces (`piecewise-linear`: a road width or an offset), a lateral
@@ -92,7 +92,7 @@ holds and links the section here that states its rule; this is their one map.
   (`chase-hq/`) are its main and sub programs' and tile, road and sprite ROMs (`chase-hq-rom`), its things' pieces
   and a pixel's laterals at their full size (`chase-hq-things`), its things' places and hits (`chase-hq-objects`) and pictures (`chase-hq-boards`), its course
   tables and road
-  position (`chase-hq-road`), its heights (`chase-hq-heights`), its plan and where it crosses itself (`chase-hq-plan`),
+  position (`chase-hq-road`), its heights (`chase-hq-heights`), its plan (`chase-hq-plan`),
   its road's picture at its nearest row (`chase-hq-road-picture`), its road across, its lanes, limits, bands and
   materials (`chase-hq-road-across`), its skies' bands and their changes (`chase-hq-backgrounds`), its conversion
   (`chase-hq-course`), its dump (`chase-hq-dump`), its commands (`chase-hq-commands`) and its goals run on its code

@@ -1,7 +1,9 @@
 /**
  * Where a road passes over itself ([Original road data](../../../docs/original-road-data.md#profile)): its cells, which
- * of them overlap, and what stands on another passage, whether two convex polygons overlap.
+ * of them overlap, and what stands on another passage, whether two convex polygons overlap, and where a plan crosses
+ * itself.
  */
+import { CoursePath, type PathPiece } from './course-path.js';
 import { PASSAGES_APART } from './shared-constants.js';
 
 /** The side of the squares a road's cells are found by, metres. */
@@ -93,4 +95,32 @@ export function roadCells(
       );
     },
   };
+}
+
+/** Where two passages of a course cross: their stations, metres along it, the first the nearer its start. */
+export type Crossing = readonly [number, number];
+
+/**
+ * Where the plan `pieces` crosses itself up to `to` metres: each pair of its line's stretches `step` metres long at least
+ * `PASSAGES_APART` apart along it that meet, their meeting point's stations, a crossing found in two neighbouring
+ * stretches once.
+ */
+export function crossings(pieces: readonly PathPiece[], to: number, step: number): Crossing[] {
+  const path = new CoursePath(pieces);
+  const cells = roadCells(path, { from: 0, to, step, sides: () => [0, 0] });
+  const out: [number, number][] = [];
+  for (const [a, b] of cells.pairs) {
+    const p = [path.aside(a, 0), path.aside(Math.min(to, a + step), 0)];
+    const q = [path.aside(b, 0), path.aside(Math.min(to, b + step), 0)];
+    const [dx, dy, ex, ey] = [p[1]!.x - p[0]!.x, p[1]!.y - p[0]!.y, q[1]!.x - q[0]!.x, q[1]!.y - q[0]!.y];
+    const den = dx * ey - dy * ex;
+    if (den === 0) continue;
+    const [fx, fy] = [q[0]!.x - p[0]!.x, q[0]!.y - p[0]!.y];
+    const t = (fx * ey - fy * ex) / den,
+      v = (fx * dy - fy * dx) / den;
+    if (t < 0 || t > 1 || v < 0 || v > 1) continue;
+    const c: [number, number] = [a + t * step, b + v * step];
+    if (!out.some((o) => Math.abs(o[0] - c[0]) < step && Math.abs(o[1] - c[1]) < step)) out.push(c);
+  }
+  return out;
 }

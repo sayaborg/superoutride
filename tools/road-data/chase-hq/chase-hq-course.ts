@@ -19,6 +19,7 @@ import { CoursePath } from '../shared/course-path.js';
 import { crestTrials } from '../shared/crest-trials.js';
 import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
 import { laneWidths } from '../shared/lane-mask.js';
+import { crossings } from '../shared/overpasses.js';
 import { riseProfile, tableHeight } from '../shared/rise-profile.js';
 import { layRoad } from '../shared/road-layout.js';
 import { bendOf, profileOf } from '../shared/road-profile.js';
@@ -49,7 +50,7 @@ import {
 import { chaseHqBands, chaseHqBoards, chaseHqKeptPieces } from './chase-hq-boards.js';
 import { CHASE_HQ_GOALS, TOP_SPEED } from './chase-hq-goals.js';
 import { gradeResolution, STEP_METRES, stepGrades } from './chase-hq-heights.js';
-import { coursePieces, crossings, RECORD_METRES } from './chase-hq-plan.js';
+import { coursePieces, RECORD_METRES } from './chase-hq-plan.js';
 import {
   drawnMask,
   groundAlong,
@@ -312,7 +313,7 @@ export function chaseHqCourses(set: RomSet) {
         }));
       });
       const standing = [...things, ...passages].sort((a, b) => a.s - b.s || a.lateral - b.lateral);
-      const crossed = crossings(pieces, back + goal);
+      const crossed = crossings(pieces, back + goal, STEP_METRES);
       // Its heights: the sub program's grades a step, its passages and its start fixed points.
       const grades = stepGrades(
         main,
