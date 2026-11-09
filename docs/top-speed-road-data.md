@@ -229,6 +229,12 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
     lanes' centres, at the record's middle (S 0x6A60 to 0x6AA8); and its lamps by its parameter from 0x50, 0x600 left
     of the leftmost lane's centre and 0x160 right of the rightmost's (S 0x6AAA to 0x6AE2);
   - a gantry by its event 6 at the lanes' middle, its code by the camera's section, odd or even (S 0x6B78).
+  - water by its event 1 or 2, right or left, its code 0x61 and the camera's color set, 0x1190 beyond the rightmost
+    lane's centre or 0xCF0 beyond the leftmost's (S 0x6A18 to 0x6A5E), bumping a car alone. Its descriptor is two
+    pieces of a fixed width on the screen, flat on the ground from its lateral outward, its shore and its water; it is
+    laid as the ground's Strips from its lateral outward over its records, its shore a piece wide at the flat things'
+    full size (3.0 m) and its water beyond, each its piece's most frequent color: a replacement that cannot be avoided,
+    as its strips keep their width on the screen.
   - an overpass by its event 4: its near face at the record's middle and its far face 0xE80 positions (11.1 m)
     beyond, each a deck at P, the codes 0x58 and 0x98 and twice the stage, and six posts a position nearer from
     0x800 every 0x3000 laterals (S 0x6AE4 to 0x6B6A), the two nearest P met each from its side and the others by none
@@ -244,10 +250,10 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   ([Strips](original-road-data.md#strips)); its pieces across the view (type 5, at screen columns 0, 112 and 240: a
   tunnel's ceiling above its right mouth) are a band across the road at its lateral, floating at their height, its
   last piece's columns extended outward each way (`topSpeedBands`, `topspeed-<index>-across`). A descriptor with no
-  piece of its own zoom places no picture: the gates' right halves, which hold only their right posts' hits, and the
-  flat things, laid as bands (default; K confirms at the stage's end). The things the original spawns on the branch
-  not taken, and the GOAL gate it stands 12.3 m past the run's end on the next stage's records, are not placed
-  (default; K confirms at the stage's end).
+  piece places no picture: the gates' right halves, which hold only their right posts' hits. The flat things but water (the roadside ground patches, type
+  0x1F) and the cloud banks a record's byte 7 sets behind the ground (S 0x6BB0) are not placed, nor the things the
+  original spawns on the branch not taken, nor the GOAL gate it stands 12.3 m past the run's end on the next stage's
+  records (default; K confirms at the stage's end).
 
 - **Its hit.** A car meets a thing within its box, the long at S 0xBC32 by its descriptor with 0x100 added to each
   word, its low word the half width and its high word the depth ahead of it (S 0x7738 to 0x7746): a roadside thing
@@ -260,4 +266,4 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
-pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 7).
+pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 8).

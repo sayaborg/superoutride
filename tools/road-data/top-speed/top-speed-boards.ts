@@ -180,3 +180,19 @@ export function topSpeedBands(
       };
     });
 }
+
+/**
+ * Water's colors, RGB555: each of its descriptor's pieces' most frequent color, its shore's (its first piece) and its
+ * water's (its next), as their palettes and its load record leave them.
+ */
+export function waterColors(main: Uint8Array, sub: Uint8Array, gfx: Uint8Array, index: number): readonly number[] {
+  const palettes = thingPalettes(main);
+  const thing = topSpeedThing(sub, index);
+  const map = topSpeedSpriteMap(main, sub, thing.load ? [thing.load] : []);
+  return thing.pieces.map((p) => {
+    const counts = new Map<number, number>();
+    for (const pen of topSpeedBigSprite(gfx, map, p.sprite)) if (pen) counts.set(pen, (counts.get(pen) ?? 0) + 1);
+    const pen = [...counts].reduce((a, b) => (b[1] > a[1] ? b : a))[0];
+    return palettes(p.palette)[pen]!;
+  });
+}

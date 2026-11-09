@@ -41,13 +41,13 @@ import {
 } from './top-speed-road-across.js';
 import { hills, PENS, RASTER, stripeWords, topSpeedRoadColors, topSpeedRoadPicture } from './top-speed-road-picture.js';
 import { assembleTopSpeedMain, assembleTopSpeedSub, assembleTopSpeedTiles } from './top-speed-rom.js';
-import { topSpeedBands, topSpeedBoards } from './top-speed-boards.js';
+import { topSpeedBands, topSpeedBoards, waterColors } from './top-speed-boards.js';
 import { topSpeedPlacements, type TopSpeedHit } from './top-speed-objects.js';
-import { assembleTopSpeedSprites } from './top-speed-sprites.js';
+import { assembleTopSpeedSprites, BIG_SPRITE } from './top-speed-sprites.js';
 import { pixelLaterals, SCREEN_WIDE, topSpeedThing } from './top-speed-things.js';
 import { COURSES, courseSections, LANE_METRES, POSITION_METRES, readStages, STAGES } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 7;
+export const TOP_SPEED_CONVERSION_VERSION = 8;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -56,6 +56,7 @@ const GO_LANE = 'd';
 const STAGE_RECORDS = 5 * 32;
 /** The standing things' size curve, the records a thing is spawned ahead of the camera (S 0x65C6), and P's lateral. */
 const STANDING_CURVE = 1;
+const FLAT_CURVE = 0;
 const SPAWN_AHEAD = 5;
 const P = 0x8000;
 /** A pen's tunnel pen, 10 on (MAME's description). */
@@ -105,20 +106,39 @@ export function topSpeedCourses(set: RomSet) {
   const sprites = assembleTopSpeedSprites(set);
   const metresAcross = lateralMetres(sub);
   const pixel = pixelLaterals(sub, STANDING_CURVE) * metresAcross;
-  const placed = Array.from({ length: COURSES }, (_, course) => {
+  // Each course's placements, the camera's record five behind the one it spawns (its section and color set).
+  const spawned = Array.from({ length: COURSES }, (_, course) => {
     const recs = courseRecords(courseSections(stages, course));
-    return recs.flatMap((r, i) =>
-      place(r.record, r.stage, r.section, recs[Math.max(0, i - SPAWN_AHEAD)]!.section).flatMap((p) => {
+    return recs.flatMap((r, i) => {
+      const camera = recs[Math.max(0, i - SPAWN_AHEAD)]!;
+      return place(r.record, r.stage, r.section, camera.section, colorSet(main, camera.stage, camera.section)).map(
+        (p) => ({ record: i, ...p }),
+      );
+    });
+  });
+  const placed = spawned.map((things) =>
+    things.flatMap((p) => {
+      if (p.water) return [];
+      {
         const thing = topSpeedThing(sub, p.index);
         // Its picture: the next descriptor's where it stands left of P and has one (S 0x16634 to 0x1664A).
         const shown = thing.leftVariant && p.lateral < P ? p.index + 1 : p.index;
         const pictured = topSpeedThing(sub, shown);
         // A flat thing (its size curve not the standing things') is not placed; an empty one neither.
         if (pictured.curve !== STANDING_CURVE || !pictured.pieces.length) return [];
-        return [{ record: i, ...p, shown }];
-      }),
-    );
-  });
+        return [{ ...p, shown }];
+      }
+    }),
+  );
+  // Water's colors, its shore's and its water's, by its descriptor.
+  const waters = new Map(
+    [...new Set(spawned.flat().flatMap((p) => (p.water ? [p.index] : [])))].map((i) => [
+      i,
+      waterColors(main, sub, sprites, i),
+    ]),
+  );
+  // Water's shore's width: a piece's 128 pixels at the flat things' full size.
+  const shoreWidth = BIG_SPRITE * pixelLaterals(sub, FLAT_CURVE) * metresAcross;
   const shownOf = (pick: (types: readonly number[]) => boolean) => [
     ...new Set(
       placed
@@ -174,6 +194,24 @@ export function topSpeedCourses(set: RomSet) {
     // Laid on back for its grids and the camera behind their rearmost slot, as CHASE H.Q.'s are.
     const back = Math.ceil(gridReach(stand(go)) + cameraDistance(CAMERA_DEFINITION));
     // Its things at their stations, in station order.
+    // Its water, flat on the ground from its lateral outward (its strips of a fixed width on the screen, a
+    // replacement): its shore a piece wide, then its water; each record's, joined where the next goes on alike.
+    const waterRuns: { from: number; to: number; lateral: number; side: number; colors: readonly number[] }[] = [];
+    for (const p of spawned[course]!.filter((t) => t.water)) {
+      const [from, lateral, side] = [
+        back + p.record * RECORD_METRES,
+        (p.lateral - P) * metresAcross,
+        p.water === 'right' ? 1 : -1,
+      ];
+      const colors = waters.get(p.index)!;
+      const last = waterRuns.find(
+        (w) =>
+          w.side === side && Math.abs(w.to - from) < 1e-6 && w.lateral === lateral && w.colors.join() === colors.join(),
+      );
+      if (last) last.to = from + RECORD_METRES;
+      else if (!waterRuns.some((w) => w.side === side && from >= w.from - 1e-6 && from < w.to - 1e-6))
+        waterRuns.push({ from, to: from + RECORD_METRES, lateral, side, colors });
+    }
     const things = placed[course]!.map((t) => {
       const [board, band] = [boards.get(t.shown), bands.get(t.shown)];
       const lateral = (t.lateral - P) * metresAcross;
@@ -550,7 +588,27 @@ export function topSpeedCourses(set: RomSet) {
             ? centre[0]![1]
             : centre.map(([s, lateral]) => ({ at: positionAt(s), lateral })),
           linkLane: centreFrom(span.to),
-          strips: [...bands, ...lines, ...centreLines, ...notTakenParts.flatMap((n) => n.strips)],
+          strips: [
+            ...bands,
+            ...waterRuns.flatMap((w) => {
+              const [a, b] = [Math.max(span.from, w.from), Math.min(span.to, w.to)];
+              if (!(b - a > 1e-6)) return [];
+              const [from, to] = [positionAt(a), positionAt(b)];
+              const [lateral, shore] = [micrometre(w.lateral), micrometre(w.lateral + w.side * shoreWidth)];
+              return w.side > 0
+                ? [
+                    stripElement(from, to, lateral, shore, w.colors[0]!, null),
+                    stripElement(from, to, shore, null, w.colors[1]!, null),
+                  ]
+                : [
+                    stripElement(from, to, shore, lateral, w.colors[0]!, null),
+                    stripElement(from, to, null, shore, w.colors[1]!, null),
+                  ];
+            }),
+            ...lines,
+            ...centreLines,
+            ...notTakenParts.flatMap((n) => n.strips),
+          ],
           sprites: things
             .filter((t) => t.s >= span.from && (t.s < span.to || (span.to >= length - 1e-6 && t.s <= span.to)))
             .flatMap((t) =>

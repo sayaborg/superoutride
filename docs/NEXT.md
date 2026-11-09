@@ -69,7 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-10 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-13 next; later [Stage
 BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -602,11 +602,15 @@ no priority bit; its things with no shadow; event 2's backdrop not placed; a bod
 is hit, and with no depth; its tunnels' mouths' pieces kept; a long passage's Section cut at a record where its sprites
 would pass `spritePlacements`; and a ground made `WATER` that is not water `SAND`.
 
+TOP SPEED's defaults, each in [its chapter](top-speed-road-data.md): GO 1.82 m into its first section (0x260); its plan
+by the turn the instructions give, its radii 64.6 to 211 m; its cloud picture changed at a tunnel's change record; its
+skies, colors and tunnels changing at once; its raster words' bits as MAME's description reads them; its road not
+taken's slide measured at the nearest line, its fork pictures and gap not drawn; its tunnels' road and sky dark over
+their walls, an overpass's road alone under its decks; and its ground patches, cloud banks, branch not taken's things
+and GOAL gate not placed, its gates' right posts not hit.
+
 The PRs, in order:
 
-- **TA-10 and TA-11** TOP SPEED: its seven courses without objects (the reader's road and the course tables' reader
-  shared with CHASE H.Q.), their skies by [its chapter](top-speed-road-data.md#its-skies) and where they change; its
-  objects.
 - **TA-13** [A course's model](original-road-data.md#rules-of-the-originals) as the circuit the original drew, in the
   rule and the chapters that name a year (POLE POSITION II's "as it was in 1983" among them).
 - **TA-14** A curve record of its own length laid as one interval.

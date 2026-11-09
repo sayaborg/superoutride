@@ -15,6 +15,8 @@ const LANE = 0x4a0;
 const TUNNEL = 3;
 const GANTRY = 6;
 const OVERPASS = 4;
+const WATER_RIGHT = 1;
+const WATER_LEFT = 2;
 /** A pattern's row's bytes, and its end. */
 const PATTERN_BYTES = 8;
 const PATTERN_END = 0xff;
@@ -33,6 +35,8 @@ export interface TopSpeedPlacement {
   readonly ahead: number;
   readonly lateral: number;
   readonly hit: TopSpeedHit | null;
+  /** Water's side: it lies from its lateral outward, flat on the ground. */
+  readonly water?: 'left' | 'right';
 }
 
 /** An instruction's long operand: its two words. */
@@ -53,6 +57,15 @@ function tables(sub: Uint8Array) {
     mouthRight: instruction(sub, 0x6a90, [0x3c3c, null], "a tunnel's right mouth's lateral (move.w)")[0],
     mouthPair: instruction(sub, 0x6a8a, [0x0642, null], "the right mouth's code (addi.w)")[0],
     mouthPattern: instruction(sub, 0x6a82, [0x363c, null], "the mouths' pattern's row (move.w)")[0],
+    water: instruction(
+      sub,
+      0x6a18,
+      [0x243c, 0x0000, null, 0xd46d, 0x911a],
+      "water's code, by the color set (move.l, add.w)",
+    )[0],
+    waterRight: instruction(sub, 0x6a24, [0x3c3c, null], "water's lateral right (move.w)")[0],
+    waterLeft: instruction(sub, 0x6a42, [0x3c3c, null], "water's lateral left (move.w)")[0],
+    waterPattern: instruction(sub, 0x6a52, [0x363c, null], "water's pattern's row (move.w)")[0],
     deckApart: instruction(sub, 0x6aea, [0x0687, null, null], "an overpass's far face (addi.l)")[1],
     farDeck: instruction(sub, 0x6af8, [0x0682, null, null], "its far deck's code (addi.l)")[1],
     nearDeck: instruction(sub, 0x6b0a, [0x0682, null, null], "its near deck's code (addi.l)")[1],
@@ -119,7 +132,13 @@ export function topSpeedPlacements(sub: Uint8Array) {
     for (let bit = 7; bit >= 0 && !((mask >> bit) & 1); bit--) at += LANE;
     return at;
   };
-  return (record: TopSpeedRecord, stage: number, section: number, cameraSection: number): TopSpeedPlacement[] => {
+  return (
+    record: TopSpeedRecord,
+    stage: number,
+    section: number,
+    cameraSection: number,
+    colorSet: number,
+  ): TopSpeedPlacement[] => {
     const out: TopSpeedPlacement[] = [];
     const place = (
       code: number,
@@ -174,6 +193,17 @@ export function topSpeedPlacements(sub: Uint8Array) {
             far - 1,
           );
         }
+      }
+    // Water by its event 1 or 2, right or left, its code by the color set (S 0x6A18 to 0x6A5E), bumping a car alone.
+    for (const [event, side] of [
+      [WATER_RIGHT, 'right'],
+      [WATER_LEFT, 'left'],
+    ] as const)
+      if (record.event === event) {
+        const lateral = side === 'right' ? rightmost(record.mask, t.waterRight) : leftmost(record.mask, t.waterLeft);
+        const code = t.water + colorSet;
+        for (const ahead of offsets(t.waterPattern >> 3))
+          out.push({ code, index: indexOf(code), ahead, lateral, hit: null, water: side });
       }
     // A gantry at the lanes' middle, met at its two posts from either side.
     if (record.event === GANTRY) {
