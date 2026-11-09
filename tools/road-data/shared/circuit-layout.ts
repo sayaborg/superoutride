@@ -155,12 +155,13 @@ export function layCourse(options: {
   const grid = ruleGrid('car', grids);
   if ([...grid, ...ruleGrid('bike', grids)].some((slot) => slot.s < starts.at(-1)!))
     throw contractUnmet(`${name}'s grid reaches before its last Section's start`);
-  if (
-    grid.some(
-      (slot) =>
-        typeof slot.lateral !== 'number' || slot.lateral <= limitAt(-1, slot.s) || slot.lateral >= limitAt(1, slot.s),
-    )
-  )
+  // A slot's lateral, metres right of P: its own, or its lane's centre (a the left lane, b the right) and its offset.
+  const slotLateral = ({ s, lateral }: GridPlace) => {
+    if (typeof lateral === 'number') return lateral;
+    const half = (right - leftAt(s)) / 4;
+    return lateral.offset + ('lane' in lateral && lateral.lane === 'a' ? leftAt(s) + half : right - half);
+  };
+  if (grid.some((slot) => slotLateral(slot) <= limitAt(-1, slot.s) || slotLateral(slot) >= limitAt(1, slot.s)))
     throw contractUnmet(`${name}'s grid lies beyond its limits`);
   const heights: RoadHeights = {
     road: options.road ?? { bends: [], kinks: [] },

@@ -546,7 +546,8 @@ draws its surface along the lap (FINAL LAP 2's), that surface's Strips over the 
 its ground's one color where its original gives one (FINAL LAP 2's), each a time or a repeat of times
 at a lap's stations, cut at its Sections' borders ([its road surface](final-lap-2-road-data.md#its-road-surface)); its
 boards, each on the road or at its height above it; its sky, facing by the road's turn from the course's start; its finish at its line, and its start gate in the
-Section returning to it by [the grid](#the-grid).
+Section returning to it by [the grid](#the-grid), each slot within its limits, a slot in a lane at its lane's centre;
+and a surface's Strip may reach beyond the road, its ground's second shade as far as its limits.
 
 ### Places and patterns
 

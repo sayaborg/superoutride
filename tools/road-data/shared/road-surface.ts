@@ -76,12 +76,15 @@ export function bandStrips(
   ];
 }
 
-/** A Strip of a road's surface, color alone: from and to stations of the lap, its laterals and its color. */
+/**
+ * A Strip of a road's surface, color alone: from and to stations of the lap, its laterals (none beyond the road) and its
+ * color.
+ */
 export interface SurfacePart {
   readonly from: number;
   readonly to: number;
-  readonly left: Lateral;
-  readonly right: Lateral;
+  readonly left: Lateral | null;
+  readonly right: Lateral | null;
   readonly color: number;
 }
 
