@@ -87,8 +87,9 @@ export function topSpeedRoadPicture(main: Uint8Array, gfx: Uint8Array) {
 
 /**
  * The road's colors, palette words: its surface's by a color set and a record's field (the table at M 0xBA710, 4 bytes
- * a set from set 1 and a word by the field's bit 2, M 0x479C to 0x47B8), and its edge's, the outer band's pen of the
- * lines' palette line, 0x101, as the program loads the road's lines from 0x100 at its start (M 0x57E, 0x584).
+ * a set from set 1 and a word by the field's bit 2, M 0x479C to 0x47B8), and its lines' and edge bands' pens in the
+ * palette lines the program loads from 0x100 at its start (M 0x57E, 0x584), 0x101 drawing the lines and 0x100, on and
+ * before a hill, none (`hills`, M 0x79F2): their pens 1 to 3 as loaded, pen 1 of line 0x100 taking the surface's.
  */
 export function topSpeedRoadColors(main: Uint8Array) {
   const [high, low] = instruction(main, 0x479c, [0x41f9, null, null], "the surface's colors (lea)");
@@ -101,6 +102,44 @@ export function topSpeedRoadColors(main: Uint8Array) {
   const PENS_A_LINE = 16;
   return {
     surface: (set: number, scene: number) => word(main, surfaces + 4 * Math.max(0, set - 1) + (scene & 4 ? 2 : 0)),
-    edge: word(main, lines + 2 * (PENS_A_LINE + PENS.outer)),
+    /** Pen `pen` (1 to 3) of the lines' palette line, 0x100 on and before a hill (`hill`) and 0x101 elsewhere. */
+    pen: (hill: boolean, pen: number) => word(main, lines + 2 * ((hill ? 0 : PENS_A_LINE) + pen)),
   };
+}
+
+/** A raster word's bits as MAME's description has them: the surface's and the ground's other shade, pens 1 and 2 drawn
+ * as the surface, pen 3 drawn as the surface. */
+export const RASTER = Object.freeze({ surface: 0x10, ground: 0x02, lines: 0x08, outer: 0x04 });
+
+/**
+ * The raster words of a road's line by its place, four parts of 0x400 positions each 0x1000 (M 0x38D6 to 0x39A6): the
+ * position's bit 10 adds one word and its bit 11 another to a base, the flat road's and a hill's.
+ */
+export function stripeWords(main: Uint8Array) {
+  instruction(main, 0x394c, [0x3e3c, 0x000b, 0x3a3c, 0x000a], "the place's bits 11 and 10 (move.w)");
+  const [flatHigh] = instruction(main, 0x395e, [0x363c, null], "the flat road's bit 11's word (move.w)");
+  const [flatLow] = instruction(main, 0x3962, [0x383c, null, 0x4242], "the flat road's bit 10's word, base 0 (move.w)");
+  const [hillHigh] = instruction(main, 0x3982, [0x363c, null], "a hill's bit 11's word (move.w)");
+  const [hillLow] = instruction(main, 0x3986, [0x383c, null], "a hill's bit 10's word (move.w)");
+  const [hillBase] = instruction(main, 0x398a, [0x343c, null], "a hill's base (move.w)");
+  const parts = (base: number, low: number, high: number) =>
+    [0, 1, 2, 3].map((k) => base | (k & 1 ? low : 0) | (k & 2 ? high : 0));
+  return { flat: parts(0, flatLow, flatHigh), hill: parts(hillBase, hillLow, hillHigh), positions: 0x1000 };
+}
+
+/**
+ * Whether the road is drawn as on a hill at each of a course's records (M 0x6DDE to 0x6E76): where it or one of the
+ * next four, up to a fork's record, has a grade.
+ */
+export function hills(main: Uint8Array, records: readonly { readonly grade: number; readonly join: number }[]) {
+  instruction(main, 0x6e26, [0x3c3c, 0x0004], 'five records (move.w #4, dbra)');
+  instruction(main, 0x6e36, [0x102a, 0x0002, 0x0200, 0x0003, 0x0c00, 0x0003, 0x6732], 'up to a fork (cmpi.b #3, beq)');
+  instruction(main, 0x6e44, [0x3012, 0xc042, 0x6706, 0x33c5, 0x0040, 0x10ea], 'a grade sets the flag (and.w, move.w)');
+  return records.map((_, i) => {
+    for (let k = i; k < Math.min(records.length, i + 5); k++) {
+      if (records[k]!.join === 3) return false;
+      if (records[k]!.grade !== 0) return true;
+    }
+    return false;
+  });
 }

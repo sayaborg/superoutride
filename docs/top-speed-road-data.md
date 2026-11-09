@@ -76,10 +76,21 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
 - **Its skies.** Each Section takes the sky in force at its start and each change within it at its record's start,
   at once (default, K confirms at the stage's end): the original wipes its horizon band in a column a frame over 44
   frames (M 0x894C) and copies a color set whole ([Its skies](#its-skies)).
-- **Its bands.** Its left edge, its body over its lanes and its right edge, each edge 0.535 m beyond the lanes, the
-  road picture's ([Its road picture](#its-road-picture)): the body the surface's color by its record's color set and
-  field (the table at M 0xBA710), the edges the outer band's white, the ground beyond each its ground color; no
-  stripes or lines yet. Its road is `ASPHALT`.
+- **Its bands.** As the road picture draws them ([Its road picture](#its-road-picture)): its body over its lanes, each
+  edge's inner band from 0.073 m within the lanes to 0.219 m beyond them and its outer band on to 0.535 m, the ground
+  beyond, and its lines 0.146 m wide about its lanes' sides within; at P the right half's line, its right half where
+  three lanes lie right of P and both where one or two do, none where a side has none, its edge's inner band then at P.
+  Its road is `ASPHALT`.
+- **Its stripes.** Each line of the road takes a raster word by its place, the position's bits 11 and 10 adding a word
+  each to a base, four parts of 0x400 positions (3.07 m) each 0x1000 (12.29 m), counted from the run's start (M 0x38D6
+  to 0x39A6); on and before a hill, where the camera's record or one of the next four up to a fork has a grade (M 0x6DDE
+  to 0x6E76), a hill's words and the palette lines without lines (`hills`). A word's bits are read as MAME's
+  description has them (default; K confirms at the stage's end): 0x10 the surface's other shade, 0x02 the ground's, 0x08
+  the lines and the inner band drawn as the surface and 0x04 the outer band. So on the flat the surface and the ground
+  are light and dark over 6.14 m each and the lines and both edge bands dashed, 3.07 m on and off; on a hill no lines or
+  inner band show and the outer band is dashed. A shade is each component 3 more (M 0x46CC); the lines and the edge
+  bands are their palette line's pens as the program loads them at its start, white. The colors change at once at a
+  record's start (default; K confirms at the stage's end: the original fades them a step a frame, M 0x4830).
 
 ## Its plan
 
@@ -166,4 +177,4 @@ never set, so that it turns by its rows' scrolls alone: two bands of pictures ov
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, and their 27 skies (`top-speed-sky-<horizon>-<clouds>-<set>`) to `content/originals/images/`
-(`top-speed-course`; its conversion's version 1).
+(`top-speed-course`; its conversion's version 2).

@@ -69,3 +69,9 @@ Read statically; MAME's driver (commit 9c0b6db1) for the hardware alone.
   the same bits for the echo but not the walls (0x6334 to 0x634A).
 - The ground's color is the camera's record's, faded a step a frame toward it (0x474C, 0x4830); a record that changes
   the sky holds the road's colors until the camera passes the next record (0x4816).
+- M writes one raster word a road line (0x38D6), from the bits 10 and 11 of the camera's position plus the line's
+  depth, so that the stripes are fixed to the road; the program fills one half of the raster RAM a frame and flips the
+  halves in vblank (0x38B8, 0x112A). What each bit of the word does is the hardware's, which the program does not show;
+  MAME's description reads it, and the words (no lines or inner band on a hill, all four bits set in the dark part of
+  the flat road's dashes) fit that reading. A pen 8 the program writes with the surface's other shade (0x46CC) is not
+  explained by it.

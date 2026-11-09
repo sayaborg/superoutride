@@ -4,7 +4,7 @@
  * plan, heights, lanes, limits, bands and materials as its programs give them, a checkpoint at each stage's end and its
  * skies in their Sections; no objects yet.
  */
-import type { EnvironmentDocument, LaneDocument } from '../../../src/course/course-document.js';
+import type { EnvironmentDocument, LaneDocument, Lateral } from '../../../src/course/course-document.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
@@ -17,7 +17,8 @@ import { crossings } from '../shared/overpasses.js';
 import { riseProfile, tableHeight } from '../shared/rise-profile.js';
 import { layRoad } from '../shared/road-layout.js';
 import { bendOf, profileOf } from '../shared/road-profile.js';
-import type { Material } from '../shared/road-surface.js';
+import { partedStrips, type Material } from '../shared/road-surface.js';
+import { colorStretches } from '../shared/color-stretches.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { micrometre, simplified, stripElement } from '../shared/section-writing.js';
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
@@ -26,6 +27,7 @@ import { colorSet, skyChanges, SKY_MIDDLE, SKY_TURN, topSpeedSky } from './top-s
 import { gradeResolution, STEP_METRES, stepGrades } from './top-speed-heights.js';
 import { coursePieces, RECORD_METRES } from './top-speed-plan.js';
 import {
+  alternate,
   courseRecords,
   groundAlong,
   groundColor,
@@ -35,11 +37,11 @@ import {
   maskChanges,
   spanLimits,
 } from './top-speed-road-across.js';
-import { topSpeedRoadColors, topSpeedRoadPicture } from './top-speed-road-picture.js';
+import { hills, PENS, RASTER, stripeWords, topSpeedRoadColors, topSpeedRoadPicture } from './top-speed-road-picture.js';
 import { assembleTopSpeedMain, assembleTopSpeedSub, assembleTopSpeedTiles } from './top-speed-rom.js';
 import { COURSES, courseSections, LANE_METRES, POSITION_METRES, readStages, STAGES } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 1;
+export const TOP_SPEED_CONVERSION_VERSION = 2;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -58,7 +60,14 @@ export function topSpeedCourses(set: RomSet) {
   const stages = readStages(sub);
   const picture = topSpeedRoadPicture(main, tiles);
   const roadColors = topSpeedRoadColors(main);
+  const words = stripeWords(main);
+  const shade = alternate(main);
   const ground = groundColor(main);
+  // The picture's widths: a line's half, the inner band within the lanes and beyond them, the edge beyond them.
+  const lanesAcross = 3 * LANE_METRES;
+  const lineHalf = (picture.lines[1]!.right - picture.lines[1]!.left) / 2;
+  const [innerIn, innerOut] = [lanesAcross - picture.inner.left, picture.inner.right - lanesAcross];
+  const edge = picture.edgeMetres;
   const resolution = gradeResolution(sub);
   const outputs = new OriginalOutputs();
   const skies = new Set<string>();
@@ -145,15 +154,52 @@ export function topSpeedCourses(set: RomSet) {
       }
     const path = new CoursePath(pieces);
     const yawOrigin = skyYawOrigin(SKY_MIDDLE, SKY_TURN);
-    // A record's colors, as RGB555: its surface's and ground's by its color set and field, its edge's white.
-    const colorsOf = (s: number) => {
-      const r = recordAt(at(s));
-      return {
-        body: rgb555Of(roadColors.surface(colorSet(main, r.stage, r.section), r.record.scene)),
-        edge: rgb555Of(roadColors.edge),
-        ground: rgb555Of(ground(r)),
-      };
-    };
+    // Its colors, each record's set: its color set, its field and whether it is drawn as on a hill (`hills`), at once
+    // where they change (default; K confirms: the original fades a step a frame), each in stretches (`colorStretches`).
+    const onHills = hills(
+      main,
+      records.map((r) => r.record),
+    );
+    const sets = records.map((r, i) => ({
+      set: colorSet(main, r.stage, r.section),
+      scene: r.record.scene,
+      hill: onHills[i]!,
+    }));
+    const setChanges = sets.flatMap((c, i) =>
+      i > 0 && JSON.stringify(c) !== JSON.stringify(sets[i - 1]) ? [{ at: back + i * RECORD_METRES, set: c }] : [],
+    );
+    const colorRuns = colorStretches(
+      [sets[0]!, ...setChanges.map((c) => c.set)],
+      setChanges.map((c) => ({ at: c.at, length: 0 })),
+      0,
+      length,
+    );
+    // A part's four colors in a set, as RGB555, by its place's raster words (`stripeWords`): the surface and the ground
+    // in their other shade, the lines and the inner band, or the outer band, drawn as the surface.
+    type Part = 'body' | 'ground' | 'line' | 'inner' | 'outer';
+    const partColors =
+      (part: Part) =>
+      (c: (typeof sets)[number]): readonly number[] =>
+        (c.hill ? words.hill : words.flat).map((w) => {
+          const surface = roadColors.surface(c.set, c.scene);
+          const body = w & RASTER.surface ? shade(surface) : surface;
+          const color =
+            part === 'body'
+              ? body
+              : part === 'ground'
+                ? w & RASTER.ground
+                  ? shade(ground(c.set, c.scene))
+                  : ground(c.set, c.scene)
+                : part === 'outer'
+                  ? w & RASTER.outer
+                    ? body
+                    : roadColors.pen(c.hill, PENS.outer)
+                  : w & RASTER.lines
+                    ? body
+                    : roadColors.pen(c.hill, part === 'line' ? PENS.line : PENS.inner);
+          // Line 0x100's pen 1, which draws no lines, takes the surface's.
+          return rgb555Of(part === 'line' && c.hill ? body : color);
+        });
     // A lane's width at `s`, at a cut the one after it, or with `before` the one before it.
     const laneWidthAt = (k: number, s: number, before = false) => {
       const pieces = lanes[k]!.pieces;
@@ -212,44 +258,91 @@ export function topSpeedCourses(set: RomSet) {
             micrometre(((LANES.indexOf(centerLane) < 3 ? -1 : 1) * widthOf(LANES.indexOf(centerLane), s)) / 2),
           ]),
         );
-        // Its bands: its left edge, its body over its lanes and its right edge, the picture's edge beyond them.
+        // Its bands, as the picture draws them (`topSpeedRoadPicture`): its body over its lanes, each edge's inner band
+        // from within the lanes and its outer band beyond it, the ground beyond them, its lines about its lanes' sides
+        // within; each striped by its place's four parts (`partedStrips`), a line where it is not its body's color.
         const [first, last] = [present[0]!, present.at(-1)!];
-        const edge = picture.edgeMetres;
-        const laterals = [
-          [
-            { lane: first, side: 'left', offset: -edge },
-            { lane: first, side: 'left', offset: 0 },
-          ],
-          [
-            { lane: first, side: 'left', offset: 0 },
-            { lane: last, side: 'right', offset: 0 },
-          ],
-          [
-            { lane: last, side: 'right', offset: 0 },
-            { lane: last, side: 'right', offset: edge },
-          ],
-        ] as const;
-        // Its colors' cuts: where a record's colors differ from the one's before.
-        const colorCuts = [
+        const lane = (name: string, side: 'left' | 'right', offset: number): Lateral => ({ lane: name, side, offset });
+        const parted = (
+          left: Lateral | null,
+          right: Lateral | null,
+          part: Part,
+          material: Material | null,
+          a = span.from,
+          b = span.to,
+        ) =>
+          partedStrips(
+            colorRuns.map((t) => ({ ...t, from: t.from - span.from, to: t.to - span.from })),
+            partColors(part),
+            part === 'line' || (part === 'inner' && material === null) ? partColors('body') : null,
+            words.positions * POSITION_METRES,
+            back - span.from,
+            a - span.from,
+            b - span.from,
+            material,
+            (x, y, c, m) =>
+              stripElement(
+                positionAt(span.from + x),
+                positionAt(y >= span.to - span.from - 1e-9 ? span.to : span.from + y),
+                left,
+                right,
+                c,
+                m,
+              ),
+          );
+        const bands = [
+          ...parted(null, lane(first, 'left', -edge), 'ground', null),
+          ...parted(lane(last, 'right', edge), null, 'ground', null),
+          ...parted(lane(first, 'left', -edge), lane(first, 'left', -innerOut), 'outer', ROAD),
+          ...parted(lane(first, 'left', -innerOut), lane(first, 'left', 0), 'inner', ROAD),
+          ...parted(lane(first, 'left', 0), lane(last, 'right', 0), 'body', ROAD),
+          ...parted(lane(last, 'right', 0), lane(last, 'right', innerOut), 'inner', ROAD),
+          ...parted(lane(last, 'right', innerOut), lane(last, 'right', edge), 'outer', ROAD),
+          ...parted(lane(first, 'left', 0), lane(first, 'left', innerIn), 'inner', null),
+          ...parted(lane(last, 'right', -innerIn), lane(last, 'right', 0), 'inner', null),
+        ];
+        // Its lines: about each side between its lanes but P's; at P the right half's line, its right half where three
+        // lanes lie right of P and both halves where one or two do, none where a side has none (its edge there), by
+        // each record's mask, at once where it changes.
+        const lines = present
+          .slice(0, -1)
+          .flatMap((x) =>
+            LANES.indexOf(x) === 2 ? [] : parted(lane(x, 'right', -lineHalf), lane(x, 'right', lineHalf), 'line', null),
+          );
+        const hasCentre = present.includes('c') && present.includes('d');
+        const rightOf = (s: number) => {
+          const mask = recordAt(at(s)).record.mask;
+          const [left, right] = [(mask >> 4) & 7, (mask >> 1) & 7].map((n) => n.toString(2).replace(/0/g, '').length);
+          return left === 0 ? 0 : right;
+        };
+        const centreCuts = [
           span.from,
           ...steps(span.from, span.to)
             .slice(1, -1)
-            .filter((s) => JSON.stringify(colorsOf(s)) !== JSON.stringify(colorsOf(s - STEP_METRES))),
+            .filter((s) => rightOf(s) !== rightOf(s - STEP_METRES)),
           span.to,
         ];
-        const strips = colorCuts.slice(0, -1).flatMap((a, j) => {
-          const c = colorsOf(a);
-          const [from, to] = [positionAt(a), positionAt(colorCuts[j + 1]!)];
-          return [
-            ...[c.edge, c.body, c.edge].map((color, k) =>
-              stripElement(from, to, laterals[k]![0], laterals[k]![1], color, ROAD),
-            ),
-            stripElement(from, to, null, laterals[0][0], c.ground, null),
-            stripElement(from, to, laterals[2][1], null, c.ground, null),
-          ];
+        const centreLines = hasCentre
+          ? centreCuts.slice(0, -1).flatMap((a, j) => {
+              const n = rightOf(a);
+              return n === 0
+                ? []
+                : parted(
+                    lane('d', 'left', n === 3 ? 0 : -lineHalf),
+                    lane('d', 'left', lineHalf),
+                    'line',
+                    null,
+                    a,
+                    centreCuts[j + 1]!,
+                  );
+            })
+          : [];
+        const outerBand = (from: number, to: number) => ({
+          left: from,
+          right: to,
+          colors: partColors('outer')(sets[Math.max(0, Math.floor(at(span.from) / RECORD_METRES + 1e-9))]!),
+          material: ROAD,
         });
-        const outer = colorsOf(span.from);
-        const band = (left: number, right: number) => ({ left, right, colors: [outer.edge], material: ROAD });
         const set = LANES.map((_, k) => k).filter((k) => widthOf(k, span.from) > 0);
         const [l, r] = [(set[0]! - 3) * LANE_METRES, (set.at(-1)! - 3 + 1) * LANE_METRES];
         const turned = ((path.pose(span.from).heading - path.pose(back).heading) * 180) / Math.PI;
@@ -268,10 +361,18 @@ export function topSpeedCourses(set: RomSet) {
             ? centre[0]![1]
             : centre.map(([s, lateral]) => ({ at: positionAt(s), lateral })),
           linkLane: centreFrom(span.to),
-          strips,
+          strips: [...bands, ...lines, ...centreLines],
           outermost: [
-            { band: band(l - edge, l), left: laterals[0][0], right: laterals[0][1] },
-            { band: band(r, r + edge), left: laterals[2][0], right: laterals[2][1] },
+            {
+              band: outerBand(l - edge, l - innerOut),
+              left: lane(first, 'left', -edge),
+              right: lane(first, 'left', -innerOut),
+            },
+            {
+              band: outerBand(r + innerOut, r + edge),
+              left: lane(last, 'right', innerOut),
+              right: lane(last, 'right', edge),
+            },
           ],
           limits: spanLimits(along, span.from, span.to, groundSides),
           environments: [

@@ -180,23 +180,22 @@ export function spanLimits(
 }
 
 /**
- * A record's ground color: the table at M 0xBA6C0 (M 0x47D6), 8 bytes a color set from set 1 (M 0x47E2 to 0x47EA),
- * a word by its field's low two bits (its word at 2 masked by 0x0C00, M 0x47EC to 0x47F2), the camera's record's.
+ * The ground's color by a color set and a record's field: the table at M 0xBA6C0 (M 0x47D6), 8 bytes a color set from
+ * set 1 (M 0x47E2 to 0x47EA), a word by the field's low two bits (its word at 2 masked by 0x0C00, M 0x47EC to 0x47F2).
  */
-export function groundColor(main: Uint8Array): (r: CourseRecord) => number {
+export function groundColor(main: Uint8Array): (set: number, scene: number) => number {
   const [high, low] = instruction(main, 0x47d6, [0x41f9, null, null], "the ground's colors (lea)");
   instruction(main, 0x47e2, [0x5346, 0x6402, 0x4246, 0xe74e], 'a color set, 8 bytes from set 1 (lsl.w #3)');
   instruction(main, 0x47ec, [0x0240, 0x0c00, 0xef58], "the field's low bits (andi.w #$c00, rol.w #7)");
   const table = high * 0x10000 + low;
-  return ({ record, stage, section }) =>
-    word(main, table + 8 * Math.max(0, colorSet(main, stage, section) - 1) + 2 * (record.scene & 3));
+  return (set, scene) => word(main, table + 8 * Math.max(0, set - 1) + 2 * (scene & 3));
 }
 
 /**
  * The ground's alternate shade of palette word `rgb555`: each 5-bit component 3 more, at most 31 (M 0x470C to 0x474A, its
  * blue's step at M 0x4714).
  */
-function alternate(main: Uint8Array): (rgb555: number) => number {
+export function alternate(main: Uint8Array): (rgb555: number) => number {
   const [step] = instruction(main, 0x4714, [0x0641, null], "a shade's step (addi.w)");
   return (rgb555) => [10, 5, 0].reduce((c, shift) => c | (Math.min(31, ((rgb555 >> shift) & 31) + step) << shift), 0);
 }
@@ -211,7 +210,7 @@ export function groundAlong(main: Uint8Array, records: readonly CourseRecord[]):
   const shade = alternate(main);
   const runs: [number, Material][] = [];
   records.forEach((r, i) => {
-    const c = color(r);
+    const c = color(colorSet(main, r.stage, r.section), r.record.scene);
     const [a, b] = [c, shade(c)].map((w) => groundMaterial(rgb555Of(w)));
     if (a !== b) throw romDiffers(`TOP SPEED's ground color 0x${c.toString(16)}'s shades differ in material`);
     if (a === 'WATER') throw romDiffers(`TOP SPEED's ground color 0x${c.toString(16)} reads as water`);
