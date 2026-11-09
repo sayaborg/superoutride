@@ -104,8 +104,9 @@ holds and links the section here that states its rule; this is their one map.
   conversion (`top-speed-course`), its dump (`top-speed-dump`) and its commands (`top-speed-commands`). CONTINENTAL
   CIRCUS's (`continental-circus/`) are its programs' and tile ROM (`continental-circus-rom`), its skies' bands
   (`continental-circus-backgrounds`), its courses' laps and clock (`continental-circus-road`), its road's picture and
-  scale across (`continental-circus-road-picture`), its road's colors (`continental-circus-road-colors`), its heights
-  (`continental-circus-heights`) and its laps' inputs on their models (`continental-circus-course`).
+  scale across and its car's limits (`continental-circus-road-picture`), its road's colors
+  (`continental-circus-road-colors`), its heights (`continental-circus-heights`), its laps' inputs on their models and
+  its conversion (`continental-circus-course`) and its commands (`continental-circus-commands`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share
@@ -448,8 +449,9 @@ sky does, its sign, which way a positive value turns, its conversion's. No arc i
 
 ### A lap on its model
 
-A course with a model ([A course's model](#rules-of-the-originals); POLE POSITION II's FUJI, SUZUKA and SEASIDE and
-FINAL LAP 2's JAPAN, MONACO and ITALY) is laid as the lap on its model (`model-lap`), by K's rule (2026-11-04):
+A course with a model ([A course's model](#rules-of-the-originals); POLE POSITION II's FUJI, SUZUKA and SEASIDE, FINAL
+LAP 2's JAPAN, MONACO and ITALY and CONTINENTAL CIRCUS's eight) is laid as the lap on its model (`model-lap`), by K's
+rule (2026-11-04):
 
 - **Runs.** Its curve table is read round as a loop, its runs as [Plan from a curve table](#plan-from-a-curve-table)'s.
   An interval's curvature is the course's turn scale times its value over the lap's mean interval (its model's length
@@ -502,15 +504,15 @@ without solving; `model-laps --check` solves every lap again and compares the an
 original's road width, its courses with a model are solved again and their answers replaced.
 
 **The models.** The models are K's course sources (2026-11-08, `tools/road-data/shared/course-sources/`, read by
-`course-models`), saved as K gave them: their notes (`COURSES.md`) and a layout a file (`tracks/<id>.json`, schema
-3.0), fourteen layouts, of which six are used now (CONTINENTAL CIRCUS's eight wait for its courses). Each layout is a
-circuit's centreline over the years its original took it as lines and arcs at real size in metres, x east and y south,
-an arc's positive sweep turning right, from its start line (K's estimate, its file's `start_finish_basis`), its segments
-joined end to start within 10 nm, the last to the first, with its circuit's elevation, its highest point less its lowest
-(`elevation_m`), which only an original with heights uses (FINAL LAP 2's). Its reader admits each segment's geometry
-against itself and its stations, its joins in place and heading, its first segment leaving its start pose, and its
-elevation as a positive length; a model's course is its file's original and course, which its conversion checks. Each
-original's chapter names its models' sources; the files hold them whole.
+`course-models`), saved as K gave them: their notes (`COURSES.md`) and a layout a file (`tracks/<id>.json`, schema 3.0),
+fourteen layouts, all used. Each layout is a circuit's centreline over the years its original took it as lines and arcs
+at real size in metres, x east and y south, an arc's positive sweep turning right, from its start line (K's estimate,
+its file's `start_finish_basis`), its segments joined end to start within 10 nm, the last to the first, with its
+circuit's elevation, its highest point less its lowest (`elevation_m`), which only an original with heights uses (FINAL
+LAP 2's and CONTINENTAL CIRCUS's). Its reader admits each segment's geometry against itself and its stations, its joins
+in place and heading, its first segment leaving its start pose, and its elevation as a positive length; a model's course
+is its file's original and course, which its conversion checks. Each original's chapter names its models' sources; the
+files hold them whole.
 
 ### A road laid out
 
@@ -536,14 +538,15 @@ where it draws a road beside the course's (CHASE H.Q.'s road not taken).
 An original raised from a curve table lays each course, a circuit, alike (`circuit-layout`): its lap cut at its line, at
 the middle of its longest straight the line does not lie on (of equal ones the earliest) and again where its road comes
 near itself ([Sections' cuts](#sections-cuts)); its profile, level or its original's heights (FINAL LAP 2's, [its
-heights](final-lap-2-road-data.md#its-heights)), each Section's knots within on the step of computed values as every
-original's are ([Profile](#profile)); two lanes, a and b, of its original's lane width either
+heights](final-lap-2-road-data.md#its-heights), and CONTINENTAL CIRCUS's), each Section's knots within on the step of
+computed values as every original's are ([Profile](#profile)); two lanes, a and b, of its original's lane width either
 side of P, P its road's centre, or where its road's left edge moves along its lap (FINAL LAP 2's) the halves of its road
 between its edges, the bands left of P going with the left edge ([FINAL LAP 2's road
 across](final-lap-2-road-data.md#final-lap-2s-road-across)); its limits, the ground reaching them and its road across in bands as [a road
 laid out](#a-road-laid-out) has them; its start line's rows over them; where its original's picture
-draws its surface along the lap (FINAL LAP 2's), that surface's Strips over the bands, and beyond its picture's edges
-its ground's one color where its original gives one (FINAL LAP 2's), each a time or a repeat of times
+draws its surface along the lap (FINAL LAP 2's, and CONTINENTAL CIRCUS's banks, its ground's too), that surface's Strips
+over the bands, and beyond its picture's edges its ground's color where its original gives one (FINAL LAP 2's and
+CONTINENTAL CIRCUS's), each a time or a repeat of times
 at a lap's stations, cut at its Sections' borders ([its road surface](final-lap-2-road-data.md#its-road-surface)); its
 boards, each on the road or at its height above it; its sky, facing by the road's turn from the course's start; its finish at its line, and its start gate in the
 Section returning to it by [the grid](#the-grid), each slot within its limits, a slot in a lane at its lane's centre;
@@ -572,11 +575,11 @@ Sections.
 An original's grades are the road its screen shows, read back through the camera that drew it at this game's focal
 length, within ±25 % (K's limit): one rule for every original (K, 2026-10-26).
 
-- **A 3D road in the ROMs** (SUPER HANG-ON's vertical vectors) is what its screen read back gives: its heights times
-  one factor an original, f = min(its lens ratio, 0.25 ÷ its road's steepest grade), the lens ratio its focal length
-  over this game's, in screen heights. The road's form is kept and the limit kept by f: a camera that tilts with the
-  road, as SUPER HANG-ON's and this game's do, does not tell a long uniform grade on the screen, so its screen read
-  again within the limit would change the large form.
+- **A 3D road in the ROMs** (SUPER HANG-ON's vertical vectors, CONTINENTAL CIRCUS's hills) is what its screen read back
+  gives: its heights times one factor an original, f = min(its lens ratio, 0.25 ÷ its road's steepest grade), the lens
+  ratio its focal length over this game's, in screen heights. The road's form is kept and the limit kept by f: a camera
+  that tilts with the road, as SUPER HANG-ON's and this game's do, does not tell a long uniform grade on the screen, so
+  its screen read again within the limit would change the large form.
 - **A screen alone** (OUTRUN's and TURBO OUTRUN's height tables, ENDURO RACER's slope words, FINAL LAP 2's slope
   tables) is read back piece by
   piece: each piece the road whose screen lies nearest the original's, both ways, its grades within the limit (the form
@@ -978,8 +981,8 @@ format ends the ground where the plan stops being one-to-one ([Architecture](arc
 hold no material: each original's ground and road materials are K's decision (2026-10-25), each its own, named with its
 reason in its chapter. Where K decides that an original's ground takes its material from its color, the rule is one
 (`groundMaterial`): `GRASS` where green is the color's strongest channel, `WATER` where blue is, `SAND` otherwise, left
-and right of the road each by its own color; ENDURO RACER's ground takes it (K, 2026-11-01), and CHASE H.Q.'s and TOP
-SPEED's (K, 2026-11-06).
+and right of the road each by its own color; ENDURO RACER's ground takes it (K, 2026-11-01), CHASE H.Q.'s and TOP
+SPEED's (K, 2026-11-06) and CONTINENTAL CIRCUS's (K, 2026-11-09).
 
 ### Strips
 

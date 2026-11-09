@@ -79,3 +79,36 @@ export function lapHeight(hills: readonly Hill[], p: number): number {
   }
   return h;
 }
+
+/** A queue of hills' rises: grades up, units a position, at positions from the line. */
+export interface Rises {
+  readonly positions: readonly number[];
+  readonly grades: readonly number[];
+}
+
+/**
+ * A lap's rises, each queue of hills one after another a rise table ([Profile from a rise
+ * table](../../../docs/original-road-data.md#profile-from-a-rise-table)), the road level between them: the height read
+ * straight between samples, a sample's at its first position, so that each sample's grade is its rise to the next (the
+ * last's to the height after its hill) over its `SAMPLE_POSITIONS`, at its middle; level at the queue's start and end.
+ * Up, units a position, up being the height's negative.
+ */
+export function lapRises(hills: readonly Hill[]): Rises[] {
+  const queues: { positions: number[]; grades: number[] }[] = [];
+  let last = -Infinity;
+  for (const hill of hills) {
+    if (hill.start !== last) queues.push({ positions: [hill.start], grades: [0] });
+    const queue = queues.at(-1)!;
+    hill.samples.forEach((sample, k) => {
+      const next = k + 1 < hill.samples.length ? hill.samples[k + 1]! : -hill.samples[0]!;
+      queue.positions.push(hill.start + (k + 1 / 2) * SAMPLE_POSITIONS);
+      queue.grades.push(-(next - sample) / SAMPLE_POSITIONS);
+    });
+    last = hill.end;
+  }
+  for (const queue of queues) {
+    queue.positions.push(queue.positions.at(-1)! + SAMPLE_POSITIONS / 2);
+    queue.grades.push(0);
+  }
+  return queues;
+}

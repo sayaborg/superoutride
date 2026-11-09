@@ -71,6 +71,76 @@ to 0x5BE2), a unit of it as many rows at a distance as a lateral unit is columns
 before its line: they reach 0.99 to 2.38 million units above the line, SPAIN 40,000 below it, the steepest step 81.8
 units a position (40.9 in MONACO and JAPAN).
 
+### Its courses laid
+
+`continental-circus-course` raises the eight (`continental-circus-brazil` to `continental-circus-japan`), each named by
+its course's name (BRAZIL to JAPAN; the course format admits 21 characters a name, so CONTINENTAL CIRCUS BRAZIL is the
+course texts'), each its lap on its model laid by [a circuit laid out](original-road-data.md#a-circuit-laid-out) from its
+line: 3,291.1 m (MEXICO) to 6,789.1 m (GERMANY), 18 to 39 pieces, 2 Sections (3 in MONACO and JAPAN). A lap's position
+lies at its record's interval's place on the lap as laid ([Places and
+patterns](original-road-data.md#places-and-patterns)). Its things (TA-16), its pit lanes (TA-15g) and its zones' lines
+and dark road (TA-15h) are not laid yet.
+
+- **Its race.** One lap (`LAPS`): the lap's one thing of type 3 sets the goal flag (S 0x2B8A to 0x2BF8), on which the
+  main program stops the time (M 0x1E7E). That thing stands where the car starts, 800 positions before the line; the
+  course's finish is its line, as every circuit's is.
+- **Its start.** The race stands its own car at running position 0: the stream task sets the pinhole to 0x7BD4 (S
+  0xC098), the car 0x42B ahead of it, and lays a record 0x7FFF past its running position (S 0xC0F0). The line's record
+  lies at running position 800 in every course (`continentalCircusLap`'s start), so the car stands on its road's centre
+  800 positions before the line on the lap as laid, 1.48 m (MEXICO) to 3.38 m (JAPAN), alone; by [the
+  grid](original-road-data.md#the-grid) no nearer the line than 2.50 m (BRAZIL, MONACO, SPAIN and MEXICO moved back so),
+  the general form behind it on lanes a and b, its bike grid the general form.
+- **Its heights.** Each queue of hills one after another is a rise table ([Profile from a rise
+  table](original-road-data.md#profile-from-a-rise-table)), the road level between queues (`lapRises`): the height read
+  straight between its samples, a sample's at its first position, so that each sample's grade is its rise to the next
+  over its 32 positions, at its middle, level at the queue's ends; each grade at its station on the lap as laid, over
+  its positions at the lap's mean position (its length over its positions), so that its grades are the clock's times one
+  factor a lap; its resolution 1.5 units over a sample (`RISE_RESOLUTION`), as SUPER HANG-ON's 3D road's is 1.5 of its
+  vectors' 4096 (default; K confirms at the stage's end), each queue level again at its end by a change of grade there;
+  the lap less its mean grade, so that it closes in height. A unit up is 15/14 of a lateral unit (`UP`), the road's half
+  width over 0x40000: 22.90 µm. Then all eight times one factor, f = min(the lens ratio, 0.25 ÷ the steepest grade)
+  ([Profile from the original's screen](original-road-data.md#profile-from-the-originals-screen)): its eye's focal
+  length a position over a unit up, 202.0 rows, over its screen's 224 (`SCREEN_ROWS`, its 320 columns at 4:3), 0.902;
+  SPAIN's grade at f = 1, 0.876, the steepest, so f = 0.285. The steepest is one sample's step, twice its neighbours',
+  the 384th, 704th or 1,408th of the shapes of 512, 896 and 1,792 samples that hold it, every other step at most 40.9
+  units a position (the ROM's, kept); without it f would be 0.57. Then each within its model's elevation ([A course's
+  model](original-road-data.md#rules-of-the-originals)). Each departs from its tables by at most 0.001 in grade and
+  0.01 m in height.
+
+| Course  | Runs | Its model's factor | Steepest | Highest; lowest |
+| ------- | ---- | ------------------ | -------- | --------------- |
+| BRAZIL  | 704  | 0.226              | 4.7 %    | +2.6; −0.4 m    |
+| AMERICA | 409  | 1                  | 13.4 %   | +7.6; −0.1 m    |
+| FRANCE  | 357  | 1                  | 15.7 %   | +7.8; 0 m       |
+| MONACO  | 146  | 1                  | 11.4 %   | +9.3; −0.1 m    |
+| GERMANY | 188  | 0.597              | 5.6 %    | +3.8; −0.2 m    |
+| SPAIN   | 367  | 1                  | 25.0 %   | +15.5; −0.4 m   |
+| MEXICO  | 433  | 0.777              | 14.3 %   | +6.4; −3.6 m    |
+| JAPAN   | 176  | 1                  | 6.0 %    | +13.6; −0.2 m   |
+
+JAPAN's two passages where it crosses itself (2,466.1 m and 4,962.4 m) lie at 5.8 m and 6.3 m.
+
+- **Its road across.** Its picture's at its own car's line ([Its road across](#its-road-across)): two lanes, a and b,
+  each 5.604 m, either side of P, its road's centre; its body, its two lines and each edge's three bands, each a band
+  of `ASPHALT` (K, 2026-11-09); beyond its edges' bands, 6.427 m from P, its ground, the color its edges' pixel 0 gives,
+  as far as the course reaches, its material `groundMaterial`'s of that color to its limits: `GRASS` in BRAZIL, GERMANY
+  and JAPAN, `SAND` in AMERICA, FRANCE, SPAIN and MEXICO, and in MONACO, whose bluish grey the rule makes `WATER`,
+  `SAND`, no water lying beside its roads (default; K confirms at the stage's end). Its edges take group 0's colors,
+  its body and lines group 1's.
+- **Its stripes.** Each band and the ground take their bank's color by their place ([Its road's
+  colors](#its-roads-colors)): the color most of the banks' period, 2048 positions, takes is the band's, the rest the
+  road's surface's Strips, a period's parts repeated over the lap at the lap's mean position (4.38 m in SPAIN to 11.69 m
+  in GERMANY a period). A place's bank is that of its running position 0x7FFF on, the line's 0x831F, the race's first
+  lap's (default; K confirms at the stage's end: the original's lap is no whole number of periods, so each later lap
+  shifts its stripes).
+- **Its limits.** Its program's ([The ground beside the road](original-road-data.md#the-ground-beside-the-road)): the
+  road task holds the car's x within ±0x3C000 (S 0x2856 to 0x287A, the right bound widened by the pit lane's word, 0
+  on open road), x moving the road's k-th line from the screen's bottom by (0x86 − k) × x / 0x10000 pixels (S 0x26A8
+  to 0x26EC, 0x2770 to 0x279C), its own car's line the first past the 40 near lines (`carLimit`): 0x10000 of x is 94
+  pixels there, its own car's width, and its limits lie 352.5 pixels, 8.06 m, either side of P (that its car's line is
+  the first far line is read from the lines' counts, not confirmed).
+- **Its sky.** Its own ([Its skies](#its-skies)), at its pixels' aspect, 15/14.
+
 ## Its road across
 
 Its road A as the TC0150ROD draws it at its own car's line (`continental-circus-road-picture`), CHASE H.Q.'s road chip
@@ -133,3 +203,13 @@ each course its own, set once at the race's start and not changed along it (`con
   picture reaching 33 rows below it and BG0's band 3. Where no band lies, the cleared tile's color in line 0.
 - **Their colors.** A course's three lines from its 16 bytes at M 0xC5A0 (M 0x6E4A to 0x6ED6), its dry colors; the
   rain's and the lightning's, which the original fades in at random times, are not drawn (default; K confirms).
+- **Their facing.** The clouds' bottom strip's column 0 lies at the camera's centre at the start's heading, the line's
+  (`SKY_MIDDLE`; default, K confirms at the stage's end: where the road vanishes on the original's screen at the start
+  is not read, nor BG0's scroll at a race's start), and each other layer's seam behind it, at the facing
+  layer's pixel 128 (`SKY_SEAM`).
+
+## Its conversion
+
+`continental-circus-course` writes the eight courses to `content/originals/courses/` (`continental-circus-brazil` to
+`continental-circus-japan`), their crest trials, and their skies (`continental-circus-<course>-sky`) to
+`content/originals/images/` (its conversion's version 1).

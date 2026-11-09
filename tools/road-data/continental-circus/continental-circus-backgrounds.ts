@@ -26,6 +26,13 @@ export const CONTINENTAL_CIRCUS_COURSES = Object.freeze([
 /** A picture's columns, and the pixels its band repeats over: the setup writes it at columns 0 and 32 of its tilemap. */
 export const PICTURE_COLUMNS = 32;
 export const PICTURE_WIDTH = PICTURE_COLUMNS * TILE;
+/**
+ * The facing layer's column at the camera's centre at the start's heading, the line's: its column 0 (default; K
+ * confirms at the stage's end: where the road vanishes on the original's screen at the start is not read), and the
+ * facing layer's pixel behind it, where each other layer's turn has its seam.
+ */
+export const SKY_MIDDLE = 0;
+export const SKY_SEAM = SKY_MIDDLE + PICTURE_WIDTH / 2;
 /** A tilemap's row of tiles, bytes: 64 tiles of an attribute word and a code word. */
 const MAP_ROW = 0x100;
 const BG0_MAP = 0x200000;
@@ -156,7 +163,8 @@ function strips(sub: Uint8Array, at: number, first: number) {
  * The sky of course `course` (0 to 7, BRAZIL to JAPAN), tiles from graphics `gfx`, in its dry colors: its layers in the
  * order the chip draws them, BG1's upper picture's strips from the bottom up and its lower picture, its bottom layer, then
  * BG0's band over them; the clouds' bottom strip facing, a turn its picture's 256 pixels, each other layer a turn of
- * 256 over its rate. Where no band lies, above and below, the clear tile's color in line 0, as the cleared tilemap shows.
+ * 256 over its rate, its seam behind the start's heading (`SKY_SEAM`). Where no band lies, above and below, the clear
+ * tile's color in line 0, as the cleared tilemap shows.
  */
 export function continentalCircusSky(main: Uint8Array, sub: Uint8Array, gfx: Uint8Array, course: number): SkyBands {
   const t = tables(main, sub);
@@ -193,6 +201,7 @@ export function continentalCircusSky(main: Uint8Array, sub: Uint8Array, gfx: Uin
       band(near, { from: 0, to: tall(near) - 1 }, 'bg0', t.nearRate),
     ],
     facing: 0,
+    seam: SKY_SEAM,
     ramp: { rows: [clear], below: clear },
   };
 }

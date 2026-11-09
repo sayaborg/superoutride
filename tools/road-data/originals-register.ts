@@ -30,6 +30,9 @@ import { CHASE_HQ_COMMANDS } from './chase-hq/chase-hq-commands.js';
 import { TOP_SPEED_ROMS } from './top-speed/top-speed-rom.js';
 import { TOP_SPEED_CONVERSION } from './top-speed/top-speed-course.js';
 import { TOP_SPEED_COMMANDS } from './top-speed/top-speed-commands.js';
+import { CONTINENTAL_CIRCUS_ROMS } from './continental-circus/continental-circus-rom.js';
+import { CONTINENTAL_CIRCUS_CONVERSION } from './continental-circus/continental-circus-course.js';
+import { CONTINENTAL_CIRCUS_COMMANDS } from './continental-circus/continental-circus-commands.js';
 
 /** An original as the tool raises it: its ROM source (its name, `source.original`), its conversion and its commands. */
 export interface RegisteredOriginal {
@@ -47,6 +50,11 @@ export const ORIGINALS: readonly RegisteredOriginal[] = Object.freeze([
   { source: FINAL_LAP_2_ROMS, conversion: FINAL_LAP_2_CONVERSION, commands: FINAL_LAP_2_COMMANDS },
   { source: CHASE_HQ_ROMS, conversion: CHASE_HQ_CONVERSION, commands: CHASE_HQ_COMMANDS },
   { source: TOP_SPEED_ROMS, conversion: TOP_SPEED_CONVERSION, commands: TOP_SPEED_COMMANDS },
+  {
+    source: CONTINENTAL_CIRCUS_ROMS,
+    conversion: CONTINENTAL_CIRCUS_CONVERSION,
+    commands: CONTINENTAL_CIRCUS_COMMANDS,
+  },
 ]);
 
 /** An original's conversion command's name: `<original>-course`. */

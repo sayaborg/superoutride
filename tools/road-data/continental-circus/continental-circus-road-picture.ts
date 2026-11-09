@@ -14,6 +14,10 @@ export const CAR_WIDTH = 2.15;
  * race record for a car not turning (S 0x4A78, its first, sprite 0x2E), columns 11 to 104 (research).
  */
 export const CAR_COLUMNS = 94;
+/** Up over across, a pixel's height over its width: the screen's (K, 2026-11-05). */
+export const UP = 15 / 14;
+/** The rows its screen shows: its 320 columns at 4:3, a pixel `UP` as tall as wide. */
+export const SCREEN_ROWS = (320 * 3) / 4 / UP;
 /** The distance of its own car's line from the picture's pinhole, positions: the car 0x42B ahead of it (S 0x2C08). */
 export const CAR_DISTANCE = 0x42b;
 /** The road's half width, lateral units: a line's half width in pixels times its distance (the tables at M 0x53A6, 0xD1F0). */
@@ -85,4 +89,26 @@ export function continentalCircusRoadPicture(main: Uint8Array, road: Uint8Array)
     return out;
   };
   return { line, half, pixelMetres, halfMetres: half * pixelMetres, bodyPen, lines, left: bands(-1), right: bands(1) };
+}
+
+/**
+ * Its own car's lateral limit, pixels either side of the road's centre at its own car's line: the road task holds the
+ * car's x within ±0x3C000 (S 0x2856 to 0x287A; the right bound wider by the pit lane's word, 0 on open road, S 0x285C),
+ * and moves the road's k-th line from the screen's bottom (k from 0) across by (0x86 − k) × x / 0x10000 pixels (S 0x26A8
+ * to 0x26EC, 0x2770 to 0x279C: d2 starts at 0x86 × x and loses x a line), its own car's line the first beyond the 0x28
+ * near lines, the first of the far lines, its nearest at the car's distance (`CAR_DISTANCE`).
+ */
+export function carLimit(sub: Uint8Array): number {
+  const [count] = instruction(sub, 0x26a8, [null], 'the near lines (moveq)');
+  if (count >> 8 !== 0x76) throw romDiffers('The near lines are not counted in d3 (moveq)');
+  const near = (count & 0xff) + 1;
+  const [lines] = instruction(sub, 0x26d4, [0x2f3c, 0x0000, null], "the road's lines a car's x moves (move.l)");
+  instruction(sub, 0x26ec, [0x9485], 'a near line moved by x less (sub.l)');
+  instruction(sub, 0x279c, [0x9485], 'a far line moved by x less (sub.l)');
+  const [rightHigh, rightLow] = instruction(sub, 0x2864, [0x0687, null, null], "the car's right bound (addi.l)");
+  const [leftHigh, leftLow] = instruction(sub, 0x2872, [0x0c84, null, null], "the car's left bound (cmpi.l)");
+  instruction(sub, 0x285c, [0x3e2d, 0xff7a], "the pit lane's word widening the right bound (move.w)");
+  const right = rightHigh * 0x10000 + rightLow;
+  if (((leftHigh * 0x10000 + leftLow) | 0) !== -right) throw romDiffers("The car's bounds are not alike either side");
+  return (right * (lines - near)) / 0x10000;
 }

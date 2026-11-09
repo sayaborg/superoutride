@@ -46,6 +46,9 @@ export function continentalCircusRoadColors(main: Uint8Array, course: number) {
   return (bank: number, group: number, pixel: number): number => xrgb555Of(colors[bank]![group]![entryOf(pixel)]!);
 }
 
+/** The banks' period along the road, positions: the bank table's 512 words, a place over 4 a word (`stripeBank`). */
+export const BANK_PERIOD = 512 * 4;
+
 /**
  * A road place's bank: the main program's table of 512 words at M 0x4EC4, the bank its top 4 bits, by the place's
  * distance plus the picture's pinhole (M 0x4D70) over 4 (M 0x4E68 to 0x4E74): `place` in the program's positions, the

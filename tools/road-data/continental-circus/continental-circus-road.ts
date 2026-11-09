@@ -8,6 +8,7 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import type { CurveInterval } from '../shared/curve-plan.js';
 import { metresAPosition } from '../shared/road-position.js';
 import { FRAMES_A_SECOND } from '../taito/z-system-display.js';
+import { CAR_DISTANCE } from './continental-circus-road-picture.js';
 
 /** Its courses, BRAZIL to JAPAN, in the program's order (its names at M 0x46FA). */
 export const COURSES = 8;
@@ -52,10 +53,15 @@ export interface LapRecord {
   readonly argument: number;
 }
 
-/** A course's lap from its line: its length and records, positions. */
+/**
+ * A course's lap from its line: its length and records, how far before its line the race stands its own car, and its
+ * line's place in the picture's pinhole's positions as the race's first lap lays it, positions.
+ */
 export interface ContinentalCircusLap {
   readonly length: number;
   readonly records: readonly LapRecord[];
+  readonly start: number;
+  readonly place: number;
 }
 
 /**
@@ -83,11 +89,25 @@ function streamOf(sub: Uint8Array, course: number) {
 const LINE_KINDS = [2, 7];
 
 /**
+ * Where the race stands its own car: the stream task sets the picture's pinhole to 0x7BD4 once it has read the records
+ * before it (S 0xC098), the car 0x42B ahead of it (`CAR_DISTANCE`), and lays each record 0x7FFF past its running
+ * position (S 0xC0F0), so the car stands at running position 0.
+ */
+function carStands(sub: Uint8Array) {
+  const [pinhole] = instruction(sub, 0xc098, [0x263c, 0x0000, null], "the pinhole at the race's start (move.l)");
+  const [ahead] = instruction(sub, 0xc0f0, [0x0686, 0x0000, null], "a record's place ahead (addi.l)");
+  if (pinhole + CAR_DISTANCE !== ahead) throw romDiffers('The race does not start its own car at running position 0');
+  return ahead;
+}
+
+/**
  * Course `course`'s lap (0 to 7): its loop's records from the one after the record the loop goes back to, each at its
  * running position from the lap's first, its line (a zone of a line's kind), the loop's own running position the lap's
- * length.
+ * length; its start, the line's running position from its stream's start (`carStands`), and its line's place, that
+ * running position laid ahead as a record's.
  */
 export function continentalCircusLap(sub: Uint8Array, course: number): ContinentalCircusLap {
+  const ahead = carStands(sub);
   const start = streamOf(sub, course);
   // The loop's record: the first whose command is the loop, its target within the stream.
   let loop = start;
@@ -103,10 +123,14 @@ export function continentalCircusLap(sub: Uint8Array, course: number): Continent
   const line = records[0]!;
   if (line.command !== COMMAND.zone || !LINE_KINDS.includes(line.argument >>> 16))
     throw romDiffers(`Course ${course}'s lap does not start at its line`);
+  let before = 0;
+  for (let a = start; a <= first; a += 8) before += word(sub, a);
   // The next lap's line lies its first record's word past the loop: a lap is the loop's running position long.
   return {
     length: records.at(-1)!.at,
     records: records.slice(0, -1).map((r) => ({ ...r, at: r.at - line.at })),
+    start: before,
+    place: before + ahead,
   };
 }
 
