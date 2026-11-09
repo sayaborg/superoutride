@@ -373,7 +373,7 @@ test("RESULT's SELECT and CHANGE VEHICLE rebuild the rows above from the run, an
     club.classes.map((c) => c.title),
   );
   const free = {
-    courseId: 'outrun-b',
+    courseId: 'outrun-short-b',
     lapCount: 1,
     rivalCount: 0,
     rivalPool: 'ALL',
@@ -383,10 +383,10 @@ test("RESULT's SELECT and CHANGE VEHICLE rebuild the rows above from the run, an
     track: null,
   };
   flow.select(free);
-  assert.equal(screen.row.cards[screen.index].name, courses.find((c) => c.id === 'outrun-b').name);
+  assert.equal(screen.row.cards[screen.index].name, courses.find((c) => c.id === 'outrun-short-b').name);
   send('BACK');
   assert.equal(screen.row.cards[screen.index].name, 'OUTRUN');
-  // Without DEV, an original's course is not offered: its run leads to TITLE.
+  // Without DEV, an original's course no series runs is not offered: its run leads to TITLE.
   const plain = selection({ dev: false });
   plain.flow.select(free);
   assert.equal(plain.screen.row.kind, 'title');
