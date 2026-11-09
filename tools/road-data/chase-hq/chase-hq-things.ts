@@ -17,6 +17,30 @@ import { romDiffers } from '../shared/conversion-errors.js';
 const FULL = 0x7f;
 const SPRITE = 128;
 
+/** The projection's rows: one each 16 positions of distance, eight bytes, its zoom its byte 0 and its factor across its word at 4. */
+const ROW_BYTES = 8;
+const ROWS = 0x1000;
+
+/**
+ * A sprite's pixel at its full size, road laterals: a thing's composer (M 0x45830) takes its row of the projection by
+ * its distance (M 0x45868 to 0x45874), its zoom from it (M 0x4599C) and its lateral factor (M 0x45916), which takes a
+ * lateral to screen pixels × 65536; at zoom 0x7F, the nearest row's that has it, a pixel is a screen pixel.
+ */
+export function chaseHqPixelLaterals(main: Uint8Array) {
+  const [high, low] = instruction(
+    main,
+    0x45868,
+    [0xe281, 0x0241, 0xfff8, 0x45f9, null, null, 0xd4c1],
+    "a distance's row of the projection (asr.l, andi.w, lea, adda.w)",
+  );
+  instruction(main, 0x4599c, [0x1212], "a row's zoom (move.b)");
+  instruction(main, 0x45916, [0xc7ea, 0x0004], "a row's lateral factor (muls.w)");
+  const rows = high * 0x10000 + low;
+  for (let row = rows; row < rows + ROWS * ROW_BYTES; row += ROW_BYTES)
+    if (main[row] === FULL) return 0x10000 / word(main, row + 4);
+  throw romDiffers('No row of the projection draws a sprite at its full size');
+}
+
 /** A piece of a thing at its full size: its sprite, its top left (pixels from the thing's point on the ground, down positive), its palette line, its flips and the axes its zoom is fixed on. */
 export interface ChaseHqPiece {
   readonly sprite: number;

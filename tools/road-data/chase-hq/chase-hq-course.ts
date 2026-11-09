@@ -2,13 +2,14 @@
  * CHASE H.Q.'s conversion ([CHASE H.Q. road data](../../../docs/chase-hq-road-data.md)): its ten courses, each its
  * stage's road on one branch of its fork from the stage's start, laid on back for its grid, to its goal's record's end,
  * laid by `road-layout` with its plan, heights, lanes, limits, bands and materials as its programs give them, its skies
- * in their Sections; no objects yet.
+ * and its things in their Sections; the things a tunnel's or a gate's record places not yet.
  */
 import type {
   CoursePosition,
   EnvironmentDocument,
   LaneDocument,
   Lateral,
+  SpriteDocument,
 } from '../../../src/course/course-document.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
@@ -23,7 +24,7 @@ import { bendOf, profileOf } from '../shared/road-profile.js';
 import { partedStrips, type Material } from '../shared/road-surface.js';
 import { colorStretches, joinedChanges } from '../shared/color-stretches.js';
 import type { RomSet } from '../shared/rom-set.js';
-import { micrometre, simplified, stripElement } from '../shared/section-writing.js';
+import { micrometre, simplified, spriteElement, stripElement } from '../shared/section-writing.js';
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
 import { gridReach, type StartGrids } from '../shared/grid-rule.js';
 import { straightThrough } from '../shared/piecewise-linear.js';
@@ -44,6 +45,7 @@ import {
   SKY_MIDDLE,
   SKY_TURN,
 } from './chase-hq-backgrounds.js';
+import { chaseHqBoards } from './chase-hq-boards.js';
 import { CHASE_HQ_GOALS, TOP_SPEED } from './chase-hq-goals.js';
 import { gradeResolution, STEP_METRES, stepGrades } from './chase-hq-heights.js';
 import { coursePieces, crossings, RECORD_METRES } from './chase-hq-plan.js';
@@ -61,19 +63,29 @@ import {
   darkRecord,
   dirtRecord,
 } from './chase-hq-road-across.js';
+import { chaseHqPlacements, type ChaseHqHit } from './chase-hq-objects.js';
 import { chaseHqRoadLevels, chaseHqRoadPicture, type RoadColor } from './chase-hq-road-picture.js';
-import { assembleChaseHqMain, assembleChaseHqSub, assembleChaseHqTiles, CHASE_HQ_ROAD_ROM } from './chase-hq-rom.js';
+import {
+  assembleChaseHqMain,
+  assembleChaseHqSprites,
+  assembleChaseHqSub,
+  assembleChaseHqTiles,
+  CHASE_HQ_ROAD_ROM,
+} from './chase-hq-rom.js';
 import {
   courseSections,
   LANE_METRES,
+  lateralMetres,
   POSITION_METRES,
   readRoadPalette,
   readRoads,
   STAGES,
   type ChaseHqRecord,
 } from './chase-hq-road.js';
+import { chaseHqPixelLaterals } from './chase-hq-things.js';
+import { SECTION_RECORDS } from '../taito/course-records.js';
 
-export const CHASE_HQ_CONVERSION_VERSION = 7;
+export const CHASE_HQ_CONVERSION_VERSION = 8;
 
 /** A stage's far sky set where the original picks one at random: 0 in stages 1, 3 and 5, 2 in 2 and 4 (K, 2026-11-08). */
 const STAGE_SETS = Object.freeze([0, 2, 0, 2, 0]);
@@ -81,6 +93,23 @@ const STAGE_SETS = Object.freeze([0, 2, 0, 2, 0]);
 const SIDES = Object.freeze(['left', 'right'] as const);
 /** The sky's picture of a far set, a background mode and a scene. */
 const skyName = (set: number, mode: number, scene: number) => `chase-hq-sky-${set}-${mode}-${scene}`;
+
+/**
+ * A thing's body ([Chosen lines](../../../docs/original-road-data.md#chosen-lines)), metres right of its lateral `at`:
+ * each part of its hit (`hit`, laterals `metres` each) as wide as it is, at most its picture's colored columns
+ * (`colored`, from its point), and, where a car hits it on its side of P alone, the part on that side alone (P itself
+ * the right's, as the lateral's top bit is); none where it has no hit, nor yet where the hit knocks it away.
+ */
+function bodyOf(hit: ChaseHqHit | null, at: number, metres: number, colored: readonly [number, number]) {
+  if (!hit || hit.knocked) return null;
+  const width = Math.min(2 * hit.half * metres, colored[1] - colored[0]);
+  const parts = hit.middles.flatMap((m) => {
+    let [a, b] = [m * metres - width / 2, m * metres + width / 2];
+    if (hit.ownSide) [a, b] = at >= 0 ? [Math.max(a, -at), b] : [a, Math.min(b, -at)];
+    return b - a > 1e-6 ? [{ across: (a + b) / 2, width: b - a }] : [];
+  });
+  return parts.length ? parts : null;
+}
 
 /** The lanes set in a record's drawn mask, left to right. */
 const setLanes = (sub: Uint8Array, r: ChaseHqRecord) => LANES.filter((_, k) => (drawnMask(sub, r) >> (6 - k)) & 1);
@@ -96,14 +125,42 @@ export function chaseHqCourses(set: RomSet) {
   const tickMetres = TOP_SPEED * POSITION_METRES;
   const outputs = new OriginalOutputs();
   const skies = new Set<string>();
+  // Each course's records to the end of its goal's, each with its road's index and its place in that road.
+  const courseRecords = (stage: number, side: (typeof SIDES)[number]) =>
+    courseSections(roads, stage, side)
+      .flatMap(([road, section]) =>
+        roads[road]![section]!.records.map((record, k) => ({
+          record,
+          road,
+          section,
+          index: section * SECTION_RECORDS + k,
+        })),
+      )
+      .slice(0, Math.floor(CHASE_HQ_GOALS[stage]! / RECORD_METRES) + 1);
+  // The things each course's records place, and their kinds' pictures, a pixel at its full size by the projection.
+  const place = chaseHqPlacements(main);
+  const metresAcross = lateralMetres(main);
+  const courseThings = Array.from({ length: STAGES }, (_, stage) =>
+    SIDES.map((side) =>
+      courseRecords(stage, side).flatMap((r, k) =>
+        place(r.road, r.index, r.record).map((thing) => ({ ...thing, record: k })),
+      ),
+    ),
+  );
+  const boards = chaseHqBoards(
+    main,
+    assembleChaseHqSprites(set),
+    courseThings.flat(2).map((thing) => thing.kind),
+    chaseHqPixelLaterals(main) * metresAcross,
+  );
+  for (const { image } of boards) outputs.file(image.path, image.bytes);
+  const boardOf = new Map(boards.map((b) => [b.kind, b]));
   const courses = Array.from({ length: STAGES }, (_, stage) =>
-    SIDES.map((side) => {
+    SIDES.map((side, sideIndex) => {
       const id = `chase-hq-${stage + 1}-${side}`;
       const name = `STAGE ${stage + 1} ${side.toUpperCase()}`;
       const goal = CHASE_HQ_GOALS[stage]!;
-      const sectioned = courseSections(roads, stage, side)
-        .flatMap(([road, section]) => roads[road]![section]!.records.map((record) => ({ record, section })))
-        .slice(0, Math.floor(goal / RECORD_METRES) + 1);
+      const sectioned = courseRecords(stage, side);
       const records = sectioned.map((r) => r.record);
       // The fork's other branch, the road not taken, its records beside the course's.
       const other = courseSections(roads, stage, side === 'left' ? 'right' : 'left')
@@ -138,6 +195,19 @@ export function chaseHqCourses(set: RomSet) {
       // Its plan: the start's heading laid on back straight, then its records turned as the sky turns.
       const pieces = [{ length: back, turn: 0 }, ...coursePieces(main, records)];
       const length = back + records.length * RECORD_METRES;
+      // Its things at their stations, in station order, those placed off the course left out.
+      const things = courseThings[stage]![sideIndex]!.map((thing) => {
+        const board = boardOf.get(thing.kind)!;
+        const lateral = thing.lateral * metresAcross;
+        return {
+          s: back + thing.record * RECORD_METRES + thing.ahead * POSITION_METRES,
+          lateral,
+          board,
+          body: bodyOf(thing.hit, lateral, metresAcross, board.colored),
+        };
+      })
+        .filter((t) => t.s >= 0 && t.s <= length)
+        .sort((a, b) => a.s - b.s || a.lateral - b.lateral);
       const crossed = crossings(pieces, back + goal);
       // Its heights: the sub program's grades a step, its passages and its start fixed points.
       const grades = stepGrades(
@@ -691,6 +761,18 @@ export function chaseHqCourses(set: RomSet) {
             transition: k.s < span.from - 1e-6 ? 0 : micrometre(k.transition),
           });
           const inForce = [...skyKnots].reverse().find((k) => k.s <= span.from + 1e-6)!;
+          const sprites: SpriteDocument[] = things
+            .filter((t) => t.s >= span.from && (t.s < span.to || (span.to >= length - 1e-6 && t.s <= span.to)))
+            .map((t) =>
+              spriteElement({
+                image: t.board.name,
+                palette: t.board.palette,
+                at: positionAt(t.s),
+                lateral: t.lateral,
+                groundOffset: t.board.groundOffset,
+                body: t.body,
+              }),
+            );
           return {
             lanes: laneDocs,
             centerLane,
@@ -717,6 +799,7 @@ export function chaseHqCourses(set: RomSet) {
               environment(inForce, span.from),
               ...skyKnots.filter((k) => k.s > span.from + 1e-6 && k.s < span.to - 1e-6).map((k) => environment(k, k.s)),
             ],
+            sprites,
           };
         },
       });
@@ -749,6 +832,10 @@ export function chaseHqCourses(set: RomSet) {
         // How many of its records' changes joined the change before them, as one.
         joined: recordChanges.length - changes.colors.length,
         ground: ground.left.map(([s, m]) => [round1(s), m]),
+        // Its things, those with a body, and its kinds.
+        things: things.length,
+        bodies: things.filter((t) => t.body).length,
+        kinds: new Set(things.map((t) => t.board.kind)).size,
       };
     }),
   ).flat();
@@ -758,6 +845,8 @@ export function chaseHqCourses(set: RomSet) {
       positionMetres: Number(POSITION_METRES.toPrecision(6)),
       edgeMetres: round3(picture.edgeMetres),
       skies: skies.size,
+      // The things' pictures: how many, and the most colors one drew.
+      things: { pictures: boards.length, mostColors: Math.max(...boards.map((b) => b.distinct)) },
       courses,
     },
   };

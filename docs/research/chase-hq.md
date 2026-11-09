@@ -174,7 +174,8 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
 
 - M draws the things in its display list each frame by a composer its kind's class picks, the kind over 64 through the
   jump table at 0x40EDA (0x40EB2 to 0x40ED6). Each composer projects the thing's place by its distance (a row of the
-  table at 0x54100 every 16 positions: its zoom, 0x7F at the nearest, and its factors) and the sub program's rows of the
+  table at 0x54100 every 16 positions: its zoom in its first byte, larger than 0x7F nearer than 0x100 positions and
+  0x7F there, and its factors, the factor across 6,104 there) and the sub program's rows of the
   road, and reads the thing's list from the kind table at 0x4A602, a long a kind: a header of four words (its x
   offset's row, its flips, its height's row, a sprite), the count less one and its pieces. The composers CHASE H.Q.'s
   placed things use read pieces of 6, 8, 10 or 12 bytes (their loops at 0x4439E, 0x44634, 0x44918, 0x44C92, 0x4518C,
@@ -188,6 +189,17 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
 - The sprite chip takes a sprite's size from its zoom: from 0x40 its 128 × 128 picture of 16 × 16 tiles from its first
   set of tile ROMs (OBJ A), below that smaller pictures from the second set, so that a thing at its full size is its
   128 × 128 sprites at zoom 0x7F, a pixel a pixel.
+- M places a record's things as the camera nears it (0x9104 on): unless the record's event places its own, each of its
+  road's table's four entries for it lays its kind at every place of one pattern and every lateral of another, each
+  thing in a slot of 0x40 bytes from 0x10A400 to 0x10BE00 (0x9170 to 0x9294); its event's handler (the table at 0x92AA)
+  lays a backdrop, the tunnels' walls and mouths, the gates and the signs over the road through one helper (0x9432), the
+  tunnels' and the gates' handlers leaving the record's table unread. The backdrop's composer (0x44F8A) takes a distance
+  d as 0x400 + 0.75 d² / 65,536 before it projects it (0x44FC2 to 0x44FD2), so it is drawn far away, approaching slowly. A slot's flags, set there, decide how it is hit.
+- M tests the player against the scenery's slots on its road (0x9C56 to 0x9D30): a slot hit from its
+  side of P alone, from either side, or on two posts, by the hit table at 0xB9B8 (a half width and a reach toward the
+  car for each kind from 0x300 to 0x5FF), or not at all. A hit knocks the dustbins and their like away (0x9D32: kinds
+  0x5C0 to 0x5FF), and crashes the player on any other (0x9E2A, 0xA15C); between a thing's two posts it plays a
+  sound (0x9DC2). The tunnels' walls are not hit as things, nor the backdrop.
 
 ## Camera
 

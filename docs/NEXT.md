@@ -490,7 +490,8 @@ K's decisions (2026-11-05):
   CONTINENTAL CIRCUS's 1,343 placements of 3,869 join into one picture each, its start gantry of nine pieces the
   largest. A piece the original draws at a zoom fixed in one axis or both (TOP SPEED's placements of types 1 to 3) is
   laid at the thing's full size, where every piece is a pixel a pixel; that the original's thing changes shape as it is
-  drawn smaller is a replacement that cannot be avoided, its chapter's, and TA-8 writes this into the rule. A thing's
+  drawn smaller is a replacement that cannot be avoided, its chapter's, as [the rule](original-road-data.md#things-of-several-pieces)
+  says. A thing's
   hit parts are two at most (TOP SPEED's one box a thing, CHASE H.Q.'s two posts at most, CONTINENTAL CIRCUS's two
   ranges at most), so `bodyParts` stays 16; CONTINENTAL CIRCUS's hit ranges, which do not hold its own car's width, are
   its bodies' widths, at most their pictures' colored columns, as [the rule](original-road-data.md#chosen-lines) has
@@ -603,10 +604,11 @@ before TA-18 (K, 2026-11-09).
 
 The PRs, in order:
 
-- **TA-8** CHASE H.Q.'s objects, the dark stretch the main program sets from an object's place among them, with what the
-  three originals' things need of the shared rules (pieces at a zoom fixed by axis laid at the thing's full size, the
-  transparent pens each hardware names, and the bands fixed on the screen, the band across the road among them, in [the
-  strips' rule](original-road-data.md#strips)).
+- **TA-8** CHASE H.Q.'s objects, continued: the things its tunnels' and gates' records place, their full-width pieces
+  bands across the road, with the bands fixed on the screen, the band across the road among them, in [the strips'
+  rule](original-road-data.md#strips); the dark stretch the main program sets from an object's place among them; its
+  dustbins and their like movable where the original knocks them away, which stand without a body until then and
+  whose pictures the original draws no shadow for (default; K confirms at the stage's end).
 - **TA-12, TA-10 and TA-11** TOP SPEED: its skies (the PC080SN tile layers' reader as its skies need it); its seven
   courses without objects (the reader's road and the course tables' reader shared with CHASE H.Q.); its objects.
 - **TA-13** [A course's model](original-road-data.md#rules-of-the-originals) as the circuit the original drew, in the

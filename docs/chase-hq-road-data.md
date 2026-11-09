@@ -148,13 +148,14 @@ first tunnel record's start (a record's event 3) to the last's end, at once at b
 under way; the road not taken is dark by its own records. The sub program darkens the rows between two places the main
 program gives it (S 0x33C8 to 0x3484, from 0x108024); that those are its tunnel records' ends is an estimate, which a
 run of both programs through a tunnel would confirm (default; K confirms at the stage's end). A second dark stretch the
-main program sets from an object's place (M 0x45A30 to 0x45A96) comes with the objects (TA-8). The dirt road (a record's
-kind 6, stage 1 right and stage 3 left) is drawn as the sub program draws it, its rows' edges set far beyond the screen
-(S 0x415C) so that its own tile's body line fills the whole view: one color across the road and the ground, its tile's
-base pen (the one most of it draws) in its bank's line (S 0x3BAC, 0x3BB4: bank 13, its body's line 3). Its tile's
-texture, four pens a few pixels each, and its bank's cycling through 13 to 15 as the car goes (S 0x3C50) are not drawn:
-unavoidable replacements, the dirt road one color still (default; K confirms at the stage's end). A Section writes at
-most 181 Strips (stage 1 left), 2,668 with its repeats expanded. Its objects come with TA-8.
+main program sets from an object's place (M 0x45A30 to 0x45A96) comes with the gates' objects (TA-8). The dirt road (a
+record's kind 6, stage 1 right and stage 3 left) is drawn as the sub program draws it, its rows' edges set far beyond
+the screen (S 0x415C) so that its own tile's body line fills the whole view: one color across the road and the ground,
+its tile's base pen (the one most of it draws) in its bank's line (S 0x3BAC, 0x3BB4: bank 13, its body's line 3). Its
+tile's texture, four pens a few pixels each, and its bank's cycling through 13 to 15 as the car goes (S 0x3C50) are not
+drawn: unavoidable replacements, the dirt road one color still (default; K confirms at the stage's end). A Section
+writes at most 181 Strips (stage 1 left), 2,668 with its repeats expanded. Its things are [its
+objects](#chase-hqs-objects).
 
 ### Its skies
 
@@ -187,8 +188,56 @@ replacement K sees in DEV. A course reads 5 to 9 skies, 3.8 to 8.7 MB; stage 2 r
 The own car stands alone at GO at its stage's start in its rightmost lane, e, and d in stage 5, the general form behind
 it on that lane and its left neighbour ([The grid](original-road-data.md#the-grid)); the finish is the goal.
 
+## CHASE H.Q.'s objects
+
+Each course's things stand where its main program places them (`chase-hq-objects`), each kind one picture of its pieces
+(`chase-hq-boards`, `chasehq-<its kind, three hex digits>`):
+
+- **Places.** Road r's table at 0x68C7C + 0x2000 r holds four entries of four bytes a record (M 0x9170 to 0x91B2), each
+  a kind (0 none), its pattern of laterals (byte 2, from 0xB2B4, 16 bytes a pattern, words to 0xFFFF) and its pattern of
+  places (byte 3, from 0xB0B4, 8 bytes a pattern, bytes to 0xFF). A thing stands at each place, its signed byte × 0x100
+  positions from the record's start, and at each lateral, the pattern's word beside the rightmost lane's centre where it
+  is 0 or more, else beside the leftmost's (M 0x8142: lane a's centre 0x6FD0 + 0x4A0, a lane 0x4A0 on, so P, between
+  lanes c and d, 0x8000). A record's event places its own things before its table's (the handlers from 0x92AA): event 6
+  a sign over the road, kind 0x440 + 8 × (its parameter & 3), one more for each lane beyond three, centred on its outer
+  lanes. A tunnel's record (event 3) and a gate's (event 4) place theirs instead of their table's (M 0x9158, 0x9166),
+  and those are not placed yet. Event 2's thing (kind 0x681, at P) is a backdrop: its composer draws it as though it
+  stood 0x400 + 0.75 d² / 65,536 positions away at a distance d (M 0x44FC2 to 0x44FD2), never near, where a board stands
+  at one distance, so it is not placed (default; K confirms at the stage's end). A course stands 2,558 to 3,012 things
+  of 40 to 77 kinds, 157 kinds in all; those placed before the road laid on back or past its end are left out.
+- **Pictures.** A kind's picture is its pieces at their full size ([research notes](research/chase-hq.md#things)), laid
+  in the order its sprite list is drawn, from the last entry, so its first piece is over those after it. Each piece is
+  in its palette line's colors as the program fades them in (M 0x1484: entry e's word at 0x2C6D2 + 2e), pen 0
+  transparent, and its colors are a thing of several pieces' ([Things of several
+  pieces](original-road-data.md#things-of-several-pieces)). The original draws each placed thing as one unit, every
+  piece at its point, so a kind is one picture already; none draws more than 15 colors. The dunes' pieces (kinds 0x640
+  to 0x664), drawn at a zoom fixed across, are laid at the thing's full size. That the original's dunes change their
+  shape as they are drawn smaller is a replacement that cannot be avoided. A course reads 8.0 to 29.5 MB of its things'
+  pictures beside its skies: stage 3 right, the most, loads with them in 2.4 to 3.0 s by the game's loader in Node,
+  OUTRUN's road A in 2.9 to 3.3 s.
+- **Size.** A thing's composer (M 0x45830) takes its row of the projection by its distance (from 0x54100, eight bytes
+  each 16 positions; M 0x45868), its zoom (byte 0; M 0x4599C) and its factor across (its word at 4, a lateral's screen
+  pixels × 65,536; M 0x45916). At zoom 0x7F a sprite's pixel is a screen pixel: at the nearest row with that zoom, 10.737
+  laterals, 3.26 cm (`chaseHqPixelLaterals`), the Z system's pixel square (its 320 × 240 at 4:3). A picture stands at
+  the thing's point where a piece reaches the ground there; 44 kinds' lowest colored rows lie 1 to 32 pixels above it,
+  and those float at that height, as the original draws them. The original draws no shadow, and none is drawn (default;
+  K confirms at the stage's end).
+- **Bodies.** The main program tests the player's car against the things on its road (M 0x9C56 on). A thing's flags,
+  set as it is placed (its slot's byte 8), say how it is hit, and the hit table at 0xB9B8 holds a long a kind from 0x300
+  to 0x5FF: its low word a half width in laterals, its high word the positions it reaches toward the car (0x100, 0.77 m,
+  for every kind placed but the dustbins' 0x200), 0 for a kind not hit. A table's thing (flags 3) hits only a car on its side of P, where the
+  two laterals' top bits agree (M 0x9CAE to 0x9CB8); a sign over the road (flags 0x81) is hit on two posts, each the half
+  width either side of its middle, the long's high word the posts' laterals from the sign's (M 0x9D6C). A body is each
+  part as wide as the hit, at most its picture's colored columns, on the thing's side of P alone where a car is hit
+  only there: the yellow bollards placed at P (kinds 0x38B and 0x3AB) are hit only by a car right of P, and their bodies
+  lie right of it. A fixed body has no depth in this game, so it stands at the thing's point, where the original's
+  reaches 0.77 m toward the car. 20,784 things have bodies, 806 of them beside their laterals. Dustbins and their like
+  (hit kinds 0x5C0 to 0x5FF) are knocked away where they are hit (M 0x9D32), not stopping the car, and in this game a
+  movable body's pictures need shadows the original does not draw: they stand without a body until a PR of their own
+  makes them movable (default; K confirms at the stage's end).
+
 ## CHASE H.Q.'s conversion
 
 `chase-hq-course` writes the ten courses to `content/originals/courses/` (`chase-hq-1-left` to `chase-hq-5-right`),
-their crest trials and their 38 skies (`chase-hq-sky-<set>-<mode>-<scene>`) to `content/originals/images/`
-(`chase-hq-course`; its conversion's version 2).
+their crest trials, their 38 skies (`chase-hq-sky-<set>-<mode>-<scene>`) and their 157 things' pictures
+(`chasehq-<kind>`) to `content/originals/images/` (`chase-hq-course`; its conversion's version 8).

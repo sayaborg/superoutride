@@ -13,6 +13,7 @@ import type {
   LaneDocument,
   Lateral,
   SectionDocument,
+  SpriteDocument,
   StripElementDocument,
 } from '../../../src/course/course-document.js';
 import { computedValue } from '../../authoring/course-joints.js';
@@ -24,7 +25,14 @@ import { ruleGrid, startGate, type StartGrids } from './grid-rule.js';
 import { groundToLimits, programLimitLines, type ProgramLimits } from './program-limits.js';
 import type { Band } from './road-surface.js';
 import { sectionProfile, type Bend, type Kink, type Profile } from './road-profile.js';
-import { domainCuts, sectionGates, sectionStations, writtenPlan, type CourseGate } from './section-writing.js';
+import {
+  domainCuts,
+  repeated,
+  sectionGates,
+  sectionStations,
+  writtenPlan,
+  type CourseGate,
+} from './section-writing.js';
 
 /** A Section's stretch of the road: its id and its stations. */
 export interface RoadSpan {
@@ -55,6 +63,8 @@ export interface SectionParts {
   /** Its own Boundaries beside its limits' (a road not taken's edges), and its Strips laid over the ground. */
   readonly boundaries?: readonly BoundaryDocument[];
   readonly over?: readonly StripElementDocument[];
+  /** Its sprites, in station order, those of one picture and no body repeated where they stand at a period. */
+  readonly sprites?: readonly SpriteDocument[];
 }
 
 /** A road's course: its options, each Section's parts by `section`. */
@@ -146,7 +156,7 @@ export function layRoad(options: RoadLayout): {
         ],
         walls: [],
         openLimits: [],
-        sprites: [],
+        sprites: repeated(parts.sprites ?? []),
         environments: parts.environments,
         gates: [
           ...(first ? [startGate(positionAt, options.grids)] : []),

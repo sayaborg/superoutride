@@ -82,14 +82,15 @@ holds and links the section here that states its rule; this is their one map.
   road units each, and its next sections for the left and the right; what a record's bytes mean is each original's), a
   palette word of the Z system's chip as this repository's color (`palette`: the TC0110PCR's red in bits 0–4 and blue in
   10–14, put in RGB555's places, so that nothing past it reads the chip's order), the Z system's frames a second
-  (`z-system-display`), its road generator's lines (`tc0150rod`: a tile's edge line and body line of pens, the edges
+  and its pixel's aspect (`z-system-display`), its road generator's lines (`tc0150rod`: a tile's edge line and body line of pens, the edges
   outward from their middle) and its tile layers (`tc0100scn`: a tile's pens from the tile ROM's words, and the layer
   the chip draws at the bottom by its control word 6, every pen its color, the other over it, its pen 0 transparent)
   and its sprites (`z-sprites`: a sprite's 16 × 16 tiles from its four ROMs, laid by the spritemap, at its full size).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`,
   `chase-hq/`): its modules, one role a suffix ([An original's modules](#an-originals-modules)). CHASE H.Q.'s
   (`chase-hq/`) are its main and sub programs' and tile, road and sprite ROMs (`chase-hq-rom`), its things' pieces
-  (`chase-hq-things`), its course tables and road
+  and a pixel's laterals at their full size (`chase-hq-things`), its things' places and hits (`chase-hq-objects`) and pictures (`chase-hq-boards`), its course
+  tables and road
   position (`chase-hq-road`), its heights (`chase-hq-heights`), its plan and where it crosses itself (`chase-hq-plan`),
   its road's picture at its nearest row (`chase-hq-road-picture`), its road across, its lanes, limits, bands and
   materials (`chase-hq-road-across`), its skies' bands and their changes (`chase-hq-backgrounds`), its conversion
@@ -308,6 +309,7 @@ share them, and its programs' own are read where they are used.
 | `PIXEL_ASPECT` (`pole-position-hardware/display`)                  | 6/7             | its 256 × 224 shown at 4:3: a pixel is 7 wide to 6 tall                                                            |
 | `ROAD_PALETTE_ENTRIES` (`pole-position-hardware/colors`)           | 64              | the road ROMs' lateral steps across the road picture, a road palette's entries                                     |
 | `FRAMES_A_SECOND` (`taito/z-system-display`)                       | 60.056          | the Z system's frames: 26.686 MHz over 4, 424 × 262                                                                |
+| `PIXEL_ASPECT` (`taito/z-system-display`)                          | 1               | its 320 × 240 shown at 4:3: a pixel is square                                                                      |
 
 ### Palette words
 
@@ -1062,12 +1064,14 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   is not 2 road units) or a strip's (`strip-<size list>`); ENDURO RACER's size set (five hex digits); POLE POSITION
   II's (`polepos2`) board its first big sprite (two hex digits) and an object composed of sprites the routine laying
   them (four hex digits), its craft that and its first sprite's code (`16fc-<code>`); FINAL LAP 2's (`finalap2`)
-  object its kind (three digits); a [thing of several pieces](#things-of-several-pieces) as that section says. A sky is
+  object its kind (three digits); CHASE H.Q.'s (`chasehq`) thing its kind (three hex digits); a [thing of several pieces](#things-of-several-pieces) as that section says. A sky is
   `<original>-<its stage or course>-sky`.
 
 Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags are
 their chapters' ([OUTRUN's](outrun-road-data.md#boards), [SUPER HANG-ON's](super-hang-on-road-data.md#super-hang-ons-sprites),
 [TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-objects), [ENDURO RACER's](enduro-racer-road-data.md#enduro-racers-sprites)).
+The TAITO originals' sprite hardware draws no shadow and their programs draw none apart, so their pictures have none
+(default; K confirms at the stage's end).
 
 ### Things of several pieces
 
@@ -1076,7 +1080,8 @@ conversion, built again from the ROMs' pixels as the original draws it, never fr
 unless the original reuses a standing piece of it: then its pieces stay the original's pieces, and only what is one
 picture cut apart, a banner or a girder, is baked (K, 2026-11-06). A baked thing's pieces' bodies are its body's parts
 ([the format](content-and-gameplay.md#sprites-and-environment)). POLE POSITION II's, OUTRUN's, SUPER HANG-ON's,
-ENDURO RACER's and TURBO OUTRUN's things are raised so; FINAL LAP 2's are each one picture already.
+ENDURO RACER's and TURBO OUTRUN's things are raised so; FINAL LAP 2's and CHASE H.Q.'s are each one picture already,
+a kind's pieces drawn as one unit at one point, its base point the original's point.
 
 Why bake: a picture is drawn whole at its base point's scale f/d, d its distance along the road, and placed across at
 its base point's distance right of the camera's axis × f/d (`pseudoProject`). Where the camera turns θ from the road,
@@ -1125,7 +1130,10 @@ used nowhere else is one design, and is baked (POLE POSITION II's gantry).
   colors: an index each (piece, pen) seen, those showing one color in every palette combination the thing is drawn in
   one index, in the order they first appear; past 15, the pairs kept by FINAL LAP 2's rule (`keptKeys`) in the first
   combination's colors, each other taking its kept pair's index (`joinedColors`). The picture then goes through the
-  sprites' rules once, as one picture of the extract.
+  sprites' rules once, as one picture of the extract. A piece the original draws at a zoom fixed in one axis or both
+  (CHASE H.Q.'s dunes, TOP SPEED's placements of types 1 to 3) is laid at the thing's full size too, where every piece
+  is a pixel a pixel; that the original's thing changes its shape as it is drawn smaller is a replacement that cannot
+  be avoided, its chapter's.
 - **Its place.** Its base point is the middle of its outer edges, its lateral that middle's; it stands where a piece of
   it stands on the ground, else floats at its lowest colored row's height, lowered to rest as above. A piece with a body
   gives its body a part, as wide as the piece's body was, its middle the piece's base point's lateral less the thing's.
