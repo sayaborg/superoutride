@@ -427,6 +427,7 @@ export function createCourseRace(options: {
     modelOf,
     placement,
     laneDriving,
+    takeLine: (intent, s, l) => takeLine(intent, s, l),
     view: { appearanceLine, outOfView },
     simulationSeconds: () => simulationSeconds,
   });

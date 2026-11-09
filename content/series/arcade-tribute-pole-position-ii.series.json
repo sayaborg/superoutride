@@ -88,6 +88,7 @@
       "rankLimits": {},
       "traffic": {
         "density": 2,
+        "path": "lane",
         "vehicles": [
           {
             "vehicle": "LOTUS_79_SPECIAL",
@@ -177,6 +178,7 @@
       "rankLimits": {},
       "traffic": {
         "density": 2,
+        "path": "lane",
         "vehicles": [
           {
             "vehicle": "LOTUS_79_SPECIAL",
@@ -266,6 +268,7 @@
       "rankLimits": {},
       "traffic": {
         "density": 2,
+        "path": "lane",
         "vehicles": [
           {
             "vehicle": "LOTUS_79_SPECIAL",
@@ -355,6 +358,7 @@
       "rankLimits": {},
       "traffic": {
         "density": 2,
+        "path": "lane",
         "vehicles": [
           {
             "vehicle": "LOTUS_79_SPECIAL",

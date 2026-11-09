@@ -35,6 +35,7 @@ export const CLASS_TITLE_CODE_UNITS = 23;
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
 export const SERIES_DOCUMENT_VERSION = 14;
 const PLAYER_SLOTS = ['own', 'last', 'first'] as const;
+const TRAFFIC_PATHS = ['lane', 'line'] as const;
 
 /**
  * One series: a named set of classes, the one owner of its classes, the races it runs. It holds no rule values; every
@@ -335,7 +336,7 @@ function readTraffic(
   path: string,
   vehicleOf: (id: string) => CompiledVehicleDefinition | undefined,
 ): TrafficSettings {
-  const record = readRecord(value, path, ['density', 'vehicles', 'speedKilometersPerHour']);
+  const record = readRecord(value, path, ['density', 'path', 'vehicles', 'speedKilometersPerHour']);
   const candidates = readArray(
     record.vehicles,
     `${path}/vehicles`,
@@ -362,6 +363,7 @@ function readTraffic(
     }),
     vehicles,
     weights: Object.freeze(candidates.map((candidate) => candidate.weight)),
+    path: readEnum(record.path, TRAFFIC_PATHS, `${path}/path`),
     speedKilometersPerHour: readNumber(record.speedKilometersPerHour, `${path}/speedKilometersPerHour`, {
       min: 0,
       exclusiveMin: true,

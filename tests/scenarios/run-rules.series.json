@@ -68,6 +68,7 @@
       "rankLimits": {},
       "traffic": {
         "density": 6,
+        "path": "lane",
         "vehicles": [
           {
             "vehicle": "GOLF_GTI_16V",

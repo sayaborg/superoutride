@@ -6,7 +6,7 @@ Each line is one area as it stands, with the document that owns it.
 
 - **Scene and runs.** One compiled graph scene serves TSUKUBA and the courses raised from the originals' ROMs with RACE,
   TIME ATTACK and FREE PLAY runs. Without DEV, FREE PLAY offers the courses a series runs (TSUKUBA, and for now POLE POSITION
-  II's four originals and ENDURO RACER's); the other originals' courses, in no series, are DEV's ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
+  II's, ENDURO RACER's and SUPER HANG-ON's originals); the other originals' courses, in no series, are DEV's ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
 - The [five racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
   Lotus 79 SPECIAL has two actual forward ratios and opts into contact explosion/recovery. The owner's scope is vehicle
   content and this contact response; any other physics addition needs prior confirmation.
@@ -119,7 +119,8 @@ The stage's courses and pictures are of two kinds alone (K, 2026-10-29):
 - An **original course** or **original picture** is one the road data tool raises uniquely from the ROMs: today's
   courses of the originals (`enduro-racer.course.json` and the rest) and their pictures (`enduror-*` and the rest). It
   is never edited by hand; only road data's rules change it. It is played in DEV alone and is in no series, to the end,
-  but for one exception: until POLE POSITION II's and ENDURO RACER's product courses are made, their ARCADE TRIBUTE
+  but for one exception: until POLE POSITION II's, ENDURO RACER's and SUPER HANG-ON's product courses are made, their
+  ARCADE TRIBUTE
   series run their original courses, so that K can try an ARCADE TRIBUTE's play for the card UI (K, 2026-11-09 and
   2026-11-10); their classes move to the product courses when they are made.
   AU7 moves the originals to a place of their own; product courses and pictures, and the other hand-made ones (TSUKUBA,
@@ -994,7 +995,8 @@ Left by the stages that raised them, beside what follows:
   planner's driver overturns near COCONUT BEACH's fork, outrun-a's at about tick 6710, and outrun-e's is blocked and
   recovers; EX-7's one-off drive found it, and it predates Stage EX. FREE PLAY's rivals on OUTRUN's courses drive with
   the same driver.
-- SUPER HANG-ON: its ARCADE TRIBUTE series ([Series](product.md#5-series)), sounds and music, the mini ride-on cabinets'
+- SUPER HANG-ON: its ARCADE TRIBUTE series runs its originals for now, with VFR750Rs until the GP machines are made
+  (K, 2026-11-10); its product courses, its vehicles, the turbo, sounds and race music, the mini ride-on cabinets'
   courses (their programs are encrypted), the ending's motion (its last frame alone stands; when the motion is made,
   `ENDING` is read again from the program's run), and the product's pictures drawn again.
 - TURBO OUTRUN: its ARCADE TRIBUTE series, the original's time extensions, turbo, tune-ups and traffic tables, the

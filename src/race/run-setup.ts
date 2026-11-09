@@ -68,6 +68,7 @@ export function createRunMechanics(runVehicle: RunVehicle): RunMechanics {
 /** The run's resolved traffic: metres between traffic positions and the candidates drawn for them. */
 export interface ResolvedTraffic {
   readonly spacing: number;
+  readonly path: 'lane' | 'line';
   readonly candidates: readonly TrafficCandidate[];
 }
 
@@ -216,6 +217,7 @@ export function resolveRunSetup(
   const traffic: ResolvedTraffic | null = configuration.traffic
     ? Object.freeze({
         spacing: 1000 / configuration.traffic.density,
+        path: configuration.traffic.path,
         candidates: Object.freeze(
           configuration.traffic.vehicles.map((id, index) => {
             const candidate = field.vehicleOf!(id);

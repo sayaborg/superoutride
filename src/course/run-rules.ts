@@ -22,6 +22,8 @@ export const RUN_RULE_LIMITS = Object.freeze({
  */
 export interface TrafficSettings {
   readonly density: number;
+  /** `lane`: each drives a lane's centre; `line`: the racing line, as rivals do, never passing. */
+  readonly path: 'lane' | 'line';
   readonly vehicles: readonly string[];
   readonly weights: readonly number[];
   readonly speedKilometersPerHour: number;

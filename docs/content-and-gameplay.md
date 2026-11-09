@@ -1019,6 +1019,7 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
       "rankLimits": {},
       "traffic": {
         "density": 6,
+        "path": "lane",
         "vehicles": [
           { "vehicle": "GOLF_GTI_16V", "weight": 3 },
           { "vehicle": "DELTA_HF_INTEGRALE", "weight": 1 }
@@ -1090,6 +1091,13 @@ original's five R80 G/S PARIS-DAKARs on the bike grid, the player in the middle 
 place) in yellow and four rivals on either side. The riders and cars the player passes are traffic: R80 G/S
 PARIS-DAKARs and WRANGLERs, weighing 3 and 1, at 2 a kilometre and up to 100 km/h. All three values are provisional.
 
+ARCADE TRIBUTE - SUPER HANG-ON is delivered on the same terms too (K, 2026-11-10), on its original courses: AFRICA,
+ASIA, AMERICA and EUROPE, in the original's order, each one run of its stages with a margin of 1.35, without rank
+limits. Its field is the original's eight, all VFR750Rs until the GP machines are made: the player last, in the bike
+grid's rearmost slot, with the original's seven rivals of one pace ratio, 1, in front of it, and the riders the player
+passes are traffic VFR750Rs of `path: line`, slow riders on the racing line, at 2 a kilometre and up to 150 km/h
+(provisional). The original's turbo is not made.
+
 ## FREE PLAY document
 
 `content/free-play/default.json` is the one `superoutride.free-play` version 1 document (manifest kind `free-play`,
@@ -1156,8 +1164,9 @@ a finish, whose finish lines count laps and never finish it ([race time and even
 the vehicle catalog and the [FREE PLAY document](#free-play-document); the configuration carries the FREE PLAY rival pool.
 RACE takes its class's traffic; FREE PLAY takes the TRAFFIC choice: OFF is none, and every other level is the
 FREE PLAY document's density at its traffic speed with every catalog vehicle as candidates.
-Traffic settings are null or `{density, vehicles, speedKilometersPerHour}`, which series admission checks: a density in
-vehicles per kilometre in (0, 40] (`RUN_RULE_LIMITS.trafficDensity`), at least one vehicle `{vehicle, weight}` with
+Traffic settings are null or `{density, path, vehicles, speedKilometersPerHour}`, which series admission checks: a
+density in vehicles per kilometre in (0, 40] (`RUN_RULE_LIMITS.trafficDensity`), the path its vehicles drive (`lane`, a
+lane's centre, or `line`, the racing line; FREE PLAY's is `lane`), at least one vehicle `{vehicle, weight}` with
 unique vehicle IDs, each weight an integer from 1 to 100 (`RUN_RULE_LIMITS.trafficWeight`, K, 2026-11-10: a class sets
 how often each traffic vehicle comes), and the one
 traffic speed in km/h in (0, 864] (`MAXIMUM_VEHICLE_SPEED` in km/h). Run resolution converts that speed to m/s once
@@ -1617,7 +1626,11 @@ integer-millisecond budgets. [Development](development.md#build-outputs) owns ge
 Traffic vehicles are not competitors: they have no rank, rank limit, fork decision (the fork field never observes
 them), progress, events, record or pace, and the HUD does not count them. Each is an ordinary vehicle (its own
 mechanics, recovery and the same driver as rivals, except that its driver never changes lanes to pass: behind a slower
-vehicle it follows at that vehicle's speed; where its lane ends it merges as every driver does) whose role in the run is traffic; no vehicle document marks it. Heading for a
+vehicle it follows at that vehicle's speed; where its lane ends it merges as every driver does) whose role in the run is traffic; no vehicle document marks it.
+Traffic of `path: line` (K, 2026-11-10: SUPER HANG-ON's riders) instead takes the racing line from its lane's centre
+where it appears, as an appearing rival does, and drives it with its path offset, giving room to a vehicle alongside
+as every driver of the line does, but never passing: behind a slower vehicle on its line it follows at that vehicle's
+speed. Heading for a
 fork's exit is merging. Traffic positions lie on the Route at stations `offset + k × 1000/density` (k = 0, 1, …);
 the offset in [0, spacing), and each position's vehicle, color and lane (a lane there for its vehicle of the road it
 drives at that station: at a fork the exit's road, else the centre lane's), derive from the run seed and k through the same 32-bit mixing as rival exits: the vehicle's draw falls in [0, the sum of

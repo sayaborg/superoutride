@@ -372,6 +372,8 @@ export function createLaneFollowing(
     }
     for (const other of [...alongside.keys()]) if (!sightings.includes(other)) alongside.delete(other);
     if (room !== null) return within(self.s, room) - here;
+    // A driver that does not pass (traffic of the racing line) follows the vehicle ahead on its line.
+    if (!self.driver?.passes) return 0;
     // 3. Passing. A pass holds while the vehicle it passes is ahead, no farther than the gap it began from plus half the
     // two lengths, its side still lies within the road's edge margin and its path meets no fixed body: the target stays
     // while it clears that vehicle, else moves out to clear it.

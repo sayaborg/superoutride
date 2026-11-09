@@ -1,0 +1,374 @@
+{
+  "format": "superoutride.series",
+  "version": 14,
+  "id": "arcade-tribute-super-hang-on",
+  "title": "ARCADE TRIBUTE - SUPER HANG-ON",
+  "image": "arcade-tribute-super-hang-on",
+  "music": {
+    "title": "arcade-tribute-super-hang-on",
+    "race": []
+  },
+  "dev": false,
+  "classes": [
+    {
+      "id": "africa",
+      "title": "AFRICA",
+      "course": "super-hang-on-africa",
+      "laps": 1,
+      "vehicles": [
+        "VFR750R"
+      ],
+      "entries": [
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "blue",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "black",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "blue",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "black",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "tricolor",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "path": "line",
+        "vehicles": [
+          {
+            "vehicle": "VFR750R",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "asia",
+      "title": "ASIA",
+      "course": "super-hang-on-asia",
+      "laps": 1,
+      "vehicles": [
+        "VFR750R"
+      ],
+      "entries": [
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "blue",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "black",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "blue",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "black",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "tricolor",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "path": "line",
+        "vehicles": [
+          {
+            "vehicle": "VFR750R",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "america",
+      "title": "AMERICA",
+      "course": "super-hang-on-america",
+      "laps": 1,
+      "vehicles": [
+        "VFR750R"
+      ],
+      "entries": [
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "blue",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "black",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "blue",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "black",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "tricolor",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "path": "line",
+        "vehicles": [
+          {
+            "vehicle": "VFR750R",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    },
+    {
+      "id": "europe",
+      "title": "EUROPE",
+      "course": "super-hang-on-europe",
+      "laps": 1,
+      "vehicles": [
+        "VFR750R"
+      ],
+      "entries": [
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "blue",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "black",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "blue",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "black",
+          "pace": 1,
+          "stages": null,
+          "slot": 5,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 6,
+          "ahead": null
+        },
+        {
+          "vehicle": "VFR750R",
+          "color": "tricolor",
+          "pace": 1,
+          "stages": null,
+          "slot": 7,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "last",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "path": "line",
+        "vehicles": [
+          {
+            "vehicle": "VFR750R",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 150
+      },
+      "timeMargin": 1.35,
+      "fixedColors": true
+    }
+  ]
+}

@@ -120,6 +120,7 @@ export function compileRunConfiguration(
       traffic: level
         ? Object.freeze({
             density: level.density,
+            path: 'lane',
             vehicles: Object.freeze(vehicles.map((v) => v.compiledVehicle.id)),
             weights: Object.freeze(vehicles.map(() => 1)),
             speedKilometersPerHour: freePlay.trafficSpeedKilometersPerHour,

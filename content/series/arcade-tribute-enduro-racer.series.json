@@ -64,6 +64,7 @@
       "rankLimits": {},
       "traffic": {
         "density": 2,
+        "path": "lane",
         "vehicles": [
           {
             "vehicle": "R80_GS_PARIS_DAKAR",

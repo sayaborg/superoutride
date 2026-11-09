@@ -5,7 +5,14 @@
   "procedureSha256": "83478b4c83267cbf6f9ee21ad794c03b3c117a304e7cc9deced2b6faf87b8601",
   "spacing": 5,
   "lengthWeight": 0,
-  "vehicles": [],
+  "vehicles": [
+    {
+      "vehicleId": "VFR750R",
+      "vehicleSha256": "b2642499a7eab90476f109508a5aa472abdfe35e6c89293a307b1a8223a3ec3c",
+      "seconds": 862.908,
+      "minimumCurvatureSeconds": 862.908
+    }
+  ],
   "lines": [
     {
       "section": "europe-1",
