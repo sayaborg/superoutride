@@ -872,3 +872,4 @@ share their pattern and palette, which are saved once.
 | `arcade-tribute-top-speed`          | 4:3               | 40×30, `fill`    |
 | `arcade-tribute-continental-circus` | 4:3               | 40×30, `fill`    |
 | `arcade-tribute-chase-hq`           | 4:3               | 40×30, `fill`    |
+| `arcade-tribute-big-run`            | 4:3               | 40×30, `fill`    |

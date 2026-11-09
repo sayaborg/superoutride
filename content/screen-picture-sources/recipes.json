@@ -12,6 +12,7 @@
     "arcade-tribute-final-lap-2": { "columns": 40, "rows": 30, "fit": "fill" },
     "arcade-tribute-top-speed": { "columns": 40, "rows": 30, "fit": "fill" },
     "arcade-tribute-continental-circus": { "columns": 40, "rows": 30, "fit": "fill" },
-    "arcade-tribute-chase-hq": { "columns": 40, "rows": 30, "fit": "fill" }
+    "arcade-tribute-chase-hq": { "columns": 40, "rows": 30, "fit": "fill" },
+    "arcade-tribute-big-run": { "columns": 40, "rows": 30, "fit": "fill" }
   }
 }
