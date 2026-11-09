@@ -56,6 +56,18 @@ records of 8 bytes a section, each section its next for the left and for the rig
   the camera, turns it round and stands it at 0x260 (1.82 m), lane d (S 0x5344, 0x7C7E to 0x7D58, 0x7CF2), before the
   count to GO (S 0x7BE0).
 
+## Its plan
+
+A course turns as its horizon band turns ([A
+turn](NEXT.md#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)): each record (128 − |c|) / 2 pixels
+of the band's 1,024 a turn, c its curve's class, none for a class of 0 (`coursePieces`, `skyTurnPlan`). The main
+program's turn a frame is the class's complement to 0x8000 times the camera's advance over 2 (M 0x6156 to 0x6168), the
+band keeping 21 bits of its fraction (M 0x8A9E), and a record is 0x2000 of the advance ([research
+notes](research/top-speed.md#the-sky)). A positive class turns right: it moves the band left, as the scenery moves as
+the road turns right. The courses' classes run from 4 to 60, to 80 in E and 90 in G, their radii from 64.6 m to
+117.8 m, 166.9 m and 210.8 m. Each line's shift across in the road's picture is a replacement that cannot be avoided:
+the curves look otherwise.
+
 ## Its heights
 
 A course's heights are a [rise table](original-road-data.md#profile-from-a-rise-table)'s (`top-speed-heights`): the sub

@@ -474,13 +474,14 @@ K's decisions (2026-11-05):
   as OUTRUN's plan is from its heading table, how far that layer has turned being the original's heading, so that the
   sky turns as the original's does. One turn is the width over which that layer's picture goes round once, not its tile
   layer's 512 pixels (K, 2026-11-06). TOP SPEED's farthest layer, its picture 128 columns of 8 pixels (1,024), turns by
-  128 less the curve's class, as its car drifts, giving arcs of 258 to 472 m (843 m in G). CHASE H.Q.'s, the upper band
-  of its second tile layer, 144 rows, its picture 96 columns (768 pixels), turns 160 pixels over a divisor a record,
-  read as its table stands: the divisor is the class up to 8, holds at 20 from 32 to 48 and above 40 mirrors itself
-  about 40, as the table itself does, which a course meets only in stages 1 and 2 (74 m at most), giving arcs of 75 to
-  375 m. Each line's shift across in the road's picture is then a replacement that cannot be avoided: the curves look
-  otherwise. TOP SPEED's courses then cross themselves nowhere; CHASE H.Q.'s cross themselves 19 times up to their
-  goals, 14 as bridges and 5 at one height, their passages keeping the original's heights (K, 2026-11-02).
+  128 less the curve's class, as its car drifts, half a pixel a unit a record, giving radii of 64.6 to 118 m (167 m in
+  E and 211 m in G; default, K confirms at the stage's end: a quarter of the earlier reading, which TA-10 read again
+  from the instructions). CHASE H.Q.'s, the upper band of its second tile layer, 144 rows, its picture 96 columns (768
+  pixels), turns 160 pixels over a divisor a record, read as its table stands: the divisor is the class up to 8, holds
+  at 20 from 32 to 48 and above 40 mirrors itself about 40, as the table itself does, which a course meets only in
+  stages 1 and 2 (74 m at most), giving arcs of 75 to 375 m. Each line's shift across in the road's picture is then a replacement that cannot be avoided: the curves look
+  otherwise. TOP SPEED's courses then cross themselves 23 to 53 times up to their goals; CHASE H.Q.'s 19 times, 14 as
+  bridges and 5 at one height; their passages keep the original's heights (K, 2026-11-02).
 - **Things of several pieces.** The three conversions write a body as parts ([the
   format](content-and-gameplay.md#sprites-and-environment), NM-15a), and of the pieces an original puts out at once, a
   floating one and those it touches are one picture baked again from the ROMs' pixels as the original draws them, their

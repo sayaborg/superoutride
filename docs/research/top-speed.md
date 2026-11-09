@@ -22,7 +22,10 @@ Read statically; MAME's driver (commit 9c0b6db1) for the hardware alone.
   column moving in is copied from the picture, wrapping at 128 (0x8B6A to 0x8CE0). Code wrapping at 80 and 208 columns
   (0x8CE6, 0x8CFC, 0x8D86) and a cycling of the horizon band's picture (0x8974 to 0x89BC) are never reached.
 - The turn (0x6116 to 0x6178) is the curve's class and the position's change a frame alone, no steering in it; each
-  strip keeps its own fraction of it and moves at most 8 pixels a frame (0x8A6A to 0x8B86).
+  strip keeps its own fraction of it and moves at most 8 pixels a frame (0x8A6A to 0x8B86). The record the turn reads
+  is the camera's position's bits 17 to 13 (0x6136 to 0x6144), so that its changes over a record sum to 0x2000 whatever
+  the frames, and the horizon band, keeping 21 bits of fraction, turns (128 − |c|) / 2 pixels a record. A positive
+  class moves the band left, as the scenery moves as the road turns right.
 - The pictures' indices start at 3 and 2 (0x744, 0x9E4) and are kept across stages (0x2F20, 0x31F4). A change record's
   cloud picture is taken only while a flag the sub program sets in tunnels is set (0x8938 to 0x8944; S 0x16FE4), the
   same flag that turns the sky's lines black (0x85F8 to 0x864A); which cloud band a course shows after its tunnels is
