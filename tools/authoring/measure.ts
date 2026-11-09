@@ -144,9 +144,10 @@ async function assessMeasurement(store: ContentStore, content: CompiledContent, 
     lines.push({ course, saved, stale, timing });
   }
   const staleLines = lines.filter(({ stale }) => stale);
-  // Each course a class runs, with its saved file and the vehicles the classes run there.
+  // Each course a class with a clock runs, with its saved file and the vehicles those classes run there.
   const courses: { course: CompiledContent['courses'][number]; candidates: readonly string[]; saved: unknown }[] = [];
-  for (const { course, vehicles: candidates } of measuredCourses(content.seriesClasses, [...vehicles.keys()]))
+  const timed = content.seriesClasses.filter(({ settings }) => settings.timeMargin !== null);
+  for (const { course, vehicles: candidates } of measuredCourses(timed, [...vehicles.keys()]))
     courses.push({ course, candidates, saved: await savedJson(referenceTimesPath(course.id)) });
   const fresh = new Map<string, Map<string, SavedReferenceVehicle>>();
   for (const { course, saved } of courses) {

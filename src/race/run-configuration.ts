@@ -87,7 +87,8 @@ export function compileRunConfiguration(
             rivalCount: runClass.entries.length - 1,
             rivalPool: null,
             lapCount: runClass.laps,
-            timeLimit: true,
+            // A class without a margin races without a clock.
+            timeLimit: runClass.timeMargin !== null,
             traffic: runClass.traffic,
           }
         : {
@@ -120,6 +121,7 @@ export function compileRunConfiguration(
         ? Object.freeze({
             density: level.density,
             vehicles: Object.freeze(vehicles.map((v) => v.compiledVehicle.id)),
+            weights: Object.freeze(vehicles.map(() => 1)),
             speedKilometersPerHour: freePlay.trafficSpeedKilometersPerHour,
           })
         : null,

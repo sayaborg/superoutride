@@ -33,8 +33,8 @@ import { TEXT_CHARACTERS } from '../image/text-tiles.js';
 export const CLASS_TITLE_CODE_UNITS = 23;
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 13;
-const PLAYER_SLOTS = ['own', 'last'] as const;
+export const SERIES_DOCUMENT_VERSION = 14;
+const PLAYER_SLOTS = ['own', 'last', 'first'] as const;
 
 /**
  * One series: a named set of classes, the one owner of its classes, the races it runs. It holds no rule values; every
@@ -93,14 +93,20 @@ export interface SeriesClass {
   readonly vehicles: readonly VehicleId[];
   /** The whole field, grid entries in grid order; the player takes the rearmost grid entry of its vehicle. */
   readonly entries: readonly SeriesEntry[];
-  /** `own`: the player stands in its entry's slot; `last`: in the rearmost of the entries' slots. */
+  /**
+   * `own`: the player stands in its entry's slot; `last`: in the rearmost of the entries' slots, the others in the slots
+   * in front of it; `first`: in the frontmost, the others in the slots behind it.
+   */
   readonly playerSlot: (typeof PLAYER_SLOTS)[number];
   /** Rank limit N by race gate ID: the player fails when the N-th other competitor crosses that gate first. */
   readonly rankLimits: Readonly<Record<string, number>>;
   /** The course's RACE traffic; null for none. */
   readonly traffic: TrafficSettings | null;
-  /** The clock's margin over the reference times: positive and at most `RUN_RULE_LIMITS.timeMargin`. */
-  readonly timeMargin: number;
+  /**
+   * The clock's margin over the reference times: positive and at most `RUN_RULE_LIMITS.timeMargin`; null for a RACE
+   * without a clock, which needs no reference times and whose rivals drive unpaced.
+   */
+  readonly timeMargin: number | null;
   /** Whether the player drives in its entry's color rather than its own chosen color. */
   readonly fixedColors: boolean;
 }
@@ -238,11 +244,14 @@ function readSeries(
           readNumber(limit, path, { min: 1, max: RUN_RULE_LIMITS.rivals, integer: true }),
         ),
         traffic: entry.traffic === null ? null : readTraffic(entry.traffic, `${at}/traffic`, vehicleOf),
-        timeMargin: readNumber(entry.timeMargin, `${at}/timeMargin`, {
-          min: 0,
-          max: RUN_RULE_LIMITS.timeMargin,
-          exclusiveMin: true,
-        }),
+        timeMargin:
+          entry.timeMargin === null
+            ? null
+            : readNumber(entry.timeMargin, `${at}/timeMargin`, {
+                min: 0,
+                max: RUN_RULE_LIMITS.timeMargin,
+                exclusiveMin: true,
+              }),
         fixedColors: readBoolean(entry.fixedColors, `${at}/fixedColors`),
       });
     },
@@ -327,16 +336,23 @@ function readTraffic(
   vehicleOf: (id: string) => CompiledVehicleDefinition | undefined,
 ): TrafficSettings {
   const record = readRecord(value, path, ['density', 'vehicles', 'speedKilometersPerHour']);
-  const vehicles = readArray(
+  const candidates = readArray(
     record.vehicles,
     `${path}/vehicles`,
     (item, at) => {
-      const id = readString(item, at);
-      requireAdmission(vehicleOf(id) !== undefined, 'unresolved_reference', at, `Unknown vehicle ${id}`);
-      return id;
+      const candidate = readRecord(item, at, ['vehicle', 'weight']);
+      const id = readString(candidate.vehicle, `${at}/vehicle`);
+      requireAdmission(vehicleOf(id) !== undefined, 'unresolved_reference', `${at}/vehicle`, `Unknown vehicle ${id}`);
+      const weight = readNumber(candidate.weight, `${at}/weight`, {
+        min: 1,
+        max: RUN_RULE_LIMITS.trafficWeight,
+        integer: true,
+      });
+      return { id, weight };
     },
     { min: 1 },
   );
+  const vehicles = Object.freeze(candidates.map((candidate) => candidate.id));
   requireUnique(vehicles, `${path}/vehicles`, 'vehicle');
   return Object.freeze({
     density: readNumber(record.density, `${path}/density`, {
@@ -345,6 +361,7 @@ function readTraffic(
       max: RUN_RULE_LIMITS.trafficDensity,
     }),
     vehicles,
+    weights: Object.freeze(candidates.map((candidate) => candidate.weight)),
     speedKilometersPerHour: readNumber(record.speedKilometersPerHour, `${path}/speedKilometersPerHour`, {
       min: 0,
       exclusiveMin: true,

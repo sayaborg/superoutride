@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 13,
+  "version": 14,
   "id": "arcade-tribute-pole-position-ii",
   "title": "ARCADE TRIBUTE - POLE POSITION II",
   "image": "arcade-tribute-pole-position-ii",
@@ -89,7 +89,10 @@
       "traffic": {
         "density": 2,
         "vehicles": [
-          "LOTUS_79_SPECIAL"
+          {
+            "vehicle": "LOTUS_79_SPECIAL",
+            "weight": 1
+          }
         ],
         "speedKilometersPerHour": 150
       },
@@ -175,7 +178,10 @@
       "traffic": {
         "density": 2,
         "vehicles": [
-          "LOTUS_79_SPECIAL"
+          {
+            "vehicle": "LOTUS_79_SPECIAL",
+            "weight": 1
+          }
         ],
         "speedKilometersPerHour": 150
       },
@@ -261,7 +267,10 @@
       "traffic": {
         "density": 2,
         "vehicles": [
-          "LOTUS_79_SPECIAL"
+          {
+            "vehicle": "LOTUS_79_SPECIAL",
+            "weight": 1
+          }
         ],
         "speedKilometersPerHour": 150
       },
@@ -347,7 +356,10 @@
       "traffic": {
         "density": 2,
         "vehicles": [
-          "LOTUS_79_SPECIAL"
+          {
+            "vehicle": "LOTUS_79_SPECIAL",
+            "weight": 1
+          }
         ],
         "speedKilometersPerHour": 150
       },

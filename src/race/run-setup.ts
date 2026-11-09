@@ -43,6 +43,8 @@ export interface RunEntry extends EntryVehicle {
 /** A traffic vehicle candidate: its run vehicle, its sprite colors and its driver, compiled once. */
 export interface TrafficCandidate extends EntryVehicle {
   readonly colors: readonly string[];
+  /** Its integer share of the draw. */
+  readonly weight: number;
   readonly driver: PlannedDriver;
 }
 
@@ -93,7 +95,8 @@ export function runDemand(
     rivalPool,
     vehicleIds: Object.freeze([...new Set(ids)]),
     budgets: configuration.timeLimit,
-    paceSchedule: configuration.mode === 'RACE',
+    // Rivals follow the pace schedule in a RACE with a clock; without one they drive unpaced.
+    paceSchedule: configuration.mode === 'RACE' && configuration.timeLimit,
   });
 }
 
@@ -167,7 +170,7 @@ export function resolveRunSetup(
     vehicle.vehicleDefinition,
     configuration.color,
   );
-  if (configuration.mode === 'RACE' && !field.paceSchedule)
+  if (configuration.mode === 'RACE' && configuration.timeLimit && !field.paceSchedule)
     throw new RangeError("RACE requires the player vehicle's delivered pace schedule");
   if (configuration.timeLimit && !budgets)
     throw new RangeError('A time limit requires current, complete reference runs');
@@ -214,12 +217,13 @@ export function resolveRunSetup(
     ? Object.freeze({
         spacing: 1000 / configuration.traffic.density,
         candidates: Object.freeze(
-          configuration.traffic.vehicles.map((id) => {
+          configuration.traffic.vehicles.map((id, index) => {
             const candidate = field.vehicleOf!(id);
             const { model, limits, speedCap } = mechanicsOf(candidate.vehicle);
             return Object.freeze({
               ...candidate,
               colors: spriteSetColors(candidate.vehicle.vehicleDefinition.spriteSet),
+              weight: configuration.traffic!.weights[index]!,
               // Traffic never changes lanes to pass; it follows a slower vehicle in its lane and merges where its lane ends.
               driver: compilePlannedDriver(model, limits, rivalUtilization, Math.min(trafficSpeed, speedCap), false),
             });
@@ -242,7 +246,7 @@ export function resolveRunSetup(
     driverOf,
     budgets: configuration.timeLimit ? budgets : null,
     /** The player vehicle's pace schedule; RACE only. */
-    paceSchedule: configuration.mode === 'RACE' ? field.paceSchedule! : null,
+    paceSchedule: configuration.mode === 'RACE' && configuration.timeLimit ? field.paceSchedule! : null,
     /** Rank limit N by gate ID; RACE only. */
     rankLimits: configuration.mode === 'RACE' && runClass ? runClass.rankLimits : NO_RANK_LIMITS,
     bodyContact,
@@ -266,16 +270,22 @@ function classEntries(
   const rivals = others.map((entry) => vehicleOf(entry.vehicle));
   const grid = fieldGrid(course, [player, ...rivals]);
   // `own` keeps every grid entry's slot; `last` gives the player the rearmost of the grid entries' slots and the
-  // other grid entries, in order, the slots in front of it. Entries appearing ahead have no slot.
+  // other grid entries, in order, the slots in front of it; `first` the frontmost, and them the slots behind it.
+  // Entries appearing ahead have no slot.
   const slots = gridEntries.map((entry) => entry.slot!);
-  const otherGridSlots = runClass.playerSlot === 'own' ? null : slots.slice(0, -1);
+  const otherGridSlots =
+    runClass.playerSlot === 'own' ? null : runClass.playerSlot === 'last' ? slots.slice(0, -1) : slots.slice(1);
+  const playerSlot =
+    runClass.playerSlot === 'own' ? own.slot! : runClass.playerSlot === 'last' ? slots.at(-1)! : slots[0]!;
+  // Without a clock there is no pace schedule, and every rival drives unpaced.
+  const paced = runClass.timeMargin !== null;
   let gridIndex = 0;
   const slotOf = (entry: (typeof others)[number]) =>
     entry.slot === null ? null : grid[otherGridSlots ? otherGridSlots[gridIndex++]! : entry.slot]!;
   return Object.freeze([
     Object.freeze({
       id: 'PLAYER',
-      slot: grid[runClass.playerSlot === 'own' ? own.slot! : slots.at(-1)!]!,
+      slot: grid[playerSlot]!,
       ahead: null,
       color: playerColor,
       pace: null,
@@ -288,7 +298,7 @@ function classEntries(
         slot: slotOf(entry),
         ahead: entry.ahead,
         color: entry.color,
-        pace: entry.pace,
+        pace: paced ? entry.pace : null,
         stages: entry.stages,
         ...rivals[index]!,
       }),

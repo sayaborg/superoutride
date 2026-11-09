@@ -6,7 +6,7 @@ Each line is one area as it stands, with the document that owns it.
 
 - **Scene and runs.** One compiled graph scene serves TSUKUBA and the courses raised from the originals' ROMs with RACE,
   TIME ATTACK and FREE PLAY runs. Without DEV, FREE PLAY offers the courses a series runs (TSUKUBA, and for now POLE POSITION
-  II's four originals); the other originals' courses, in no series, are DEV's ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
+  II's four originals and ENDURO RACER's); the other originals' courses, in no series, are DEV's ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
 - The [five racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
   Lotus 79 SPECIAL has two actual forward ratios and opts into contact explosion/recovery. The owner's scope is vehicle
   content and this contact response; any other physics addition needs prior confirmation.
@@ -119,9 +119,9 @@ The stage's courses and pictures are of two kinds alone (K, 2026-10-29):
 - An **original course** or **original picture** is one the road data tool raises uniquely from the ROMs: today's
   courses of the originals (`enduro-racer.course.json` and the rest) and their pictures (`enduror-*` and the rest). It
   is never edited by hand; only road data's rules change it. It is played in DEV alone and is in no series, to the end,
-  but for one exception: until POLE POSITION II's product courses are made, its ARCADE TRIBUTE series runs its four
-  original courses, so that K can try an ARCADE TRIBUTE's play for the card UI (K, 2026-11-09); its classes move to the
-  product courses when they are made.
+  but for one exception: until POLE POSITION II's and ENDURO RACER's product courses are made, their ARCADE TRIBUTE
+  series run their original courses, so that K can try an ARCADE TRIBUTE's play for the card UI (K, 2026-11-09 and
+  2026-11-10); their classes move to the product courses when they are made.
   AU7 moves the originals to a place of their own; product courses and pictures, and the other hand-made ones (TSUKUBA,
   the signs), stay in `content/courses/`, `content/images/` and `content/sprite-sources/`, never mixed with them.
 - A **product course** or **product picture** is an original's pictures, course and placements mended by hand; the
@@ -1004,8 +1004,10 @@ Left by the stages that raised them, beside what follows:
   3 and 11 to 17) wait with every original's (above). A run through all 16 stages, if made, belongs to the game's own
   series of joined roads, as one course joining the four (K, 2026-10-31). At a leg's start the original adds figures
   beside the 959 by the leg before's result (0xC2B0, 0xC318, by 0x60B72 and 0x60B76); they are not made.
-- ENDURO RACER: its ARCADE TRIBUTE series, sounds and music, the motion of what moves, the ending's text, and the
-  product's pictures drawn again.
+- ENDURO RACER: its ARCADE TRIBUTE series runs its original for now, without a clock, since no driver avoids the rocks
+  and logs on its road and the reference run does not reach the GOAL (K, 2026-11-10); its clock (the original's own
+  start time and extensions, or a reference run that finishes), its product course, sounds and race music, the motion of
+  what moves, the ending's text, and the product's pictures drawn again.
 - POLE POSITION II: its ARCADE TRIBUTE series runs its originals for now (below); its product courses, sounds and race
   music, and the product's pictures drawn again; its rivals' and traffic's colors, made distinct when the LOTUS 79
   SPECIAL's colors are drawn apart (its four are one JPS livery today). Its lane (5.5 m) is adjusted with every course's

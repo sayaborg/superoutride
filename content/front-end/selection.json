@@ -2,7 +2,7 @@
   "format": "superoutride.front-end-selection",
   "version": 1,
   "series": [
-    { "id": "arcade-tribute-enduro-racer", "music": "arcade-tribute-enduro-racer" },
+    { "id": "arcade-tribute-enduro-racer", "music": null },
     { "id": "arcade-tribute-super-hang-on", "music": "arcade-tribute-super-hang-on" },
     { "id": "arcade-tribute-outrun", "music": "arcade-tribute-outrun" },
     { "id": "arcade-tribute-turbo-outrun", "music": "arcade-tribute-turbo-outrun" },

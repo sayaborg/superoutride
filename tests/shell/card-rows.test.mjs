@@ -30,8 +30,8 @@ const delivered = await loadFrontEndSelection(content, series, pictures, music);
 const courses = await loadCourseIndex(content);
 const freePlay = await loadFreePlayRules(content);
 const tiles = await loadTextTiles(content);
-const [club] = series.series;
-// The club's card on SELECT SERIES, after the listed series without a document yet, and its picture.
+const club = series.series.find((s) => s.id === 'tsukuba-clubman');
+// TSUKUBA CLUBMAN's card on SELECT SERIES, after the ARCADE TRIBUTE series, and its picture.
 const clubAt = delivered.seriesRow(true).findIndex((entry) => entry.series === club);
 const clubPicture = delivered.seriesRow(true)[clubAt].picture;
 

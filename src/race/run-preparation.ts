@@ -63,7 +63,7 @@ export async function prepareRun(
   // Its budgets are those times with its class's margin.
   const budgets = demand.budgets
     ? await admitProduct(content, 'reference-times', `${course.id}/${vehicleId}`, (value, document) =>
-        readCourseTimeBudgets(course, player.sha256, runClass!.timeMargin, value, document),
+        readCourseTimeBudgets(course, player.sha256, runClass!.timeMargin!, value, document),
       )
     : null;
   const paceSchedule = demand.paceSchedule

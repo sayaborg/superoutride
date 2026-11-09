@@ -604,8 +604,9 @@ async function measuredFiles(
       entry.compiledVehicle.id,
       await runVehicleSha256(createRunVehicle(entry, definitions.driving), materials),
     );
+  // Reference times serve the classes with a clock.
   const courses = measuredCourses(
-    seriesClasses,
+    seriesClasses.filter(({ settings }) => settings.timeMargin !== null),
     definitions.vehicles.map((entry) => entry.compiledVehicle.id),
   );
   // Every saved measurement belongs to a course, and each course has its own.

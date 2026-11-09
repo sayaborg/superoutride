@@ -992,14 +992,14 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 13) is the one owner of its classes, the races it runs. A series
+A series document (`superoutride.series` version 14) is the one owner of its classes, the races it runs. A series
 holds no rule values: every rule is a class's, and classes of one series may repeat the same values. It is saved
 as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 13,
+  "version": 14,
   "id": "example",
   "title": "EXAMPLE",
   "image": "tsukuba-clubman",
@@ -1019,7 +1019,10 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
       "rankLimits": {},
       "traffic": {
         "density": 6,
-        "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE"],
+        "vehicles": [
+          { "vehicle": "GOLF_GTI_16V", "weight": 3 },
+          { "vehicle": "DELTA_HF_INTEGRALE", "weight": 1 }
+        ],
         "speedKilometersPerHour": 120
       },
       "timeMargin": 1.35,
@@ -1038,7 +1041,9 @@ unique within the series, its display name `title` (at most 23 of the text tiles
 writes it from column 17 of the 40), a delivered `course`, its `laps` (1 through 99), its RACE vehicle candidates
 `vehicles` (at least one, unique and in the catalog, in selection order), `entries`, `playerSlot`, `rankLimits`,
 `traffic` (null, or traffic settings whose vehicles are catalog vehicles; see [Traffic](#traffic)), `timeMargin`, the
-clock's margin (positive, finite and at most 10), and `fixedColors`, whether the player drives in its entry's color
+clock's margin (positive, finite and at most 10), or null for a RACE without a clock (K, 2026-11-10: for a course whose
+reference run cannot finish, ENDURO RACER's): it needs no reference times or pace schedule, so its rivals drive unpaced
+and their `pace` is not read, and `fixedColors`, whether the player drives in its entry's color
 rather than its own chosen color. `entries` lists the whole field, 1 through 16 entries, each a catalog vehicle, a color
 its sprite set declares, a positive pace ratio `pace`, `stages` (null for the whole run, or `{first, last}` with `last`
 at least `first` and no later than the stage count of every run of the course: its race gates per route, times the laps
@@ -1047,7 +1052,11 @@ null`; grid entries are in grid order with strictly increasing slots. An entry w
 null` and `ahead: {distance, lane}`: a positive distance in metres ahead of the player and its lane number, which every
 Section of the course has, so it is a lane on every route. On every route the distance falls short of the next race gate
 and the next fork lock after the gate opening that stage. Every candidate vehicle of the class has at least one grid
-entry, which the player can take. `playerSlot` is `own` or `last`. `rankLimits` maps a race gate ID to its rank limit N.
+entry, which the player can take. `playerSlot` is `own` (the player stands in
+its own entry's slot), `last` (in the rearmost of the grid entries' slots, the other grid entries in order in the slots
+in front of it) or `first` (in the frontmost, the others in order in the slots behind it; K, 2026-11-10, for ENDURO
+RACER's player in the middle of its five); the player's entry, whose color it takes, is the rearmost grid entry of its
+vehicle either way. `rankLimits` maps a race gate ID to its rank limit N.
 Admission checks each document once, from the build's files or the delivery manifest alike, against the delivered course
 IDs, the vehicle catalog, the screen pictures and the tracks. A course may be run by several classes of one or several
 series. A class is admitted against its compiled course: `laps` within `maxLaps`, every entry's slot within the slots
@@ -1073,6 +1082,13 @@ cars the player laps are traffic: LOTUS 79 SPECIALs at 2 a kilometre, driving th
 slowing for the corners as every driver does. Until POLE POSITION II's product courses are made, its classes run the
 original courses ([Words](NEXT.md#words)). Its title track is K's recording; it has no race tracks. The density and
 the margin are provisional, to be set by driving it.
+
+ARCADE TRIBUTE - ENDURO RACER is delivered on the same terms (K, 2026-11-10), on its original course until its product
+course is made. Its one class, ENDURO RACER, is one run of the five stages without a clock (`timeMargin: null`), since
+the reference run does not reach its GOAL: the drivers do not avoid the rocks and logs on the road. Its field is the
+original's five R80 G/S PARIS-DAKARs on the bike grid, the player in the middle (`playerSlot: first`, the original's own
+place) in yellow and four rivals on either side. The riders and cars the player passes are traffic: R80 G/S
+PARIS-DAKARs and WRANGLERs, weighing 3 and 1, at 2 a kilometre and up to 100 km/h. All three values are provisional.
 
 ## FREE PLAY document
 
@@ -1141,7 +1157,9 @@ the vehicle catalog and the [FREE PLAY document](#free-play-document); the confi
 RACE takes its class's traffic; FREE PLAY takes the TRAFFIC choice: OFF is none, and every other level is the
 FREE PLAY document's density at its traffic speed with every catalog vehicle as candidates.
 Traffic settings are null or `{density, vehicles, speedKilometersPerHour}`, which series admission checks: a density in
-vehicles per kilometre in (0, 40] (`RUN_RULE_LIMITS.trafficDensity`), at least one unique vehicle ID, and the one
+vehicles per kilometre in (0, 40] (`RUN_RULE_LIMITS.trafficDensity`), at least one vehicle `{vehicle, weight}` with
+unique vehicle IDs, each weight an integer from 1 to 100 (`RUN_RULE_LIMITS.trafficWeight`, K, 2026-11-10: a class sets
+how often each traffic vehicle comes), and the one
 traffic speed in km/h in (0, 864] (`MAXIMUM_VEHICLE_SPEED` in km/h). Run resolution converts that speed to m/s once
 (÷ `KILOMETERS_PER_HOUR_PER_METER_PER_SECOND`, 3.6), resolves each traffic vehicle's run vehicle and compiles its driver once: the rival utilization 0.75 with that speed as its
 speed cap, so a vehicle whose own speed cap is lower keeps its own; curve speeds and following are any
@@ -1233,8 +1251,8 @@ run; a valid checkpoint or FINISH wins an exact expiry tie ([race time and event
 ### Measured products
 
 The measurement tool (`npm run measure`, [Development](development.md#course-commands)) saves the measured products
-under `content/` in the saved JSON layout; nothing else writes them, and they hold no run traces. Each course a class runs has
-`content/reference-times/<course>.json`, and every course has its [racing lines](#racing-lines), `content/racing-lines/<course>.json`.
+under `content/` in the saved JSON layout; nothing else writes them, and they hold no run traces. Each course a class with a clock
+runs has `content/reference-times/<course>.json`, and every course has its [racing lines](#racing-lines), `content/racing-lines/<course>.json`.
 The catalog's engine loudness, `content/engine-loudness/default.json`, is the one measured product of no course; its
 procedure, format and identities are [Audio](audio.md#engine-loudness)'s.
 
@@ -1602,7 +1620,9 @@ mechanics, recovery and the same driver as rivals, except that its driver never 
 vehicle it follows at that vehicle's speed; where its lane ends it merges as every driver does) whose role in the run is traffic; no vehicle document marks it. Heading for a
 fork's exit is merging. Traffic positions lie on the Route at stations `offset + k × 1000/density` (k = 0, 1, …);
 the offset in [0, spacing), and each position's vehicle, color and lane (a lane there for its vehicle of the road it
-drives at that station: at a fork the exit's road, else the centre lane's), derive from the run seed and k through the same 32-bit mixing as rival exits. At a fork a traffic
+drives at that station: at a fork the exit's road, else the centre lane's), derive from the run seed and k through the same 32-bit mixing as rival exits: the vehicle's draw falls in [0, the sum of
+the weights), each candidate taking as many values as its weight in order, so a vehicle comes in proportion to its
+weight (FREE PLAY's candidates weigh 1 each, the draw then the candidate's index). At a fork a traffic
 vehicle heads for the selected exit, else for an exit drawn from the seed, k and the occurrence ordinal; one left on a
 closed road recovers like any vehicle.
 

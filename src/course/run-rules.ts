@@ -11,14 +11,18 @@ export const RUN_RULE_LIMITS = Object.freeze({
   traffic: 16,
   /** Traffic density ceiling in vehicles per kilometre: one position every 25 m. */
   trafficDensity: 40,
+  /** A traffic vehicle's weight: how many shares of the draw it takes, an integer. */
+  trafficWeight: 100,
 });
 
 /**
  * A run's traffic: positions along the Route at `density` vehicles per kilometre, each a vehicle drawn from
- * `vehicles` (vehicle IDs) driving at the one traffic speed `speedKilometersPerHour`, as on a public road.
+ * `vehicles` (vehicle IDs) in proportion to its integer weight in `weights` (one each, in the same order), driving at
+ * the one traffic speed `speedKilometersPerHour`, as on a public road.
  */
 export interface TrafficSettings {
   readonly density: number;
   readonly vehicles: readonly string[];
+  readonly weights: readonly number[];
   readonly speedKilometersPerHour: number;
 }

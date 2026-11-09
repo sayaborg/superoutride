@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 13,
+  "version": 14,
   "id": "scenario-rules",
   "title": "SCENARIO RULES",
   "image": "tsukuba-clubman",
@@ -68,7 +68,16 @@
       "rankLimits": {},
       "traffic": {
         "density": 6,
-        "vehicles": ["GOLF_GTI_16V", "DELTA_HF_INTEGRALE"],
+        "vehicles": [
+          {
+            "vehicle": "GOLF_GTI_16V",
+            "weight": 1
+          },
+          {
+            "vehicle": "DELTA_HF_INTEGRALE",
+            "weight": 1
+          }
+        ],
         "speedKilometersPerHour": 120
       },
       "timeMargin": 1.35,

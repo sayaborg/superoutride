@@ -1,0 +1,83 @@
+{
+  "format": "superoutride.series",
+  "version": 14,
+  "id": "arcade-tribute-enduro-racer",
+  "title": "ARCADE TRIBUTE - ENDURO RACER",
+  "image": "arcade-tribute-enduro-racer",
+  "music": {
+    "title": "arcade-tribute-enduro-racer",
+    "race": []
+  },
+  "dev": false,
+  "classes": [
+    {
+      "id": "enduro-racer",
+      "title": "ENDURO RACER",
+      "course": "enduro-racer",
+      "laps": 1,
+      "vehicles": [
+        "R80_GS_PARIS_DAKAR"
+      ],
+      "entries": [
+        {
+          "vehicle": "R80_GS_PARIS_DAKAR",
+          "color": "white",
+          "pace": 1,
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "R80_GS_PARIS_DAKAR",
+          "color": "red",
+          "pace": 1,
+          "stages": null,
+          "slot": 1,
+          "ahead": null
+        },
+        {
+          "vehicle": "R80_GS_PARIS_DAKAR",
+          "color": "blue",
+          "pace": 1,
+          "stages": null,
+          "slot": 2,
+          "ahead": null
+        },
+        {
+          "vehicle": "R80_GS_PARIS_DAKAR",
+          "color": "white",
+          "pace": 1,
+          "stages": null,
+          "slot": 3,
+          "ahead": null
+        },
+        {
+          "vehicle": "R80_GS_PARIS_DAKAR",
+          "color": "yellow",
+          "pace": 1,
+          "stages": null,
+          "slot": 4,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "first",
+      "rankLimits": {},
+      "traffic": {
+        "density": 2,
+        "vehicles": [
+          {
+            "vehicle": "R80_GS_PARIS_DAKAR",
+            "weight": 3
+          },
+          {
+            "vehicle": "WRANGLER_YJ_1995",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 100
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    }
+  ]
+}

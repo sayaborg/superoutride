@@ -46,6 +46,19 @@ export function trafficDraw(
 }
 
 /**
+ * The candidate a draw in [0, total weight) falls on, each candidate taking as many values as its weight, in order;
+ * with every weight 1 the draw is the candidate's index.
+ */
+export function weightedCandidate<T extends { readonly weight: number }>(candidates: readonly T[], draw: number): T {
+  let remaining = draw;
+  for (const candidate of candidates) {
+    if (remaining < candidate.weight) return candidate;
+    remaining -= candidate.weight;
+  }
+  throw new RangeError('A traffic draw lies beyond its candidates');
+}
+
+/**
  * The run's traffic positions on the Route: stations `offset + k × spacing` (k = 0, 1, …) with the offset in
  * [0, spacing) drawn from the run seed. `pass(line, visit)` visits, in order, each position the appearance line
  * has reached since the previous call; positions at or before the line at creation are never visited.
@@ -115,11 +128,12 @@ export function createTrafficField(options: {
         if (outOfView(vehicles[i]!.vehicle.course.s)) vehicles.splice(i, 1);
       let changed = vehicles.length !== before;
       const { candidates } = options.traffic!;
+      const totalWeight = candidates.reduce((sum, candidate) => sum + candidate.weight, 0);
       positions.pass(appearanceLine(), (position, s) => {
         // A position passes unused when the traffic is full, the Route does not reach it yet, its road has one lane, its
         // place is occupied or a vehicle behind whose driver does not pass could not stop for it.
         if (vehicles.length >= options.limit || !runtime.window.at(s)) return;
-        const candidate = candidates[trafficDraw(seed, 'vehicle', position, candidates.length)]!;
+        const candidate = weightedCandidate(candidates, trafficDraw(seed, 'vehicle', position, totalWeight));
         const model = modelOf(candidate.vehicle);
         const intent: LaneIntent = {
           lane: 0,
