@@ -154,6 +154,33 @@ export function withinRise(road: Pick<Profile, 'bends' | 'kinks'>, lap: number, 
 }
 
 /**
+ * Where the tangents at a Section's ends meet: its grades at its stations `from` and `to`, written `size` long, through
+ * its first and last knots' heights.
+ */
+function tangentsMeet(
+  profile: Profile,
+  from: number,
+  to: number,
+  size: number,
+  knots: readonly { readonly y: number }[],
+) {
+  const [g0, g2] = [profile.grade(from), profile.grade(to)];
+  return (knots.at(-1)!.y - knots[0]!.y + g0 * from - g2 * (from + size)) / (g0 - g2);
+}
+
+/** Whether a Section's one bend leaves its curve no room: its ends' tangents meet beyond its nearer end's reach. */
+function onlyBendMeetsBeyond(
+  profile: Profile,
+  from: number,
+  to: number,
+  size: number,
+  knots: readonly { readonly y: number }[],
+) {
+  const s = tangentsMeet(profile, from, to, size, knots);
+  return !(2 * Math.min(s - from, from + size - s) - 2 * CURVE_GAP >= 0);
+}
+
+/**
  * A Section's profile knots, stations `[from, to]`: its ends, a PVI for each of the profile's bends within, at the
  * intersection of the tangents at the bend's ends, and one of no curve at each of its kinks within. A knot next to an end that joins another Section lies on that end's
  * tangent, so the Sections' grades agree there (`joinsBefore`, `joinsAfter`), its end at `size` from its start as the
@@ -184,6 +211,9 @@ export function sectionProfile(
     if (at > from + 1e-6 && at < to - 1e-6) knots.push({ s: computedValue(at), y: profile.height(at), curveLength: 0 });
   knots.sort((p, q) => p.s - q.s);
   knots.push({ s: to, y: profile.height(to), curveLength: 0 });
+  // One bend over a whole Section whose ends' tangents meet beyond it changes no grade but by rounding: no knot.
+  if (knots.length === 3 && joinsBefore && joinsAfter && onlyBendMeetsBeyond(profile, from, to, size, knots))
+    knots.splice(1, 1);
   const n = knots.length;
   if (n === 2 && joinsBefore && joinsAfter && size !== to - from) {
     // One grade over the whole Section, written longer or shorter than its stations: a knot of no curve on each end's
@@ -200,8 +230,8 @@ export function sectionProfile(
   }
   if (n === 3 && joinsBefore && joinsAfter) {
     // One bend over the whole Section: its knot where the tangents at both its ends meet, so both grades hold.
-    const [g0, g2] = [profile.grade(from), profile.grade(to)];
-    const s = (knots[2]!.y - knots[0]!.y + g0 * from - g2 * (from + size)) / (g0 - g2);
+    const g0 = profile.grade(from);
+    const s = tangentsMeet(profile, from, to, size, knots);
     // Its curve as long as the nearer end leaves room for, as the Section is written.
     const room = micrometre(2 * Math.min(s - from, from + size - s) - 2 * CURVE_GAP);
     knots[1] = {

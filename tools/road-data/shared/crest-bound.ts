@@ -198,9 +198,12 @@ function solve(from: number, to: number, pieces: Pieces, integral: (a: number, b
   return { ...ends(c), c };
 }
 
+/** A change of grade of rounding's size, which a fixed point's mending leaves: no crest. */
+const ROUNDING = 1e-12;
+
 /**
  * The rule's guarantees, the conversion stopped where one fails: each stretch's ends keep the road's heights to a
- * micrometre, and no crest sharper than the radius is left.
+ * micrometre, and no crest sharper than the radius is left, a kink down of rounding's size none.
  */
 function check(road: Profile, laid: Profile, stretches: readonly Stretch[], fall: number, length: number) {
   for (const t of stretches)
@@ -209,7 +212,10 @@ function check(road: Profile, laid: Profile, stretches: readonly Stretch[], fall
         throw contractUnmet(`The crests rule moved the road's height at ${s} m`);
   if (Math.abs(laid.height(length) - road.height(length)) > 1e-6)
     throw contractUnmet("The crests rule moved the road's end");
-  if (laid.bends.some((b) => b.curvature < -fall * (1 + 1e-9)) || laid.kinks.some((k) => k.change < 0 && k.at > 0))
+  if (
+    laid.bends.some((b) => b.curvature < -fall * (1 + 1e-9)) ||
+    laid.kinks.some((k) => k.change < -ROUNDING && k.at > 0)
+  )
     throw contractUnmet('The crests rule left a crest sharper than its radius');
 }
 

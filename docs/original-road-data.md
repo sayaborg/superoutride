@@ -820,7 +820,7 @@ a closed road's lap), by one function (`crestBound`, `tools/road-data/shared/cre
   s_low, so H's lower convex hull touches it there and a stretch ends there: s_low does not move, and the lap still
   closes in height and grade.
 - **Checks.** The conversion stops where a stretch's ends do not keep the road's heights to a µm or a crest sharper than
-  R is left.
+  R is left, a kink down of a grade of 10⁻¹² or less being rounding's (a fixed point's mending), no crest.
 
 V is K's, course by course, chosen by driving (K, 2026-11-03); a course with no V is written without the rule
 ([NEXT](NEXT.md#courses-of-the-originals) holds how a V goes in). Each original's conversion writes its trials beside its
@@ -874,7 +874,8 @@ A road's profile is its grades by the [grades' rule](#profile-from-the-originals
   Sections' cuts, and a knot next to a cut lies on the cut's tangent at its station as written, a road laid out
   (`road-layout`) taking its Section's end as its plan writes it, its one curve fitted between its ends, so joined
   Sections' heights and grades agree; a Section joined at both ends whose one stretch spans it has its knot where the
-  tangents at its two cuts meet, so both grades hold.
+  tangents at its two cuts meet, so both grades hold, and none where they meet beyond the room its curve has, its
+  grades differing by rounding alone (TOP SPEED's level runs joined across a fixed point).
 
 COCONUT BEACH's profile against the original's is OUTRUN's ([COCONUT BEACH's
 profile](outrun-road-data.md#coconut-beachs-profile)).
