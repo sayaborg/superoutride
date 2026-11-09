@@ -947,11 +947,12 @@ point the original measures its laterals from, or the conversion stops (`laneWid
 in its chapter and module, which bit is which lane, where P lies among them, a slot's width, and where and over what
 length its road's edges move when the mask changes: its stretch ending or starting where the new mask's record starts,
 its length the whole change's or a lane's, a side's edge taking it for each lane it moves. Each side's edge moves
-straight from the old mask's lanes to the new's over the stretch, both sides together; each lane's width goes straight
-from one value to the other while the edge crosses it, and each lane's points are joined by the monotone cubic ([A
-lateral changed straight between points](#a-lateral-changed-straight-between-points)). A change the original makes at
-once (at its forks and merges) is a jump, which lies at a Section's cut, each lane's width there starting a new join, or
-the conversion stops.
+straight from the old mask's lanes to the new's over the stretch, both sides together; where it takes a lane's length a
+lane, it moves from where it stands toward the newest mask's lanes, a change while it still moves taking over from
+there (TOP SPEED's main program moves its edges so). Each lane's width goes straight from one value to the other while
+the edge crosses it, and each lane's points are joined by the monotone cubic ([A lateral changed straight between
+points](#a-lateral-changed-straight-between-points)). A change the original makes at once (at its forks and merges) is
+a jump, which lies at a Section's cut, each lane's width there starting a new join, or the conversion stops.
 
 ### The ground beside the road
 

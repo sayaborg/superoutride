@@ -49,3 +49,24 @@ test('a change of no length jumps at a Section cut, and inside a Section stops t
 test('a mask setting a lane beyond one it does not stops the conversion', () => {
   assert.throws(() => laneWidths(ENDING, 0, 0x5c, [], []), /beyond one it does not/);
 });
+
+test("a side's edge still moving turns toward a newer change's lanes from where it stands", () => {
+  // Three right lanes close from 100 m, 28.4 m a lane; at 150 m, 1.76 lanes on, the mask asks for one lane again.
+  const lanes = laneWidths(
+    STARTING,
+    0,
+    0x0e,
+    [
+      { mask: 0x00, at: 100, length: 28.4 },
+      { mask: 0x08, at: 150, length: 28.4 },
+    ],
+    [],
+  );
+  const stands = 3 - 50 / 28.4;
+  assert.ok(near(at(lanes, 150).e, 3.6 * (stands - 1)), 'lane e is part open where the edge turns');
+  assert.equal(at(lanes, 150).f, 0);
+  // From 1.24 lanes back to 1: lane e closes over the next 0.24 lane's length and d stays open.
+  const back = 150 + 28.4 * (stands - 1);
+  assert.ok(near(at(lanes, back).e, 0) && near(at(lanes, back).d, 3.6));
+  assert.ok(near(at(lanes, 400).d, 3.6) && at(lanes, 400).e === 0);
+});

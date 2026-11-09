@@ -18,7 +18,10 @@ export interface MaskLanes {
   readonly width: number;
   /** Whether a change's stretch ends where its record starts (`ending`) or starts there (`starting`). */
   readonly placement: 'ending' | 'starting';
-  /** Whether a change's length is a lane's, a side's edge taking it for each lane it moves, or its whole stretch's. */
+  /**
+   * Whether a change's length is a lane's, a side's edge moving a lane over it toward the newest mask's lanes from
+   * where it stands, or its whole stretch's.
+   */
   readonly perLane: boolean;
 }
 
@@ -66,6 +69,7 @@ export function laneWidths(
   changes: readonly MaskChange[],
   cuts: readonly number[],
 ) {
+  if (lanes.perLane) return movingEdges(lanes, start, first, changes, cuts);
   let sides = sidesOf(lanes, first);
   const slot = (k: number): [side: 0 | 1, from: number] =>
     k < lanes.centre ? [0, lanes.centre - 1 - k] : [1, k - lanes.centre];
@@ -103,4 +107,94 @@ export function laneWidths(
     lane,
     pieces: runs[k]!.map((knots): WidthPiece => ({ from: knots[0]![0], width: monotoneCubic(knots) })),
   }));
+}
+
+/** A side's edge along the road: its stations and its lanes out from P there, straight between, a jump two at one. */
+type Edge = [station: number, lanes: number][];
+
+/** Where edge `edge` stands at station `s`, its last point's lanes beyond it. */
+function edgeAt(edge: Edge, s: number): number {
+  for (let j = edge.length - 1; j > 0; j--) {
+    const [s1, e1] = edge[j]!,
+      [s0, e0] = edge[j - 1]!;
+    if (s >= s1) return e1;
+    if (s >= s0) return e0 + ((e1 - e0) * (s - s0)) / (s1 - s0);
+  }
+  return edge[0]![1];
+}
+
+/**
+ * Each lane's width along the road where a side's edge moves a lane over a change's length (`perLane`): from where it
+ * stands at a change's start toward the change's mask's lanes, a newer change taking over one still moving; a change
+ * of no length a jump. Each lane's width goes straight as the edge crosses it, its points joined by the monotone cubic;
+ * a jump lies at one of `cuts`, where the lane's next piece starts, or the conversion stops.
+ */
+function movingEdges(
+  lanes: MaskLanes,
+  start: number,
+  first: number,
+  changes: readonly MaskChange[],
+  cuts: readonly number[],
+) {
+  const [left, right] = sidesOf(lanes, first);
+  const edges: [Edge, Edge] = [[[start, left]], [[start, right]]];
+  for (const change of changes) {
+    const next = sidesOf(lanes, change.mask);
+    edges.forEach((edge, side) => {
+      const [last] = edge.at(-1)!;
+      const from =
+        lanes.placement === 'ending'
+          ? change.at - change.length * Math.abs(next[side]! - edgeAt(edge, last))
+          : change.at;
+      if (from < last && lanes.placement === 'ending')
+        throw contractUnmet(`The mask's changes on a side overlap at ${from} m`);
+      const stands = edgeAt(edge, from);
+      if (stands === next[side]) return;
+      while (edge.length > 1 && edge.at(-1)![0] > from) edge.pop();
+      if (edge.at(-1)![0] < from) edge.push([from, stands]);
+      edge.push([from + change.length * Math.abs(next[side]! - stands), next[side]!]);
+    });
+  }
+  return lanes.names.map((lane, k) => {
+    const [side, i] = k < lanes.centre ? [0, lanes.centre - 1 - k] : [1, k - lanes.centre];
+    const width = (e: number) => lanes.width * Math.min(1, Math.max(0, e - i));
+    const edge = edges[side]!;
+    const runs: Knot[][] = [[[edge[0]![0], width(edge[0]![1])]]];
+    for (let j = 1; j < edge.length; j++) {
+      const [[s0, e0], [s1, e1]] = [edge[j - 1]!, edge[j]!];
+      const knots = runs.at(-1)!;
+      if (s1 === s0) {
+        if (width(e1) === width(e0)) continue;
+        if (!cuts.includes(s0)) throw contractUnmet(`Lane ${lane}'s mask jumps at ${s0} m, inside a Section`);
+        runs.push([[s0, width(e1)]]);
+        continue;
+      }
+      // The points where the edge crosses the lane's sides within the stretch, then its end.
+      const crossings = [i, i + 1]
+        .filter((c) => (c - e0) * (c - e1) < 0)
+        .map((c) => s0 + ((s1 - s0) * (c - e0)) / (e1 - e0))
+        .sort((a, b) => a - b);
+      for (const s of [...crossings, s1])
+        knots.push([
+          s,
+          width(
+            edgeAt(
+              [
+                [s0, e0],
+                [s1, e1],
+              ],
+              s,
+            ),
+          ),
+        ]);
+    }
+    // A point within a level run, or ending the last, adds nothing to the join.
+    const pieces = runs.map((knots): WidthPiece => {
+      const kept = knots.filter(
+        ([, v], j) => j === 0 || v !== knots[j - 1]![1] || (j < knots.length - 1 && knots[j + 1]![1] !== v),
+      );
+      return { from: kept[0]![0], width: monotoneCubic(kept) };
+    });
+    return { lane, pieces };
+  });
 }
