@@ -74,7 +74,7 @@ import {
   TOP_SPEED,
 } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 9;
+export const TOP_SPEED_CONVERSION_VERSION = 10;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -93,20 +93,42 @@ const ROAD: Material = 'ASPHALT';
 /** The sky's picture of a horizon picture, a cloud picture and a color set. */
 const skyName = (a: number, b: number, set: number) => `top-speed-sky-${a}-${b}-${set}`;
 
+/** A hit about its lateral `at`, metres right of P. */
+interface PlacedHit {
+  readonly hit: TopSpeedHit;
+  readonly at: number;
+}
+
 /**
  * A thing's body ([Chosen lines](../../../docs/original-road-data.md#chosen-lines)), metres right of its lateral `at`:
  * each part of its hit (`hit`, laterals `metres` each) as wide as it is, at most its picture's colored columns
- * (`colored`, from its point), and, where a car meets it from its side of P alone, the part on that side alone; none
- * where it has no hit.
+ * (`colored`, from its point), and, where a car meets it from its side of P alone, the part on that side alone; then
+ * each part of the hits it holds beside its own (`posts`: a gate's right post's), within the picture's colored columns;
+ * none where it has no hit.
  */
-function bodyOf(hit: TopSpeedHit | null, at: number, metres: number, colored: readonly [number, number]) {
-  if (!hit) return null;
-  const width = Math.min(2 * hit.half * metres, colored[1] - colored[0]);
-  const parts = hit.middles.flatMap((m) => {
-    let [a, b] = [m * metres - width / 2, m * metres + width / 2];
-    if (hit.ownSide) [a, b] = at >= 0 ? [Math.max(a, -at), b] : [a, Math.min(b, -at)];
-    return b - a > 1e-6 ? [{ across: (a + b) / 2, width: b - a }] : [];
-  });
+function bodyOf(
+  hit: TopSpeedHit | null,
+  at: number,
+  metres: number,
+  colored: readonly [number, number],
+  posts: readonly PlacedHit[],
+) {
+  const sided = (h: TopSpeedHit, from: number, a: number, b: number) =>
+    !h.ownSide ? [a, b] : from >= 0 ? [Math.max(a, -at), b] : [a, Math.min(b, -at)];
+  const width = (h: TopSpeedHit) => Math.min(2 * h.half * metres, colored[1] - colored[0]);
+  const part = ([a, b]: readonly number[]) => (b! - a! > 1e-6 ? [{ across: (a! + b!) / 2, width: b! - a! }] : []);
+  const parts = [
+    ...(hit
+      ? hit.middles.flatMap((m) => part(sided(hit, at, m * metres - width(hit) / 2, m * metres + width(hit) / 2)))
+      : []),
+    ...posts.flatMap((p) =>
+      p.hit.middles.flatMap((m) => {
+        const middle = p.at - at + m * metres;
+        const [a, b] = sided(p.hit, p.at, middle - p.hit.half * metres, middle + p.hit.half * metres);
+        return part([Math.max(a!, colored[0]), Math.min(b!, colored[1])]);
+      }),
+    ),
+  ];
   return parts.length ? parts : null;
 }
 
@@ -143,20 +165,36 @@ export function topSpeedCourses(set: RomSet) {
       );
     });
   });
-  const placed = spawned.map((things) =>
-    things.flatMap((p) => {
+  const placed = spawned.map((things) => {
+    const pictured = things.flatMap((p) => {
       if (p.water) return [];
-      {
-        const thing = topSpeedThing(sub, p.index);
-        // Its picture: the next descriptor's where it stands left of P and has one (S 0x16634 to 0x1664A).
-        const shown = thing.leftVariant && p.lateral < P ? p.index + 1 : p.index;
-        const pictured = topSpeedThing(sub, shown);
-        // A flat thing (its size curve not the standing things') is not placed; an empty one neither.
-        if (pictured.curve !== STANDING_CURVE || !pictured.pieces.length) return [];
-        return [{ ...p, shown }];
-      }
-    }),
-  );
+      const thing = topSpeedThing(sub, p.index);
+      // Its picture: the next descriptor's where it stands left of P and has one (S 0x16634 to 0x1664A).
+      const shown = thing.leftVariant && p.lateral < P ? p.index + 1 : p.index;
+      return [{ ...p, shown, described: topSpeedThing(sub, shown) }];
+    });
+    // A flat thing (its size curve not the standing things') is not placed; one of no piece neither.
+    const standing = pictured.filter((p) => p.described.curve === STANDING_CURVE && p.described.pieces.length);
+    // A descriptor of no piece that hits is a gate's right post: its hit a part of the body of the thing its record
+    // stands at its station on the other side of P, the gate, whose picture reaches it.
+    const posts = pictured.filter((p) => !p.described.pieces.length && p.hit);
+    const gateOf = (post: (typeof posts)[number]) => {
+      const gate = standing.find(
+        (t) => t.record === post.record && t.ahead === post.ahead && t.lateral < P !== post.lateral < P,
+      );
+      if (!gate) throw contractUnmet(`TOP SPEED's hit of no picture at record ${post.record} has no thing across P`);
+      return gate;
+    };
+    const gates = posts.map((post) => ({ gate: gateOf(post), post }));
+    return standing.map(({ described: _, ...t }) => ({
+      ...t,
+      posts: gates.flatMap(({ gate, post }) =>
+        gate.record === t.record && gate.ahead === t.ahead && gate.lateral === t.lateral
+          ? [{ hit: post.hit!, at: (post.lateral - P) * metresAcross }]
+          : [],
+      ),
+    }));
+  });
   // Water's colors, its shore's and its water's, by its descriptor.
   const waters = new Map(
     [...new Set(spawned.flat().flatMap((p) => (p.water ? [p.index] : [])))].map((i) => [
@@ -250,7 +288,7 @@ export function topSpeedCourses(set: RomSet) {
               palette: board.palette,
               lateral: 0,
               groundOffset: 0,
-              body: bodyOf(t.hit, lateral, metresAcross, board.colored),
+              body: bodyOf(t.hit, lateral, metresAcross, board.colored, t.posts),
             },
           ]
         : [];
@@ -710,6 +748,8 @@ export function topSpeedCourses(set: RomSet) {
       length: round3(length),
       goal: round3(goal - go),
       sections: laid.spans.length,
+      // Its gates, each its two posts' hits one body.
+      gates: placed[course]!.filter((t) => t.posts.length).length,
       // Where it crosses itself, metres along it, and how far its second passage lies above its first.
       crossings: crossed.map(([a, b]) => ({
         at: [round1(a), round1(b)],

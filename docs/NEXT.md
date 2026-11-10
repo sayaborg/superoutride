@@ -498,8 +498,8 @@ K's decisions (2026-11-05):
   laid at the thing's full size, where every piece is a pixel a pixel; that the original's thing changes shape as it is
   drawn smaller is a replacement that cannot be avoided, its chapter's, as [the rule](original-road-data.md#things-of-several-pieces)
   says. A thing's
-  hit parts are two at most (TOP SPEED's one box a thing, CHASE H.Q.'s two posts at most, CONTINENTAL CIRCUS's two
-  ranges at most), so `bodyParts` stays 16; CONTINENTAL CIRCUS's hit ranges, which do not hold its own car's width, are
+  hit parts are two at most (TOP SPEED's one box a thing and a gate's two posts', CHASE H.Q.'s two posts at most,
+  CONTINENTAL CIRCUS's two ranges at most), so `bodyParts` stays 16; CONTINENTAL CIRCUS's hit ranges, which do not hold its own car's width, are
   its bodies' widths, at most their pictures' colored columns, as [the rule](original-road-data.md#chosen-lines) has
   every original's (K, 2026-11-06). A tunnel is no thing: its darkness is the road layer's color line by line, laid as
   the road's Strips and the ground's colors beside it (TA-7c, TA-10); its mouth is a thing (TA-8, TA-11), and the
@@ -610,7 +610,7 @@ TOP SPEED's defaults, each in [its chapter](top-speed-road-data.md): GO 1.82 m i
 by the turn the instructions give, its radii 64.6 to 211 m; its cloud picture changed at a tunnel's change record; its
 raster words' bits as MAME's description reads them; its road not taken's slide measured at the nearest line, its fork
 pictures and gap not drawn; its tunnels' road and sky dark over their walls, an overpass's road alone under its decks;
-and its ground patches, cloud banks, branch not taken's things and GOAL gate not placed, its gates' right posts not hit.
+and its ground patches, cloud banks, branch not taken's things and GOAL gate not placed.
 
 CONTINENTAL CIRCUS's defaults, each in [its chapter](continental-circus-road-data.md): its rises at 1.5 units a sample;
 its stripes' phase the race's first lap's; the rain's and the lightning's colors not drawn, on its road and in its skies;

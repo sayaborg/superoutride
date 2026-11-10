@@ -259,8 +259,8 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   ([Strips](original-road-data.md#strips)); its pieces across the view (type 5, at screen columns 0, 112 and 240: a
   tunnel's ceiling above its right mouth) are a band across the road at its lateral, floating at their height, its
   last piece's columns extended outward each way (`topSpeedBands`, `topspeed-<index>-across`). A descriptor with no
-  piece places no picture: the gates' right halves, which hold only their right posts' hits. The flat things but water (the roadside ground patches, type
-  0x1F) and the cloud banks a record's byte 7 sets behind the ground (S 0x6BB0) are not placed, nor the things the
+  piece places no picture: a gate's right half, which holds its right post's hit alone ([Its hit](#its-things)). The
+  flat things but water (the roadside ground patches, type 0x1F) and the cloud banks a record's byte 7 sets behind the ground (S 0x6BB0) are not placed, nor the things the
   original spawns on the branch not taken, nor the GOAL gate it stands 12.3 m past the run's end on the next stage's
   records (default; K confirms at the stage's end).
 
@@ -269,10 +269,19 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   only from its side of P (S 0x772C), a gantry at its two posts 0xC00 either side from both (S 0x77F0 to 0x7830), a
   tunnel's lamps never; a thing whose byte at S 0xC032 is set only bumps a car and has no body. A body is its hit's
   parts as wide as they are, at most the picture's colored columns, on its side of P alone where only that side meets
-  it, as CHASE H.Q.'s ([Its objects](chase-hq-road-data.md#chase-hqs-objects)).
+  it, as CHASE H.Q.'s ([Its objects](chase-hq-road-data.md#chase-hqs-objects)). A gate's right post is hit as the
+  original hits it: the roadside thing of no piece its record stands right of P at the gate's station, the START gate's
+  10.17 m right of P and a CHECK POINT gate's 5.01 m (8.61 m at the fifth stage's, of four lanes), a box 1.95 m either
+  side of it met from the right of P. Its hit is a second part of the gate's body, as CONTINENTAL CIRCUS's things of
+  two parts hold theirs ([Its bodies](continental-circus-road-data.md#its-things)), within the gate's picture's colored
+  columns ([Chosen lines](original-road-data.md#chosen-lines)), which end before the box does: 1.92 m of the START
+  gate's, from 8.22 m right of P, and 0.96 m of a CHECK POINT gate's, from 3.07 m. Each course's five gates so hold
+  two parts but the fifth stage's, whose box lies wholly beyond its picture (from 6.66 m, the picture's last colored
+  column 4.03 m right of P) and adds none: the original draws that gate's right post in its fourth lane, 2.6 m short
+  of its box.
 
 ## TOP SPEED's conversion
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
-pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 8).
+pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 10).

@@ -1160,7 +1160,10 @@
           "lateral": -4.621622,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 3.891892, "movable": null }]
+          "body": [
+            { "across": 0, "width": 3.891892, "movable": null },
+            { "across": 13.804434, "width": 1.922382, "movable": null }
+          ]
         },
         {
           "kind": "sprite",
@@ -19308,7 +19311,10 @@
           "lateral": -9,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 3.891892, "movable": null }]
+          "body": [
+            { "across": 0, "width": 3.891892, "movable": null },
+            { "across": 12.545466, "width": 0.961203, "movable": null }
+          ]
         },
         {
           "kind": "sprite",
@@ -35147,7 +35153,10 @@
           "lateral": -9,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 3.891892, "movable": null }]
+          "body": [
+            { "across": 0, "width": 3.891892, "movable": null },
+            { "across": 12.545466, "width": 0.961203, "movable": null }
+          ]
         },
         {
           "kind": "sprite",
@@ -52157,7 +52166,10 @@
           "lateral": -9,
           "groundOffset": 0,
           "unselectedLink": null,
-          "body": [{ "across": 0, "width": 3.891892, "movable": null }]
+          "body": [
+            { "across": 0, "width": 3.891892, "movable": null },
+            { "across": 12.545466, "width": 0.961203, "movable": null }
+          ]
         },
         {
           "kind": "sprite",
