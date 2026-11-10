@@ -1,14 +1,14 @@
 /**
  * CONTINENTAL CIRCUS's skies ([Original road data](../../../docs/original-road-data.md#sky-baking)): the bands its two
  * tile layers draw above the horizon, each course its own three pictures of 32 columns of tiles, 256 pixels, set once
- * at the race's start: BG1's upper picture, the clouds, in strips that turn the faster the higher they lie, BG1's lower
- * picture, the landscape, at 1.375 times the clouds' bottom strip, and BG0's band over it at 1.625 times; each in its
- * palette line of the course's colors; each found by the instructions that read it.
+ * at the race's start: BG1's upper picture, the clouds, BG1's lower picture, the landscape, and BG0's band over it,
+ * towns and trees; each in its palette line of the course's colors; each found by the instructions that read it. The
+ * original holds no turn, so each picture turns in six copies, all alike (K, 2026-11-10).
  */
 import { instruction, long, word } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import { SCREEN_ROWS } from './continental-circus-road-picture.js';
-import type { SkyBand, SkyBands } from '../shared/sky-baking.js';
+import { copiesATurn, type SkyBand, type SkyBands } from '../shared/sky-baking.js';
 import { xrgb555Of } from '../taito/palette.js';
 import { bottomLayer, TILE, tilePen, TRANSPARENT_PEN } from '../taito/tc0100scn.js';
 
@@ -28,12 +28,15 @@ export const CONTINENTAL_CIRCUS_COURSES = Object.freeze([
 export const PICTURE_COLUMNS = 32;
 export const PICTURE_WIDTH = PICTURE_COLUMNS * TILE;
 /**
- * The facing layer's column at the camera's centre at the start's heading, the line's: its column 0 (default; K
- * confirms at the stage's end: where the road vanishes on the original's screen at the start is not read), and the
- * facing layer's pixel behind it, where each other layer's turn has its seam.
+ * A layer's turn (K, 2026-11-10): the original holds none, so the whole number of its pictures nearest the sky's
+ * width, 6 of 256 pixels, 1536, every layer's alike.
+ */
+export const SKY_TURN = copiesATurn(PICTURE_WIDTH) * PICTURE_WIDTH;
+/**
+ * Every layer's column at the camera's centre at the start's heading, the line's: its column 0 (an estimate: where the
+ * road vanishes on the original's screen at the start is not read).
  */
 export const SKY_MIDDLE = 0;
-export const SKY_SEAM = SKY_MIDDLE + PICTURE_WIDTH / 2;
 /** A tilemap's row of tiles, bytes: 64 tiles of an attribute word and a code word. */
 const MAP_ROW = 0x100;
 const BG0_MAP = 0x200000;
@@ -47,20 +50,16 @@ const ROAD_FIRST_LINE = 119;
 const rowBelow = { bg1: (row: number) => row - 142, bg0: (row: number) => row - 140 } as const;
 
 /**
- * The programs' tables: the main program's control word 6 (M 0x902); its sky setup's pictures, a course's 16 bytes from
- * M 0xDE92 (M 0x7718), the upper picture its first long at BG1's row 0 in line 0 (M 0x772A, 0x7742), the lower its third
- * at BG1's row 12 in line 1 (M 0x7770, 0x7764, 0x7760) and BG0's band its second at BG0's row 13 in line 2 (M 0x77B0,
+ * The main program's tables: its control word 6 (M 0x902); its sky setup's pictures, a course's 16 bytes from M 0xDE92
+ * (M 0x7718), the upper picture its first long at BG1's row 0 in line 0 (M 0x772A, 0x7742), the lower its third at
+ * BG1's row 12 in line 1 (M 0x7770, 0x7764, 0x7760) and BG0's band its second at BG0's row 13 in line 2 (M 0x77B0,
  * 0x77A4, 0x77A0), each again 32 columns on (M 0x7746, 0x7784, 0x77C4); its palette task's colors, a course's 16 bytes
- * from M 0xC5A0 (M 0x6E58), a line's 16 words at its long (M 0x6E7E, 0x6E9C, 0x6EBA); the sub program's scroll task, its
- * upper picture's row bounds a course's long from S 0x2652 (S 0x262A), its rows from 95 up (S 0x2888) each 1/64 more
- * of the frame's rate (S 0x2896), a strip's rate taken at its bound (S 0x28E4, 0x28EE), BG0's at row 0x38 (S 0x28F6)
- * and the lower picture's 80 rows at row 0x48 (S 0x2902, 0x2908).
+ * from M 0xC5A0 (M 0x6E58), a line's 16 words at its long (M 0x6E7E, 0x6E9C, 0x6EBA). The sub program's scroll task's
+ * rates, a strip's and a band's, are the chapter's and not laid (K, 2026-11-10).
  */
-function tables(main: Uint8Array, sub: Uint8Array) {
+function tables(main: Uint8Array) {
   const m = <const E extends readonly (number | null)[]>(address: number, words: E, what: string) =>
     instruction(main, address, words, `the sky's ${what}`);
-  const s = <const E extends readonly (number | null)[]>(address: number, words: E, what: string) =>
-    instruction(sub, address, words, `the sky's ${what}`);
   const [control6] = m(0x902, [0x33fc, null, 0x0022, 0x000c], 'control word 6 (move.w)');
   const [pictureHigh, pictureLow] = m(0x7718, [0x45f9, null, null], 'pictures (lea)');
   m(0x772a, [0x49f9, 0x0020, 0x8000], "upper picture's row (lea)");
@@ -77,15 +76,6 @@ function tables(main: Uint8Array, sub: Uint8Array) {
   const [colorsHigh, colorsLow] = m(0x6e58, [0x41f9, null, null], 'colors (lea)');
   const lines = [0x6e7e, 0x6e9c, 0x6eba].map((a) => m(a, [0x2268, null], "a line's colors (movea.l)")[0]);
   [0x6e8e, 0x6eac, 0x6eca].forEach((a, k) => m(a, [0x3b7c, 16 * k, 0xef4e], "a line's entries (move.w)"));
-  s(0x262a, [0x2d7b, 0x7026, 0xff7c], 'row bounds (move.l, pc)');
-  const [firstRow] = s(0x2888, [0x343c, null], 'first row (move.w)');
-  s(0x2896, [0xec86], "a row's step (asr.l #6)");
-  s(0x28e4, [0x3619], "a strip's bound (move.w)");
-  s(0x28ee, [0xb443], "a strip's bound met (cmp.w)");
-  const [nearAt] = s(0x28f6, [0x0c42, null], "BG0's rate's row (cmpi.w)");
-  const [lowerAt] = s(0x2902, [0x0c42, null], "the lower picture's rate's row (cmpi.w)");
-  s(0x2908, [0x383c, 0x004f], "the lower picture's rows (move.w)");
-  const bounds = 0x262c + 0x26;
   const entry = (high: number, low: number, course: number) => high * 0x10000 + low + 16 * course;
   return {
     control6,
@@ -98,10 +88,6 @@ function tables(main: Uint8Array, sub: Uint8Array) {
       };
     },
     colors: (course: number, line: number) => long(main, entry(colorsHigh, colorsLow, course) + lines[line]!),
-    bounds: (course: number) => long(sub, bounds + 4 * course),
-    firstRow,
-    nearRate: 1 + (firstRow + 1 - nearAt) / 64,
-    lowerRate: 1 + (firstRow + 1 - lowerAt) / 64,
   };
 }
 
@@ -129,8 +115,8 @@ function picture(main: Uint8Array, at: number): { columns: number; rows: number;
  * the road chip draws nothing: on level road from the band's last row, 3 rows below the road's first line, past the
  * screen's last line. That entry.
  */
-export function continentalCircusFill(main: Uint8Array, sub: Uint8Array, gfx: Uint8Array): number {
-  const t = tables(main, sub);
+export function continentalCircusFill(main: Uint8Array, gfx: Uint8Array): number {
+  const t = tables(main);
   if (bottomLayer(t.control6) !== 1) throw romDiffers('CONTINENTAL CIRCUS draws its BG0 at the bottom, under BG1');
   const [at] = instruction(main, 0x76e4, [0x41f9, 0x0020, null], "BG0's fill's first row (lea)");
   const [tiles] = instruction(main, 0x76f6, [0x0c40, null], "BG0's fill's tiles (cmpi.w)");
@@ -168,35 +154,13 @@ function pixels(
 }
 
 /**
- * The upper picture's strips, from its bottom row up, each its rows and its rate over the bottom strip's: each row from
- * row `first` up 1/64 of the frame's rate more, and the rows above a bound, from the bound up, at the rate there, the
- * next bound read there.
- */
-function strips(sub: Uint8Array, at: number, first: number) {
-  const rates: number[] = [];
-  let [bound, p, rate] = [word(sub, at), at + 2, 1];
-  for (let row = first; row >= 0; row--) {
-    rates[row] = rate;
-    if (row > bound) continue;
-    rate = 1 + (first + 1 - row) / 64;
-    [bound, p] = [word(sub, p), p + 2];
-  }
-  const out: { top: number; bottom: number; rate: number }[] = [];
-  for (let row = first; row >= 0; row--)
-    if (out.at(-1)?.rate === rates[row]) out.at(-1)!.top = row;
-    else out.push({ top: row, bottom: row, rate: rates[row]! });
-  return out;
-}
-
-/**
  * The sky of course `course` (0 to 7, BRAZIL to JAPAN), tiles from graphics `gfx`, in its dry colors: its layers in the
- * order the chip draws them, BG1's upper picture's strips from the bottom up and its lower picture, its bottom layer, then
- * BG0's band over them; the clouds' bottom strip facing, a turn its picture's 256 pixels, each other layer a turn of
- * 256 over its rate, its seam behind the start's heading (`SKY_SEAM`). Where no band lies, above and below, the clear
- * tile's color in line 0, as the cleared tilemap shows.
+ * order the chip draws them, BG1's upper picture, the clouds, and its lower picture, its bottom layer, then BG0's band
+ * over them; each its whole picture, a turn `SKY_TURN`, its column 0 over the others' (K, 2026-11-10). Where no band
+ * lies, above and below, the clear tile's color in line 0, as the cleared tilemap shows.
  */
-export function continentalCircusSky(main: Uint8Array, sub: Uint8Array, gfx: Uint8Array, course: number): SkyBands {
-  const t = tables(main, sub);
+export function continentalCircusSky(main: Uint8Array, gfx: Uint8Array, course: number): SkyBands {
+  const t = tables(main);
   if (bottomLayer(t.control6) !== 1)
     throw romDiffers('CONTINENTAL CIRCUS draws its BG0 at the bottom, which its skies do not read');
   const colors = (line: number) => {
@@ -204,33 +168,20 @@ export function continentalCircusSky(main: Uint8Array, sub: Uint8Array, gfx: Uin
     return Array.from({ length: 16 }, (_, k) => xrgb555Of(word(main, at + 2 * k)));
   };
   const { upper, lower, near } = t.pictures(course);
-  const band = (
-    p: { picture: number; row: number; line: number },
-    rows: { from: number; to: number },
-    layer: 'bg0' | 'bg1',
-    rate: number,
-  ): SkyBand => {
-    const { codes } = picture(main, p.picture);
+  const band = (p: { picture: number; row: number; line: number }, layer: 'bg0' | 'bg1'): SkyBand => {
+    const { codes, rows } = picture(main, p.picture);
+    const last = rows * TILE - 1;
     return {
       width: PICTURE_WIDTH,
-      pixels: pixels(gfx, codes, colors(p.line), rows.from, rows.to, layer === 'bg1'),
-      bottom: rowBelow[layer](p.row * TILE + rows.to),
-      ...(rate === 1 ? {} : { turn: PICTURE_WIDTH / rate, overlap: 0 }),
+      pixels: pixels(gfx, codes, colors(p.line), 0, last, layer === 'bg1'),
+      bottom: rowBelow[layer](p.row * TILE + last),
+      turn: SKY_TURN,
     };
   };
-  const tall = (p: { picture: number }) => picture(main, p.picture).rows * TILE;
-  if (tall(upper) !== t.firstRow + 1) throw romDiffers("The upper sky picture's rows are not the scroll task's");
   const clear = colors(0)[tilePen(gfx, 0, 0, 0)]!;
   return {
-    layers: [
-      ...strips(sub, t.bounds(course), t.firstRow).map((s) =>
-        band(upper, { from: s.top, to: s.bottom }, 'bg1', s.rate),
-      ),
-      band(lower, { from: 0, to: tall(lower) - 1 }, 'bg1', t.lowerRate),
-      band(near, { from: 0, to: tall(near) - 1 }, 'bg0', t.nearRate),
-    ],
+    layers: [band(upper, 'bg1'), band(lower, 'bg1'), band(near, 'bg0')],
     facing: 0,
-    seam: SKY_SEAM,
     ramp: { rows: [clear], below: clear },
   };
 }

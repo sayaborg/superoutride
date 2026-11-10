@@ -294,21 +294,29 @@ each course its own, set once at the race's start and not changed along it (`con
   turn, row by row, as read here, and its copy at column 32 shows up to 19 tiles of the row below at its start, which
   are not drawn (default; K confirms at the stage's end).
 - **Their turns.** The original keeps no heading: a band turns its rate × the curve × the distance over 16,384 pixels
-  (S 0x280E to 0x2916). The upper picture's rows turn faster the higher they lie, 1/64 of the rate a row from its bottom
-  row up, in strips whose bounds a course's table gives (S 0x2652): one row each in SPAIN, else 3 to 6 strips, from 1
-  to 2.5 times the bottom strip's turn. The lower picture turns 1.375 times as fast as the clouds' bottom strip and BG0's
-  band 1.625 times. Each strip is a layer; the clouds' bottom strip, the farthest, faces the sky, a turn its picture's
-  256 pixels, each other layer a turn of 256 over its rate (default; K confirms: no turn the program holds, its laps
-  turning the sky 262 to 543 pixels).
+  (S 0x280E to 0x2916), its laps turning the sky 262 to 543 pixels. The upper picture's rows turn faster the higher they
+  lie, 1/64 of the rate a row from its bottom row up, in strips whose bounds a course's table gives (S 0x2652): one row
+  each in SPAIN, else 3 to 6 strips, from 1 to 2.5 times the bottom strip's turn. The lower picture turns 1.375 times as
+  fast as the clouds' bottom strip and BG0's band 1.625 times. These rates are not laid (K, 2026-11-10): the sky turns
+  exactly with the car's heading, every layer alike, and only its pictures' size is the original's. Each picture is a
+  layer, the clouds' not cut into strips, and turns once in 6 pictures, 1,536 pixels (`SKY_TURN`), the whole number
+  nearest its own size ([Sky baking](original-road-data.md#sky-baking)), chosen to the sky's 1,504 columns, the ratio of
+  Sega's back; its rows at its pixels' aspect × 1504/1536, 305 each way from the horizon.
 - **Their rows.** On level road the road's first line lies at BG1's row 142 and BG0's row 140 (M 0x52E6, 0x5316, the
-  road from the TC0150ROD's line 116, which is not confirmed): the clouds' bottom row 47 rows above it, the lower
-  picture reaching 33 rows below it and BG0's band 3. Where no band lies, the cleared tile's color in line 0.
+  road from the TC0150ROD's line 116, which is not confirmed): the clouds' 96 rows from 142 to 47 rows above it, the
+  lower picture from 46 above it to 33 rows below it and BG0's band from 36 above it to 3 below. Where no band lies,
+  above the clouds too, the cleared tile's color in line 0.
 - **Their colors.** A course's three lines from its 16 bytes at M 0xC5A0 (M 0x6E4A to 0x6ED6), its dry colors; the
   rain's and the lightning's, which the original fades in at random times, are not drawn (default; K confirms).
-- **Their facing.** The clouds' bottom strip's column 0 lies at the camera's centre at the start's heading, the line's
-  (`SKY_MIDDLE`; default, K confirms at the stage's end: where the road vanishes on the original's screen at the start
-  is not read, nor BG0's scroll at a race's start), and each other layer's seam behind it, at the facing
-  layer's pixel 128 (`SKY_SEAM`).
+- **Their facing.** The layers overlap as at a race's start, every layer's column 0 at the camera's centre at the
+  start's heading, the line's (`SKY_MIDDLE`; an estimate: where the road vanishes on the original's screen at the start
+  is not read, nor BG0's scroll at a race's start). A turn of whole pictures has no seam of its own; a picture's last
+  column does not continue into its first as read (the clouds' differ in 32 to 71 of their 96 rows, neighbouring
+  columns in 80 at most), so each layer shows its picture's edge every 256 pixels, six a turn, one at the camera's
+  centre at the start. The original's screen shows that edge too: its tilemap holds a picture's copies side by side,
+  at columns 0 and 32, and repeats after its 512 pixels, and its screen's 320 columns are wider than a picture, so
+  one edge or two always lie on it, in the clouds each strip's at its own scroll (not seen on a picture of the
+  original; where the edges lie on its screen at the start is not read).
 
 ## Its things
 
@@ -477,4 +485,4 @@ near, as the original's do, is the replacement [the rule](original-road-data.md#
 `continental-circus-course` writes the eight courses to `content/originals/courses/` (`continental-circus-brazil` to
 `continental-circus-japan`), their crest trials, and their skies (`continental-circus-<course>-sky`) to
 `content/originals/images/`, with its things' pictures (`contcirc-<address>`, `contcirc-joined-<address>`) and its
-bands' (`-band`, `-band-mirrored`, `contcirc-zone-8003`) (its conversion's version 7).
+bands' (`-band`, `-band-mirrored`, `contcirc-zone-8003`) (its conversion's version 8).

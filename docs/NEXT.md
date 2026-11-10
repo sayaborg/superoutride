@@ -615,7 +615,7 @@ and its ground patches, cloud banks and GOAL gate not placed.
 
 CONTINENTAL CIRCUS's defaults, each in [its chapter](continental-circus-road-data.md): its rises at 1.5 units a sample;
 its stripes' phase the race's first lap's; the rain's and the lightning's colors not drawn, on its road and in its skies;
-its skies' turn its clouds' bottom strip's 256 pixels, facing the start's heading, their copy at column 32 not drawn;
+its skies facing the start's heading, their copy at column 32 not drawn;
 its pit lanes from their records' places less 0x2FD, their centres
 through every fourth sample, their things placed always without a body; its checkpoints at their things' stations; its
 things' bodies fixed; its side faces hit; its zone's side face at its zone's end less 0x3E8; JAPAN's bridge's body on

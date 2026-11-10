@@ -30,10 +30,10 @@ import type { Lateral } from '../../../src/course/course-document.js';
 import { lensFactor, steepestGrade } from '../shared/screen-pieces.js';
 import {
   CONTINENTAL_CIRCUS_COURSES,
-  PICTURE_WIDTH,
   continentalCircusFill,
   continentalCircusSky,
   SKY_MIDDLE,
+  SKY_TURN,
 } from './continental-circus-backgrounds.js';
 import {
   COMMAND,
@@ -76,7 +76,7 @@ import {
 } from './continental-circus-rom.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 7;
+export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 8;
 
 /** The conversion's course ids, by the program's course numbers. */
 export const COURSE_IDS = CONTINENTAL_CIRCUS_COURSES.map((name) => `continental-circus-${name.toLowerCase()}`);
@@ -384,7 +384,7 @@ export function continentalCircusCourses(set: RomSet) {
   const { halfMetres, pixelMetres } = picture;
   const bank = stripeBank(main);
   const attributes = zoneAttributes(main, sub);
-  const fill = roadEntry(continentalCircusFill(main, sub, tiles));
+  const fill = roadEntry(continentalCircusFill(main, tiles));
   // A lateral unit, metres: the road's half width over 0x40000 (`HALF_WIDTH_UNITS`); a height unit is UP of it, a row
   // at a distance as a unit across is a column ([Its scale across](../../../docs/continental-circus-road-data.md#its-road-across)).
   const lateral = halfMetres / 0x40000;
@@ -599,7 +599,7 @@ export function continentalCircusCourses(set: RomSet) {
       ...pitStrips,
     ];
     const sky = `${id}-sky`;
-    outputs.file(`images/${sky}.json`, JSON.stringify(bakeSky(sky, continentalCircusSky(main, sub, tiles, c), UP)));
+    outputs.file(`images/${sky}.json`, JSON.stringify(bakeSky(sky, continentalCircusSky(main, tiles, c), UP)));
     const limits = {
       left: [
         [0, -limit],
@@ -673,7 +673,7 @@ export function continentalCircusCourses(set: RomSet) {
       interval: period,
       startLine: [],
       // The facing layer's column at the camera's centre at the start's heading, the line's.
-      skyYawOrigin: skyYawOrigin(SKY_MIDDLE, PICTURE_WIDTH),
+      skyYawOrigin: skyYawOrigin(SKY_MIDDLE, SKY_TURN),
       objects: [...objects, ...bandObjects],
       checkpoints,
       limits,
