@@ -1415,6 +1415,564 @@
           "right": null,
           "color": 17024,
           "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "s0", "offset": 0.405841 },
+          "left": -5.603723404255319,
+          "right": -1.9898936170212764,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "s0", "offset": 0.405841 },
+          "left": -1.9898936170212764,
+          "right": -1.8069148936170212,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "s0", "offset": 0.405841 },
+          "left": -1.8069148936170212,
+          "right": 1.8069148936170212,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "s0", "offset": 0.405841 },
+          "left": 1.8069148936170212,
+          "right": 1.9898936170212764,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "s0", "offset": 0.405841 },
+          "left": 1.9898936170212764,
+          "right": 5.603723404255319,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s11", "offset": 133.236063144 },
+          "end": { "joint": "s11", "offset": 133.797007144 },
+          "left": -5.603723404255319,
+          "right": -1.9898936170212764,
+          "color": 16912,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s11", "offset": 133.236063144 },
+          "end": { "joint": "s11", "offset": 133.797007144 },
+          "left": -1.9898936170212764,
+          "right": -1.8069148936170212,
+          "color": 23254,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s11", "offset": 133.236063144 },
+          "end": { "joint": "s11", "offset": 133.797007144 },
+          "left": -1.8069148936170212,
+          "right": 1.8069148936170212,
+          "color": 16912,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s11", "offset": 133.236063144 },
+          "end": { "joint": "s11", "offset": 133.797007144 },
+          "left": 1.8069148936170212,
+          "right": 1.9898936170212764,
+          "color": 23254,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s11", "offset": 133.236063144 },
+          "end": { "joint": "s11", "offset": 133.797007144 },
+          "left": 1.9898936170212764,
+          "right": 5.603723404255319,
+          "color": 16912,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": -6.4271276595744675,
+          "right": -5.809574468085106,
+          "color": 0,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": -5.809574468085106,
+          "right": -5.6952127659574465,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 109.466297023 },
+          "end": { "joint": "s13", "offset": 111.750054023 },
+          "left": -5.809574468085106,
+          "right": -5.6952127659574465,
+          "color": 448,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 9.135027,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 72.926188023 },
+              "end": { "joint": "s13", "offset": 75.209944023 },
+              "left": -5.809574468085106,
+              "right": -5.6952127659574465,
+              "color": 448,
+              "material": null
+            },
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 77.493701023 },
+              "end": { "joint": "s13", "offset": 79.777458023 },
+              "left": -5.809574468085106,
+              "right": -5.6952127659574465,
+              "color": 448,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": -5.6952127659574465,
+          "right": -5.603723404255319,
+          "color": 10570,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 109.359246023 },
+          "end": { "joint": "s13", "offset": 111.643003023 },
+          "left": -5.6952127659574465,
+          "right": -5.603723404255319,
+          "color": 320,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 9.135027,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 72.819136023 },
+              "end": { "joint": "s13", "offset": 75.102893023 },
+              "left": -5.6952127659574465,
+              "right": -5.603723404255319,
+              "color": 320,
+              "material": null
+            },
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 77.386650023 },
+              "end": { "joint": "s13", "offset": 79.670407023 },
+              "left": -5.6952127659574465,
+              "right": -5.603723404255319,
+              "color": 320,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": -5.603723404255319,
+          "right": -1.9898936170212764,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 72.819136023 },
+          "left": -5.603723404255319,
+          "right": -1.9898936170212764,
+          "color": 16912,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 109.359246023 },
+          "end": { "joint": "s13", "offset": 109.573348023 },
+          "left": -5.603723404255319,
+          "right": -1.9898936170212764,
+          "color": 16912,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 9.135027,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 72.819136023 },
+              "end": { "joint": "s13", "offset": 73.033239023 },
+              "left": -5.603723404255319,
+              "right": -1.9898936170212764,
+              "color": 16912,
+              "material": null
+            },
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 77.600752023 },
+              "end": { "joint": "s13", "offset": 81.954164023 },
+              "left": -5.603723404255319,
+              "right": -1.9898936170212764,
+              "color": 16912,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": -1.9898936170212764,
+          "right": -1.8069148936170212,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 72.819136023 },
+          "left": -1.9898936170212764,
+          "right": -1.8069148936170212,
+          "color": 23254,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 109.359246023 },
+          "end": { "joint": "s13", "offset": 109.573348023 },
+          "left": -1.9898936170212764,
+          "right": -1.8069148936170212,
+          "color": 23254,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 9.135027,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 72.819136023 },
+              "end": { "joint": "s13", "offset": 73.033239023 },
+              "left": -1.9898936170212764,
+              "right": -1.8069148936170212,
+              "color": 23254,
+              "material": null
+            },
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 77.600752023 },
+              "end": { "joint": "s13", "offset": 81.954164023 },
+              "left": -1.9898936170212764,
+              "right": -1.8069148936170212,
+              "color": 23254,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": -1.8069148936170212,
+          "right": 1.8069148936170212,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 72.819136023 },
+          "left": -1.8069148936170212,
+          "right": 1.8069148936170212,
+          "color": 16912,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 109.359246023 },
+          "end": { "joint": "s13", "offset": 109.573348023 },
+          "left": -1.8069148936170212,
+          "right": 1.8069148936170212,
+          "color": 16912,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 9.135027,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 72.819136023 },
+              "end": { "joint": "s13", "offset": 73.033239023 },
+              "left": -1.8069148936170212,
+              "right": 1.8069148936170212,
+              "color": 16912,
+              "material": null
+            },
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 77.600752023 },
+              "end": { "joint": "s13", "offset": 81.954164023 },
+              "left": -1.8069148936170212,
+              "right": 1.8069148936170212,
+              "color": 16912,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": 1.8069148936170212,
+          "right": 1.9898936170212764,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 72.819136023 },
+          "left": 1.8069148936170212,
+          "right": 1.9898936170212764,
+          "color": 23254,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 109.359246023 },
+          "end": { "joint": "s13", "offset": 109.573348023 },
+          "left": 1.8069148936170212,
+          "right": 1.9898936170212764,
+          "color": 23254,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 9.135027,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 72.819136023 },
+              "end": { "joint": "s13", "offset": 73.033239023 },
+              "left": 1.8069148936170212,
+              "right": 1.9898936170212764,
+              "color": 23254,
+              "material": null
+            },
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 77.600752023 },
+              "end": { "joint": "s13", "offset": 81.954164023 },
+              "left": 1.8069148936170212,
+              "right": 1.9898936170212764,
+              "color": 23254,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": 1.9898936170212764,
+          "right": 5.603723404255319,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 72.819136023 },
+          "left": 1.9898936170212764,
+          "right": 5.603723404255319,
+          "color": 16912,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 109.359246023 },
+          "end": { "joint": "s13", "offset": 109.573348023 },
+          "left": 1.9898936170212764,
+          "right": 5.603723404255319,
+          "color": 16912,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 9.135027,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 72.819136023 },
+              "end": { "joint": "s13", "offset": 73.033239023 },
+              "left": 1.9898936170212764,
+              "right": 5.603723404255319,
+              "color": 16912,
+              "material": null
+            },
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 77.600752023 },
+              "end": { "joint": "s13", "offset": 81.954164023 },
+              "left": 1.9898936170212764,
+              "right": 5.603723404255319,
+              "color": 16912,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": 5.603723404255319,
+          "right": 5.6952127659574465,
+          "color": 10570,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 109.359246023 },
+          "end": { "joint": "s13", "offset": 111.643003023 },
+          "left": 5.603723404255319,
+          "right": 5.6952127659574465,
+          "color": 320,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 9.135027,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 72.819136023 },
+              "end": { "joint": "s13", "offset": 75.102893023 },
+              "left": 5.603723404255319,
+              "right": 5.6952127659574465,
+              "color": 320,
+              "material": null
+            },
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 77.386650023 },
+              "end": { "joint": "s13", "offset": 79.670407023 },
+              "left": 5.603723404255319,
+              "right": 5.6952127659574465,
+              "color": 320,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": 5.6952127659574465,
+          "right": 5.809574468085106,
+          "color": 14798,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 109.466297023 },
+          "end": { "joint": "s13", "offset": 111.750054023 },
+          "left": 5.6952127659574465,
+          "right": 5.809574468085106,
+          "color": 448,
+          "material": null
+        },
+        {
+          "kind": "repeat",
+          "every": 9.135027,
+          "count": 4,
+          "elements": [
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 72.926188023 },
+              "end": { "joint": "s13", "offset": 75.209944023 },
+              "left": 5.6952127659574465,
+              "right": 5.809574468085106,
+              "color": 448,
+              "material": null
+            },
+            {
+              "kind": "strip",
+              "start": { "joint": "s13", "offset": 77.493701023 },
+              "end": { "joint": "s13", "offset": 79.777458023 },
+              "left": 5.6952127659574465,
+              "right": 5.809574468085106,
+              "color": 448,
+              "material": null
+            }
+          ]
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": 5.809574468085106,
+          "right": 6.4271276595744675,
+          "color": 0,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": null,
+          "right": -6.4271276595744675,
+          "color": 0,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s13", "offset": 71.765476023 },
+          "end": { "joint": "s13", "offset": 113.293753023 },
+          "left": 6.4271276595744675,
+          "right": null,
+          "color": 0,
+          "material": null
         }
       ],
       "walls": [],
@@ -3600,6 +4158,24 @@
           "left": 6.4271276595744675,
           "right": null,
           "color": 17024,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 124.235605 },
+          "end": { "joint": "c1", "offset": -90.466936408 },
+          "left": null,
+          "right": -6.4271276595744675,
+          "color": 19136,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 124.235605 },
+          "end": { "joint": "c1", "offset": -90.466936408 },
+          "left": 6.4271276595744675,
+          "right": null,
+          "color": 19136,
           "material": null
         }
       ],

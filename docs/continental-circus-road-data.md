@@ -78,8 +78,7 @@ its course's name (BRAZIL to JAPAN; the course format admits 21 characters a nam
 course texts'), each its lap on its model laid by [a circuit laid out](original-road-data.md#a-circuit-laid-out) from its
 line: 3,291.1 m (MEXICO) to 6,789.1 m (GERMANY), 18 to 39 pieces, 2 Sections (3 in MONACO and JAPAN). A lap's position
 lies at its record's interval's place on the lap as laid ([Places and
-patterns](original-road-data.md#places-and-patterns)). Its things (TA-16), its pit lanes (TA-15g) and its zones' lines
-and dark road (TA-15h) are not laid yet.
+patterns](original-road-data.md#places-and-patterns)). Its things (TA-16) and its pit lanes (TA-15g) are not laid yet.
 
 - **Its race.** One lap (`LAPS`): the lap's one thing of type 3 sets the goal flag (S 0x2B8A to 0x2BF8), on which the
   main program stops the time (M 0x1E7E). That thing stands where the car starts, 800 positions before the line; the
@@ -133,6 +132,7 @@ JAPAN's two passages where it crosses itself (2,466.1 m and 4,962.4 m) lie at 5.
   in GERMANY a period). A place's bank is that of its running position 0x7FFF on, the line's 0x831F, the race's first
   lap's (default; K confirms at the stage's end: the original's lap is no whole number of periods, so each later lap
   shifts its stripes).
+- **Its zones.** Each a place's colors over its stretch ([Its zones](#its-zones)).
 - **Its limits.** Its program's ([The ground beside the road](original-road-data.md#the-ground-beside-the-road)): the
   road task holds the car's x within ±0x3C000 (S 0x2856 to 0x287A, the right bound widened by the pit lane's word, 0
   on open road), x moving the road's k-th line from the screen's bottom by (0x86 − k) × x / 0x10000 pixels (S 0x26A8
@@ -171,13 +171,54 @@ ground beside an edge.
   0x10 entries apart, M 0x74F6 to 0x7528): B 0, the edges and the ground, the course's own words (its 16 at M 0xC5A0 +
   16 × the course + 12) by the bank's offsets at M 0xD090; B 1, the body, and B 3 fixed words at M 0xD0F0, every
   course's; B 2 the course's words 0x10 bytes past B 0's, its dimmer kerbs. Open road draws its edges in B 0 and its
-  body in B 1 (S 0x26EE to 0x26FA); a zone moves a part to B 2 or B 3. The colors are set once at a race's start; the
+  body in B 1 (S 0x26EE to 0x26FA); a zone moves a part to B 2 or B 3 ([Its zones](#its-zones)). The colors are set once at a race's start; the
   rain's darker ones are not drawn (default; K confirms at the stage's end), as its skies' are not.
 - **The banks along the road.** A line's bank is the table of 512 words at M 0x4EC4 by its place over 4 (M 0x4E68 to
   0x4E74), fixed to the road, a period of 2048 positions (9.47 m): in each quarter 24 positions of a bank, 24 of the
   next and 464 of the third. So the kerb's three bands change color every 512 positions (2.37 m), each 24 positions
   (0.11 m) after the band inside it; the ground changes shade every 1024 (4.74 m); and the body's lines are dashes of
   1024 positions with gaps of 1024, the asphalt a shade lighter under the dashes.
+
+### Its zones
+
+A zone (command 5, S 0xC28A) gives a line's parts other words over its stretch (`continental-circus-zones`):
+
+- **Its stretch.** Its argument's high word is its kind and its low word its length; it lies from its record's place, its
+  running position + 0x7FFF as a thing's, its length on (S 0xC28E to 0xC2C4). One that starts within the last one, by
+  its end, extends that one to its own end, its kind kept (S 0xC29E to 0xC2A8): MONACO's five zones of its tunnel are
+  one, 0x8003's.
+- **Its words.** The sub's task S 0x2E3C gives each line within a zone's stretch (from its end's line to its start's by
+  the distance table at S 0x20000) the words its kind's handler sets: the handler is the word at S 0x3092 + twice the
+  kind, from S 0x3092, the kind doubled as a word, so that its bit 15 drops (S 0x3088 to 0x308E; 0x8003 acts as 3 and
+  0x8007 as 7, their side pieces things, TA-16). Each handler, up to S 0x30EE, is `move.w` or `clr.w` of the line
+  buffer's 0x1800, the left edge's word, 0x1802, the body's, or 0x1804, the right edge's (road A's words 0, 2 and 1, M
+  0x4E5C, 0x4E80, 0x4E84); a part it does not set keeps open road's, 0x8000 at either edge and 0xA800 the body (S
+  0x26EE to 0x26FA). A word's group is its bits 11 and 12, and an edge draws the ground beyond it only where its bit 15
+  is set (MAME's description of the chip). So kind 0 changes nothing; 2 moves the body to B 3; 3 the body to B 3 and
+  the right edge to B 2; 6 the body to B 3 and the left edge to B 2 (no course uses it); 7 the body to B 3 and both
+  edges to B 2 (the left with its priority bit, not drawn here); and 1, 4 and 5 clear the right, the left and both
+  edges' words, their kerbs in B 0 and no ground beyond them.
+- **Its colors.** A place's colors ([Sky baking](original-road-data.md#sky-baking)), at once at its ends: from its
+  start's station to its end's on the lap as laid ([Places and patterns](original-road-data.md#places-and-patterns)),
+  each part whose word it changes in its word's group by its place, as open road's stripes are, the color most of its
+  stretch takes over it and the rest over their parts: its bands, and beyond an edge the ground its pixel 0 gives
+  (black in MONACO's and JAPAN's B 2). Beyond an edge whose word draws no ground lies the course's ground beyond the
+  road, its base color, unstriped (default; K confirms at the stage's end: the original shows its BG0's fill there,
+  palette entry 0xD11, bank 4's asphalt grey, which is not laid). A part whose colors are open road's is not
+  laid again. That kind 7's and 0x8007's dark road is a shadow is not confirmed.
+
+| Course  | Its zones: kind, metres from the line (length)                         |
+| ------- | ---------------------------------------------------------------------- |
+| BRAZIL  | 7: 0 (0.18), 1,680.6 (0.21), 3,144.2 (0.24)                            |
+| AMERICA | 7: 0 (0.37), 1,017.5 (0.40), 2,878.6 (0.36)                            |
+| FRANCE  | 7: 0 (0.34), 1,436.9 (0.28)                                            |
+| MONACO  | 2: 0 (0.23), 1,872.2 (0.22); 0x8003, its tunnel: 1,507.4 (335.4)       |
+| GERMANY | 7: 0 (0.37), 2,792.1 (0.54)                                            |
+| SPAIN   | 7: 0 (0.21), 1,978.5 (0.20)                                            |
+| MEXICO  | 7: 0 (0.18), 1,449.9 (0.79)                                            |
+| JAPAN   | 2: 0 (0.41), 2,066.0 (0.56); 0x8007: 2,443.6 (41.5); 5: 4,862.9 (67.9) |
+
+Each lap's first, at 0, is its line; a line's 96 positions lie 0.18 to 0.79 m as laid, as its interval's place is laid.
 
 ## Its skies
 
@@ -212,4 +253,4 @@ each course its own, set once at the race's start and not changed along it (`con
 
 `continental-circus-course` writes the eight courses to `content/originals/courses/` (`continental-circus-brazil` to
 `continental-circus-japan`), their crest trials, and their skies (`continental-circus-<course>-sky`) to
-`content/originals/images/` (its conversion's version 1).
+`content/originals/images/` (its conversion's version 2).

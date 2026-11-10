@@ -21,7 +21,7 @@ import { groundMaterial } from '../shared/ground-material.js';
 import { bakeSky, skyYawOrigin } from '../shared/sky-baking.js';
 import { riseProfile } from '../shared/rise-profile.js';
 import { bendOf, profileOf, withinRise, type Bend, type Kink, type Profile } from '../shared/road-profile.js';
-import type { Band, Material, SurfacePart } from '../shared/road-surface.js';
+import type { Band, Material, SurfacePart, SurfaceStrip } from '../shared/road-surface.js';
 import { lensFactor, steepestGrade } from '../shared/screen-pieces.js';
 import {
   CONTINENTAL_CIRCUS_COURSES,
@@ -33,6 +33,7 @@ import { continentalCircusLap, curveTable, POSITION_METRES } from './continental
 import { carLimit, continentalCircusRoadPicture, SCREEN_ROWS, UP } from './continental-circus-road-picture.js';
 import { BANK_PERIOD, continentalCircusRoadColors, GROUP, stripeBank } from './continental-circus-road-colors.js';
 import { lapHills, lapRises, SAMPLE_POSITIONS, type Rises } from './continental-circus-heights.js';
+import { lapZones, zoneAttributes, type Attribute, type LinePart } from './continental-circus-zones.js';
 import {
   assembleContinentalCircusMain,
   assembleContinentalCircusSub,
@@ -41,7 +42,7 @@ import {
 } from './continental-circus-rom.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 1;
+export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 2;
 
 /** The conversion's course ids, by the program's course numbers. */
 export const COURSE_IDS = CONTINENTAL_CIRCUS_COURSES.map((name) => `continental-circus-${name.toLowerCase()}`);
@@ -197,6 +198,14 @@ function periodRuns(bank: (place: number) => number, color: (bank: number) => nu
   return runs;
 }
 
+/** A color's run over one bank period: its first place, its positions and its color. */
+type Run = { readonly from: number; readonly length: number; readonly color: number };
+
+/** Whether two periods' runs are one. */
+const sameRuns = (x: readonly Run[], y: readonly Run[]) =>
+  x.length === y.length &&
+  x.every((r, k) => r.from === y[k]!.from && r.length === y[k]!.length && r.color === y[k]!.color);
+
 /** Of runs over a period, the color the most positions take (of as many the first). */
 function mostColor(runs: readonly { length: number; color: number }[]) {
   const total = new Map<number, number>();
@@ -225,6 +234,7 @@ export function continentalCircusCourses(set: RomSet) {
   const picture = continentalCircusRoadPicture(main, set.data(CONTINENTAL_CIRCUS_ROAD_ROM));
   const { halfMetres, pixelMetres } = picture;
   const bank = stripeBank(main);
+  const attributes = zoneAttributes(main, sub);
   // A lateral unit, metres: the road's half width over 0x40000 (`HALF_WIDTH_UNITS`); a height unit is UP of it, a row
   // at a distance as a unit across is a column ([Its scale across](../../../docs/continental-circus-road-data.md#its-road-across)).
   const lateral = halfMetres / 0x40000;
@@ -240,14 +250,15 @@ export function continentalCircusCourses(set: RomSet) {
     const table = curveTable(sub, lap);
     const station = lapStations(table, laid.intervals);
     const heights = lapProfile(lapRises(lapHills(main, lap)), station, laid.length, unit, laid.length / lap.length);
-    return { id, c, name, lap, laid, station, heights, inputs };
+    const zones = lapZones(sub, lap).map((z) => ({ kind: z.kind, from: station(z.from), to: station(z.to) }));
+    return { id, c, name, lap, laid, station, heights, inputs, zones };
   });
   // The grades' factor, one for the eight: the lens ratio, its eye's rows at a distance over its screen's, within the
   // grade limit by the steepest grade any course reaches at factor 1.
   const steepest = Math.max(...laps.map((l) => steepestGrade(profileOf(l.heights.bends, [], l.heights.kinks))));
   const focalRows = POSITION_METRES / unit;
   const factor = lensFactor(focalRows, SCREEN_ROWS, steepest);
-  const courses = laps.map(({ id, c, name, lap, laid, station, heights, inputs }) => {
+  const courses = laps.map(({ id, c, name, lap, laid, station, heights, inputs, zones }) => {
     const { length, scale, report } = laid;
     const pieces = curvePlan(laid.intervals, scale);
     const model = inputs.model;
@@ -261,26 +272,27 @@ export function continentalCircusCourses(set: RomSet) {
     const mean = length / lap.length;
     const period = BANK_PERIOD * mean;
     const zero = -(lap.place % BANK_PERIOD) * mean;
-    const ground = periodRuns(bank, (b) => colors(b, GROUP.edge, 0));
+    const runsOf = (group: number, pen: number) => periodRuns(bank, (b) => colors(b, group, pen));
+    const ground = runsOf(GROUP.edge, 0);
     const materials = [...new Set(ground.map((r) => groundMaterial(r.color)))];
     if (materials.length !== 1) throw romDiffers(`${name}'s ground's shades differ in material`);
     // No water lies beside its roads: a ground the rule makes WATER (MONACO's bluish grey, a town's) is SAND (default;
     // K confirms at the stage's end).
     const groundIs: Material = materials[0] === 'WATER' ? 'SAND' : materials[0]!;
     const edge = picture.right.at(-1)!.to;
-    const pieceOf = (from: number, to: number, group: number, pen: number) => {
-      const runs = periodRuns(bank, (b) => colors(b, group, pen));
-      return { from, to, runs, base: mostColor(runs) };
+    const pieceOf = (from: number, to: number, part: LinePart, pen: number) => {
+      const runs = runsOf(attributes.open[part].group, pen);
+      return { from, to, part, pen, runs, base: mostColor(runs) };
     };
     const lines = picture.lines;
     const across = [
-      ...[...picture.left].sort((a, b) => a.from - b.from).map((b) => pieceOf(b.from, b.to, GROUP.edge, b.pen)),
-      pieceOf(-halfMetres, lines[0]!.from, GROUP.body, picture.bodyPen),
+      ...[...picture.left].sort((a, b) => a.from - b.from).map((b) => pieceOf(b.from, b.to, 'left', b.pen)),
+      pieceOf(-halfMetres, lines[0]!.from, 'body', picture.bodyPen),
       ...lines.flatMap((line, k) => [
-        pieceOf(line.from, line.to, GROUP.body, line.pen),
-        pieceOf(line.to, lines[k + 1]?.from ?? halfMetres, GROUP.body, picture.bodyPen),
+        pieceOf(line.from, line.to, 'body', line.pen),
+        pieceOf(line.to, lines[k + 1]?.from ?? halfMetres, 'body', picture.bodyPen),
       ]),
-      ...[...picture.right].sort((a, b) => a.from - b.from).map((b) => pieceOf(b.from, b.to, GROUP.edge, b.pen)),
+      ...[...picture.right].sort((a, b) => a.from - b.from).map((b) => pieceOf(b.from, b.to, 'right', b.pen)),
     ];
     const bands: Band[] = across.map((p) => ({ left: p.from, right: p.to, colors: [p.base], material: ROAD }));
     const groundBase = mostColor(ground);
@@ -295,7 +307,23 @@ export function continentalCircusCourses(set: RomSet) {
           { ...partAt(r, zero, mean), left: edge, right: null },
         ]),
     ];
-    const surface = [{ parts, every: period, count: Math.ceil((length - zero) / period) + 1 }];
+    // Its zones, each a place's colors over its stretch, at once at its ends ([Its zones](../../../docs/continental-circus-road-data.md#its-zones)):
+    // each part its zone's kind gives another word in that word's group by its place, its bands and, beyond an edge,
+    // the ground its pixel 0 gives; beyond an edge whose word draws no ground, the course's ground beyond the road
+    // (default; K confirms at the stage's end); a part whose colors are open road's not laid again.
+    const beyondRuns: Run[] = [{ from: 0, length: BANK_PERIOD, color: groundBase }];
+    const groundOf = (a: Attribute) => (a.ground ? runsOf(a.group, 0) : beyondRuns);
+    const zoneStrips = zones.flatMap((z) => {
+      const words = attributes.of(z.kind);
+      return [
+        ...across.map((p) => ({ left: p.from, right: p.to, open: p.runs, runs: runsOf(words[p.part].group, p.pen) })),
+        { left: null, right: -edge, open: ground, runs: groundOf(words.left) },
+        { left: edge, right: null, open: ground, runs: groundOf(words.right) },
+      ]
+        .filter((p) => !sameRuns(p.runs, p.open))
+        .flatMap((p) => placeStrips(p.runs, z.from, z.to, zero, mean, p.left, p.right));
+    });
+    const surface = [{ parts, every: period, count: Math.ceil((length - zero) / period) + 1 }, ...zoneStrips];
     const sky = `${id}-sky`;
     outputs.file(`images/${sky}.json`, JSON.stringify(bakeSky(sky, continentalCircusSky(main, sub, tiles, c), UP)));
     const limits = {
@@ -347,6 +375,12 @@ export function continentalCircusCourses(set: RomSet) {
       tightestRadius: round1(tightest),
       positionMetres: Number(mean.toPrecision(5)),
       stripes: { period: round3(period), parts: parts.length },
+      // Its zones: each its kind, and its stretch's start and length, metres.
+      zones: zones.map((z) => ({
+        kind: `0x${z.kind.toString(16)}`,
+        at: round1(z.from),
+        length: round3(z.to - z.from),
+      })),
       ground: { colors: [...new Set(ground.map((r) => r.color))], material: groundIs },
       startFromLine: round3(-start),
       gridFromLine: [course.grid[0]!, course.grid.at(-1)!].map((slot) => round3(length - slot.s)),
@@ -384,11 +418,51 @@ export function continentalCircusCourses(set: RomSet) {
 }
 
 /** A run's stretch on the lap as laid: its place from the period's start, less the line's, at the lap's mean position. */
-const partAt = (run: { from: number; length: number; color: number }, zero: number, mean: number) => ({
+const partAt = (run: Run, zero: number, mean: number) => ({
   from: zero + run.from * mean,
   to: zero + (run.from + run.length) * mean,
   color: run.color,
 });
+
+/**
+ * A place's colors over stations `[from, to]` between laterals `left` and `right`, at once at its ends: its runs in
+ * every period from station `zero` at the lap's mean position (`mean`) within it, the color most of the stretch takes
+ * over the whole and each other run over its part, the periods wholly within one repeat and the rest cut at the ends.
+ */
+function placeStrips(
+  runs: readonly Run[],
+  from: number,
+  to: number,
+  zero: number,
+  mean: number,
+  left: number | null,
+  right: number | null,
+): SurfaceStrip[] {
+  const period = BANK_PERIOD * mean;
+  const parts = runs.map((r) => ({ ...partAt(r, zero, mean), left, right }));
+  const [first, last] = [Math.ceil((from - zero) / period - 1e-9), Math.floor((to - zero) / period + 1e-9)];
+  const whole = Math.max(0, last - first);
+  const cut: SurfacePart[] = [];
+  for (let k = Math.floor((from - zero) / period); zero + k * period < to; k++)
+    if (k < first || k >= last)
+      for (const p of parts) {
+        const [a, b] = [Math.max(from, p.from + k * period), Math.min(to, p.to + k * period)];
+        if (b - a > 1e-6) cut.push({ ...p, from: a, to: b });
+      }
+  const metres = (ps: readonly SurfacePart[], color: number) =>
+    ps.reduce((n, p) => n + (p.color === color ? p.to - p.from : 0), 0);
+  const cover = (color: number) => metres(cut, color) + whole * metres(parts, color);
+  const base = runs.map((r) => r.color).reduce((best, c) => (cover(c) > cover(best) ? c : best));
+  const shifted = parts
+    .filter((p) => p.color !== base)
+    .map((p) => ({ ...p, from: p.from + first * period, to: p.to + first * period }));
+  const ends = cut.filter((p) => p.color !== base);
+  return [
+    { parts: [{ from, to, left, right, color: base }], every: period, count: 1 },
+    ...(ends.length ? [{ parts: ends, every: period, count: 1 }] : []),
+    ...(whole > 0 && shifted.length ? [{ parts: shifted, every: period, count: whole }] : []),
+  ];
+}
 
 export const CONTINENTAL_CIRCUS_CONVERSION: Conversion = (set) => {
   const { outputs, report } = continentalCircusCourses(set);

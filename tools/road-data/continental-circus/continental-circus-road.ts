@@ -83,7 +83,7 @@ function streamOf(sub: Uint8Array, course: number) {
 }
 
 /**
- * The lines' kinds a lap's first record paints across its road, the line (its zone at the lap's start, M 0x30B0 and
+ * The lines' kinds a lap's first record paints across its road, the line (its zone at the lap's start, S 0x30B0 and
  * 0x30C6's kinds 2 and 7).
  */
 const LINE_KINDS = [2, 7];
