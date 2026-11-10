@@ -137,6 +137,15 @@ export function topSpeedThing(sub: Uint8Array, index: number): TopSpeedThing {
   };
 }
 
+/**
+ * How far ahead of the camera a thing is drawn, positions: the builder passes one at this distance or more (S 0x165CC
+ * to 0x165D8).
+ */
+export function thingSight(sub: Uint8Array): number {
+  instruction(sub, 0x165cc, [0x90ad, 0xa800], "a thing's distance from the camera (sub.l)");
+  return instruction(sub, 0x165d2, [0x0c80, 0x0000, null, 0x6400], 'the farthest thing drawn (cmpi.l, bcc)')[0];
+}
+
 /** A palette's pens. */
 const PENS = 16;
 /** The palette's lines the program copies at its start (0x800 longs: 256 lines of 16 pens). */

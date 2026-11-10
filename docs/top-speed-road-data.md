@@ -61,17 +61,28 @@ records of 8 bytes a section, each section its next for the left and for the rig
 Seven courses, TOP SPEED A to G (`top-speed-a` to `top-speed-g`), each its road from its start through its five
 stages' paths to its goal, the fifth stage's end (`courseSections`): 800 records, 19,654.8 m from GO. Each is laid by
 `road-layout` ([A road laid out](original-road-data.md#a-road-laid-out)), its road laid on back 186 m straight before
-its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q.'s are: 67 to 82 Sections a course,
-19,842.6 m. A checkpoint stands at each of the first four stages' ends, where the original adds time (S 0x5B1C to
-0x5B8E); the finish is the goal, where its run ends (S 0x5B32).
+its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q.'s are, and laid on past its goal
+98.3 m as the original's records give it ([Past its goal](#top-speeds-courses)): 67 to 82 Sections a course,
+19,940.9 m. A checkpoint stands at each of the first four stages' ends, where the original adds time (S 0x5B1C to
+0x5B8E); the finish is the goal, where its run ends (S 0x5B32), 19,842.6 m from the course's start.
 
 - **Its start.** The own car stands alone at GO 1.82 m into its first section in lane d ([The
   start](#its-course-tables)), the general form behind it on that lane and lane c ([The
   grid](original-road-data.md#the-grid)).
+- **Past its goal.** As the camera is in a goal section the sub program copies the next stage's sections in, the
+  stage and 1 by 0x1000 bytes from the stages' records whatever the stage (S 0x57C0 to 0x57E6), so past the fifth
+  stage's end the camera is shown the block after the five stages', its section 0 (`recordsPastGoal`): straight and
+  level records of the goal's three lanes, the first holding the GOAL gate ([Where it stands](#its-things)). The run
+  ends at the goal, so they are seen and not driven. A course lays them on past its goal as far as the original draws
+  a thing from it, 0x8000 positions (S 0x165D2, `thingSight`), four records, 98.3 m, in its last Section: the goal's
+  line stays where the run ends, and the road past it is shown in the colors, sky and stripes in force at the goal,
+  the camera's record staying the run's last. Their things are put out by the stage after the fifth and its section 0
+  (S 0x67EE to 0x67F8, `stagePast`): the GOAL gate alone. Whether the original moves its camera past the goal after
+  the run's end is not confirmed.
 - **Its heights.** Where a course crosses itself (`crossings`: its line's steps 200 m or more apart that meet) its
   passages are fixed points of its rise table ([Its heights](#its-heights)). Up to their goals the courses cross
-  themselves 23 to 53 times, the road laid on back once more each, 17 to 28 of them at one height within 0.96 m, the
-  others 1.14 m or more apart. A course's height departs from the table's by 1.6 m (11.0 m in G), its grade within
+  themselves 23 to 53 times, the road laid on back once more each and the road laid on past the goal twice in B and
+  once in C, D and G, 17 to 28 of them at one height within 0.96 m, the others 1.14 m or more apart. A course's height departs from the table's by 1.6 m (11.0 m in G), its grade within
   0.039 of the table's.
 - **Its skies and colors** change together ([Sky baking](original-road-data.md#sky-baking), `lookChanges`): from
   each record whose sky (its pictures or its color set) or road's and ground's colors in force differ from those before,
@@ -296,8 +307,9 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   tunnel's ceiling above its right mouth) are a band across the road at its lateral, floating at their height, its
   last piece's columns extended outward each way (`topSpeedBands`, `topspeed-<index>-across`). A descriptor with no
   piece places no picture: a gate's right half, which holds its right post's hit alone ([Its hit](#its-things)). The
-  GOAL gate it stands 12.3 m past the run's end on the next stage's records is not placed (default; K confirms at
-  the stage's end).
+  GOAL gate stands where the original stands it (K, 2026-11-10): 0x1000 positions (12.3 m) past the goal, on the
+  first record [past it](#top-speeds-courses), its point 5.40 m left of P, its picture reaching from 7.51 m left of P
+  to 9.37 m right of it.
 
 - **Its cloud banks** (K, 2026-11-10). A record's byte 7, on every record but a tunnel's, puts out a thing at P at its
   pattern's offsets, its code 0xBF and the byte's low 5 bits and the camera's color set, with the bit that draws it
@@ -353,10 +365,11 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   gate's, from 8.22 m right of P, and 0.96 m of a CHECK POINT gate's, from 3.07 m. Each course's five gates so hold
   two parts but the fifth stage's, whose box lies wholly beyond its picture (from 6.66 m, the picture's last colored
   column 4.03 m right of P) and adds none: the original draws that gate's right post in its fourth lane, 2.6 m short
-  of its box.
+  of its box. The GOAL gate's body is its left post's hit, 3.89 m about its point; its right post's box, from 11.09 m
+  right of P, lies wholly beyond its picture too, 1.7 m past its last colored column, and adds none.
 
 ## TOP SPEED's conversion
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
-pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 16).
+pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 17).

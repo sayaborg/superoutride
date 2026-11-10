@@ -117691,7 +117691,7 @@
     },
     {
       "id": "top-speed-f-78",
-      "plan": [{ "kind": "straight", "id": "s0", "length": 98.283226 }],
+      "plan": [{ "kind": "straight", "id": "s0", "length": 196.566452 }],
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
@@ -117700,7 +117700,7 @@
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.595515733332388,
+          "y": -6.595515733332386,
           "curveLength": 0
         }
       ],
@@ -117842,7 +117842,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -117858,7 +117858,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -117892,7 +117892,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -117908,7 +117908,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -117942,7 +117942,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -117958,7 +117958,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -117992,7 +117992,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118008,7 +118008,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -118042,7 +118042,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118058,7 +118058,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -118092,7 +118092,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118108,7 +118108,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -118142,7 +118142,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118158,7 +118158,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -118183,7 +118183,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118199,7 +118199,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118215,7 +118215,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118231,7 +118231,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118247,7 +118247,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118263,7 +118263,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118279,7 +118279,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118295,7 +118295,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118311,7 +118311,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118327,7 +118327,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -118361,7 +118361,18 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "topspeed-040",
+          "palette": "p151",
+          "at": { "joint": "end", "offset": -85.997823 },
+          "lateral": -5.4,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 3.891892, "movable": null }]
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "s0", "offset": 0 },
@@ -118374,7 +118385,7 @@
         {
           "kind": "finish",
           "id": "top-speed-f-GOAL",
-          "at": { "joint": "end", "offset": 0 }
+          "at": { "joint": "s0", "offset": 98.283226 }
         }
       ]
     }

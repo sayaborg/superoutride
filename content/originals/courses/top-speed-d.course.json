@@ -96300,13 +96300,18 @@
           "curveLength": 0
         },
         {
-          "at": { "joint": "c1", "offset": -4.725416293 },
+          "at": { "joint": "c1", "offset": -7.709747599 },
+          "y": -6.644735999998904,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c1", "offset": 12.79903241 },
           "y": -6.644735999998904,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998904,
+          "y": -6.644735999998902,
           "curveLength": 0
         }
       ],
@@ -97144,17 +97149,17 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998904,
+          "y": -6.644735999998902,
           "curveLength": 0
         },
         {
           "at": { "joint": "s1", "offset": -0.383919045 },
-          "y": -6.644735999998904,
+          "y": -6.644735999998901,
           "curveLength": 0.767834
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 2.641744000001167,
+          "y": 2.6417440000011734,
           "curveLength": 0
         }
       ],
@@ -97543,22 +97548,22 @@
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": 2.641744000001167,
+          "y": 2.6417440000011734,
           "curveLength": 0
         },
         {
           "at": { "joint": "s0", "offset": 11.901484388 },
-          "y": 4.429824000069264,
+          "y": 4.429824000069271,
           "curveLength": 0.767834
         },
         {
           "at": { "joint": "end", "offset": -49.52553218 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998892,
           "curveLength": 0.767834
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.64473599999889,
           "curveLength": 0
         }
       ],
@@ -98528,22 +98533,22 @@
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.64473599999889,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": 12.285403667 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998888,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -36.856209667 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998885,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.6447359999988835,
           "curveLength": 0
         }
       ],
@@ -99578,22 +99583,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.6447359999988835,
           "curveLength": 0
         },
         {
           "at": { "joint": "s1", "offset": 12.285403 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998881,
           "curveLength": 0
         },
         {
           "at": { "joint": "c2", "offset": -36.85621 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998878,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.6447359999988755,
           "curveLength": 0
         }
       ],
@@ -100057,22 +100062,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.6447359999988755,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": 8.190268667 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998873,
           "curveLength": 0
         },
         {
           "at": { "joint": "s2", "offset": 4.095134333 },
-          "y": -6.644735999998903,
+          "y": -6.64473599999887,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.6447359999988675,
           "curveLength": 0
         }
       ],
@@ -101413,22 +101418,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.6447359999988675,
           "curveLength": 0
         },
         {
           "at": { "joint": "c2", "offset": -8.190269 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998865,
           "curveLength": 0
         },
         {
           "at": { "joint": "c3", "offset": 8.190269 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998864,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998861,
           "curveLength": 0
         }
       ],
@@ -103741,22 +103746,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998861,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": 8.190269333 },
-          "y": -6.644735999998903,
+          "y": -6.6447359999988596,
           "curveLength": 0
         },
         {
           "at": { "joint": "c2", "offset": 16.380537667 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998858,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998856,
           "curveLength": 0
         }
       ],
@@ -104515,22 +104520,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998856,
           "curveLength": 0
         },
         {
           "at": { "joint": "s1", "offset": -32.761075 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998853,
           "curveLength": 0
         },
         {
           "at": { "joint": "s1", "offset": 8.190269 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998852,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998849,
           "curveLength": 0
         }
       ],
@@ -105322,22 +105327,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998849,
           "curveLength": 0
         },
         {
           "at": { "joint": "c0", "offset": 61.427016333 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998845,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -24.570806333 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998842,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998838,
           "curveLength": 0
         }
       ],
@@ -106205,22 +106210,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998838,
           "curveLength": 0
         },
         {
           "at": { "joint": "s3", "offset": 12.285403333 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998831,
           "curveLength": 0
         },
         {
           "at": { "joint": "c4", "offset": -12.285403333 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998825,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998818,
           "curveLength": 0
         }
       ],
@@ -106680,22 +106685,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998818,
           "curveLength": 0
         },
         {
           "at": { "joint": "c0", "offset": 12.285403333 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998817,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -12.285403333 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998817,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998816,
           "curveLength": 0
         }
       ],
@@ -107428,22 +107433,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998816,
           "curveLength": 0
         },
         {
           "at": { "joint": "c0", "offset": 24.570806333 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998815,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -24.570806333 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998813,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.6447359999988125,
           "curveLength": 0
         }
       ],
@@ -108260,22 +108265,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.6447359999988125,
           "curveLength": 0
         },
         {
           "at": { "joint": "s1", "offset": -49.141612667 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998806,
           "curveLength": 0
         },
         {
           "at": { "joint": "c3", "offset": -24.570806333 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998798,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998792,
           "curveLength": 0
         }
       ],
@@ -110138,22 +110143,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998792,
           "curveLength": 0
         },
         {
           "at": { "joint": "c0", "offset": 32.761075333 },
-          "y": -6.644735999998903,
+          "y": -6.64473599999879,
           "curveLength": 0
         },
         {
           "at": { "joint": "s1", "offset": -8.190268333 },
-          "y": -6.644735999998903,
+          "y": -6.6447359999987885,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998787,
           "curveLength": 0
         }
       ],
@@ -111008,16 +111013,21 @@
     },
     {
       "id": "top-speed-d-72",
-      "plan": [{ "kind": "straight", "id": "s0", "length": 98.283226 }],
+      "plan": [{ "kind": "straight", "id": "s0", "length": 196.566452 }],
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998787,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "end", "offset": -79.898928619 },
+          "y": -6.6447359999987805,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": -6.644735999998903,
+          "y": -6.644735999998781,
           "curveLength": 0
         }
       ],
@@ -111159,7 +111169,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111175,7 +111185,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -111209,7 +111219,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111225,7 +111235,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -111259,7 +111269,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111275,7 +111285,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -111309,7 +111319,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111325,7 +111335,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -111359,7 +111369,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111375,7 +111385,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -111409,7 +111419,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111425,7 +111435,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -111459,7 +111469,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111475,7 +111485,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -111500,7 +111510,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111516,7 +111526,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111532,7 +111542,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111548,7 +111558,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111564,7 +111574,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111580,7 +111590,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111596,7 +111606,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111612,7 +111622,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111628,7 +111638,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111644,7 +111654,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -111678,7 +111688,18 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "topspeed-040",
+          "palette": "p151",
+          "at": { "joint": "end", "offset": -85.997823 },
+          "lateral": -5.4,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 3.891892, "movable": null }]
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "s0", "offset": 0 },
@@ -111691,7 +111712,7 @@
         {
           "kind": "finish",
           "id": "top-speed-d-GOAL",
-          "at": { "joint": "end", "offset": 0 }
+          "at": { "joint": "s0", "offset": 98.283226 }
         }
       ]
     }

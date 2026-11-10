@@ -63,6 +63,23 @@ export function branchRecords(sub: Uint8Array): number {
   return SECTION_RECORDS - (from >> 3);
 }
 
+/**
+ * The stage the records past stage `stage`'s end put their things out by: from the camera's record 27 of a goal section
+ * (0xFD8, its section 15's) the record five ahead is the next stage's, its stage the camera's and 1 (S 0x67EE to
+ * 0x67F8), past the fifth stage's end as past the others'.
+ */
+export function stagePast(sub: Uint8Array, stage: number): number {
+  const [from] = instruction(
+    sub,
+    0x67f2,
+    [0x0c46, null, 0x6504, 0x522d, 0xa003],
+    "the next stage's things (cmpi.w, addq.b #1)",
+  );
+  if (from !== 15 * 0x100 + (SECTION_RECORDS - branchRecords(sub)) * 8)
+    throw romDiffers("The next stage's things are not a goal section's last records'");
+  return stage + 1;
+}
+
 /** An instruction's long operand: its two words. */
 const longOf = ([high, low]: readonly number[]) => high! * 0x10000 + low!;
 

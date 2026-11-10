@@ -1,8 +1,8 @@
 /**
  * TOP SPEED's conversion ([TOP SPEED road data](../../../docs/top-speed-road-data.md)): its seven courses, each its
  * road from its start through its five stages to its goal, laid on back for its grid, laid by `road-layout` with its
- * plan, heights, lanes, limits, bands and materials as its programs give them, a checkpoint at each stage's end and its
- * skies in their Sections; no objects yet.
+ * plan, heights, lanes, limits, bands and materials as its programs give them, a checkpoint at each stage's end, its
+ * skies in their Sections and its things; its road laid on past its goal as far as the original draws a thing from it.
  */
 import type { EnvironmentDocument, LaneDocument, Lateral } from '../../../src/course/course-document.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
@@ -64,20 +64,28 @@ import {
 } from './top-speed-road-picture.js';
 import { assembleTopSpeedMain, assembleTopSpeedSub, assembleTopSpeedTiles } from './top-speed-rom.js';
 import { topSpeedBands, topSpeedBoards, waterColors } from './top-speed-boards.js';
-import { branchRecords, topSpeedPlacements, type TopSpeedHit } from './top-speed-objects.js';
+import { branchRecords, stagePast, topSpeedPlacements, type TopSpeedHit } from './top-speed-objects.js';
 import { assembleTopSpeedSprites, BIG_SPRITE } from './top-speed-sprites.js';
-import { FIXED_WIDTH, pixelLaterals, SCREEN_WIDE, topHeldHeight, topSpeedThing } from './top-speed-things.js';
+import {
+  FIXED_WIDTH,
+  pixelLaterals,
+  SCREEN_WIDE,
+  thingSight,
+  topHeldHeight,
+  topSpeedThing,
+} from './top-speed-things.js';
 import {
   COURSES,
   courseSections,
   LANE_METRES,
   POSITION_METRES,
   readStages,
+  recordsPastGoal,
   STAGES,
   TOP_SPEED,
 } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 16;
+export const TOP_SPEED_CONVERSION_VERSION = 17;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -160,9 +168,13 @@ export function topSpeedCourses(set: RomSet) {
   const sprites = assembleTopSpeedSprites(set);
   const metresAcross = lateralMetres(sub);
   const pixel = pixelLaterals(sub, STANDING_CURVE) * metresAcross;
+  // The records past the goal, the block after the fifth stage's: as far as a thing is drawn from the goal, where
+  // the run ends, its things put out by the stage after the fifth and its section 0.
+  const past = recordsPastGoal(sub).slice(0, thingSight(sub) / RECORD_UNITS);
+  const pastThings = past.map((record) => ({ record, stage: stagePast(sub, STAGES - 1), section: 0 }));
   // Each course's placements, the camera's record five behind the one it spawns (its section and color set).
   const spawned = Array.from({ length: COURSES }, (_, course) => {
-    const recs = courseRecords(courseSections(stages, course));
+    const recs = [...courseRecords(courseSections(stages, course)), ...pastThings];
     return recs.flatMap((r, i) => {
       const camera = recs[Math.max(0, i - SPAWN_AHEAD)]!;
       return place(r.record, r.stage, r.section, camera.section, colorSet(main, camera.stage, camera.section)).map(
@@ -337,8 +349,12 @@ export function topSpeedCourses(set: RomSet) {
     const letter = 'ABCDEFG'[course]!;
     const id = `top-speed-${letter.toLowerCase()}`;
     const name = `TOP SPEED ${letter}`;
-    const records = courseRecords(courseSections(stages, course));
-    if (records.length !== STAGES * STAGE_RECORDS) throw contractUnmet(`${name} is not five stages of 160 records`);
+    const run = courseRecords(courseSections(stages, course));
+    if (run.length !== STAGES * STAGE_RECORDS) throw contractUnmet(`${name} is not five stages of 160 records`);
+    // Past its goal the camera's record stays its run's last, whose section and colors' field the road there is shown
+    // in: the records past the goal with them.
+    const held = run.at(-1)!;
+    const records = [...run, ...past.map((record) => ({ ...held, record: { ...record, scene: held.record.scene } }))];
     const recordAt = (s: number) =>
       records[Math.min(records.length - 1, Math.max(0, Math.floor(s / RECORD_METRES + 1e-9)))]!;
     const stretches = limitStretches(sub, records);
@@ -386,7 +402,7 @@ export function topSpeedCourses(set: RomSet) {
         },
       ];
     });
-    const goal = records.length * RECORD_METRES;
+    const goal = run.length * RECORD_METRES;
     const go = GO_POSITIONS * POSITION_METRES;
     // The own car alone at GO in lane d, the general form on it and lane c beside it.
     const ownLateral = (LANES.indexOf(GO_LANE) - 3 + 0.5) * LANE_METRES;
@@ -472,7 +488,7 @@ export function topSpeedCourses(set: RomSet) {
         records.map((r) => r.record),
       ),
     ];
-    const length = back + goal;
+    const length = back + records.length * RECORD_METRES;
     const crossed = crossings(pieces, length, STEP_METRES);
     // Its heights: the sub program's grades a step, its passages fixed points.
     const grades = stepGrades(
@@ -720,7 +736,7 @@ export function topSpeedCourses(set: RomSet) {
         id: `${id}-CP${k + 1}`,
         s: back + (k + 1) * STAGE_RECORDS * RECORD_METRES,
       })),
-      finish: { id: `${id}-GOAL`, s: length },
+      finish: { id: `${id}-GOAL`, s: back + goal },
       section: (span, positionAt) => {
         const widthOf = (k: number, s: number) => laneWidthAt(k, s, s === span.to);
         const widths = LANES.map((_, k) =>
@@ -985,6 +1001,17 @@ export function topSpeedCourses(set: RomSet) {
       laidBack: back,
       length: round3(length),
       goal: round3(goal - go),
+      // Its road past its goal, metres, and the things on it.
+      past: {
+        metres: round3(length - back - goal),
+        things: ownThings
+          .filter((t) => t.s >= back + goal)
+          .map((t) => ({
+            at: round3(t.s - back - goal),
+            lateral: round3(t.lateral),
+            sprites: t.sprites.map((s) => ({ image: s.image, body: s.body })),
+          })),
+      },
       sections: laid.spans.length,
       // Its cloud banks, and how far over the road each is held, metres.
       banks: {

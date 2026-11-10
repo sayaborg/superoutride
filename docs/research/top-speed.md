@@ -43,6 +43,10 @@ Read statically; MAME's driver (commit 9c0b6db1) for the hardware alone.
   at stage 4's section 4, whose two branches' sections the ROM holds twice alike, so the drawn road is the driven one.
 - The goal sections hold their paths' merges, so they differ by path; S copies the next stage's sections in, one a
   tick, while the camera is in section 15 (S 0x57AE to 0x57E6).
+- The block after the fifth stage's records (S 0xDB9A + 0x5000) is a sixth of the same form, its section 0 straight and
+  level with the GOAL gate's bytes in its first record; S copies it as any next stage's while the camera is in the fifth
+  stage's section 15 (0x57AE to 0x57E6). The run's end sets its flags and skips the next stage's start (S 0x5B32,
+  0x5B84); what the camera does after it was not followed.
 - Before GO the game plays a short run: the car stands 147.4 m in, facing back, drives back 0x120 a tick to 0xB00, turns
   round 8 a tick with a pause, and stands at 0x260 (S 0x7C7E to 0x7D58, 0x7CF2, from S 0x13EE0), lane d by the first
   mask's bit 2 (S 0x5322 to 0x5342); a continue stands it at 0x260 at once (S 0x7B1C).

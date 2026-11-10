@@ -102549,12 +102549,12 @@
         },
         {
           "at": { "joint": "c4", "offset": 7.511964218 },
-          "y": 6.768923215333826e-13,
+          "y": 6.768923215334317e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 6.771072026497622e-13,
+          "y": 6.771143185172381e-13,
           "curveLength": 0
         }
       ],
@@ -104002,22 +104002,27 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 6.771072026497622e-13,
+          "y": 6.771143185172381e-13,
+          "curveLength": 0
+        },
+        {
+          "at": { "joint": "c2", "offset": -19.341496877 },
+          "y": 6.781416347902724e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "c2", "offset": 7.118774376 },
-          "y": 6.784348953383322e-13,
+          "y": 6.784348953383366e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": -4.719783335 },
-          "y": 6.786303225795114e-13,
+          "y": 6.786303225795115e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 6.786943407206154e-13,
+          "y": 6.786943407206155e-13,
           "curveLength": 0
         }
       ],
@@ -105462,22 +105467,22 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 6.786943407206154e-13,
+          "y": 6.786943407206155e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -6.403871755 },
-          "y": 6.78940753167411e-13,
+          "y": 6.789407531674111e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": 17.472277874 },
-          "y": 6.792652338041355e-13,
+          "y": 6.792652338041356e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 6.79954198153216e-13,
+          "y": 6.799541981532161e-13,
           "curveLength": 0
         }
       ],
@@ -107519,27 +107524,27 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 6.79954198153216e-13,
+          "y": 6.799541981532161e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": -7.709747599 },
-          "y": 6.804617551596198e-13,
+          "y": 6.804617551596199e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": 9.759496294 },
-          "y": 6.807480302546155e-13,
+          "y": 6.807480302546156e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "c1", "offset": 12.79903241 },
-          "y": 6.807831981732878e-13,
+          "y": 6.807831981732879e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "end", "offset": 0 },
-          "y": 6.816870743070854e-13,
+          "y": 6.816870743070855e-13,
           "curveLength": 0
         }
       ],
@@ -108377,12 +108382,12 @@
       "profile": [
         {
           "at": { "joint": "c0", "offset": 0 },
-          "y": 6.816870743070854e-13,
+          "y": 6.816870743070855e-13,
           "curveLength": 0
         },
         {
           "at": { "joint": "s1", "offset": -0.383919045 },
-          "y": 6.821342367916891e-13,
+          "y": 6.821342367916892e-13,
           "curveLength": 0.767834
         },
         {
@@ -121146,7 +121151,7 @@
     },
     {
       "id": "top-speed-c-82",
-      "plan": [{ "kind": "straight", "id": "s0", "length": 98.283226 }],
+      "plan": [{ "kind": "straight", "id": "s0", "length": 196.566452 }],
       "profile": [
         {
           "at": { "joint": "s0", "offset": 0 },
@@ -121159,8 +121164,13 @@
           "curveLength": 0
         },
         {
+          "at": { "joint": "end", "offset": -91.510128306 },
+          "y": -1.476607999999584,
+          "curveLength": 0
+        },
+        {
           "at": { "joint": "end", "offset": 0 },
-          "y": -1.4766079999995891,
+          "y": -1.4766079999995838,
           "curveLength": 0
         }
       ],
@@ -121302,7 +121312,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121318,7 +121328,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -121352,7 +121362,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121368,7 +121378,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -121402,7 +121412,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121418,7 +121428,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -121452,7 +121462,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121468,7 +121478,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -121502,7 +121512,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121518,7 +121528,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -121552,7 +121562,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121568,7 +121578,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -121602,7 +121612,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121618,7 +121628,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 7,
+          "count": 15,
           "elements": [
             {
               "kind": "strip",
@@ -121643,7 +121653,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121659,7 +121669,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121675,7 +121685,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121691,7 +121701,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121707,7 +121717,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121723,7 +121733,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121739,7 +121749,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121755,7 +121765,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121771,7 +121781,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121787,7 +121797,7 @@
         {
           "kind": "repeat",
           "every": 12.285403,
-          "count": 8,
+          "count": 16,
           "elements": [
             {
               "kind": "strip",
@@ -121821,7 +121831,18 @@
       ],
       "walls": [],
       "openLimits": [],
-      "sprites": [],
+      "sprites": [
+        {
+          "kind": "sprite",
+          "image": "topspeed-040",
+          "palette": "p151",
+          "at": { "joint": "end", "offset": -85.997823 },
+          "lateral": -5.4,
+          "groundOffset": 0,
+          "unselectedLink": null,
+          "body": [{ "across": 0, "width": 3.891892, "movable": null }]
+        }
+      ],
       "environments": [
         {
           "at": { "joint": "s0", "offset": 0 },
@@ -121834,7 +121855,7 @@
         {
           "kind": "finish",
           "id": "top-speed-c-GOAL",
-          "at": { "joint": "end", "offset": 0 }
+          "at": { "joint": "s0", "offset": 98.283226 }
         }
       ]
     }

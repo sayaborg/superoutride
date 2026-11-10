@@ -116,6 +116,23 @@ export function readStages(sub: Uint8Array): readonly TopSpeedStage[] {
 }
 
 /**
+ * The records past the fifth stage's end, the block after the stages' five: as the camera is in a goal section the sub
+ * program copies the next stage's sections in whatever the stage, the stage and 1 by 0x1000 bytes from the stages'
+ * records (S 0x57C0 to 0x57E6), and from a goal section's end a car takes section 0 (the table at S 0x9BBC). The
+ * run ends at the fifth stage's end (S 0x5B32), so these are seen ahead and not driven.
+ */
+export function recordsPastGoal(sub: Uint8Array): readonly TopSpeedRecord[] {
+  const t = tables(sub);
+  const copied = long(instruction(sub, 0x57c0, [0x207c, null, null], "the next stage's records (movea.l)"));
+  instruction(sub, 0x57c6, [0x122d, 0xa865, 0x5201], 'the stage and 1 (move.b, addq.b #1)');
+  instruction(sub, 0x57da, [0x4881, 0xe859, 0xd081], '0x1000 bytes a stage (ext.w, ror.w #4, add.l)');
+  if (copied !== t.records) throw romDiffers("The next stage's records are not the stages'");
+  if (nextSections(sub, t.next + (STAGES - 1) * 2 * SECTIONS + 2 * GOAL).some((s) => s !== 0))
+    throw romDiffers("The fifth stage's goal section's next is not section 0");
+  return sectionRecords(sub, t.records + STAGES * STAGE_BYTES).map(recordOf);
+}
+
+/**
  * A stage's paths, numbered from 0 in the order its forks are followed from section 0, left before right (K,
  * 2026-11-05): each the sections it runs through to its last before the goal section.
  */
