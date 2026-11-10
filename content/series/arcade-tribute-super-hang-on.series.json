@@ -1,12 +1,11 @@
 {
   "format": "superoutride.series",
-  "version": 14,
+  "version": 15,
   "id": "arcade-tribute-super-hang-on",
   "title": "ARCADE TRIBUTE - SUPER HANG-ON",
   "image": "arcade-tribute-super-hang-on",
   "music": {
-    "title": "arcade-tribute-super-hang-on",
-    "race": []
+    "title": "arcade-tribute-super-hang-on"
   },
   "dev": false,
   "classes": [

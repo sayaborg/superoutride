@@ -1,12 +1,11 @@
 {
   "format": "superoutride.series",
-  "version": 14,
+  "version": 15,
   "id": "arcade-tribute-enduro-racer",
   "title": "ARCADE TRIBUTE - ENDURO RACER",
   "image": "arcade-tribute-enduro-racer",
   "music": {
-    "title": "arcade-tribute-enduro-racer",
-    "race": []
+    "title": "arcade-tribute-enduro-racer"
   },
   "dev": false,
   "classes": [

@@ -1,5 +1,6 @@
 import {
   admit,
+  readArray,
   readDocument,
   readEnum,
   readIdentified,
@@ -31,16 +32,22 @@ export interface CourseIndexEntry {
   readonly gridSlots: number;
   /** The compiled course's build identity, which records are kept against. */
   readonly buildSha256: string;
+  /** The music tracks its course sounds give its races, in order; none when no document names it. */
+  readonly raceTracks: readonly string[];
 }
 export type CourseIndex = readonly CourseIndexEntry[];
 
-export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 6 } as const);
+export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 7 } as const);
 /** The course index's manifest ID. */
 export const COURSE_INDEX_ID = 'courses';
 const COURSE_TYPES: readonly CompiledCourse['type'][] = ['CIRCUIT', 'LINEAR', 'BRANCH'];
 
-/** The delivered index of the compiled courses, in build order, each with its course text. */
-export function courseIndexDocument(courses: readonly CompiledCourse[], texts: ReadonlyMap<string, CourseText>) {
+/** The delivered index of the compiled courses, in build order, each with its course text and race tracks. */
+export function courseIndexDocument(
+  courses: readonly CompiledCourse[],
+  texts: ReadonlyMap<string, CourseText>,
+  raceTracks: ReadonlyMap<string, readonly string[]>,
+) {
   return {
     ...COURSE_INDEX_FORMAT,
     courses: courses.map((course) => ({
@@ -51,6 +58,7 @@ export function courseIndexDocument(courses: readonly CompiledCourse[], texts: R
       maxLaps: course.rules.maxLaps,
       gridSlots: courseGridCapacity(course.gates),
       buildSha256: course.identity.buildSha256,
+      raceTracks: raceTracks.get(course.id)!,
     })),
   };
 }
@@ -70,7 +78,16 @@ export function readCourseIndex(
     );
     const delivered = manifest.files.filter((file) => file.kind === 'course').map((file) => file.id);
     const courses = readIdentified(data.courses, '/courses', (value, at) => {
-      const entry = readRecord(value, at, ['id', 'name', 'description', 'type', 'maxLaps', 'gridSlots', 'buildSha256']);
+      const entry = readRecord(value, at, [
+        'id',
+        'name',
+        'description',
+        'type',
+        'maxLaps',
+        'gridSlots',
+        'buildSha256',
+        'raceTracks',
+      ]);
       const id = readString(entry.id, `${at}/id`);
       requireAdmission(delivered.includes(id), 'invalid_value', `${at}/id`, `Course ${id} is not delivered`);
       const type = readEnum(entry.type, COURSE_TYPES, `${at}/type`);
@@ -97,7 +114,10 @@ export function readCourseIndex(
         integer: true,
       });
       const buildSha256 = readString(entry.buildSha256, `${at}/buildSha256`, SHA256_TEXT);
-      return Object.freeze({ id, name, description, type, maxLaps, gridSlots, buildSha256 });
+      const raceTracks = Object.freeze(
+        readArray(entry.raceTracks, `${at}/raceTracks`, (track, t) => readString(track, t)),
+      );
+      return Object.freeze({ id, name, description, type, maxLaps, gridSlots, buildSha256, raceTracks });
     });
     requireAdmission(
       courses.length === delivered.length,

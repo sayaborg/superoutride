@@ -1,12 +1,11 @@
 {
   "format": "superoutride.series",
-  "version": 14,
+  "version": 15,
   "id": "arcade-tribute-pole-position-ii",
   "title": "ARCADE TRIBUTE - POLE POSITION II",
   "image": "arcade-tribute-pole-position-ii",
   "music": {
-    "title": "arcade-tribute-pole-position-ii",
-    "race": []
+    "title": "arcade-tribute-pole-position-ii"
   },
   "dev": false,
   "classes": [

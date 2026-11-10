@@ -634,8 +634,6 @@ line until the cards are designed. What follows goes to K first:
 - **The changes outside the rows:** the PRE-RACE card, READY and the ways into and out of a run, which still go
   through black (K, 2026-11-08: line thinning alone).
 - **PAUSE's QUIT,** which takes a RACE to TITLE, and where within the rows it should lead.
-- **Course music:** where a course's race tracks are kept and which plays
-  ([Music and jingles with the course](#music-and-jingles-with-the-course)); until then no run plays a race track.
 - **Defaults K is to confirm** (GD-5): the card in focus stands at y 32 (row 4), on the 8×8 grid, 4 pixels above the
   frame's centre of the demo K saw; the group of the game's own courses is named SUPER OUTRIDE (the demo's REAL COURSES
   would not hold an invented course); a gamepad's RT confirms and LT goes back in menus, as the accelerator and brake.
@@ -697,17 +695,15 @@ replace them under the same names, with no code change ([Audio](audio.md#recordi
 ### Music and jingles with the course
 
 K's decision (2026-10-31): physical sound is the game's, and a course's music and jingles go with the course
-([Music and sound effects](product.md#13-music-and-sound-effects)). Today a series holds its race tracks and the jingles
-are the game's effects; an ARCADE TRIBUTE series needs its courses' own before it is finished. The work's shape, to
-confirm with K when it starts:
+([Music and sound effects](product.md#13-music-and-sound-effects)). Its race tracks are its
+[course sounds](content-and-gameplay.md#course-sounds)' (K, 2026-11-11), and a run plays the first. What remains:
 
-- A course's sounds are one document that names the courses it serves (an original's courses share one), outside the
-  course document, so that changing them changes no course identity, record or measured product. It lists the race
-  tracks in order and, for each jingle (signal lamp, GO, checkpoint, extension, lap, final lap, GOAL, GAME OVER, new
-  record), a recording or none, the game's own then. A course is in at most one.
-- A series keeps its title track and no longer holds race tracks.
+- Each jingle (signal lamp, GO, checkpoint, extension, lap, final lap, GOAL, GAME OVER, new record) in the course sounds,
+  a recording or none, the game's own then; until then the jingles are the game's effects.
+- Which of a course's race tracks plays when it has several.
 - The local originals of an original's voices (`outrun-sounds`) become that original's jingles instead of the game's
   effects; the original's impacts are physical sound and are no longer replaced.
+- The other ARCADE TRIBUTE courses' race tracks, as K delivers them.
 
 ### Course names and descriptions
 

@@ -1,12 +1,11 @@
 {
   "format": "superoutride.series",
-  "version": 14,
+  "version": 15,
   "id": "arcade-tribute-turbo-outrun",
   "title": "ARCADE TRIBUTE - TURBO OUTRUN",
   "image": "arcade-tribute-turbo-outrun",
   "music": {
-    "title": "arcade-tribute-turbo-outrun",
-    "race": []
+    "title": "arcade-tribute-turbo-outrun"
   },
   "dev": false,
   "classes": [

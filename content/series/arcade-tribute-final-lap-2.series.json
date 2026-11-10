@@ -1,12 +1,11 @@
 {
   "format": "superoutride.series",
-  "version": 14,
+  "version": 15,
   "id": "arcade-tribute-final-lap-2",
   "title": "ARCADE TRIBUTE - FINAL LAP 2",
   "image": "arcade-tribute-final-lap-2",
   "music": {
-    "title": "arcade-tribute-final-lap-2",
-    "race": []
+    "title": "arcade-tribute-final-lap-2"
   },
   "dev": false,
   "classes": [

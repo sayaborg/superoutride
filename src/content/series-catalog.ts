@@ -33,7 +33,7 @@ import { TEXT_CHARACTERS } from '../image/text-tiles.js';
 export const CLASS_TITLE_CODE_UNITS = 23;
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 14;
+export const SERIES_DOCUMENT_VERSION = 15;
 const PLAYER_SLOTS = ['own', 'last', 'first'] as const;
 const TRAFFIC_PATHS = ['lane', 'line'] as const;
 
@@ -47,7 +47,8 @@ export interface CompiledSeries {
   /** The series image: a 20×15-tile opaque screen picture, named by the document's `image`. */
   readonly image: TilePicture;
   /** Its title track, which plays on its screens, and its race tracks (zero or more) in selection order. */
-  readonly music: { readonly title: MusicTrack; readonly race: readonly MusicTrack[] };
+  /** Its title track; a course's race tracks are its course sounds' (K, 2026-11-11). */
+  readonly music: { readonly title: MusicTrack };
   readonly dev: boolean;
   /** The classes in selection order. */
   readonly classes: readonly SeriesClass[];
@@ -178,18 +179,13 @@ function readSeries(
     requireAdmission(found !== undefined, 'unresolved_reference', path, `Unknown track ${name}`);
     return found;
   };
-  const tracks = readRecord(root.music, '/music', ['title', 'race']);
-  const race = readArray(tracks.race, '/music/race', track);
-  requireUnique(
-    race.map((t) => t.id),
-    '/music/race',
-    'track',
-  );
+  const tracks = readRecord(root.music, '/music', ['title']);
+
   const series = {
     id,
     title: readString(root.title, '/title'),
     image,
-    music: Object.freeze({ title: track(tracks.title, '/music/title'), race }),
+    music: Object.freeze({ title: track(tracks.title, '/music/title') }),
     dev: readBoolean(root.dev, '/dev'),
     classes: [] as SeriesClass[],
   };

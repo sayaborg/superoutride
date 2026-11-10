@@ -1,12 +1,11 @@
 {
   "format": "superoutride.series",
-  "version": 14,
+  "version": 15,
   "id": "scenario-rules",
   "title": "SCENARIO RULES",
   "image": "tsukuba-clubman",
   "music": {
-    "title": "placeholder-two",
-    "race": ["placeholder-one", "placeholder-two"]
+    "title": "placeholder-two"
   },
   "dev": true,
   "classes": [

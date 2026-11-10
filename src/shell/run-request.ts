@@ -12,8 +12,8 @@ interface RunChoice {
   readonly vehicleId: string;
   readonly color: string | null;
   /**
-   * The run's track; null is MUSIC OFF, a race without music, which every run requests until it is decided which of
-   * its course's tracks plays (K, 2026-11-08). Like the color, neither a rule nor a record condition.
+   * The run's track; null is MUSIC OFF, a race without music. The selection screens request the course's first race
+   * track, or none (K, 2026-11-11). Like the color, neither a rule nor a record condition.
    */
   readonly track: string | null;
 }

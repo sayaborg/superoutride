@@ -1,12 +1,11 @@
 {
   "format": "superoutride.series",
-  "version": 14,
+  "version": 15,
   "id": "tsukuba-clubman",
   "title": "TSUKUBA CLUBMAN",
   "image": "tsukuba-clubman",
   "music": {
-    "title": "placeholder-one",
-    "race": []
+    "title": "placeholder-one"
   },
   "dev": false,
   "classes": [

@@ -992,18 +992,18 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 14) is the one owner of its classes, the races it runs. A series
+A series document (`superoutride.series` version 15) is the one owner of its classes, the races it runs. A series
 holds no rule values: every rule is a class's, and classes of one series may repeat the same values. It is saved
 as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 14,
+  "version": 15,
   "id": "example",
   "title": "EXAMPLE",
   "image": "tsukuba-clubman",
-  "music": { "title": "placeholder-two", "race": ["placeholder-one", "placeholder-two"] },
+  "music": { "title": "placeholder-two" },
   "dev": true,
   "classes": [
     {
@@ -1034,9 +1034,9 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 ```
 
 `title` is the display name. `image` names its series image, an opaque 40×30-tile
-[screen picture](image-assets.md#screen-pictures). `music` names delivered tracks by ID: its `title` track, which
-plays on its SELECT SERIES card and in its world, and its `race` tracks, zero or more and unique, which no run plays
-until it is decided which of a course's tracks plays ([NEXT](NEXT.md#music-and-jingles-with-the-course)). `dev: true` marks a development series: front ends show it only with DEV; it is
+[screen picture](image-assets.md#screen-pictures). `music` names its `title` track, a delivered
+track by ID, which plays on its SELECT SERIES card and in its world; a run's race track is its course's
+([Course sounds](#course-sounds); K, 2026-11-11). `dev: true` marks a development series: front ends show it only with DEV; it is
 visibility, not a rule. `classes` lists at least one class in selection order. A class is one race: its `id`,
 unique within the series, its display name `title` (at most 23 of the text tiles' characters: the PRE-RACE card
 writes it from column 17 of the 40), a delivered `course`, its `laps` (1 through 99), its RACE vehicle candidates
@@ -1068,7 +1068,7 @@ checkpoint or FINISH gates of that course with N an integer from 1 to below the 
 build admits every class; a Run admits the class it drives.
 
 The delivered series is TSUKUBA CLUBMAN, the first product series; its
-document holds its classes, with their fields. It has no race tracks and the title track
+document holds its classes, with their fields. It has the title track
 `placeholder-one` until K delivers its own. TSUKUBA CLUBMAN runs TSUKUBA in PRODUCTION 750 (VFR750R),
 GTI CUP (GOLF GTI 16V) and 911 CUP (911 TURBO 3.3), 5 laps each with a margin of 1.35, without traffic or rank limits: sixteen grid entries of the
 class's vehicle in its four colors in turn, the player last, and the rivals' pace ratios falling by 0.01 a slot from
@@ -1081,7 +1081,7 @@ without rank limits. Its field is the original's eight: seven LOTUS 79 SPECIAL r
 racing line, ahead of the player, who starts last in the LOTUS 79 SPECIAL in its entry's color (`fixedColors`). The
 cars the player laps are traffic: LOTUS 79 SPECIALs at 2 a kilometre, driving their lanes at up to 150 km/h and
 slowing for the corners as every driver does. Until POLE POSITION II's product courses are made, its classes run the
-original courses ([Words](NEXT.md#words)). Its title track is K's recording; it has no race tracks. The density and
+original courses ([Words](NEXT.md#words)). Its title track is K's recording. The density and
 the margin are provisional, to be set by driving it.
 
 ARCADE TRIBUTE - ENDURO RACER is delivered on the same terms (K, 2026-11-10), on its original course until its product
@@ -1975,6 +1975,21 @@ per-channel RGB difference; ambiguous road runs or missing/tied HUD digits fail.
 calibrated planar pinhole approximation, horizon-based grade and integrated HUD speed. Output records
 frame SHA-256, centers/horizon, HUD mismatch and geometric residuals. Sprites and semantic landmarks are authored observations.
 
+## Course sounds
+
+K's decisions (2026-10-31 and 2026-11-11): a course's music goes with the course. Its sounds are a document under
+`content/course-sounds/` (`superoutride.course-sounds` version 1, `{format, version, courses, race}`), outside the
+course document, so that changing them changes no course identity, record or measured product. `courses` names the
+courses it serves, at least one, unique (an original's courses may share one; a product course takes its original's);
+`race` names its race tracks, delivered music tracks by ID, 1 to 16, unique, in order. A course is in at most one
+document; a document may name a course not yet raised. The build admits them and the [course index](#course-index)
+carries each course's race tracks, none for a course no document names. A run requested from the selection screens
+plays its course's first race track ([run music](#run-setup)): from READY, looped, pausing while the run is not live,
+fading out at GOAL or GAME OVER. The jingles (signal lamp, GO, checkpoint, extension, lap, final lap, GOAL, GAME OVER,
+new record) are the game's effects until their fields are made ([NEXT](NEXT.md#music-and-jingles-with-the-course)).
+SUPER HANG-ON's four courses play K's recordings, stand-ins until the internal sound source plays them (K,
+2026-11-11): AFRICA OUTRIDE A CRISIS, ASIA SPRINTER, AMERICA WINNING RUN and EUROPE HARD ROAD.
+
 ## Course texts
 
 `content/course-texts.json` (`superoutride.course-texts` version 1, `{format, version, courses: [{id, name,
@@ -1990,10 +2005,10 @@ reports how many there are. Descriptions are kept unwrapped; no screen shows the
 
 ## Course index
 
-The content build delivers one course index (`superoutride.course-index` version 6) so menus can show courses
+The content build delivers one course index (`superoutride.course-index` version 7) so menus can show courses
 without loading them. It lists every compiled course once, in build order (course file name order), as
-`{id, name, description, type, maxLaps, gridSlots, buildSha256}`: the course ID, its [course texts'](#course-texts)
-display name and description, the compiled topology type
+`{id, name, description, type, maxLaps, gridSlots, buildSha256, raceTracks}`: the course ID, its
+[course texts'](#course-texts) display name and description, its [course sounds'](#course-sounds) race track IDs, the compiled topology type
 (`CIRCUIT`, `LINEAR` or `BRANCH`), the document's `rules.maxLaps` and the number of grid slots of its start gate
 that every run can use: the fewer of its grids' slots in use, 1 to 16 (`courseGridCapacity`), and the compiled
 course's build identity, against which records are kept. Every other value comes from

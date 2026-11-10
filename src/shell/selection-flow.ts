@@ -67,7 +67,7 @@ export interface SelectionDevices {
  * series' world, SELECT CLASS and SELECT VEHICLE; FREE PLAY through RULES, SELECT ORIGINAL, SELECT COURSE and SELECT
  * VEHICLE, in the main world; SETTINGS to its cards. Every row is shown, even with one card, and BACK returns to the
  * row before. SELECT VEHICLE's CONFIRM requests the run: a class's RACE, or FREE PLAY with its RULES cut to the course.
- * No run plays a race track. Each row starts from the current choice, else the player record's latest, else its first.
+ * A run plays its course's first race track, if it has one (K, 2026-11-11). Each row starts from the current choice, else the player record's latest, else its first.
  */
 export function createSelectionFlow(catalog: SelectionCatalog, devices: SelectionDevices) {
   const { courses, vehicles, player, dev, freePlay, frontEnd } = catalog;
@@ -326,7 +326,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         session: 'RACE',
         vehicleId: id,
         color,
-        track: null,
+        track: raceTrack(classChoice!.course),
       });
     const course = courseOf(courseId!);
     return Object.freeze({
@@ -337,9 +337,11 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       traffic,
       vehicleId: id,
       color,
-      track: null,
+      track: raceTrack(course.id),
     });
   };
+  // A run plays its course's first race track, or none.
+  const raceTrack = (id: string) => courseOf(id).raceTracks[0] ?? null;
 
   // SETTINGS: a card a setting; CONTROLS and CLEAR RECORDS open their own rows.
   const settingsRow = (initial = 0): CardRow => {

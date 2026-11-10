@@ -34,6 +34,7 @@ import { TEXT_TILES_ID } from '../../src/content/text-tiles-catalog.js';
 import { compileScreenPictures, SCREEN_PICTURES_DIRECTORY } from '../../src/content/screen-picture-catalog.js';
 import { COURSE_INDEX_ID, courseIndexDocument } from '../../src/content/course-index.js';
 import { COURSE_TEXTS_PATH, courseTextsOf, readCourseTexts } from '../../src/content/course-texts.js';
+import { COURSE_SOUNDS_DIRECTORY, courseRaceTracks, readCourseSounds } from '../../src/content/course-sounds.js';
 import { compileFrontEndSelectionSources, FRONT_END_DIRECTORY } from '../../src/content/front-end-selection.js';
 import { RECORDING_GROUPS, recordingId } from '../../src/audio/recordings.js';
 import { compileMusicCatalog, compileRecordings, type RecordingSource } from '../../src/content/recording-catalog.js';
@@ -417,30 +418,50 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   }
   const compiledCourses = courses.map((course) => course.value.compiled);
   const courseKeys = courses.map((course) => course.key);
-  // The index takes each course's name and description from the course texts, which every course has an entry in.
+  // The index takes each course's name and description from the course texts, which every course has an entry in, and
+  // its race tracks from the course sounds naming it.
   const textBytes = await store.read(COURSE_TEXTS_PATH);
-  const courseIndex = await stage('course-index', [...courseKeys, textBytes], () => {
-    const document = `content/${COURSE_TEXTS_PATH}`;
-    const value = parseJson(textBytes, document);
-    const texts = requireLoaded(
-      admit(document, () =>
-        courseTextsOf(
-          readCourseTexts(value),
-          compiledCourses.map((course) => course.id),
+  const courseSoundFiles = await read(COURSE_SOUNDS_DIRECTORY);
+  const courseIndex = await stage(
+    'course-index',
+    [...courseKeys, textBytes, recordings.key, ...inputs(soundFiles)],
+    () => {
+      const document = `content/${COURSE_TEXTS_PATH}`;
+      const value = parseJson(textBytes, document);
+      const texts = requireLoaded(
+        admit(document, () =>
+          courseTextsOf(
+            readCourseTexts(value),
+            compiledCourses.map((course) => course.id),
+          ),
         ),
-      ),
-    );
-    return {
-      unraised: texts.unraised,
-      files: [
-        deliveredFile(
-          'course-index',
-          COURSE_INDEX_ID,
-          encodeContentJson(courseIndexDocument(compiledCourses, texts.byCourse)),
+      );
+      const trackIds = recordings.value.tracks.map((track) => track.id);
+      const courseSounds = courseSoundFiles.map((file) => {
+        const path = `content/${COURSE_SOUNDS_DIRECTORY}/${file.name}`;
+        const parsed = parseJson(file.bytes, path);
+        return requireLoaded(admit(path, () => readCourseSounds(parsed, trackIds)));
+      });
+      const raceTracks = requireLoaded(
+        admit(`content/${COURSE_SOUNDS_DIRECTORY}`, () =>
+          courseRaceTracks(
+            courseSounds,
+            compiledCourses.map((course) => course.id),
+          ),
         ),
-      ],
-    };
-  });
+      );
+      return {
+        unraised: texts.unraised,
+        files: [
+          deliveredFile(
+            'course-index',
+            COURSE_INDEX_ID,
+            encodeContentJson(courseIndexDocument(compiledCourses, texts.byCourse, raceTracks)),
+          ),
+        ],
+      };
+    },
+  );
 
   // Every class is admitted against its compiled course.
   const seriesFiles = await read('series', '.series.json');
