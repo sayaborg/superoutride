@@ -98,28 +98,30 @@ patterns](original-road-data.md#places-and-patterns)). Its things stand there ([
   its positions at the lap's mean position (its length over its positions), so that its grades are the clock's times one
   factor a lap; its resolution 1.5 units over a sample (`RISE_RESOLUTION`), as SUPER HANG-ON's 3D road's is 1.5 of its
   vectors' 4096 (default; K confirms at the stage's end), each queue level again at its end by a change of grade there;
-  the lap less its mean grade, so that it closes in height. A unit up is 15/14 of a lateral unit (`UP`), the road's half
+  the lap less its mean grade, so that it closes in height. One step is replaced (K, 2026-11-10): in the shapes of 512,
+  896 and 1,792 samples that hold it (shapes 11 to 20), the step from sample 384, 704 or 1,408 to the next is twice its
+  neighbours' in the ROM, 81.8 units a position (61.4 in the shapes of 512 samples, 40.9 in the lower two of each
+  other length), and is laid as the mean of its two neighbours' steps, 40.9 (30.7, 20.5): one sample, 0.148 m long,
+  halved all eight courses' heights by the grades' rule. A unit up is 15/14 of a lateral unit (`UP`), the road's half
   width over 0x40000: 22.90 µm. Then all eight times one factor, f = min(the lens ratio, 0.25 ÷ the steepest grade)
   ([Profile from the original's screen](original-road-data.md#profile-from-the-originals-screen)): its eye's focal
   length a position over a unit up, 202.0 rows, over its screen's 224 (`SCREEN_ROWS`, its 320 columns at 4:3), 0.902;
-  SPAIN's grade at f = 1, 0.876, the steepest, so f = 0.285. The steepest is one sample's step, twice its neighbours',
-  the 384th, 704th or 1,408th of the shapes of 512, 896 and 1,792 samples that hold it, every other step at most 40.9
-  units a position (the ROM's, kept); without it f would be 0.57. Then each within its model's elevation ([A course's
-  model](original-road-data.md#rules-of-the-originals)). Each departs from its tables by at most 0.001 in grade and
-  0.01 m in height.
+  SPAIN's grade at f = 1, 0.438, the steepest, a step of 40.9 units a position, so f = 0.570. Then each within its
+  model's elevation ([A course's model](original-road-data.md#rules-of-the-originals)). Each departs from its tables by
+  at most 0.002 in grade and 0.02 m in height.
 
 | Course  | Runs | Its model's factor | Steepest | Highest; lowest |
 | ------- | ---- | ------------------ | -------- | --------------- |
-| BRAZIL  | 704  | 0.226              | 4.7 %    | +2.6; −0.4 m    |
-| AMERICA | 409  | 1                  | 13.4 %   | +7.6; −0.1 m    |
-| FRANCE  | 357  | 1                  | 15.7 %   | +7.8; 0 m       |
-| MONACO  | 146  | 1                  | 11.4 %   | +9.3; −0.1 m    |
-| GERMANY | 188  | 0.597              | 5.6 %    | +3.8; −0.2 m    |
-| SPAIN   | 367  | 1                  | 25.0 %   | +15.5; −0.4 m   |
-| MEXICO  | 433  | 0.777              | 14.3 %   | +6.4; −3.6 m    |
-| JAPAN   | 176  | 1                  | 6.0 %    | +13.6; −0.2 m   |
+| BRAZIL  | 690  | 0.113              | 2.3 %    | +2.6; −0.4 m    |
+| AMERICA | 401  | 1                  | 13.4 %   | +15.2; −0.2 m   |
+| FRANCE  | 351  | 1                  | 15.7 %   | +15.6; 0 m      |
+| MONACO  | 142  | 1                  | 21.4 %   | +18.5; −0.1 m   |
+| GERMANY | 186  | 0.299              | 2.8 %    | +3.8; −0.2 m    |
+| SPAIN   | 361  | 0.820              | 20.5 %   | +25.3; −0.7 m   |
+| MEXICO  | 425  | 0.389              | 7.2 %    | +6.4; −3.6 m    |
+| JAPAN   | 168  | 1                  | 6.0 %    | +27.1; −0.3 m   |
 
-JAPAN's two passages where it crosses itself (2,466.1 m and 4,962.4 m) lie at 5.8 m and 6.3 m.
+JAPAN's two passages where it crosses itself (2,466.1 m and 4,962.4 m) lie at 11.6 m and 12.6 m.
 
 - **Its road across.** Its picture's at its own car's line ([Its road across](#its-road-across)): two lanes, a and b,
   each 5.604 m, either side of P, its road's centre; its body, its two lines and each edge's three bands, each a band
@@ -475,4 +477,4 @@ near, as the original's do, is the replacement [the rule](original-road-data.md#
 `continental-circus-course` writes the eight courses to `content/originals/courses/` (`continental-circus-brazil` to
 `continental-circus-japan`), their crest trials, and their skies (`continental-circus-<course>-sky`) to
 `content/originals/images/`, with its things' pictures (`contcirc-<address>`, `contcirc-joined-<address>`) and its
-bands' (`-band`, `-band-mirrored`, `contcirc-zone-8003`) (its conversion's version 6).
+bands' (`-band`, `-band-mirrored`, `contcirc-zone-8003`) (its conversion's version 7).

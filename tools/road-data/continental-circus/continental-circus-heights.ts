@@ -12,12 +12,27 @@ export const SAMPLE_POSITIONS = 32;
 /** How far before its record's place a hill starts, positions: its record's place + 0x7BF4 (M 0x780C) less 0x7FFF. */
 const HILL_LEAD = 0x7fff - 0x7bf4;
 
-/** A hill as the main program lays it: from `start`, its samples each `SAMPLE_POSITIONS` long, over `base`. */
+/**
+ * The steps replaced (K, 2026-11-10): in the shapes of 512, 896 and 1,792 samples whose step from this sample to the
+ * next is twice its neighbours', shapes 11 to 20, that sample; its step is laid as the mean of its two neighbours'.
+ */
+const REPLACED_STEPS: ReadonlyMap<number, number> = new Map([
+  [512, 384],
+  [896, 704],
+  [1792, 1408],
+]);
+const REPLACED_SHAPES = { first: 11, last: 20 } as const;
+
+/**
+ * A hill as the main program lays it: from `start`, its samples each `SAMPLE_POSITIONS` long, over `base`; and the
+ * sample whose step is replaced (`replaced`), where its shape holds one.
+ */
 export interface Hill {
   readonly start: number;
   readonly end: number;
   readonly base: number;
   readonly samples: readonly number[];
+  readonly replaced?: number;
 }
 
 /**
@@ -36,10 +51,14 @@ function shapes(main: Uint8Array) {
     const at = long(main, table + 4 * shape);
     const length = long(main, at - 4);
     if (length % SAMPLE_POSITIONS) throw romDiffers(`Hill shape ${shape}'s length is no whole number of samples`);
-    return {
-      length,
-      samples: Array.from({ length: length / SAMPLE_POSITIONS }, (_, k) => long(main, at + 4 * k) | 0),
-    };
+    const samples = Array.from({ length: length / SAMPLE_POSITIONS }, (_, k) => long(main, at + 4 * k) | 0);
+    if (shape < REPLACED_SHAPES.first || shape > REPLACED_SHAPES.last) return { length, samples };
+    // The step replaced is the ROM's where it is its two neighbours' sum, within two units: twice their mean.
+    const replaced = REPLACED_STEPS.get(samples.length);
+    const step = (k: number) => samples[k + 1]! - samples[k]!;
+    if (replaced === undefined || Math.abs(step(replaced) - step(replaced - 1) - step(replaced + 1)) > 2)
+      throw romDiffers(`Hill shape ${shape} holds no step twice its neighbours' where one is replaced`);
+    return { length, samples, replaced };
   };
 }
 
@@ -53,10 +72,10 @@ export function lapHills(main: Uint8Array, lap: ContinentalCircusLap): Hill[] {
   const out: Hill[] = [];
   let [end, height] = [-Infinity, 0];
   for (const r of lap.records.filter((x) => x.command === COMMAND.hill)) {
-    const { length, samples } = shapeOf(r.argument >>> 16);
+    const { length, samples, replaced } = shapeOf(r.argument >>> 16);
     const start = Math.max(r.at - HILL_LEAD, end);
     const base = height - samples[0]!;
-    out.push({ start, end: start + length, base, samples });
+    out.push({ start, end: start + length, base, samples, ...(replaced === undefined ? {} : { replaced }) });
     [end, height] = [start + length, base - samples[0]!];
   }
   if (height !== 0 || end > lap.length) throw romDiffers("A lap's hills do not close within it");
@@ -91,7 +110,8 @@ export interface Rises {
  * table](../../../docs/original-road-data.md#profile-from-a-rise-table)), the road level between them: the height read
  * straight between samples, a sample's at its first position, so that each sample's grade is its rise to the next (the
  * last's to the height after its hill) over its `SAMPLE_POSITIONS`, at its middle; level at the queue's start and end.
- * Up, units a position, up being the height's negative.
+ * A hill's replaced step (`Hill.replaced`; K, 2026-11-10) is the mean of its two neighbours'. Up, units a position, up
+ * being the height's negative.
  */
 export function lapRises(hills: readonly Hill[]): Rises[] {
   const queues: { positions: number[]; grades: number[] }[] = [];
@@ -99,10 +119,11 @@ export function lapRises(hills: readonly Hill[]): Rises[] {
   for (const hill of hills) {
     if (hill.start !== last) queues.push({ positions: [hill.start], grades: [0] });
     const queue = queues.at(-1)!;
-    hill.samples.forEach((sample, k) => {
-      const next = k + 1 < hill.samples.length ? hill.samples[k + 1]! : -hill.samples[0]!;
+    const step = (k: number) =>
+      (k + 1 < hill.samples.length ? hill.samples[k + 1]! : -hill.samples[0]!) - hill.samples[k]!;
+    hill.samples.forEach((_, k) => {
       queue.positions.push(hill.start + (k + 1 / 2) * SAMPLE_POSITIONS);
-      queue.grades.push(-(next - sample) / SAMPLE_POSITIONS);
+      queue.grades.push(-(k === hill.replaced ? (step(k - 1) + step(k + 1)) / 2 : step(k)) / SAMPLE_POSITIONS);
     });
     last = hill.end;
   }

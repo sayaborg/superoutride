@@ -575,8 +575,9 @@ K's decisions (2026-11-05):
   original's (−21 % to +30 %) and CHASE H.Q.'s (−34 % to +55 %), a rise table having no grade limit (`GRADE_LIMIT` is
   the screen read-back's): TOP SPEED's height unit, 2.884 mm, is its main program's pitch (at 0x75C8) read back through
   its eye, whose focal length is 266 pixels, and CHASE H.Q.'s, read back so through its eye, is 6.58 mm. CONTINENTAL
-  CIRCUS's heights are a 3D road in its ROMs times one factor that keeps its steepest grade within `GRADE_LIMIT` (0.285,
-  SPAIN's steepest grade 0.876 at 1 and its lens ratio 0.902), its lap closed by taking the lap's mean from its
+  CIRCUS's heights are a 3D road in its ROMs times one factor that keeps its steepest grade within `GRADE_LIMIT` (0.570,
+  SPAIN's steepest grade 0.438 at 1 and its lens ratio 0.902, the one step twice its neighbours' in three hill shapes
+  laid as their mean; K, 2026-11-10), its lap closed by taking the lap's mean from its
   grades, as FINAL LAP 2's is. A closed road's cells are its lap over the whole number of them nearest 10 m, a cell any
   fraction of positions: TA-15 changes `closedCellPositions` so, reports how FINAL LAP 2's cells (now 11.3 to 13.0 m)
   would change, and K decides whether they do (K, 2026-11-06).
