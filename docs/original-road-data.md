@@ -1113,10 +1113,11 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   `<original>-<its stage or course>-sky`.
 
 Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags are
-their chapters' ([OUTRUN's](outrun-road-data.md#boards), [SUPER HANG-ON's](super-hang-on-road-data.md#super-hang-ons-sprites),
-[TURBO OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-objects), [ENDURO RACER's](enduro-racer-road-data.md#enduro-racers-sprites)).
-The TAITO originals' sprite hardware draws no shadow and their programs draw none apart, so their pictures have none
-(default; K confirms at the stage's end).
+their chapters' ([OUTRUN's](outrun-road-data.md#boards), [SUPER
+HANG-ON's](super-hang-on-road-data.md#super-hang-ons-sprites), [TURBO
+OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-objects), [ENDURO
+RACER's](enduro-racer-road-data.md#enduro-racers-sprites)). The TAITO originals' sprite hardware draws no shadow and
+their programs draw none apart, so their pictures have none (K, 2026-11-10).
 
 ### Things of several pieces
 
@@ -1386,19 +1387,21 @@ Besides what its conversion writes, a raised original holds these in the reposit
 ### 0. Rules
 
 - First check the boundary (K, 2026-11-03): the tool raises an original whose road surface its road layer draws a
-  line at a time, as these six's do. An original whose road surface is drawn by sprites (SUPER MONACO GP, RACING
+  line at a time, as the nine raised do. An original whose road surface is drawn by sprites (SUPER MONACO GP, RACING
   HERO, POWER DRIFT, RAD MOBILE) is left to a later model ([NEXT](NEXT.md#originals-with-a-sprite-road-surface)): its
   road's boards laid on the road as Strips are far more than a Section holds.
   The rules of the originals (what never enters the repository, decryption, other projects' code, the picture rule) are in
   [Rules of the originals](#rules-of-the-originals); every step below keeps them.
-- How a stage starts (as Stage NM started): originals raised in one stage are studied before any is raised, so
-  that the rules they share are decided once. Their hardware and sets are read from MAME's driver descriptions and
-  checked against the ROMs when the stage starts; their zips are checked as below (1). Their heights are raised by
-  today's rule, the crests' V decided later course by course as every other course's; their scales and replacements
-  go to K with alternatives and a default. A fork in the original makes a course a road, as OUTRUN's do. Their courses'
-  order by name and their programs' tick are read from the programs, else seen in K's MAME by steps given to K, and
-  each chapter names the MAME commit its driver was read from. Where a road crosses itself at one height, how the
-  crossing is drawn and how bodies meet it are checked, and what shows is reported.
+- How a stage starts (as Stage NM started): originals raised in one stage are studied before any is raised, so that the
+  rules they share are decided once. Their hardware and sets are read from MAME's driver descriptions and checked
+  against the ROMs when the stage starts; their zips are checked as below (1). Their heights are raised by today's rule,
+  the crests' V decided later course by course as every other course's; their scales and replacements go to K with
+  alternatives and a default. A fork in the original makes a course a road, as OUTRUN's do. Their courses' order by name
+  and their programs' tick are read from the programs; K has no MAME ([Running an original's
+  code](#rules-of-the-originals)), so what a static reading or a research command cannot settle stays an estimate, not
+  confirmed, written with the run that would confirm it; and each chapter names the MAME commit its driver was read
+  from. Where a road crosses itself at one height, how the crossing is drawn and how bodies meet it are checked, and
+  what shows is reported.
 
 ### 1. The ROM set
 

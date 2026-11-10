@@ -88,8 +88,9 @@ Its limits are its main program's: the car held within its record's mask's outer
 9.0 m beyond the lanes (M 0x8B50), and in a tunnel 0x1E0 out, 0.34 m within them (M 0x9B5A), changing at once at a
 record's start, each change a Section's cut, so that the limits change at a tunnel's ends at once, as the original's do
 (K, 2026-11-08). Where the original starts to slow the car, 0x3E0 beyond the outermost lanes' centres (M 0x85F4), 1.22 m
-beyond the lanes, is no boundary of materials. Until the tunnels' mouths come (TA-8), a car entering a tunnel from
-beyond the road is outside its new limits and pushed back onto the road: K sees it in DEV.
+beyond the lanes, is no boundary of materials. The tunnels' mouths are laid, their posts their bodies ([its
+objects](#chase-hqs-objects)); a car entering a tunnel from beyond them is outside its new limits and pushed back onto
+the road: K sees it in DEV.
 
 Its road is `ASPHALT`, its dirt road (a record's kind 6) `DIRT`, each its surface and its edges. Its ground is one
 material each side by its road palette's ground colors (`groundMaterial`; K, 2026-11-05): `GRASS` where green is the
@@ -141,22 +142,22 @@ row's body line draws them (those beyond three lanes lie under the edge bands), 
 long in every 12.3 m. A line is drawn only within its road's body, clipped where the body's side crosses it, a road's
 picture laid where it passes (`pictureStrips`, `compositeOf`); at the fork the road not taken's lines lie about its own
 centre, a third Boundary (`not-taken-centre`), and both roads' show in the TC0150ROD's order. That no program sets those
-line colors after the palette's start is read from the palette's writers, not run, an estimate (default; K confirms at
-the stage's end). In a tunnel the road is dark, a place's color: a row's word 3 takes its top bit there, its bank eight
-on (banks 8 to 15, colors the palette keeps from its start, M 0x6C6), over the road, its lines and the ground, from the
-first tunnel record's start (a record's event 3) to the last's end, at once at both ends, whatever change of colors is
-under way; the road not taken is dark by its own records. The sub program darkens the rows between two places the main
-program gives it (S 0x33C8 to 0x3484, from 0x108024); that those are its tunnel records' ends is an estimate, which a
-run of both programs through a tunnel would confirm (default; K confirms at the stage's end). Under a gate the course's
-road is dark too, from its first middle to its second, 11.1 m: the main program gives the sub program the two middles'
-places (M 0x45A30 to 0x45A96, 0x4064C), and it darkens road A's rows between them (S 0x33B0) with no record's test, at
-once at both ends ([its objects](#chase-hqs-objects)). The dirt road (a record's kind 6, stage 1 right and stage 3 left)
-is drawn as the sub program draws it, its rows' edges set far beyond the screen (S 0x415C) so that its own tile's body
-line fills the whole view: one color across the road and the ground, its tile's base pen (the one most of it draws) in
-its bank's line (S 0x3BAC, 0x3BB4: bank 13, its body's line 3). Its tile's texture, four pens a few pixels each, and its
-bank's cycling through 13 to 15 as the car goes (S 0x3C50) are not drawn: unavoidable replacements, the dirt road one
-color still (default; K confirms at the stage's end). A Section writes at most 181 Strips (stage 1 left), 2,668 with its
-repeats expanded. Its things are [its objects](#chase-hqs-objects).
+line colors after the palette's start is read from the palette's writers, not run: an estimate, not confirmed, which a
+run of the main program through a stage, watching those colors' words, would confirm. In a tunnel the road is dark, a
+place's color: a row's word 3 takes its top bit there, its bank eight on (banks 8 to 15, colors the palette keeps from
+its start, M 0x6C6), over the road, its lines and the ground, from the first tunnel record's start (a record's event 3)
+to the last's end, at once at both ends, whatever change of colors is under way; the road not taken is dark by its own
+records. The sub program darkens the rows between two places the main program gives it (S 0x33C8 to 0x3484, from
+0x108024); that those are its tunnel records' ends is an estimate, not confirmed, which a run of both programs through a
+tunnel would confirm. Under a gate the course's road is dark too, from its first middle to its second, 11.1 m: the main
+program gives the sub program the two middles' places (M 0x45A30 to 0x45A96, 0x4064C), and it darkens road A's rows
+between them (S 0x33B0) with no record's test, at once at both ends ([its objects](#chase-hqs-objects)). The dirt road
+(a record's kind 6, stage 1 right and stage 3 left) is drawn as the sub program draws it, its rows' edges set far beyond
+the screen (S 0x415C) so that its own tile's body line fills the whole view: one color across the road and the ground,
+its tile's base pen (the one most of it draws) in its bank's line (S 0x3BAC, 0x3BB4: bank 13, its body's line 3). Its
+tile's texture, four pens a few pixels each, and its bank's cycling through 13 to 15 as the car goes (S 0x3C50) are not
+drawn: unavoidable replacements, the dirt road one color still. A Section writes at most 181 Strips (stage 1 left),
+2,668 with its repeats expanded. Its things are [its objects](#chase-hqs-objects).
 
 ### Its skies
 
@@ -241,8 +242,7 @@ Each course's things stand where its main program places them (`chase-hq-objects
   pixels × 65,536; M 0x45916). At zoom 0x7F a sprite's pixel is a screen pixel: at the nearest row with that zoom, 10.737
   laterals, 3.26 cm (`chaseHqPixelLaterals`), the Z system's pixel square (its 320 × 240 at 4:3). A picture stands at
   the thing's point where a piece reaches the ground there; 44 kinds' lowest colored rows lie 1 to 32 pixels above it,
-  and those float at that height, as the original draws them. The original draws no shadow, and none is drawn (default;
-  K confirms at the stage's end).
+  and those float at that height, as the original draws them. The original draws no shadow, and none is drawn.
 - **Bodies.** The main program tests the player's car against the things on its road (M 0x9C56 on). A thing's flags, set
   as it is placed (its slot's byte 8), say how it is hit, and the hit table at 0xB9B8 holds a long a kind from 0x300 to
   0x5FF: its low word a half width in laterals, its high word the positions it reaches toward the car (0x100, 0.77 m,
@@ -263,7 +263,7 @@ Each course's things stand where its main program places them (`chase-hq-objects
   outer lanes: kind 0x480, or 0x540 where its parameter's bit 5 is set, plus its parameter's other bits and one for each
   lane beyond three, hit on two posts. The 0x540 mouths' composer (M 0x46438) reads pieces of 14 bytes, their y offsets
   moved by an unscaled word besides their rows'. A mouth is larger than a picture may be (`imageMasterTexels`), so its
-  pieces stay pieces (default; K confirms at the stage's end): each its sprite's picture as drawn
+  pieces stay pieces: each its sprite's picture as drawn
   (`chasehq-sprite-<sprite>`, a palette a line), in the order the original draws them, its middle where it lies across
   the mouth, and the parts of the mouth's posts within its colored columns its body; a mouth is not repeated. A gate's
   record (M 0x9374) lays two middles at P, 0x3DF 0xE80 positions (11.1 m) beyond 0x3DE, each with six posts (its kind
@@ -277,7 +277,7 @@ Each course's things stand where its main program places them (`chase-hq-objects
   sees nothing through them (`passageSteps`), its opening the clear columns about its point in its row on the ground;
   each step is its pieces with no body, the tunnel's walls its course limits: 19 to 595 steps a course, 0.8 to 12.7 m
   apart. A Section holds at most `spritePlacements` sprites expanded, so in a long passage a Section is cut at a
-  record's start where the sprites since the cut before would pass it (default; K confirms at the stage's end): stage 2
+  record's start where the sprites since the cut before would pass it: stage 2
   left and stage 5 left gain a Section each.
 
 ## CHASE H.Q.'s conversion
@@ -285,3 +285,11 @@ Each course's things stand where its main program places them (`chase-hq-objects
 `chase-hq-course` writes the ten courses to `content/originals/courses/` (`chase-hq-1-left` to `chase-hq-5-right`),
 their crest trials, their 38 skies (`chase-hq-sky-<set>-<mode>-<scene>`) and their 189 things' pictures
 (`chasehq-<kind>`) to `content/originals/images/` (`chase-hq-course`; its conversion's version 12).
+
+What was decided by default as its courses were raised is K's decision, accepted together (K, 2026-11-10): its dirt
+road one color and the road not taken's roads in the TC0150ROD's order where no line sets a priority bit ([Its road
+across](#its-road-across)); its things with no shadow, a body on its side of P where only that side is hit and with no
+depth, its tunnels' mouths' pieces kept pieces, and a long passage's Section cut at a record's start ([its
+objects](#chase-hqs-objects)). Two readings are closed as estimates, not confirmed, each with the run that would
+confirm it where it is stated ([Its road across](#its-road-across)): its tunnels dark over their records, and its
+lines' colors in banks 3 and 7 set by no program after the palette's start.

@@ -45,8 +45,8 @@ export interface PitLane {
 /**
  * A lap's pit lanes (`continentalCircusLap`): each pit lane record (command 3, S 0xC25E) starts the pit lane's task (S
  * 0x119CA), which starts its profile at the picture's pinhole + 0x7D02 at the frame it starts (S 0x119CE to 0x119D8),
- * the pinhole then at the record's running position, as it is in the limit of a slow car (default; K confirms at the
- * stage's end), and runs until the pinhole is 0x14D03 past its start (S 0x119E4), its nearest line (the distances at S
+ * the pinhole then at the record's running position, as it is in the limit of a slow car (K,
+ * 2026-11-10), and runs until the pinhole is 0x14D03 past its start (S 0x119E4), its nearest line (the distances at S
  * 0x3102) then at its profile's last position: its record's place (its running position + 0x7FFF, as a zone's, S 0xC28E)
  * less 0x2FD, its profile's length on. Each lies within its lap.
  */

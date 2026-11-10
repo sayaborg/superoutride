@@ -127,14 +127,14 @@ export function continentalCircusModelLaps(set: RomSet): { course: string; input
 const LAPS = 1;
 /**
  * The heights' resolution, units over a sample (`SAMPLE_POSITIONS`): a unit and a half, as SUPER HANG-ON's 3D road's is
- * a unit and a half of its vectors' 4096 (`VECTOR_RESOLUTION`; default, K confirms at the stage's end).
+ * a unit and a half of its vectors' 4096 (`VECTOR_RESOLUTION`): an estimate, not confirmed.
  */
 const RISE_RESOLUTION = 1.5;
 /** The road's material, its body, its lines and its edges' bands (K, 2026-11-09). */
 const ROAD: Material = 'ASPHALT';
 /**
  * A pit lane's profile's samples a knot: every fourth, the profile read straight between its samples as its heights
- * are, so that a pit lane's knots lie within the format's 1,024 a Boundary (default; K confirms at the stage's end).
+ * are, so that a pit lane's knots lie within the format's 1,024 a Boundary (K, 2026-11-10).
  */
 const KNOT_SAMPLES = 4;
 
@@ -329,7 +329,7 @@ const THING_COMMANDS: readonly number[] = [COMMAND.thing, COMMAND.pitThing, COMM
  * A lap's things ([Its things placed](../../../docs/continental-circus-road-data.md#its-things-placed)): each station's
  * descriptions, the records of one running position in their order, a pit lane's thing (command 4) only within its
  * lap's pit lanes (`pits`), which the original places only while its word 0x84590 is set (S 0xC27E), here always
- * (default; K confirms at the stage's end).
+ * (K, 2026-11-10).
  */
 function lapThings(records: readonly LapRecord[], pits: readonly PitLane[], name: string) {
   const stations = new Map<number, number[]>();
@@ -503,7 +503,7 @@ export function continentalCircusCourses(set: RomSet) {
     const profile = profileOf(road.bends, [], road.kinks);
     // The road across and along it: each band of its picture its bank's color by its place, its base the color most of
     // a period takes, the rest the surface's Strips repeated at the period at the lap's mean position, from the race's
-    // first lap's place of its line (default; K confirms at the stage's end).
+    // first lap's place of its line (K, 2026-11-10).
     const colors = continentalCircusRoadColors(main, c);
     const mean = length / lap.length;
     const period = BANK_PERIOD * mean;
@@ -512,8 +512,8 @@ export function continentalCircusCourses(set: RomSet) {
     const ground = runsOf(GROUP.edge, 0);
     const materials = [...new Set(ground.map((r) => groundMaterial(r.color)))];
     if (materials.length !== 1) throw romDiffers(`${name}'s ground's shades differ in material`);
-    // No water lies beside its roads: a ground the rule makes WATER (MONACO's bluish grey, a town's) is SAND (default;
-    // K confirms at the stage's end).
+    // No water lies beside its roads: a ground the rule makes WATER (MONACO's bluish grey, a town's) is SAND (K,
+    // 2026-11-10).
     const groundIs: Material = materials[0] === 'WATER' ? 'SAND' : materials[0]!;
     const edge = picture.right.at(-1)!.to;
     const pieceOf = (from: number, to: number, part: LinePart, pen: number) => {
@@ -613,7 +613,7 @@ export function continentalCircusCourses(set: RomSet) {
     };
     const start = station(lap.length - lap.start) - length;
     // Its things at their stations, each its picture at its point, with its body; its checkpoints the stations of its
-    // descriptions of type 2 (default; K confirms at the stage's end: the original sets its flag as the car comes
+    // descriptions of type 2 (K, 2026-11-10: the original sets its flag as the car comes
     // within 0x100 positions of it, S 0x2B2A to 0x2B36, 0x2D54).
     const objects = things.flatMap((t) =>
       t.things.map((addresses) => {

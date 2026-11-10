@@ -110,27 +110,26 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
   road's material under it: the sub program slows a car by its lateral from its outermost lanes' centres alone
   (S 0x5DFE) and reads neither the gap's pixels nor the flag of the fork's approach. The halves' lanes and edges are
   not moved by the gap's 1 to 5 pixels (24 to 122 mm).
-- **Its roads not taken.** At each of its 7 to 9 forks, from its branch's start, the other branch's half of the road
-  is drawn beside its own over 30.7 m and no further, as the main program draws it ([Two
+- **Its roads not taken.** At each of its 7 to 9 forks, from its branch's start, the other branch's half of the road is
+  drawn beside its own over 30.7 m and no further, as the main program draws it ([Two
   roads](original-road-data.md#two-roads), `roadsNotTaken`): its lanes on its side by its first record's mask, out from
   its own P, its body, lines and edge as the course's, at its P the fork picture's band ([Its
   forks](#top-speeds-courses)), striped as the course's, drawn over it, of no material, as the original slows a car by
-  its lateral alone. Its P lies where the other branch's line lies from the course's, the two
-  leaving the fork's end on one heading, each turned by its own records (M 0x5B64, 0x5C34), plus the program's slide
-  outward, the camera's advance since the branch's start over 32 pixels on every line (M 0x5F46 to 0x5F8A) up to 0x2800
-  positions (M 0x5F62), a pixel taken at the nearest line, 24.3 mm, 7.8 m in all (default; K confirms at the stage's
-  end: the original slides it the same pixels on every line, more laterals the farther the line): 18.0 to 20.4 m out
-  at its end. The course's own lanes on the side not taken narrow a lane over 28.4 m from the branch's start, as every
-  change of its lanes does, where the original's half there is the road not taken: a replacement that cannot be
-  avoided, as the format's Link joins roads of the same lanes alone (K, 2026-11-08). The things of the branch not
-  taken stand beside it ([Beside a road not taken](#its-things)).
+  its lateral alone. Its P lies where the other branch's line lies from the course's, the two leaving the fork's end on
+  one heading, each turned by its own records (M 0x5B64, 0x5C34), plus the program's slide outward, the camera's advance
+  since the branch's start over 32 pixels on every line (M 0x5F46 to 0x5F8A) up to 0x2800 positions (M 0x5F62), a pixel
+  taken at the nearest line, 24.3 mm, 7.8 m in all (the original slides it the same pixels on every line, more laterals
+  the farther the line): 18.0 to 20.4 m out at its end. The course's own lanes on the side not taken narrow a lane over
+  28.4 m from the branch's start, as every change of its lanes does, where the original's half there is the road not
+  taken: a replacement that cannot be avoided, as the format's Link joins roads of the same lanes alone (K, 2026-11-08).
+  The things of the branch not taken stand beside it ([Beside a road not taken](#its-things)).
 - **Its tunnels.** Where a tunnel's walls hold the car ([Its road across](#its-road-across)), the road and the sky are
-  dark (default; K confirms at the stage's end: the dark taken over the walls), at once at their ends as a place's
-  colors are ([Sky baking](original-road-data.md#sky-baking)): the original darkens the road's lines between its tunnel
-  mouths' sprites' lines on the screen (M 0x3A0C, the sub program listing them, S 0x1689E), ORing 0xFFE0 into their
-  raster words, which MAME's description reads as each pen's tunnel pen, 10 on, with no other shades (a dark surface, a
-  black ground, an orange inner band, grey lines and outer band, the dashes kept); and turns the sky's lines to the
-  black color set 0 by the sub program's flags (M 0x85F8 to 0x864A).
+  dark (an estimate, not confirmed: the dark is taken over the walls, which a run of both programs through a tunnel
+  would confirm), at once at their ends as a place's colors are ([Sky baking](original-road-data.md#sky-baking)): the
+  original darkens the road's lines between its tunnel mouths' sprites' lines on the screen (M 0x3A0C, the sub program
+  listing them, S 0x1689E), ORing 0xFFE0 into their raster words, which MAME's description reads as each pen's tunnel
+  pen, 10 on, with no other shades (a dark surface, a black ground, an orange inner band, grey lines and outer band, the
+  dashes kept); and turns the sky's lines to the black color set 0 by the sub program's flags (M 0x85F8 to 0x864A).
 - **Its bands.** As the road picture draws them ([Its road picture](#its-road-picture)): its body over its lanes, each
   edge's inner band from 0.073 m within the lanes to 0.219 m beyond them and its outer band on to 0.535 m, the ground
   beyond, and its lines 0.146 m wide about its lanes' sides within; at P the right half's line, its right half where
@@ -141,7 +140,7 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
   each to a base, four parts of 0x400 positions (3.07 m) each 0x1000 (12.29 m), counted from the run's start (M 0x38D6
   to 0x39A6); on and before a hill, where the camera's record or one of the next four up to a fork has a grade (M 0x6DDE
   to 0x6E76), a hill's words and the palette lines without lines (`hills`). A word's bits are read as MAME's
-  description has them (default; K confirms at the stage's end): 0x10 the surface's other shade, 0x02 the ground's, 0x08
+  description has them: 0x10 the surface's other shade, 0x02 the ground's, 0x08
   the lines and the inner band drawn as the surface and 0x04 the outer band. So on the flat the surface and the ground
   are light and dark over 6.14 m each and the lines and both edge bands dashed, 3.07 m on and off; on a hill no lines or
   inner band show and the outer band is dashed. A shade is each component 3 more (M 0x46CC); the lines and the edge
@@ -225,7 +224,7 @@ never set, so that it turns by its rows' scrolls alone: two bands of pictures ov
   a record whose word at 2 masked by 0x1C00 is 0x1000 or 0x1800 changes them by the next record's byte 2 (M 0x88BE, the
   table at M 0x8A2A), the horizon band always and the cloud band only in a tunnel, which the sub program's flags tell
   the main program as the run goes; a course takes the cloud band's change where its change record is a tunnel's (its
-  event 3), as the records give it (`skyChanges`; default, K confirms at the stage's end). Every change record but the
+  event 3), as the records give it (`skyChanges`). Every change record but the
   goal sections' lies in a tunnel; the goal sections' change the horizon band alone. Along the seven courses the sky
   changes 15 to 17 times, of 27 skies.
 
@@ -291,14 +290,14 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
     read where the words of the board's outputs are made (S 0x146AC), what they drive not confirmed. That each
     record's patches are one stretch of one color is a replacement that cannot be avoided, as water's. The courses
     lay 7 to 22 such stretches, 393 to 1,622 m a course, of 52 to 217 patches.
-  - an overpass by its event 4: its near face at the record's middle and its far face 0xE80 positions (11.1 m)
-    beyond, each a deck at P, the codes 0x58 and 0x98 and twice the stage, and six posts a position nearer from
-    0x800 every 0x3000 laterals (S 0x6AE4 to 0x6B6A), the two nearest P met each from its side and the others by none
-    (the table at S 0x6B6C). A deck is its pieces across the view, a band floating at their height; its piece's
-    second copy (its byte 6 bit 6) its byte 0xB's palette, its bottom half its height less a pixel lower (S 0x1696A
-    to 0x1699C), the deck's darker face. Under it the road is dark, from the near deck, whose head's tunnel line
-    (byte 6 bits 1 and 0, S 0x1689E) begins the road's dark lines (M 0x3A0C), to the far deck, whose line ends them; the
-    sky stays (default; K confirms at the stage's end).
+  - an overpass by its event 4: its near face at the record's middle and its far face 0xE80 positions (11.1 m) beyond,
+    each a deck at P, the codes 0x58 and 0x98 and twice the stage, and six posts a position nearer from 0x800 every
+    0x3000 laterals (S 0x6AE4 to 0x6B6A), the two nearest P met each from its side and the others by none (the table at
+    S 0x6B6C). A deck is its pieces across the view, a band floating at their height; its piece's second copy (its byte
+    6 bit 6) its byte 0xB's palette, its bottom half its height less a pixel lower (S 0x1696A to 0x1699C), the deck's
+    darker face. Under it the road is dark, from the near deck, whose head's tunnel line (byte 6 bits 1 and 0, S
+    0x1689E) begins the road's dark lines (M 0x3A0C), to the far deck, whose line ends them; the sky stays (an estimate,
+    not confirmed: the road alone is taken as dark there, which a run of both programs under an overpass would confirm).
 
   A thing left of P whose head's byte 6 bit 7 is set shows the next descriptor (S 0x16634). A thing's pieces of a
   fixed width (type 1: its wall continued outward, a negative offset its pixels and any other its step of 0, 0x80,
@@ -373,3 +372,12 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
 pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 17).
+
+What was decided by default as its courses were raised is K's decision, accepted together (K, 2026-11-10): GO 1.82 m
+(0x260) into its first section ([The start](#its-course-tables)); its plan by the turn the instructions give, its
+radii 64.6 to 210.8 m ([Its plan](#its-plan)); a raster word's bits as MAME's description has them, and its road not
+taken's slide and its fork's gap each a pixel taken at the nearest line ([its stripes, its forks and its roads not
+taken](#top-speeds-courses)); and its cloud picture changed where a change record is a tunnel's ([Its
+skies](#its-skies)). Two readings are closed as estimates, not confirmed, each with the run that would confirm it
+where it is stated: its tunnels' road and sky dark over their walls ([Its tunnels](#top-speeds-courses)), and under an
+overpass the road alone dark ([Where it stands](#its-things)).

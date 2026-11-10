@@ -48,17 +48,17 @@ Eight courses, BRAZIL to JAPAN in the program's order (its names at M 0x46FA), e
 
 ### Its laps on their models
 
-Each course is a lap on its model ([A lap on its model](original-road-data.md#a-lap-on-its-model)), K's course
-sources' layout of the circuit the original drew (`MODELS`): BRAZIL Jacarepaguá as it was from 1978 to 1995, AMERICA
-Watkins Glen from 1975 to 1985, FRANCE Dijon-Prenois's extended Grand Prix circuit, MONACO as it was from 1976 to 1985,
-GERMANY Hockenheim from 1970 to 1981, SPAIN Jarama from 1967 to 1979, MEXICO Long Beach from 1976 to 1981 and JAPAN
-Suzuka from 1962 to 1983. Its curve table is read from its line, each record an interval of its own length, its values
-negated, as the original's positive value bends the road right where a plan's turns left; its road 11.21 m wide, its
-lanes' least radius its two lanes'. The laps were solved by the procedure (`model-laps.json`,
-`continentalCircusModelLaps`): turn scales 0.84 to 1.11, MEXICO's 0.44; their points 3.5 (SPAIN) to 15.4 m (GERMANY)
-from their models' on average, 9.7 to 41.5 m at most, MEXICO's 34.4 m and 105.3 m, one of its corners 21.5 times its
-table's length; none crossing itself but JAPAN, once, where its model does; their roads 28.0 m (MONACO) to 177.3 m
-(FRANCE) apart at least.
+Each course is a lap on its model ([A lap on its model](original-road-data.md#a-lap-on-its-model)), K's course sources'
+layout of the circuit the original drew (`MODELS`): BRAZIL Jacarepaguá as it was from 1978 to 1995, AMERICA Watkins Glen
+from 1975 to 1985, FRANCE Dijon-Prenois's extended Grand Prix circuit, MONACO as it was from 1976 to 1985, GERMANY
+Hockenheim from 1970 to 1981, SPAIN Jarama from 1967 to 1979, MEXICO Long Beach from 1976 to 1981 and JAPAN Suzuka from
+1962 to 1983. Its curve table is read from its line, each record an interval of its own length, its values negated, as
+the original's positive value bends the road right where a plan's turns left; its road 11.21 m wide, its lanes' least
+radius its two lanes'. The laps were solved by the procedure (`model-laps.json`, `continentalCircusModelLaps`): turn
+scales 0.84 to 1.11, MEXICO's 0.44; their points 3.5 (SPAIN) to 15.4 m (GERMANY) from their models' on average, 9.7 to
+41.5 m at most, MEXICO's 34.4 m and 105.3 m, one of its corners 21.5 times its table's length, the procedure's answer,
+which K accepts as it is (K, 2026-11-10); none crossing itself but JAPAN, once, where its model does; their roads 28.0 m
+(MONACO) to 177.3 m (FRANCE) apart at least.
 
 ### Its heights
 
@@ -97,18 +97,19 @@ patterns](original-road-data.md#places-and-patterns)). Its things stand there ([
   over its 32 positions, at its middle, level at the queue's ends; each grade at its station on the lap as laid, over
   its positions at the lap's mean position (its length over its positions), so that its grades are the clock's times one
   factor a lap; its resolution 1.5 units over a sample (`RISE_RESOLUTION`), as SUPER HANG-ON's 3D road's is 1.5 of its
-  vectors' 4096 (default; K confirms at the stage's end), each queue level again at its end by a change of grade there;
-  the lap less its mean grade, so that it closes in height. One step is replaced (K, 2026-11-10): in the shapes of 512,
-  896 and 1,792 samples that hold it (shapes 11 to 20), the step from sample 384, 704 or 1,408 to the next is twice its
-  neighbours' in the ROM, 81.8 units a position (61.4 in the shapes of 512 samples, 40.9 in the lower two of each
-  other length), and is laid as the mean of its two neighbours' steps, 40.9 (30.7, 20.5): one sample, 0.148 m long,
-  halved all eight courses' heights by the grades' rule. A unit up is 15/14 of a lateral unit (`UP`), the road's half
-  width over 0x40000: 22.90 µm. Then all eight times one factor, f = min(the lens ratio, 0.25 ÷ the steepest grade)
-  ([Profile from the original's screen](original-road-data.md#profile-from-the-originals-screen)): its eye's focal
-  length a position over a unit up, 202.0 rows, over its screen's 224 (`SCREEN_ROWS`, its 320 columns at 4:3), 0.902;
-  SPAIN's grade at f = 1, 0.438, the steepest, a step of 40.9 units a position, so f = 0.570. Then each within its
-  model's elevation ([A course's model](original-road-data.md#rules-of-the-originals)). Each departs from its tables by
-  at most 0.002 in grade and 0.02 m in height.
+  vectors' 4096 (an estimate, not confirmed: counting its laps' runs at 1, 1.5 and 2 units, as a heading table's
+  resolution was found, would confirm it), each queue level again at its end by a change of grade there; the lap less
+  its mean grade, so that it closes in height. One step is replaced (K, 2026-11-10): in the shapes of 512, 896 and 1,792
+  samples that hold it (shapes 11 to 20), the step from sample 384, 704 or 1,408 to the next is twice its neighbours' in
+  the ROM, 81.8 units a position (61.4 in the shapes of 512 samples, 40.9 in the lower two of each other length), and is
+  laid as the mean of its two neighbours' steps, 40.9 (30.7, 20.5): one sample, 0.148 m long, halved all eight courses'
+  heights by the grades' rule. A unit up is 15/14 of a lateral unit (`UP`), the road's half width over 0x40000: 22.90
+  µm. Then all eight times one factor, f = min(the lens ratio, 0.25 ÷ the steepest grade) ([Profile from the original's
+  screen](original-road-data.md#profile-from-the-originals-screen)): its eye's focal length a position over a unit up,
+  202.0 rows, over its screen's 224 (`SCREEN_ROWS`, its 320 columns at 4:3), 0.902; SPAIN's grade at f = 1, 0.438, the
+  steepest, a step of 40.9 units a position, so f = 0.570. Then each within its model's elevation ([A course's
+  model](original-road-data.md#rules-of-the-originals)). Each departs from its tables by at most 0.002 in grade and 0.02
+  m in height.
 
 | Course  | Runs | Its model's factor | Steepest | Highest; lowest |
 | ------- | ---- | ------------------ | -------- | --------------- |
@@ -128,13 +129,13 @@ JAPAN's two passages where it crosses itself (2,466.1 m and 4,962.4 m) lie at 11
   of `ASPHALT` (K, 2026-11-09); beyond its edges' bands, 6.427 m from P, its ground, the color its edges' pixel 0 gives,
   as far as the course reaches, its material `groundMaterial`'s of that color to its limits: `GRASS` in BRAZIL, GERMANY
   and JAPAN, `SAND` in AMERICA, FRANCE, SPAIN and MEXICO, and in MONACO, whose bluish grey the rule makes `WATER`,
-  `SAND`, no water lying beside its roads (default; K confirms at the stage's end). Its edges take group 0's colors,
+  `SAND`, no water lying beside its roads. Its edges take group 0's colors,
   its body and lines group 1's.
 - **Its stripes.** Each band and the ground take their bank's color by their place ([Its road's
   colors](#its-roads-colors)): the color most of the banks' period, 2048 positions, takes is the band's, the rest the
   road's surface's Strips, a period's parts repeated over the lap at the lap's mean position (4.38 m in SPAIN to 11.69 m
   in GERMANY a period). A place's bank is that of its running position 0x7FFF on, the line's 0x831F, the race's first
-  lap's (default; K confirms at the stage's end: the original's lap is no whole number of periods, so each later lap
+  lap's (the original's lap is no whole number of periods, so each later lap
   shifts its stripes).
 - **Its zones.** Each a place's colors over its stretch ([Its zones](#its-zones)).
 - **Its pit lanes.** Each road B beside road A as two roads, not driven ([Its pit lanes](#its-pit-lanes)).
@@ -177,7 +178,7 @@ ground beside an edge.
   16 × the course + 12) by the bank's offsets at M 0xD090; B 1, the body, and B 3 fixed words at M 0xD0F0, every
   course's; B 2 the course's words 0x10 bytes past B 0's, its dimmer kerbs. Open road draws its edges in B 0 and its
   body in B 1 (S 0x26EE to 0x26FA); a zone moves a part to B 2 or B 3 ([Its zones](#its-zones)). The colors are set once at a race's start; the
-  rain's darker ones are not drawn (default; K confirms at the stage's end), as its skies' are not.
+  rain's darker ones are not drawn, as its skies' are not.
 - **The banks along the road.** A line's bank is the table of 512 words at M 0x4EC4 by its place over 4 (M 0x4E68 to
   0x4E74), fixed to the road, a period of 2048 positions (9.47 m): in each quarter 24 positions of a bank, 24 of the
   next and 464 of the third. So the kerb's three bands change color every 512 positions (2.37 m), each 24 positions
@@ -241,23 +242,23 @@ A pit lane (command 3, S 0xC25E) is road B, the TC0150ROD's second road, drawn b
 roads](original-road-data.md#two-roads) where the original draws it and not driven, of no material, as this game has no
 damage to mend there (K, 2026-11-06) (`continental-circus-pit-lanes`):
 
-- **Its stretch.** Its record starts the task S 0x119CA, which starts its profile at the picture's pinhole + 0x7D02
-  (S 0x119CE to 0x119D8), the pinhole at the record's running position, as in the limit of a slow car (default; K
-  confirms at the stage's end: a faster car starts it up to its frame's step later), so at its record's place less
-  0x2FD; it ends as the pinhole passes 0x14D03 past that (S 0x119E4), its nearest line (0x2FC, the distances at S
-  0x3102) then at the profile's last position. So it lies over 0x15000 positions (86,016) from its start, from its
-  start's station to its end's on the lap as laid. None crosses the line or holds a zone. Every line writes road B,
-  which with no pit lane lies under road A's left half, its outer edge on road A's, and is not drawn.
+- **Its stretch.** Its record starts the task S 0x119CA, which starts its profile at the picture's pinhole + 0x7D02 (S
+  0x119CE to 0x119D8), the pinhole at the record's running position, as in the limit of a slow car (a faster car starts
+  it up to its frame's step later), so at its record's place less 0x2FD; it ends as the pinhole passes 0x14D03 past that
+  (S 0x119E4), its nearest line (0x2FC, the distances at S 0x3102) then at the profile's last position. So it lies over
+  0x15000 positions (86,016) from its start, from its start's station to its end's on the lap as laid. None crosses the
+  line or holds a zone. Every line writes road B, which with no pit lane lies under road A's left half, its outer edge
+  on road A's, and is not drawn.
 - **Its place.** Each line's road B word (its line buffer's +4) is the long at S 0x11A98 by (the line's place − the
   start) over 32, of 2,688, over the line's distance, 0 outside them (S 0x119DC to 0x11A34): lateral units, 0 to
   550,000. The main program writes road B's word 2 as road A's with that word and w / 2 added and its half width w / 2,
   w road A's half width there (M 0x4E40 to 0x4E56, 0x4E9A to 0x4EA6): its centre lies its half width and its profile
   from road A's, under road A at its ends and 14.56 m from P at most, on the side whose word 2 is the greater, the left
-  by MAME's description, as the curves' sign is, which the laps on their models bear out, and the side on which the
-  road task widens its car's bound (S 0x285C; not seen on a picture of the original). Its centre is a Boundary through
-  every fourth sample at its first position, read straight between as its heights are (`KNOT_SAMPLES`; default, K
-  confirms at the stage's end: 673 knots, within the format's 1,024 a Boundary), departing from its samples read
-  straight between by 0.8 mm at most; a lateral unit is the road's half width over 0x40000.
+  by MAME's description, as the curves' sign is, which the laps on their models bear out, and the side on which the road
+  task widens its car's bound (S 0x285C; not seen on a picture of the original). Its centre is a Boundary through every
+  fourth sample at its first position, read straight between as its heights are (`KNOT_SAMPLES`: 673 knots, within the
+  format's 1,024 a Boundary), departing from its samples read straight between by 0.8 mm at most; a lateral unit is the
+  road's half width over 0x40000.
 - **Its picture.** Its tile w + 0x200 (M 0x4EAA) at its own car's line, its pixels at its half width's share: its
   half width 2.80 m, its body pen 0 (a body draws its pen 0, MAME's description) with two lines of pen 2 from 0.648 to
   0.713 of its half width (1.81 to 2.00 m) either side of its centre; its edges' bands road A's, outward from its
@@ -292,7 +293,7 @@ each course its own, set once at the race's start and not changed along it (`con
   line 0; BG1's lower picture, the landscape, 10 rows below it in line 1; BG0's band, towns and trees, 5 rows in line 2,
   over the lower picture's rows 8 to 47. A picture's run may pass its row's end: its copy at column 0 shows its codes in
   turn, row by row, as read here, and its copy at column 32 shows up to 19 tiles of the row below at its start, which
-  are not drawn (default; K confirms at the stage's end).
+  are not drawn.
 - **Their turns.** The original keeps no heading: a band turns its rate × the curve × the distance over 16,384 pixels
   (S 0x280E to 0x2916), its laps turning the sky 262 to 543 pixels. The upper picture's rows turn faster the higher they
   lie, 1/64 of the rate a row from its bottom row up, in strips whose bounds a course's table gives (S 0x2652): one row
@@ -307,16 +308,17 @@ each course its own, set once at the race's start and not changed along it (`con
   lower picture from 46 above it to 33 rows below it and BG0's band from 36 above it to 3 below. Where no band lies,
   above the clouds too, the cleared tile's color in line 0.
 - **Their colors.** A course's three lines from its 16 bytes at M 0xC5A0 (M 0x6E4A to 0x6ED6), its dry colors; the
-  rain's and the lightning's, which the original fades in at random times, are not drawn (default; K confirms).
+  rain's and the lightning's, which the original fades in at random times, are not drawn.
 - **Their facing.** The layers overlap as at a race's start, every layer's column 0 at the camera's centre at the
-  start's heading, the line's (`SKY_MIDDLE`; an estimate: where the road vanishes on the original's screen at the start
-  is not read, nor BG0's scroll at a race's start). A turn of whole pictures has no seam of its own; a picture's last
-  column does not continue into its first as read (the clouds' differ in 32 to 71 of their 96 rows, neighbouring
-  columns in 80 at most), so each layer shows its picture's edge every 256 pixels, six a turn, one at the camera's
-  centre at the start. The original's screen shows that edge too: its tilemap holds a picture's copies side by side,
-  at columns 0 and 32, and repeats after its 512 pixels, and its screen's 320 columns are wider than a picture, so
-  one edge or two always lie on it, in the clouds each strip's at its own scroll (not seen on a picture of the
-  original; where the edges lie on its screen at the start is not read).
+  start's heading, the line's (`SKY_MIDDLE`; an estimate, not confirmed: where the road vanishes on the original's
+  screen at the start is not read, nor BG0's scroll at a race's start, which a run of both programs to a race's start
+  would confirm). A turn of whole pictures has no seam of its own; a picture's last column does not continue into its
+  first as read (the clouds' differ in 32 to 71 of their 96 rows, neighbouring columns in 80 at most), so each layer
+  shows its picture's edge every 256 pixels, six a turn, one at the camera's centre at the start. The original's screen
+  shows that edge too: its tilemap holds a picture's copies side by side, at columns 0 and 32, and repeats after its 512
+  pixels, and its screen's 320 columns are wider than a picture, so one edge or two always lie on it, in the clouds each
+  strip's at its own scroll (not seen on a picture of the original; where the edges lie on its screen at the start is
+  not read).
 
 ## Its things
 
@@ -389,7 +391,7 @@ are [its bands](#its-bands), and the description that draws nothing (JAPAN's tun
   floats at its lowest colored row's height.
 - **Its pit lanes' things.** A record of command 4 lies within its lap's pit lanes ([Its pit lanes](#its-pit-lanes));
   the original puts its thing out only while the word 0x84590 is set (S 0xC27E), which the study reads as its car's
-  damage (not confirmed). They are placed whatever that word (default; K confirms at the stage's end: this game has no
+  damage (not confirmed). They are placed whatever that word (this game has no
   damage, so the other reading places none). Each stands 19.6 m left of P, beyond the pit lane's edge, and hits nothing
   the car can reach, so it has no body.
 - **Its bodies.** A thing whose description hits its own car has a body ([Chosen
@@ -400,16 +402,15 @@ are [its bands](#its-bands), and the description that draws nothing (JAPAN's tun
   parts are its posts (4.47 to 6.24 m either side of P), the innermost of any, the goal's its three barrels on the right
   (from 7.12 m), MONACO's tunnel's ends their mouths' left sides (from 5.84 m). Joined things have two parts at most.
   A thing hit while its car's slow crash is under way (bit 2 of 0x83572) is drawn no more (S 0x2DA6 to 0x2DC2); every
-  thing otherwise stands where it is hit, so each keeps its body as a fixed thing (default; K confirms at the stage's
-  end).
+  thing otherwise stands where it is hit, so each keeps its body as a fixed thing.
 - **Its checkpoints.** Each station holding a description of type 2 is a checkpoint gate at that station, its id the
-  course's and `-CP1` and on in order, as [the rule](original-road-data.md#9-sections-gates-limits-of-admission) places an
-  original's checkpoints (default; K confirms at the stage's end: the original sets its flag once the thing lies within
-  0x100 positions, 1.2 m, of its car, S 0x2B2A to 0x2B36 and 0x2D54, at any lateral). Each stands on a zone's line across
-  the road (7, or 2 in MONACO and JAPAN, [Its zones](#its-zones)) under its banner. Its time is the course's time
-  budgets'; the 0x12C the program then adds to the word 0x8458A (S 0x11CC), which the study reads as 30.0 s in tenths,
-  is not taken (not confirmed as time). The lap is cut at each ([A circuit laid
-  out](original-road-data.md#a-circuit-laid-out)).
+  course's and `-CP1` and on in order, as [the rule](original-road-data.md#9-sections-gates-limits-of-admission) places
+  an original's checkpoints (the original sets its flag once the thing lies within 0x100 positions, 1.2 m, of its car, S
+  0x2B2A to 0x2B36 and 0x2D54, at any lateral). Each stands on a zone's line across the road (7, or 2 in MONACO and
+  JAPAN, [Its zones](#its-zones)) under its banner. Its time is the course's time budgets'; the 0x12C the program then
+  adds to the word 0x8458A (S 0x11CC), which the study reads as 30.0 s in tenths, is not taken (an estimate, not
+  confirmed as time: a run of both programs past a checkpoint, the shown time read beside that word, would confirm it).
+  The lap is cut at each ([A circuit laid out](original-road-data.md#a-circuit-laid-out)).
 
 | Course  | Descriptions placed | Pictures placed (distinct) | With a body | Checkpoints, metres from the line |
 | ------- | ------------------- | -------------------------- | ----------- | --------------------------------- |
@@ -440,15 +441,14 @@ at its depth so that the nearer road hides it, as the original draws the road ov
   scaled, from their lateral outward, on the left 0x180 further left) are looping strips as they are (K, 2026-11-06):
   its picture its three columns from its lateral outward, its band beyond its outer edge alone, its outer column
   unmirrored. A side face hits as a thing (S 0x2B4A), so its picture has its body, its hit within its colored columns
-  ([Chosen lines](original-road-data.md#chosen-lines)), where its car can reach it (default; K confirms at the stage's
-  end: the rule's bands have no body, and a board extending sideways may carry none).
-- **A zone's side face.** For a zone of the kind its `cmpi.w` names, 0x8003 (S 0x2F28), the zone task (S 0x2E3C) draws
-  a side face (S 0x6CE0) of its own sprite, palette line, lateral and height (S 0x2F3E to 0x2F78), with no flags and no
+  ([Chosen lines](original-road-data.md#chosen-lines)), where its car can reach it (the rule's bands have no body, and a
+  board extending sideways may carry none).
+- **A zone's side face.** For a zone of the kind its `cmpi.w` names, 0x8003 (S 0x2F28), the zone task (S 0x2E3C) draws a
+  side face (S 0x6CE0) of its own sprite, palette line, lateral and height (S 0x2F3E to 0x2F78), with no flags and no
   hit, at the distance of its zone's end from the car, held at most a record's reach, and 0x3E8 positions nearer where
   that end lies within a nearer range (S 0x2EA2, 0x2EF6, 0x2F84 to 0x2F90). It is laid as a side face at its zone's end
-  less 0x3E8 positions, where the original draws it over that nearer range (default; K confirms at the stage's end: the
-  original draws it at its farthest ahead of the car while the end lies farther, which no board does),
-  `contcirc-zone-8003`.
+  less 0x3E8 positions, where the original draws it over that nearer range (the original draws it at its farthest ahead
+  of the car while the end lies farther, which no board does), `contcirc-zone-8003`.
 - **Ceilings** (type −1, S 0x6DCE: three columns 0x80 pixels apart on the screen at their full size on both axes, its
   top at its height, never hit) are bands across the road at the original's height (K, 2026-11-06): its picture its
   three columns from its lateral rightward, its bands both its outer column, the left one mirrored, with no body.
@@ -461,7 +461,7 @@ at its depth so that the nearer road hides it, as the original draws the road ov
   pieces](original-road-data.md#things-of-several-pieces)): laid again at equal steps from its station to its tunnel's
   end's (type 6), so fine that the eye at the player's height sees nothing through them (`passageSteps`), its opening the
   clear columns about its point on the ground (±5.86 m), the far edge the side faces the original draws there; its body
-  on its first step alone, its side faces' hits (default; K confirms at the stage's end: the stretch its tunnel's start
+  on its first step alone, its side faces' hits (the stretch its tunnel's start
   and end bound, where its dark road, the zone, lies 0x258 positions later). The things under it (0x3126E, 0x3128C,
   their lamps, 7.3 m either side of P) stand within its walls, beyond its opening, with their bodies.
 
@@ -486,3 +486,16 @@ near, as the original's do, is the replacement [the rule](original-road-data.md#
 `continental-circus-japan`), their crest trials, and their skies (`continental-circus-<course>-sky`) to
 `content/originals/images/`, with its things' pictures (`contcirc-<address>`, `contcirc-joined-<address>`) and its
 bands' (`-band`, `-band-mirrored`, `contcirc-zone-8003`) (its conversion's version 8).
+
+What was decided by default as its courses were raised is K's decision, accepted together (K, 2026-11-10): MONACO's
+ground, which the rule makes `WATER`, `SAND`, and its stripes' phase the race's first lap's ([Its courses
+laid](#its-courses-laid)); the rain's and the lightning's colors not drawn, on its road ([Its road's
+colors](#its-roads-colors)) and in its skies, whose pictures' copy at column 32 is not drawn either ([Its
+skies](#its-skies)); its pit lanes from their records' places less 0x2FD and their centres through every fourth sample
+([Its pit lanes](#its-pit-lanes)); its pit lanes' things placed whatever the word 0x84590, with no body, its things'
+bodies fixed, and its checkpoints at their things' stations ([Its things placed](#its-things-placed)); its side faces
+hit, its zone's side face at its zone's end less 0x3E8 positions, and JAPAN's bridge's body on its first step alone
+([Its bands](#its-bands)). Three readings are closed as estimates, not confirmed, each with what would confirm it where
+it is stated: its rises' resolution, 1.5 units a sample ([Its heights](#its-courses-laid)); its skies' facing at the
+start ([Their facing](#its-skies)); and the 0x12C its program adds at a checkpoint read as time ([Its
+checkpoints](#its-things-placed)).

@@ -582,9 +582,9 @@ export function topSpeedCourses(set: RomSet) {
     });
     const things = [...ownThings, ...bankThings, ...besideThings].sort((a, b) => a.s - b.s || a.lateral - b.lateral);
     // Its tunnels, where their walls hold the car (`limitStretches`): its road and its sky dark there, at once at
-    // their ends (default; K confirms at the stage's end).
+    // their ends (an estimate, not confirmed: the dark is taken over the walls).
     // Under an overpass the road is dark too, from its near deck, whose line begins the dark road, to its far
-    // deck, whose line ends it (S 0x1689E, M 0x3A0C); the sky is not (default; K confirms at the stage's end).
+    // deck, whose line ends it (S 0x1689E, M 0x3A0C); the sky is not (an estimate, not confirmed).
     const lines = placed[course]!.flatMap((t) => {
       const line = topSpeedThing(sub, t.index).line;
       return line && t.lateral === P ? [{ s: back + t.record * RECORD_METRES + t.ahead * POSITION_METRES, line }] : [];

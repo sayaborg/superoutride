@@ -70,7 +70,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s close, TA-18 next once K confirms its defaults; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s close, TA-18; later [Stage
 BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -480,7 +480,7 @@ K's decisions (2026-11-05):
   sky turns as the original's does. One turn is the width over which that layer's picture goes round once, not its tile
   layer's 512 pixels (K, 2026-11-06). TOP SPEED's farthest layer, its picture 128 columns of 8 pixels (1,024), turns by
   128 less the curve's class, as its car drifts, half a pixel a unit a record, giving radii of 64.6 to 118 m (167 m in
-  E and 211 m in G; default, K confirms at the stage's end: a quarter of the earlier reading, which TA-10 read again
+  E and 211 m in G; K, 2026-11-10: a quarter of the earlier reading, which TA-10 read again
   from the instructions). CHASE H.Q.'s, the upper band of its second tile layer, 144 rows, its picture 96 columns (768
   pixels), turns 160 pixels over a divisor a record, read as its table stands: the divisor is the class up to 8, holds
   at 20 from 32 to 48 and above 40 mirrors itself about 40, as the table itself does, which a course meets only in
@@ -550,7 +550,7 @@ K's decisions (2026-11-05):
   2026-11-08). Each course has a car grid and a bike grid by [the grid's rule](original-road-data.md#the-grid) (K,
   2026-11-05). CHASE H.Q. and TOP SPEED stand their own car alone at GO, CHASE H.Q.'s at its stage's start in its
   rightmost lane (e, d in stage 5) and TOP SPEED's 1.82 m (0x260) into its first section in lane d, where its run before
-  GO stops, the 147.5 m read before being where that run starts (default; K confirms at the stage's end), its place the
+  GO stops, the 147.5 m read before being where that run starts (K, 2026-11-10), its place the
   front slot and the general form behind it, the road laid on back before the stage's start; CONTINENTAL CIRCUS stands
   its own car on its road's centre 3.7 m before the line and, as far as the study read, no rival, which TA-15 reads
   further. A tick is its board's frames a second (`FRAMES_A_SECOND`) over the frames its program's loop takes, as every
@@ -578,16 +578,14 @@ K's decisions (2026-11-05):
   CIRCUS's heights are a 3D road in its ROMs times one factor that keeps its steepest grade within `GRADE_LIMIT` (0.570,
   SPAIN's steepest grade 0.438 at 1 and its lens ratio 0.902, the one step twice its neighbours' in three hill shapes
   laid as their mean; K, 2026-11-10), its lap closed by taking the lap's mean from its
-  grades, as FINAL LAP 2's is. A closed road's cells are its lap over the whole number of them nearest 10 m, a cell any
-  fraction of positions: TA-15 changes `closedCellPositions` so, reports how FINAL LAP 2's cells (now 11.3 to 13.0 m)
-  would change, and K decides whether they do (K, 2026-11-06).
+  grades, as FINAL LAP 2's is.
 - **Materials.** CHASE H.Q.'s and TOP SPEED's road is `ASPHALT`, its drawn surface and edge bands, as ENDURO RACER's
   road is its own; CHASE H.Q.'s dirt road (a record's byte 4 of 6) `DIRT`, its surface and edge bands. The ground's
   material is read from its color, left and right of the road, by ENDURO RACER's rule (`groundMaterial`, moved to the
   shared rules): `GRASS` where green is its strongest channel, `WATER` where blue is, `SAND` otherwise, changing where
   the ground's color changes on its side. Where CHASE H.Q.'s program starts to slow the car (1.22 m beyond the drawn
   edge) is no boundary of materials, its chapter stating it as the original's fact. A ground not water that the rule
-  makes `WATER` (a bluish grey of a town's ground) is `SAND` (default; K confirms at the stage's end). CONTINENTAL
+  makes `WATER` (a bluish grey of a town's ground) is `SAND` (K, 2026-11-10). CONTINENTAL
   CIRCUS's materials are CHASE H.Q.'s: its road and edge bands `ASPHALT`, its ground by `groundMaterial` from its color
   (K, 2026-11-09); that an F1 car is not slowed on grass, as POLE POSITION II shows, is mended on the vehicles' and
   materials' side, not in Stage TA.
@@ -598,8 +596,8 @@ passes before each TA PR. Each original's skies come before its courses, as ever
 
 Stage TA's PRs follow one another without stopping at each, and K is reported to once an original: CHASE H.Q. after
 TA-8, TOP SPEED after TA-11 and CONTINENTAL CIRCUS after TA-16, TA-13 and TA-14 among its PRs. What K would decide is
-decided by default and marked so in the chapters and here, and K confirms the defaults together at the stage's end,
-before TA-18 (K, 2026-11-09).
+decided by default (K, 2026-11-09); K accepted the defaults together, and closed as estimates, not confirmed, those the
+chapters write so (K, 2026-11-10).
 
 CHASE H.Q.'s defaults, each in [its chapter](chase-hq-road-data.md): its tunnels dark over their records (an estimate a
 run of both programs would confirm); its dirt road one color; the road not taken's roads in the TC0150ROD's order with
