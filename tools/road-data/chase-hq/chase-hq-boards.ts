@@ -18,6 +18,7 @@ import { partsOnGrid, pictureParts } from '../shared/sprite-rules.js';
 import { rgb555Of } from '../taito/palette.js';
 import { BIG_SPRITE, zBigSprite } from '../taito/z-sprites.js';
 import { PIXEL_ASPECT } from '../taito/z-system-display.js';
+import { CHASE_HQ_CHUNK_ROWS } from './chase-hq-rom.js';
 import { chaseHqThings, type ChaseHqPiece } from './chase-hq-things.js';
 
 /** The largest picture the course format admits (`imageMasterTexels`). */
@@ -57,7 +58,7 @@ function drawing(main: Uint8Array, sprites: Sprites, pixel: number) {
   const colors = startColors(main);
   const drawn = new Map<number, Uint8Array>();
   const pensOf = (p: ChaseHqPiece) => {
-    if (!drawn.has(p.sprite)) drawn.set(p.sprite, zBigSprite(sprites.gfx, sprites.map, p.sprite));
+    if (!drawn.has(p.sprite)) drawn.set(p.sprite, zBigSprite(sprites.gfx, sprites.map, p.sprite, CHASE_HQ_CHUNK_ROWS));
     const pens = drawn.get(p.sprite)!;
     return Uint8Array.from({ length: pens.length }, (_, at) => {
       const [x, y] = [at % BIG_SPRITE, Math.floor(at / BIG_SPRITE)];

@@ -86,7 +86,8 @@ holds and links the section here that states its rule; this is their one map.
   and its pixel's aspect (`z-system-display`), its road generator's lines (`tc0150rod`: a tile's edge line and body line of pens, the edges
   outward from their middle) and its tile layers (`tc0100scn`: a tile's pens from the tile ROM's words, and the layer
   the chip draws at the bottom by its control word 6, every pen its color, the other over it, its pen 0 transparent)
-  and its sprites (`z-sprites`: a sprite's 16 × 16 tiles from its four ROMs, laid by the spritemap, at its full size).
+  and its sprites (`z-sprites`: a sprite's tiles from its four ROMs, 16 pixels across and its board's rows down, 16 on
+  CHASE H.Q.'s and 8 on CONTINENTAL CIRCUS's, laid by the spritemap, at its full size).
 - **Each original** (`outrun/`, `super-hang-on/`, `turbo-outrun/`, `enduro-racer/`, `pole-position-ii/`, `final-lap-2/`,
   `chase-hq/`, `top-speed/`, `continental-circus/`): its modules, one role a suffix ([An original's
   modules](#an-originals-modules)). CHASE H.Q.'s (`chase-hq/`) are its main and sub programs' and tile, road and sprite

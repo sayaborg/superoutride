@@ -1,6 +1,6 @@
 import { programImage } from '../cpu/program-words.js';
 import { tileGraphics } from '../taito/tc0100scn.js';
-import { zSpriteGraphics } from '../taito/z-sprites.js';
+import { zSpriteGraphics, type ChunkRows } from '../taito/z-sprites.js';
 import type { RomSet, RomSource } from '../shared/rom-set.js';
 
 /** Where CHASE H.Q.'s ROMs come from: MAME's `chasehq` ([Development](../../../docs/development.md#road-data-commands)). */
@@ -56,6 +56,9 @@ export const CHASE_HQ_SPRITE_ROMS = Object.freeze([
 
 /** The spritemap ROM: each sprite's chunks' tile codes, 16-bit words little-endian. */
 export const CHASE_HQ_SPRITE_MAP_ROM = Object.freeze({ name: 'b52-38.34', size: 0x80000, crc: 0x5b5bf7f6 });
+
+/** A sprite's chunks' rows: tiles of 16 × 16 pixels, 8 × 8 chunks a sprite (MAME's `chasehq`). */
+export const CHASE_HQ_CHUNK_ROWS: ChunkRows = 16;
 
 /** The sprites' 128 × 128 pictures' tiles from the ROM set, as the chip reads them, and the spritemap. */
 export const assembleChaseHqSprites = (set: RomSet) => ({
