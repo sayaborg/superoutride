@@ -493,7 +493,7 @@ K's decisions (2026-11-05):
   pieces' bodies its parts, by [Things of several pieces](original-road-data.md#things-of-several-pieces) (NM-15b; K,
   2026-11-06). TOP SPEED puts a thing out as one description of pieces at one station, its courses placing 60 of them,
   of 8 pieces at most (its descriptions of up to 24 are placed by none); CHASE H.Q. as one list of 1 to 45; and
-  CONTINENTAL CIRCUS's 1,343 placements of 3,869 join into one picture each, its start gantry of nine pieces the
+  CONTINENTAL CIRCUS's 74 placements of 3,881 join into 28 things, one picture each, its start gantry of nine pieces the
   largest. A piece the original draws at a zoom fixed in one axis or both (TOP SPEED's placements of types 1 to 3) is
   laid at the thing's full size, where every piece is a pixel a pixel; that the original's thing changes shape as it is
   drawn smaller is a replacement that cannot be avoided, its chapter's, as [the rule](original-road-data.md#things-of-several-pieces)

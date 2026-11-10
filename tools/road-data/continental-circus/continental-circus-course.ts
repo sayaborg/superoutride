@@ -3,7 +3,7 @@
  * its conversion, each course a lap on its model ([Original road data](../../../docs/original-road-data.md#a-lap-on-its-model)),
  * K's course sources' circuit the original drew, laid from its curve table of records of their own lengths by the
  * shared `circuit-layout`: its heights its 3D road's, its road across its picture's, striped by its banks, its sky its
- * bands'.
+ * bands', its things its descriptions' pictures and bodies, its checkpoints theirs.
  */
 import { leastLaneRadius as laneRadius } from '../../../src/course/plan-clearance.js';
 import { courseModel } from '../shared/course-models.js';
@@ -33,7 +33,16 @@ import {
   continentalCircusSky,
   SKY_MIDDLE,
 } from './continental-circus-backgrounds.js';
-import { continentalCircusLap, curveTable, POSITION_METRES } from './continental-circus-road.js';
+import {
+  COMMAND,
+  continentalCircusLap,
+  curveTable,
+  POSITION_METRES,
+  type LapRecord,
+} from './continental-circus-road.js';
+import { continentalCircusBoards, stationThings } from './continental-circus-boards.js';
+import { assembleContinentalCircusSprites } from './continental-circus-sprites.js';
+import { continentalCircusThings, THING_TYPE } from './continental-circus-things.js';
 import { carLimit, continentalCircusRoadPicture, SCREEN_ROWS, UP } from './continental-circus-road-picture.js';
 import { BANK_PERIOD, continentalCircusRoadColors, GROUP, stripeBank } from './continental-circus-road-colors.js';
 import { lapHills, lapRises, SAMPLE_POSITIONS, type Rises } from './continental-circus-heights.js';
@@ -47,7 +56,7 @@ import {
 } from './continental-circus-rom.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 3;
+export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 4;
 
 /** The conversion's course ids, by the program's course numbers. */
 export const COURSE_IDS = CONTINENTAL_CIRCUS_COURSES.map((name) => `continental-circus-${name.toLowerCase()}`);
@@ -293,6 +302,25 @@ function heightsReport(profile: Profile, length: number) {
   };
 }
 
+/** The commands that place a thing (S 0xC112, 0xC27E, 0xC19E). */
+const THING_COMMANDS: readonly number[] = [COMMAND.thing, COMMAND.pitThing, COMMAND.finishThing];
+
+/**
+ * A lap's things ([Its things placed](../../../docs/continental-circus-road-data.md#its-things-placed)): each station's
+ * descriptions, the records of one running position in their order, a pit lane's thing (command 4) only within its
+ * lap's pit lanes (`pits`), which the original places only while its word 0x84590 is set (S 0xC27E), here always
+ * (default; K confirms at the stage's end).
+ */
+function lapThings(records: readonly LapRecord[], pits: readonly PitLane[], name: string) {
+  const stations = new Map<number, number[]>();
+  for (const r of records.filter((x) => THING_COMMANDS.includes(x.command))) {
+    if (r.command === COMMAND.pitThing && !pits.some((p) => r.at >= p.from && r.at <= p.to))
+      throw contractUnmet(`${name}'s pit lane's thing at ${r.at} lies in no pit lane`);
+    stations.set(r.at, [...(stations.get(r.at) ?? []), r.argument]);
+  }
+  return [...stations].map(([at, addresses]) => ({ at, addresses }));
+}
+
 /** CONTINENTAL CIRCUS's courses, from the ROM set: each one's document, crest trials and report. */
 export function continentalCircusCourses(set: RomSet) {
   const [main, sub, tiles] = [
@@ -310,6 +338,11 @@ export function continentalCircusCourses(set: RomSet) {
   const unit = lateral * UP;
   const limit = carLimit(sub) * pixelMetres;
   const outputs = new OriginalOutputs();
+  // Its things: each lap's stations' descriptions, each joined thing one picture, drawn once for all its courses, a
+  // pixel its own car's line's at its full size; its side faces and ceilings are bands, not among them.
+  const sprites = assembleContinentalCircusSprites(set);
+  const described = continentalCircusThings(sub);
+  const joined = stationThings(sub, sprites, pixelMetres);
   // Each course's lap on its model, its stations, and its heights at factor 1.
   const laps = COURSE_IDS.map((id, c) => {
     const lap = continentalCircusLap(sub, c);
@@ -325,8 +358,21 @@ export function continentalCircusCourses(set: RomSet) {
     const pits = lapPitLanes(sub, lap);
     if (pits.some((p) => lapZoneList.some((z) => z.from < p.to && z.to > p.from)))
       throw contractUnmet(`${name}'s zone lies in a pit lane`);
-    return { id, c, name, lap, laid, station, heights, inputs, zones, pits };
+    const things = lapThings(lap.records, pits, name).map((t) => ({ ...t, things: joined(t.addresses) }));
+    return { id, c, name, lap, laid, station, heights, inputs, zones, pits, things };
   });
+  const keyOf = (addresses: readonly number[]) => addresses.join('+');
+  const boards = new Map(
+    continentalCircusBoards(
+      main,
+      sub,
+      sprites,
+      laps.flatMap((l) => l.things.flatMap((t) => t.things)),
+      pixelMetres,
+      lateral,
+    ).map((b) => [keyOf(b.addresses), b]),
+  );
+  for (const b of boards.values()) outputs.file(b.image.path, b.image.bytes);
   // The grades' factor, one for the eight: the lens ratio, its eye's rows at a distance over its screen's, within the
   // grade limit by the steepest grade any course reaches at factor 1.
   const steepest = Math.max(...laps.map((l) => steepestGrade(profileOf(l.heights.bends, [], l.heights.kinks))));
@@ -337,7 +383,7 @@ export function continentalCircusCourses(set: RomSet) {
   const roadBGroups = roadB(main).map((w) => attributeOf(w).group);
   const levels = pitLaneLevels(main, attributes.openWords);
   const pitDeparts = Math.max(...laps.flatMap((l) => l.pits.map((p) => profileDeparts(p.samples))), 0);
-  const courses = laps.map(({ id, c, name, lap, laid, station, heights, inputs, zones, pits }) => {
+  const courses = laps.map(({ id, c, name, lap, laid, station, heights, inputs, zones, pits, things }) => {
     const { length, scale, report } = laid;
     const pieces = curvePlan(laid.intervals, scale);
     const model = inputs.model;
@@ -455,6 +501,25 @@ export function continentalCircusCourses(set: RomSet) {
       ground: groundIs,
     };
     const start = station(lap.length - lap.start) - length;
+    // Its things at their stations, each its picture at its point, with its body; its checkpoints the stations of its
+    // descriptions of type 2 (default; K confirms at the stage's end: the original sets its flag as the car comes
+    // within 0x100 positions of it, S 0x2B2A to 0x2B36, 0x2D54).
+    const objects = things.flatMap((t) =>
+      t.things.map((addresses) => {
+        const board = boards.get(keyOf(addresses))!;
+        return {
+          s: station(t.at),
+          lateral: board.lateral,
+          height: board.groundOffset,
+          image: board.name,
+          palette: board.palette,
+          body: board.body,
+        };
+      }),
+    );
+    const checkpoints = things
+      .filter((t) => t.addresses.some((a) => described(a).type === THING_TYPE.checkpoint))
+      .map((t, k) => ({ id: `${id}-CP${k + 1}`, s: station(t.at) }));
     const course = layCourse({
       id,
       name,
@@ -471,7 +536,8 @@ export function continentalCircusCourses(set: RomSet) {
       startLine: [],
       // The facing layer's column at the camera's centre at the start's heading, the line's.
       skyYawOrigin: skyYawOrigin(SKY_MIDDLE, PICTURE_WIDTH),
-      objects: [],
+      objects,
+      checkpoints,
       limits,
       lane: halfMetres,
       leastLaneRadius: laneRadius(halfMetres),
@@ -506,6 +572,15 @@ export function continentalCircusCourses(set: RomSet) {
         to: round1(knots.at(-1)![0]),
         farthest: round3(-Math.min(...knots.map(([, x]) => x))),
       })),
+      // Its things: its descriptions placed, its pictures placed and distinct, those with a body, and its
+      // checkpoints, metres from the line.
+      things: {
+        placements: things.reduce((n, t) => n + t.things.flat().length, 0),
+        pictures: objects.length,
+        distinct: new Set(objects.map((o) => o.image)).size,
+        bodies: objects.filter((o) => o.body).length,
+        checkpoints: checkpoints.map((k) => round1(k.s)),
+      },
       startFromLine: round3(-start),
       gridFromLine: [course.grid[0]!, course.grid.at(-1)!].map((slot) => round3(length - slot.s)),
       heights: {
@@ -528,6 +603,12 @@ export function continentalCircusCourses(set: RomSet) {
     report: {
       laps: LAPS,
       lateralMetres: Number(lateral.toPrecision(5)),
+      // Its things' pictures: how many, those joined of several descriptions, and the most body parts one has.
+      pictures: {
+        count: boards.size,
+        joined: [...boards.values()].filter((b) => b.addresses.length > 1).length,
+        mostParts: Math.max(...[...boards.values()].map((b) => b.body?.length ?? 0)),
+      },
       heightUnitMetres: Number(unit.toPrecision(5)),
       limit: round3(limit),
       // Road B, the pit lane: its half width, its lines, and the most its knots depart from its profile, metres.

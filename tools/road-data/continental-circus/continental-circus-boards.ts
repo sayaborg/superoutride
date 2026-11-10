@@ -104,13 +104,27 @@ export function stationThings(sub: Uint8Array, sprites: ContinentalCircusSprites
   };
 }
 
+/** A picture's colored columns, pixels from its left edge: its first holding a pen other than 0 and past its last. */
+function coloredOf(width: number, pens: Uint8Array) {
+  let [from, to] = [Infinity, -Infinity];
+  pens.forEach((v, at) => {
+    if (v) [from, to] = [Math.min(from, at % width), Math.max(to, (at % width) + 1)];
+  });
+  return [from, to] as const;
+}
+
 /**
  * The things' pictures as boards, a pixel `pixel` metres across and `UP` times that down, from the main and the sub
  * programs and `sprites`: one each distinct thing of `things` (each a station's descriptions, `stationThings`),
  * standing on the ground where a piece reaches it, else floating at its lowest colored row's height (`groundOffset`,
  * metres); its base point a description's point, or the middle of its outer edges where several are joined, at
- * `lateral` metres from the road's centre. With its colored columns from its point (metres on its image, right
- * positive), its width, how many colors it drew and the share of its pixels whose color another took.
+ * `lateral` metres from the road's centre, its first description's lateral and height as the program holds them, a
+ * lateral unit `lateralMetres` and a unit up `UP` of it, the picture about them as laid at its full size. Its body
+ * (`body`, null where none): each description that hits its own car a part, the range of the car's centre it hits at
+ * most its own picture's colored columns, metres on its image right of its point ([Chosen
+ * lines](../../../docs/original-road-data.md#chosen-lines), K, 2026-11-06). With its colored columns from its point
+ * (metres on its image, right positive), its width, how many colors it drew and the share of its pixels whose color
+ * another took.
  */
 export function continentalCircusBoards(
   main: Uint8Array,
@@ -118,6 +132,7 @@ export function continentalCircusBoards(
   sprites: ContinentalCircusSprites,
   things: readonly (readonly number[])[],
   pixel: number,
+  lateralMetres: number,
 ) {
   const d = drawing(sub, sprites, pixel);
   const colors = spriteColors(main);
@@ -146,25 +161,37 @@ export function continentalCircusBoards(
       );
       const grid = partsOnGrid(source, parts, texels.across, texels.down);
       if (grid.width * grid.height > MASTER_TEXELS) throw contractUnmet(`${name} is larger than imageMasterTexels`);
-      const lateral =
-        addresses.length === 1 ? d.things(addresses[0]!).lateral * pixel : laid.left + (source.width * pixel) / 2;
+      const first = d.things(addresses[0]!);
+      const lateral = addresses.length === 1 ? first.lateral * pixel : laid.left + (source.width * pixel) / 2;
       const point = (lateral - laid.left) / pixel;
       const anchor = { x: (point * grid.width) / source.width - 0.5, y: grid.anchorY };
       const master = namedBoardMaster(name, grid, grid.indices, anchor, joined.palettes);
-      let [from, to] = [Infinity, -Infinity];
-      source.pixels.forEach((v, at) => {
-        if (v) [from, to] = [Math.min(from, at % source.width), Math.max(to, (at % source.width) + 1)];
-      });
+      const [from, to] = coloredOf(source.width, source.pixels);
       // A source column's metres on the image's grid.
       const across = grid.width / source.width / SPRITE_SOURCE_TEXELS_PER_METER;
+      // Each hit's range, pixels from the road's centre, within its description's own colored columns.
+      const body = addresses.flatMap((address) => {
+        const t = d.things(address);
+        if (!t.hit || !t.pieces.length) return [];
+        const alone = d.laidOf(name, [address]);
+        const [c0, c1] = coloredOf(alone.width, alone.pens).map((c) => alone.left / pixel + c);
+        const [a, b] = [Math.max(t.lateral + t.hit.from, c0!), Math.min(t.lateral + t.hit.to, c1!)];
+        return b > a ? [{ across: ((a + b) / 2 - lateral / pixel) * across, width: (b - a) * across }] : [];
+      });
+      // Its point as the program holds its first description's, from its point at its full size.
+      const shift = {
+        lateral: first.units.lateral * lateralMetres - first.lateral * pixel,
+        up: (first.height * pixel - first.units.height * lateralMetres) * UP,
+      };
       return {
         addresses,
         name,
-        lateral,
+        lateral: lateral + shift.lateral,
         pieces: laid.places.length,
         palette: joined.palettes[0]!.name,
         colored: [(from - point) * across, (to - point) * across] as const,
-        groundOffset: stands ? 0 : (ground - source.height + 1) * pixel * UP,
+        body: body.length ? body : null,
+        groundOffset: stands ? 0 : (ground - source.height + 1) * pixel * UP + shift.up,
         width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
         distinct: joined.distinct,
         replaced: joined.replaced,

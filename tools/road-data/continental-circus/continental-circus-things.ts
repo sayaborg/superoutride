@@ -56,15 +56,18 @@ export interface ContinentalCircusPiece {
 }
 
 /**
- * A description: its address and type, its lateral (pixels at its full size from the road's centre, right positive),
- * its pieces in the order the sprite list draws them, the first over those after it, whether a side face lies behind
- * the road, and the range of its own car's centre it hits (pixels from the thing's lateral, right positive, `from` <
+ * A description: its address and type, its lateral and its height as the program holds them (`units`, lateral units,
+ * right and down positive), its lateral and height at its full size (pixels, whole as the program divides them), its
+ * pieces in the order the sprite list draws them, the first over those after it, whether a side face lies behind the
+ * road, and the range of its own car's centre it hits (pixels from the thing's lateral, right positive, `from` <
  * `to`), null where none (its type a ceiling's, or a range beyond the car's reach).
  */
 export interface ContinentalCircusThing {
   readonly address: number;
   readonly type: number;
+  readonly units: { readonly lateral: number; readonly height: number };
   readonly lateral: number;
+  readonly height: number;
   readonly pieces: readonly ContinentalCircusPiece[];
   readonly behindRoad: boolean;
   readonly hit: { readonly from: number; readonly to: number } | null;
@@ -170,7 +173,9 @@ function readDescription(sub: Uint8Array, address: number, unitPixels: number, r
   return Object.freeze({
     address,
     type,
+    units: Object.freeze({ lateral: lateralUnits, height: heightUnits }),
     lateral,
+    height,
     pieces: Object.freeze(pieces),
     behindRoad: type === THING_TYPE.sideFace && !!(flags & BEHIND_ROAD),
     hit: hits ? Object.freeze({ from: from - lateral, to: to - lateral }) : null,

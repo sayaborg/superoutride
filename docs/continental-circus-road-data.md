@@ -77,13 +77,14 @@ units a position (40.9 in MONACO and JAPAN).
 `continental-circus-course` raises the eight (`continental-circus-brazil` to `continental-circus-japan`), each named by
 its course's name (BRAZIL to JAPAN; the course format admits 21 characters a name, so CONTINENTAL CIRCUS BRAZIL is the
 course texts'), each its lap on its model laid by [a circuit laid out](original-road-data.md#a-circuit-laid-out) from its
-line: 3,291.1 m (MEXICO) to 6,789.1 m (GERMANY), 18 to 39 pieces, 2 Sections (3 in MONACO and JAPAN). A lap's position
-lies at its record's interval's place on the lap as laid ([Places and
-patterns](original-road-data.md#places-and-patterns)). Its things ([Its things](#its-things)) are read and not laid yet.
+line: 3,291.1 m (MEXICO) to 6,789.1 m (GERMANY), 18 to 39 pieces, cut at its checkpoints, 2 Sections (3 in BRAZIL,
+AMERICA and JAPAN). A lap's position lies at its record's interval's place on the lap as laid ([Places and
+patterns](original-road-data.md#places-and-patterns)). Its things stand there ([Its things placed](#its-things-placed)).
 
 - **Its race.** One lap (`LAPS`): the lap's one thing of type 3 sets the goal flag (S 0x2B8A to 0x2BF8), on which the
   main program stops the time (M 0x1E7E). That thing stands where the car starts, 800 positions before the line; the
-  course's finish is its line, as every circuit's is.
+  course's finish is its line, as every circuit's is. Its checkpoints are its things of type 2 ([Its things
+  placed](#its-things-placed)).
 - **Its start.** The race stands its own car at running position 0: the stream task sets the pinhole to 0x7BD4 (S
   0xC098), the car 0x42B ahead of it, and lays a record 0x7FFF past its running position (S 0xC0F0). The line's record
   lies at running position 800 in every course (`continentalCircusLap`'s start), so the car stands on its road's centre
@@ -351,10 +352,61 @@ placements are bands; one description (JAPAN's tunnel's end, 0x312AA) draws noth
 of two descriptions and 9 of four, the start gantry of 9 pieces the largest, each course's own banner over its
 line, and JAPAN's bridge of 8; so its laps draw 149 pictures, 130 descriptions alone and 19 joined, of 22 colors at
 most, 7 of them past 15 (`joinedColors`). 72 of them lie 1 or 2 pixels (2 to 5 cm) clear of the ground, their sprites' lowest rows clear, and so
-float by [the rule's](original-road-data.md#pictures-from-the-extract) pixel; 22 float higher. None is placed yet.
+float by [the rule's](original-road-data.md#pictures-from-the-extract) pixel; 22 float higher.
+
+### Its things placed
+
+`continental-circus-course` places each lap's things but its bands, its side faces and ceilings, which are bands fixed
+on the screen (TA-16c), and the description that draws nothing (JAPAN's tunnel's end, 0x312AA):
+
+- **Its place.** Each station's descriptions, the records of one running position (commands 2, 4 and 7), at its
+  station on the lap as laid ([Places and patterns](original-road-data.md#places-and-patterns)), the station's
+  things each one picture (`stationThings`, `continentalCircusBoards`): a description alone at its lateral and height,
+  a joined thing at its first description's and the middle of its outer edges from that description's point as laid at
+  its full size. A lateral unit is the road's half width over 0x40000, 22.90 µm, right positive, and a unit of height
+  15/14 of it, up negative, as its heights' (`UP`); its picture stands on the ground where a piece reaches it, else
+  floats at its lowest colored row's height.
+- **Its pit lanes' things.** A record of command 4 lies within its lap's pit lanes ([Its pit lanes](#its-pit-lanes));
+  the original puts its thing out only while the word 0x84590 is set (S 0xC27E), which the study reads as its car's
+  damage (not confirmed). They are placed whatever that word (default; K confirms at the stage's end: this game has no
+  damage, so the other reading places none). Each stands 19.6 m left of P, beyond the pit lane's edge, and hits nothing
+  the car can reach, so it has no body.
+- **Its bodies.** A thing whose description hits its own car has a body ([Chosen
+  lines](original-road-data.md#chosen-lines)): of each such description a part, the range of the car's centre it hits
+  ([Its hit](#its-things)), which does not hold the car's width, at most that description's picture's colored columns
+  (K, 2026-11-06), its middle from the picture's point. Every type but a ceiling hits so: a thing (1), a checkpoint (2),
+  the goal (3) and a tunnel's start and end (5, 6), each then as a thing. None lies across the road: the checkpoint's
+  parts are its posts (4.47 to 6.24 m either side of P), the innermost of any, the goal's its three barrels on the right
+  (from 7.12 m), MONACO's tunnel's ends their mouths' left sides (from 5.84 m). Joined things have two parts at most.
+  A thing hit while its car's slow crash is under way (bit 2 of 0x83572) is drawn no more (S 0x2DA6 to 0x2DC2); every
+  thing otherwise stands where it is hit, so each keeps its body as a fixed thing (default; K confirms at the stage's
+  end).
+- **Its checkpoints.** Each station holding a description of type 2 is a checkpoint gate at that station, its id the
+  course's and `-CP1` and on in order, as [the rule](original-road-data.md#9-sections-gates-limits-of-admission) places an
+  original's checkpoints (default; K confirms at the stage's end: the original sets its flag once the thing lies within
+  0x100 positions, 1.2 m, of its car, S 0x2B2A to 0x2B36 and 0x2D54, at any lateral). Each stands on a zone's line across
+  the road (7, or 2 in MONACO and JAPAN, [Its zones](#its-zones)) under its banner. Its time is the course's time
+  budgets'; the 0x12C the program then adds to the word 0x8458A (S 0x11CC), which the study reads as 30.0 s in tenths,
+  is not taken (not confirmed as time). The lap is cut at each ([A circuit laid
+  out](original-road-data.md#a-circuit-laid-out)).
+
+| Course  | Descriptions placed | Pictures placed (distinct) | With a body | Checkpoints, metres from the line |
+| ------- | ------------------- | -------------------------- | ----------- | --------------------------------- |
+| BRAZIL  | 520                 | 513 (40)                   | 373         | 1,680.6, 3,144.2                  |
+| AMERICA | 528                 | 521 (41)                   | 379         | 1,017.5, 2,878.6                  |
+| FRANCE  | 737                 | 733 (33)                   | 427         | 1,436.9                           |
+| MONACO  | 415                 | 409 (48)                   | 387         | 1,872.2                           |
+| GERMANY | 369                 | 365 (46)                   | 214         | 2,792.1                           |
+| SPAIN   | 575                 | 569 (43)                   | 389         | 1,978.5                           |
+| MEXICO  | 370                 | 365 (39)                   | 262         | 1,449.9                           |
+| JAPAN   | 367                 | 360 (43)                   | 239         | 2,066.0                           |
+
+So its laps place 3,881 descriptions, 59 of them its pit lanes', as 3,835 pictures, 74 descriptions joined into 28
+things, of 149 pictures in all; 2,670 have a body, of 2,694 parts.
 
 ## Its conversion
 
 `continental-circus-course` writes the eight courses to `content/originals/courses/` (`continental-circus-brazil` to
 `continental-circus-japan`), their crest trials, and their skies (`continental-circus-<course>-sky`) to
-`content/originals/images/` (its conversion's version 3).
+`content/originals/images/`, with its things' pictures (`contcirc-<address>`, `contcirc-joined-<address>`) (its
+conversion's version 4).
