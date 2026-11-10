@@ -611,7 +611,7 @@ TOP SPEED's defaults, each in [its chapter](top-speed-road-data.md): GO 1.82 m i
 by the turn the instructions give, its radii 64.6 to 211 m; its cloud picture changed at a tunnel's change record; its
 raster words' bits as MAME's description reads them; its road not taken's slide and its fork's gap measured at the nearest
 line; its tunnels' road and sky dark over their walls, an overpass's road alone under its decks;
-and its cloud banks and GOAL gate not placed.
+and its GOAL gate not placed.
 
 CONTINENTAL CIRCUS's defaults, each in [its chapter](continental-circus-road-data.md): its rises at 1.5 units a sample;
 its stripes' phase the race's first lap's; the rain's and the lightning's colors not drawn, on its road and in its skies;
@@ -1004,6 +1004,9 @@ Left by the stages that raised them, beside what follows:
   the same driver. Its ARCADE TRIBUTE series runs its originals for now (K, 2026-11-10): the TESTAROSSA's reference
   runs recover 9 to 16 times a road, and outrun-a's ends off the pavement past its GOAL, so its class has no clock
   until the driver is mended; then its product courses, its vehicles and the original's traffic.
+- TOP SPEED: its cloud banks' rows and size by their distance (each is a band across the road of one height and one
+  size; the original lays it on the screen by its own curve, behind the ground): a picture laid on the screen by its
+  distance to a station ([Its cloud banks](top-speed-road-data.md#its-things)).
 - SUPER HANG-ON: its ARCADE TRIBUTE series runs its originals for now, with VFR750Rs until the GP machines are made
   (K, 2026-11-10); its product courses, its vehicles, the turbo, sounds and race music, the mini ride-on cabinets'
   courses (their programs are encrypted), the ending's motion (its last frame alone stands; when the motion is made,

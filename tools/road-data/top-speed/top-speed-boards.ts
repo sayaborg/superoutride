@@ -101,12 +101,13 @@ export function topSpeedBoards(
 }
 
 /**
- * The descriptors' pieces across the view (their type 5, at screen columns) as bands across the road
+ * The descriptors' pieces across the view (`across`: by default their type 5, at screen columns) as bands across the road
  * ([Strips](../../../docs/original-road-data.md#strips)), a pixel `pixel` metres across and down: each descriptor's such
  * pieces drawn once at their full size, laid by their screen columns, its middle the thing's lateral, and beyond its
  * edges its band, the columns of its last piece, a board extending right and its mirror left, all cut from one grid
  * (`bandBoards`), floating at its lowest colored row's height (`groundOffset`, metres), the bands `rise` metres higher
- * where their last row lies above it; the names the picture's and `-band`, `-band-mirrored`.
+ * where their last row lies above it; the names the picture's and `-band`, `-band-mirrored`. A band whose picture's
+ * own edges are ragged (`clear`: a cloud bank's) keeps its clear texels.
  */
 export function topSpeedBands(
   main: Uint8Array,
@@ -114,6 +115,8 @@ export function topSpeedBands(
   gfx: Uint8Array,
   indices: readonly number[],
   pixel: number,
+  across: (piece: TopSpeedPiece) => boolean = (p) => p.type === SCREEN_WIDE,
+  clear = false,
 ) {
   const palettes = thingPalettes(main);
   const texels = texelsAPixel(pixel, PIXEL_ASPECT);
@@ -122,7 +125,7 @@ export function topSpeedBands(
     .map((index) => {
       const name = `${thingName(index)}-across`;
       const thing = topSpeedThing(sub, index);
-      const pieces = thing.pieces.filter((p) => p.type === SCREEN_WIDE);
+      const pieces = thing.pieces.filter(across);
       if (!pieces.length) throw contractUnmet(`${name} has no piece across the view`);
       const map = topSpeedSpriteMap(main, sub, thing.load ? [thing.load] : []);
       const pensOf = (p: TopSpeedPiece) => {
@@ -169,6 +172,8 @@ export function topSpeedBands(
         (edges[0] + edges[1]) / 2,
         texels,
         joined.palettes,
+        'both',
+        clear,
       );
       return {
         index,

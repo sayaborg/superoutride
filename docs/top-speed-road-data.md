@@ -296,8 +296,32 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   tunnel's ceiling above its right mouth) are a band across the road at its lateral, floating at their height, its
   last piece's columns extended outward each way (`topSpeedBands`, `topspeed-<index>-across`). A descriptor with no
   piece places no picture: a gate's right half, which holds its right post's hit alone ([Its hit](#its-things)). The
-  cloud banks a record's byte 7 sets behind the ground (S 0x6BB0) are not placed, nor the GOAL gate it stands 12.3 m past the run's end on the next stage's records
-  (default; K confirms at the stage's end).
+  GOAL gate it stands 12.3 m past the run's end on the next stage's records is not placed (default; K confirms at
+  the stage's end).
+
+- **Its cloud banks** (K, 2026-11-10). A record's byte 7, on every record but a tunnel's, puts out a thing at P at its
+  pattern's offsets, its code 0xBF and the byte's low 5 bits and the camera's color set, with the bit that draws it
+  under every other thing (S 0x6BB0 to 0x6BDE): the courses' byte 0x80 a bank every 0x1000 positions (12.3 m), each in
+  its color set's colors (descriptors 132 to 141; the courses' 134, 138, 140 and 141), over the 23 records (565.1 m)
+  from the second stage's tenth record on every course and 6 to 46 records more in the fourth and fifth stages of all
+  but D: 80, 126, 58, 46, 74, 92 and 138 banks on A to G. A bank is tied to the road and is no part of the sky: four
+  pieces of a fixed width side by side, 512 pixels across the screen about the road's place at its distance (S 0x166BA
+  to 0x166CA, 0x16A30), from 0x8000 positions (98.3 m) ahead. A course lays each as a band across the road at its
+  station, at P, with no body ([Strips](original-road-data.md#strips)): its picture its four pieces at the thing's
+  full size, a pixel a pixel as the standing things' are, 16.9 m by 4.2 m, and beyond each edge its outer piece, its
+  ragged edges' clear texels kept (`topSpeedBands`, `topspeed-<index>-across`), in the descriptor of the camera's
+  color set as it is put out. It is held 7.38 m over the road (`topHeldHeight`), where the original holds its bottom
+  as its size curve (S 0x1AC4A) first draws it at its full size, 0xD40 positions (10.2 m) ahead: its head's byte 6
+  bit 5 counts its rows from the screen's top, its bottom's word 0x18 − h, h its curve's height there, 62 (S 0x16698,
+  0x1670A); a standing thing's there, on the road's line at that distance, is 0x85 − n + 1 + d + d / 2, d its curve's
+  height there × n / 128 and n the road's lines, 0x58 (S 0x166DE to 0x166FE, M 0x2D02); the 112 rows between them are
+  each 128 / 64 of a standing thing's pixel at its zoom there, 224 pixels of 32.9 mm. Two replacements cannot be
+  avoided. The original's bank changes its rows and its size with its distance by its own curve, where a board keeps
+  one height and one size: read through the eye's 266 pixels, its bottom lies 8.1 m over the eye at 98.3 m and 2.4 m
+  at 6.1 m, and it is 1.1 m high at 98.3 m and 6.2 m at 24.6 m, so that the sky fills with cloud from just over the
+  horizon upward as each bank nears. And the original draws it behind the road's layers, over the sky alone (its
+  pieces' byte 7 bit 7, as MAME's description reads it; not confirmed), and under every other thing, where a board is
+  drawn at its depth.
 
 - **Beside a road not taken.** From the camera's record 27 of a section the record five ahead of it is the next
   section's, at a fork each of its two next sections' (S 0x65DC, 0x675C to 0x6784): the original puts out both
@@ -335,4 +359,4 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
-pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 15).
+pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 16).

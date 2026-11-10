@@ -167,6 +167,19 @@ export function thingPalettes(main: Uint8Array): (line: number) => readonly numb
   return (line) => Array.from({ length: PENS }, (_, pen) => rgb555Of(words[line * PENS + pen]!));
 }
 
+/** Size curve `curve`'s rows in the sub program: the table at S 0x16468 by a head's byte 9 (S 0x1664E to 0x1665C). */
+function curveRows(sub: Uint8Array, curve: number): number {
+  const [high, low] = instruction(
+    sub,
+    0x1664e,
+    [0x4df9, null, null, 0x182b, 0x0009, 0x0244, 0x001c],
+    'the size curves (lea)',
+  );
+  instruction(sub, 0x1666e, [0x1e36, 0x4000, 0x3c36, 0x4002], "a row's zoom and factor (move.b, move.w $2)");
+  const table = high * 0x10000 + low;
+  return word(sub, table + 4 * curve) * 0x10000 + word(sub, table + 4 * curve + 2);
+}
+
 /** A size curve's rows, 4 bytes each, one each 64 positions of distance less than 0x8000 (S 0x16660 to 0x1666A). */
 const CURVE_ROWS = 0x200;
 /** The zoom at which a big sprite is drawn at its full size. */
@@ -179,16 +192,33 @@ const FULL = 0x7f;
  * nearest row's that has it, a sprite's pixel is a screen pixel.
  */
 export function pixelLaterals(sub: Uint8Array, curve: number): number {
-  const [high, low] = instruction(
-    sub,
-    0x1664e,
-    [0x4df9, null, null, 0x182b, 0x0009, 0x0244, 0x001c],
-    'the size curves (lea)',
-  );
-  instruction(sub, 0x1666e, [0x1e36, 0x4000, 0x3c36, 0x4002], "a row's zoom and factor (move.b, move.w $2)");
-  const table = high * 0x10000 + low;
-  const rows = word(sub, table + 4 * curve) * 0x10000 + word(sub, table + 4 * curve + 2);
+  const rows = curveRows(sub, curve);
   for (let r = CURVE_ROWS - 1; r >= 0; r--)
     if (sub[rows + 4 * r] === FULL) return 0x10000 / word(sub, rows + 4 * r + 2);
   throw romDiffers(`TOP SPEED's size curve ${curve} draws no sprite at its full size`);
+}
+
+/**
+ * How far over the road a thing counted from the screen's top (its head's byte 6 bit 5: a cloud bank) holds its bottom
+ * where its size curve `curve` first draws it at its full size, in the standing things' pixels at their full size: its
+ * bottom's word there is 0x18 less its row's height (S 0x16698, 0x1670A); a thing of curve `standing` there, whose
+ * bottom is the road's line at that distance, has 0x85 − n + 1 + d + d / 2, d its row's height × n / 128 and n the
+ * road's lines, 0x58 (S 0x166DE to 0x166FE, M 0x2D02); the rows between them are its height over the road, each
+ * 128 / (the standing row's zoom + 1) of those pixels.
+ */
+export function topHeldHeight(main: Uint8Array, sub: Uint8Array, curve: number, standing: number): number {
+  const [rows, ground] = [curveRows(sub, curve), curveRows(sub, standing)];
+  instruction(sub, 0x16694, [0x1036, 0x4001], "a row's height (move.b $1)");
+  instruction(sub, 0x16698, [0x082b, 0x0005, 0x0006, 0x6702, 0x4440], 'counted from the top (btst #5, neg.w)');
+  const [top] = instruction(sub, 0x1670a, [0x343c, null, 0xd440], "the top's word (move.w, add.w)");
+  const [base] = instruction(sub, 0x166de, [0x343c, null, 0x362d, 0x9074], "a standing thing's word (move.w)");
+  instruction(sub, 0x166f2, [0xc1c3, 0xee80, 0x2600, 0xe280, 0xd083, 0x5240], 'its drop (muls, asr #7, half more, 1)');
+  const [lines] = instruction(main, 0x2d02, [0x33fc, null, 0x0040, 0x1074], "the road's lines (move.w)");
+  let row = 0;
+  while (row < CURVE_ROWS && sub[rows + 4 * row] !== FULL) row++;
+  if (row === CURVE_ROWS) throw romDiffers(`TOP SPEED's size curve ${curve} draws no sprite at its full size`);
+  const drop = (lines * sub[ground + 4 * row + 1]!) >> 7;
+  const road = base - lines + 1 + drop + (drop >> 1);
+  const held = top - sub[rows + 4 * row + 1]!;
+  return ((road - held) * (FULL + 1)) / (sub[ground + 4 * row]! + 1);
 }

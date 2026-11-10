@@ -42,6 +42,8 @@ export interface TopSpeedPlacement {
   readonly water?: 'left' | 'right';
   /** Whether it is a roadside thing flat on the ground (its type 0x1F), drawn beneath the others. */
   readonly flat?: boolean;
+  /** A cloud bank: a band across the view, counted from the screen's top. */
+  readonly bank?: true;
 }
 
 /** A section's records. */
@@ -106,6 +108,13 @@ function tables(sub: Uint8Array) {
     gantryOdd: instruction(sub, 0x6b86, [0x0642, null], "an odd section's gantry (addi.w)")[0],
     gantryPattern: instruction(sub, 0x6b94, [0x363c, null], "a gantry's pattern's row (move.w)")[0],
     posts: instruction(sub, 0x7808, [0x0641, null], "a gantry's posts (addi.w)")[0],
+    bank: instruction(
+      sub,
+      0x6bb4,
+      [0x0242, 0x001f, 0x08c2, 0x000f, 0x48c2, 0x0682, 0x00ff, null, 0xd46d, 0x911a],
+      "a bank's code, by the color set (andi.w #$1f, bset #15, addi.l, add.w)",
+    )[0],
+    bankLateral: instruction(sub, 0x6bd0, [0x3c3c, null], "a bank's lateral (move.w)")[0],
     centre7: instruction(sub, 0x5982, [0x2c3c, null, null], "bit 7's lane's centre (move.l)")[0],
   };
 }
@@ -132,6 +141,9 @@ export function topSpeedPlacements(sub: Uint8Array) {
   instruction(sub, 0x69b6, [0x0446, LANE, 0xe21b], 'a lane in from the right (subi.w, ror.b)');
   instruction(sub, 0x69d0, [0x0646, LANE, 0xe31b], 'a lane in from the left (addi.w, rol.b)');
   instruction(sub, 0x7738, [0x203c, 0x0100, 0x0100], "a box's least (move.l #$1000100)");
+  instruction(sub, 0x6bc8, [0x0243, 0x00e0, 0xe443], "a bank's pattern's row (andi.w #$e0, asr.w #2)");
+  for (const at of [0x6a12, 0x6a5a, 0x6b12, 0x6b72, 0x6ba4])
+    instruction(sub, at, [0x6100, 0x6bb0 - at - 2], "a record's bank, but a tunnel's (bsr)");
   const t = tables(sub);
   const indexOf = (code: number) => sub[t.indices + (code & 0xfff)]!;
   const box = (index: number) => {
@@ -248,6 +260,13 @@ export function topSpeedPlacements(sub: Uint8Array) {
         for (const ahead of offsets(t.waterPattern >> 3))
           out.push({ code, index: indexOf(code), ahead, lateral, hit: null, water: side });
       }
+    // A cloud bank by its byte 7 on every record but a tunnel's (S 0x6BB0): its code by the byte's low 5 bits and the
+    // color set, its pattern the byte's top 3 bits, at P, met by no car.
+    if (record.event !== TUNNEL) {
+      const code = 0x8000 | (t.bank + (record.parameter & 0x1f) + colorSet);
+      for (const ahead of offsets(record.parameter >> 5))
+        out.push({ code, index: indexOf(code), ahead, lateral: t.bankLateral, hit: null, bank: true });
+    }
     // A gantry at the lanes' middle, met at its two posts from either side.
     if (record.event === GANTRY) {
       const middle = (leftmost(record.mask, t.centre7) + rightmost(record.mask, t.centre7 + 7 * LANE)) / 2;

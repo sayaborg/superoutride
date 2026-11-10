@@ -103,3 +103,9 @@ Read statically; MAME's driver (commit 9c0b6db1) for the hardware alone.
 - A thing that only bumps a car sets bit 5 of the car's byte 5 (S 0x7AF2), as a tunnel's wall does (S 0x7604, 0x7620).
   The bit is tested at S 0x146AC and 0x14702, where the words written to the board's outputs are made, and no other
   test of it was found; what they drive is not read.
+- A record's byte 7 puts out a cloud bank at P (S 0x6BB0), a thing of four pieces of a fixed width whose head counts
+  its rows from the screen's top (byte 6 bit 5: the builder negates its curve's height, S 0x16698, and adds it to 0x18,
+  S 0x1670A, skipping the crest's test). Its curve (S 0x1AC4A) grows its zoom about 2.1 to 2.4 times the standing
+  things' at a distance and moves it across by about a tenth of theirs, so that it follows the road's shift at its
+  distance and hardly the car's lateral. That its pieces' priority bit shows them over the sky alone, and its rows'
+  place on the screen (a sprite's last row 114 below its word on the visible screen), are MAME's description's.

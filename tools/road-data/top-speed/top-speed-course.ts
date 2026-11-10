@@ -66,7 +66,7 @@ import { assembleTopSpeedMain, assembleTopSpeedSub, assembleTopSpeedTiles } from
 import { topSpeedBands, topSpeedBoards, waterColors } from './top-speed-boards.js';
 import { branchRecords, topSpeedPlacements, type TopSpeedHit } from './top-speed-objects.js';
 import { assembleTopSpeedSprites, BIG_SPRITE } from './top-speed-sprites.js';
-import { FIXED_WIDTH, pixelLaterals, SCREEN_WIDE, topSpeedThing } from './top-speed-things.js';
+import { FIXED_WIDTH, pixelLaterals, SCREEN_WIDE, topHeldHeight, topSpeedThing } from './top-speed-things.js';
 import {
   COURSES,
   courseSections,
@@ -77,7 +77,7 @@ import {
   TOP_SPEED,
 } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 15;
+export const TOP_SPEED_CONVERSION_VERSION = 16;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -314,6 +314,23 @@ export function topSpeedCourses(set: RomSet) {
     ).map((b) => [b.index, b]),
   );
   for (const b of bands.values()) for (const image of b.images) outputs.file(image.path, image.bytes);
+  // Its cloud banks: each descriptor's four pieces of a fixed width a band across the road, its picture's ragged edges
+  // kept, held over the road where the original holds its bottom as it first draws it at its full size.
+  const bankBands = new Map(
+    topSpeedBands(
+      main,
+      sub,
+      sprites,
+      [...new Set(spawned.flat().flatMap((p) => (p.bank ? [p.index] : [])))],
+      pixel,
+      (p) => p.type === FIXED_WIDTH,
+      true,
+    ).map((b) => [
+      b.index,
+      { ...b, held: topHeldHeight(main, sub, topSpeedThing(sub, b.index).curve, STANDING_CURVE) * pixel },
+    ]),
+  );
+  for (const b of bankBands.values()) for (const image of b.images) outputs.file(image.path, image.bytes);
   for (const b of boards.values()) outputs.file(b.image.path, b.image.bytes);
   const skies = new Set<string>();
   const courses = Array.from({ length: COURSES }, (_, course) => {
@@ -427,6 +444,25 @@ export function topSpeedCourses(set: RomSet) {
         sprites: spritesOf(t.shown, (colored) => bodyOf(t.hit, lateral, metresAcross, colored, t.posts)),
       };
     });
+    // Its cloud banks, each a band across the road at P, with no body.
+    const bankThings = spawned[course]!.flatMap((p) => {
+      const band = p.bank && bankBands.get(p.index);
+      return band
+        ? [
+            {
+              s: back + p.record * RECORD_METRES + p.ahead * POSITION_METRES,
+              lateral: (p.lateral - P) * metresAcross,
+              sprites: band.names.map((image, k) => ({
+                image,
+                palette: band.palette,
+                lateral: 0,
+                groundOffset: band.held + band.groundOffset + (k ? band.rise : 0),
+                body: null,
+              })),
+            },
+          ]
+        : [];
+    });
     const at = (s: number) => s - back;
     // Its plan: the start's heading laid on back straight, then its records turned as its horizon band turns.
     const pieces = [
@@ -528,7 +564,7 @@ export function topSpeedCourses(set: RomSet) {
         }
       return [...runs.values()];
     });
-    const things = [...ownThings, ...besideThings].sort((a, b) => a.s - b.s || a.lateral - b.lateral);
+    const things = [...ownThings, ...bankThings, ...besideThings].sort((a, b) => a.s - b.s || a.lateral - b.lateral);
     // Its tunnels, where their walls hold the car (`limitStretches`): its road and its sky dark there, at once at
     // their ends (default; K confirms at the stage's end).
     // Under an overpass the road is dark too, from its near deck, whose line begins the dark road, to its far
@@ -950,6 +986,11 @@ export function topSpeedCourses(set: RomSet) {
       length: round3(length),
       goal: round3(goal - go),
       sections: laid.spans.length,
+      // Its cloud banks, and how far over the road each is held, metres.
+      banks: {
+        count: bankThings.length,
+        held: [...new Set(bankThings.map((t) => round3(t.sprites[0]!.groundOffset)))],
+      },
       // Its gates, each its two posts' hits one body.
       gates: placed[course]!.filter((t) => t.posts.length).length,
       // The things beside its roads not taken, their water's runs, those the car could reach within its limits, and
@@ -959,6 +1000,7 @@ export function topSpeedCourses(set: RomSet) {
         things: besideThings.length,
         water: besideFlats.flat().filter((w) => w.open).length,
         patches: besideFlats.flat().filter((w) => !w.open).length,
+        banks: besideBranches[course]!.flat().filter((p) => p.bank).length,
         reached,
         clear: round3(clear),
       },
