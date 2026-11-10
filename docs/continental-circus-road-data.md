@@ -78,7 +78,7 @@ its course's name (BRAZIL to JAPAN; the course format admits 21 characters a nam
 course texts'), each its lap on its model laid by [a circuit laid out](original-road-data.md#a-circuit-laid-out) from its
 line: 3,291.1 m (MEXICO) to 6,789.1 m (GERMANY), 18 to 39 pieces, 2 Sections (3 in MONACO and JAPAN). A lap's position
 lies at its record's interval's place on the lap as laid ([Places and
-patterns](original-road-data.md#places-and-patterns)). Its things (TA-16) and its pit lanes (TA-15g) are not laid yet.
+patterns](original-road-data.md#places-and-patterns)). Its things (TA-16) are not laid yet.
 
 - **Its race.** One lap (`LAPS`): the lap's one thing of type 3 sets the goal flag (S 0x2B8A to 0x2BF8), on which the
   main program stops the time (M 0x1E7E). That thing stands where the car starts, 800 positions before the line; the
@@ -133,9 +133,10 @@ JAPAN's two passages where it crosses itself (2,466.1 m and 4,962.4 m) lie at 5.
   lap's (default; K confirms at the stage's end: the original's lap is no whole number of periods, so each later lap
   shifts its stripes).
 - **Its zones.** Each a place's colors over its stretch ([Its zones](#its-zones)).
+- **Its pit lanes.** Each road B beside road A as two roads, not driven ([Its pit lanes](#its-pit-lanes)).
 - **Its limits.** Its program's ([The ground beside the road](original-road-data.md#the-ground-beside-the-road)): the
-  road task holds the car's x within ±0x3C000 (S 0x2856 to 0x287A, the right bound widened by the pit lane's word, 0
-  on open road), x moving the road's k-th line from the screen's bottom by (0x86 − k) × x / 0x10000 pixels (S 0x26A8
+  road task holds the car's x within ±0x3C000 (S 0x2856 to 0x287A, the bound on its pit lanes' side widened by the
+  pit lane's word, 0 on open road, which is not laid, as a pit lane is not driven), x moving the road's k-th line from the screen's bottom by (0x86 − k) × x / 0x10000 pixels (S 0x26A8
   to 0x26EC, 0x2770 to 0x279C), its own car's line the first past the 40 near lines (`carLimit`): 0x10000 of x is 94
   pixels there, its own car's width, and its limits lie 352.5 pixels, 8.06 m, either side of P (that its car's line is
   the first far line is read from the lines' counts, not confirmed).
@@ -220,6 +221,52 @@ A zone (command 5, S 0xC28A) gives a line's parts other words over its stretch (
 
 Each lap's first, at 0, is its line; a line's 96 positions lie 0.18 to 0.79 m as laid, as its interval's place is laid.
 
+### Its pit lanes
+
+A pit lane (command 3, S 0xC25E) is road B, the TC0150ROD's second road, drawn beside road A as [two
+roads](original-road-data.md#two-roads) where the original draws it and not driven, of no material, as this game has no
+damage to mend there (K, 2026-11-06) (`continental-circus-pit-lanes`):
+
+- **Its stretch.** Its record starts the task S 0x119CA, which starts its profile at the picture's pinhole + 0x7D02
+  (S 0x119CE to 0x119D8), the pinhole at the record's running position, as in the limit of a slow car (default; K
+  confirms at the stage's end: a faster car starts it up to its frame's step later), so at its record's place less
+  0x2FD; it ends as the pinhole passes 0x14D03 past that (S 0x119E4), its nearest line (0x2FC, the distances at S
+  0x3102) then at the profile's last position. So it lies over 0x15000 positions (86,016) from its start, from its
+  start's station to its end's on the lap as laid. None crosses the line or holds a zone. Every line writes road B,
+  which with no pit lane lies under road A's left half, its outer edge on road A's, and is not drawn.
+- **Its place.** Each line's road B word (its line buffer's +4) is the long at S 0x11A98 by (the line's place − the
+  start) over 32, of 2,688, over the line's distance, 0 outside them (S 0x119DC to 0x11A34): lateral units, 0 to
+  550,000. The main program writes road B's word 2 as road A's with that word and w / 2 added and its half width w / 2,
+  w road A's half width there (M 0x4E40 to 0x4E56, 0x4E9A to 0x4EA6): its centre lies its half width and its profile
+  from road A's, under road A at its ends and 14.56 m from P at most, on the side whose word 2 is the greater, the left
+  by MAME's description, as the curves' sign is, which the laps on their models bear out, and the side on which the
+  road task widens its car's bound (S 0x285C; not seen on a picture of the original). Its centre is a Boundary through
+  every fourth sample at its first position, read straight between as its heights are (`KNOT_SAMPLES`; default, K
+  confirms at the stage's end: 673 knots, within the format's 1,024 a Boundary), departing from its samples read
+  straight between by 0.8 mm at most; a lateral unit is the road's half width over 0x40000.
+- **Its picture.** Its tile w + 0x200 (M 0x4EAA) at its own car's line, its pixels at its half width's share: its
+  half width 2.80 m, its body pen 0 (a body draws its pen 0, MAME's description) with two lines of pen 2 from 0.648 to
+  0.713 of its half width (1.81 to 2.00 m) either side of its centre; its edges' bands road A's, outward from its
+  half width.
+- **Its colors.** Its edges' words carry no attributes, B 0, and draw no ground beyond them; its body's 0x8800, B 1 (M
+  0x4E60): each piece in its group's colors by its place as road A's, a place's colors over its stretch, at once at
+  its ends, as [its zones](#its-zones) are.
+- **Its order.** Road A's body word carries its priority bit (0xA800) and road B's words none, so that road A's body
+  with its lines lies over road B, road B's edges over road A's edges, road A's at a tie (`tc0150rodLevels`, MAME's
+  description; not seen on a picture of the original): each piece of road B's picture where it shows (`shownPieces`)
+  is a Strip between its sides, on road A's edges or road B's Boundary, cut where the arrangement changes.
+
+| Course  | Its pit lanes, metres from the line                    |
+| ------- | ------------------------------------------------------ |
+| BRAZIL  | 530.5 to 813.7, 1,950.0 to 2,161.5, 3,351.9 to 3,575.1 |
+| AMERICA | 1,047.3 to 1,358.7, 3,773.0 to 4,104.2                 |
+| FRANCE  | 576.5 to 917.8, 1,663.0 to 1,911.7                     |
+| MONACO  | 1,908.2 to 2,100.0                                     |
+| GERMANY | 2,044.1 to 2,524.5, 5,011.5 to 5,409.5                 |
+| SPAIN   | 709.3 to 891.3, 2,508.6 to 2,699.0                     |
+| MEXICO  | 1,210.8 to 1,319.9                                     |
+| JAPAN   | 1,613.9 to 1,971.5                                     |
+
 ## Its skies
 
 CONTINENTAL CIRCUS's sky is three bands on its two tile layers ([research notes](research/continental-circus.md#the-sky)),
@@ -253,4 +300,4 @@ each course its own, set once at the race's start and not changed along it (`con
 
 `continental-circus-course` writes the eight courses to `content/originals/courses/` (`continental-circus-brazil` to
 `continental-circus-japan`), their crest trials, and their skies (`continental-circus-<course>-sky`) to
-`content/originals/images/` (its conversion's version 2).
+`content/originals/images/` (its conversion's version 3).

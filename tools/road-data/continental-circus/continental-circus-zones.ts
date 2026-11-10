@@ -20,7 +20,7 @@ export interface Attribute {
   readonly ground: boolean;
 }
 
-const attributeOf = (w: number): Attribute => ({ group: (w >> 11) & 3, ground: (w & 0x8000) !== 0 });
+export const attributeOf = (w: number): Attribute => ({ group: (w >> 11) & 3, ground: (w & 0x8000) !== 0 });
 
 /**
  * The sub program's attribute words of a line, by their offsets in its line buffer, as the main program ORs them into
@@ -35,7 +35,8 @@ const [KINDS_TABLE, NEXT_LINE] = [0x3092, 0x30ee];
 const KINDS = 8;
 
 /**
- * A zone's attributes by its kind: open road's words (S 0x26EE to 0x26FA, its edges' and its body's groups `GROUP`'s),
+ * A zone's attributes by its kind: open road's words (S 0x26EE to 0x26FA, its edges' and its body's groups `GROUP`'s,
+ * and the words themselves),
  * each part a kind's handler sets in its line buffer (S 0x3092 to 0x30EE) taking its word, `move.w #word` or `clr.w`
  * (word 0), the rest kept. The handler is the table's word at S 0x3092 + twice the kind, from S 0x3092 (S 0x3088 to
  * 0x308E), the kind doubled as a word so that its bit 15 (0x8003, 0x8007) drops.
@@ -72,6 +73,8 @@ export function zoneAttributes(main: Uint8Array, sub: Uint8Array) {
   });
   return {
     open: Object.freeze(open),
+    /** Open road's words as the TC0150ROD takes them: its left edge's, its right edge's and its body's (words 0 to 2). */
+    openWords: Object.freeze([left, right, body] as const),
     of: (kind: number) => {
       const k = kind & 0x7fff;
       if (k >= KINDS) throw romDiffers(`Zone kind 0x${kind.toString(16)} lies beyond its table`);

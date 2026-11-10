@@ -551,7 +551,7 @@ at a lap's stations, cut at its Sections' borders ([its road surface](final-lap-
 boards, each on the road or at its height above it; its sky, facing by the road's turn from the course's start; its finish at its line, and its start gate in the
 Section returning to it by [the grid](#the-grid), each slot within its limits, a slot in a lane at its lane's centre;
 and a surface's Strip may reach beyond the road, its ground's second shade as far as its limits, or follow a line
-along the lap, a Boundary in each Section it reaches.
+along the lap (CONTINENTAL CIRCUS's pit lanes), a Boundary in each Section it reaches.
 
 ### Places and patterns
 
@@ -914,8 +914,9 @@ road A wins (MAME's description; another part's bit, its level not read, is refu
 beneath another's paint, each piece of each road's picture that shows (`shownPieces`) is where that road is drawn
 alone. Each line and band shown is a Strip between
 two features' edges held to lanes, or to a road laid where it passes, its edges on Boundaries (`compositeOf`,
-OUTRUN's and CHASE H.Q.'s roads not taken), cut where the arrangement changes (`arrangements`: every edge is straight
-between the lines' knots, the roads' ends and the road not taken's whole positions or its table's steps, so the
+OUTRUN's and CHASE H.Q.'s roads not taken; `shownPieces`, CONTINENTAL CIRCUS's pit lanes), cut where the arrangement
+changes (`arrangements`: every edge is straight between the lines' knots, the roads' ends and the road not taken's
+whole positions, its table's steps or a pit lane's knots, so the
 arrangement changes only where two edges cross,
 solved exactly from their lines; one shorter than a micrometre along P, which the format cannot write, joins the one
 before it), an end where it narrows to nothing drawn in to where it is 10 µm wide (`THIN`,

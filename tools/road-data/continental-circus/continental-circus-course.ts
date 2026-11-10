@@ -16,12 +16,16 @@ import { curvePlan, type CurveInterval } from '../shared/curve-plan.js';
 import { CoursePath } from '../shared/course-path.js';
 import { OriginalOutputs, round1, round3, type Conversion } from '../shared/conversion.js';
 import { layCourse } from '../shared/circuit-layout.js';
-import { romDiffers } from '../shared/conversion-errors.js';
+import { contractUnmet, romDiffers } from '../shared/conversion-errors.js';
 import { groundMaterial } from '../shared/ground-material.js';
 import { bakeSky, skyYawOrigin } from '../shared/sky-baking.js';
 import { riseProfile } from '../shared/rise-profile.js';
 import { bendOf, profileOf, withinRise, type Bend, type Kink, type Profile } from '../shared/road-profile.js';
 import type { Band, Material, SurfacePart, SurfaceStrip } from '../shared/road-surface.js';
+import { arrangements, drawnIntervals, shownPieces, type FeatureEdge, type RoadPicture } from '../shared/two-roads.js';
+import { straightThrough } from '../shared/piecewise-linear.js';
+import { micrometre } from '../shared/section-writing.js';
+import type { Lateral } from '../../../src/course/course-document.js';
 import { lensFactor, steepestGrade } from '../shared/screen-pieces.js';
 import {
   CONTINENTAL_CIRCUS_COURSES,
@@ -33,7 +37,8 @@ import { continentalCircusLap, curveTable, POSITION_METRES } from './continental
 import { carLimit, continentalCircusRoadPicture, SCREEN_ROWS, UP } from './continental-circus-road-picture.js';
 import { BANK_PERIOD, continentalCircusRoadColors, GROUP, stripeBank } from './continental-circus-road-colors.js';
 import { lapHills, lapRises, SAMPLE_POSITIONS, type Rises } from './continental-circus-heights.js';
-import { lapZones, zoneAttributes, type Attribute, type LinePart } from './continental-circus-zones.js';
+import { attributeOf, lapZones, zoneAttributes, type Attribute, type LinePart } from './continental-circus-zones.js';
+import { lapPitLanes, pitLaneLevels, PROFILE_POSITIONS, roadB, type PitLane } from './continental-circus-pit-lanes.js';
 import {
   assembleContinentalCircusMain,
   assembleContinentalCircusSub,
@@ -42,7 +47,7 @@ import {
 } from './continental-circus-rom.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 2;
+export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 3;
 
 /** The conversion's course ids, by the program's course numbers. */
 export const COURSE_IDS = CONTINENTAL_CIRCUS_COURSES.map((name) => `continental-circus-${name.toLowerCase()}`);
@@ -98,6 +103,70 @@ const LAPS = 1;
 const RISE_RESOLUTION = 1.5;
 /** The road's material, its body, its lines and its edges' bands (K, 2026-11-09). */
 const ROAD: Material = 'ASPHALT';
+/**
+ * A pit lane's profile's samples a knot: every fourth, the profile read straight between its samples as its heights
+ * are, so that a pit lane's knots lie within the format's 1,024 a Boundary (default; K confirms at the stage's end).
+ */
+const KNOT_SAMPLES = 4;
+
+/** A road's picture across, left to right: each piece's sides, metres from its centre, its part of a line and its pen. */
+interface PictureAcross {
+  readonly halfMetres: number;
+  readonly bodyPen: number;
+  readonly lines: readonly { readonly from: number; readonly to: number; readonly pen: number }[];
+  readonly left: readonly { readonly from: number; readonly to: number; readonly pen: number }[];
+  readonly right: readonly { readonly from: number; readonly to: number; readonly pen: number }[];
+}
+
+/** A road's pieces across, left to right: its left edge's bands, its body between and under its lines, its right's. */
+function piecesAcross(picture: PictureAcross) {
+  const { halfMetres, bodyPen, lines } = picture;
+  const piece = (from: number, to: number, part: LinePart, pen: number) => ({ from, to, part, pen });
+  return [
+    ...[...picture.left].sort((a, b) => a.from - b.from).map((b) => piece(b.from, b.to, 'left', b.pen)),
+    piece(-halfMetres, lines[0]!.from, 'body', bodyPen),
+    ...lines.flatMap((line, k) => [
+      piece(line.from, line.to, 'body', line.pen),
+      piece(line.to, lines[k + 1]?.from ?? halfMetres, 'body', bodyPen),
+    ]),
+    ...[...picture.right].sort((a, b) => a.from - b.from).map((b) => piece(b.from, b.to, 'right', b.pen)),
+  ];
+}
+
+/** Pieces across as two roads' picture takes them: each its left side and paint, then the outside. */
+const roadPicture = (pieces: ReturnType<typeof piecesAcross>, bodyPen: number): RoadPicture => [
+  ...pieces.map((p) => ({
+    at: p.from,
+    right: p.part !== 'body' ? ('edge' as const) : p.pen === bodyPen ? ('surface' as const) : ('line' as const),
+  })),
+  { at: pieces.at(-1)!.to, right: 'outside' },
+];
+
+/**
+ * A pit lane's centre, metres right of P, at its knots on the lap as laid (`station`): road B's centre lies its half
+ * width `half` and its profile (`lateral` metres a unit) left of road A's, every `KNOT_SAMPLES`th sample's at its first
+ * position, its last its profile's end, where it is 0.
+ */
+function pitLaneKnots(pit: PitLane, station: (p: number) => number, half: number, lateral: number) {
+  const count = pit.samples.length;
+  const at = Array.from({ length: Math.ceil(count / KNOT_SAMPLES) }, (_, k) => k * KNOT_SAMPLES);
+  return [...at, count].map((k) => {
+    const p = pit.from + k * PROFILE_POSITIONS;
+    return [station(p), micrometre(-(half + (pit.samples[k] ?? 0) * lateral))] as [number, number];
+  });
+}
+
+/** The most a profile read straight between its knots departs from it read straight between its samples, units. */
+function profileDeparts(samples: readonly number[]) {
+  const value = (k: number) => samples[k] ?? 0;
+  let most = 0;
+  for (let k = 0; k < samples.length; k++) {
+    const k0 = k - (k % KNOT_SAMPLES);
+    const k1 = Math.min(k0 + KNOT_SAMPLES, samples.length);
+    most = Math.max(most, Math.abs(value(k0) + ((value(k1) - value(k0)) * (k - k0)) / (k1 - k0) - value(k)));
+  }
+  return most;
+}
 
 /**
  * Where a lap position lies on the lap as laid, metres from its line ([Places and
@@ -250,15 +319,25 @@ export function continentalCircusCourses(set: RomSet) {
     const table = curveTable(sub, lap);
     const station = lapStations(table, laid.intervals);
     const heights = lapProfile(lapRises(lapHills(main, lap)), station, laid.length, unit, laid.length / lap.length);
-    const zones = lapZones(sub, lap).map((z) => ({ kind: z.kind, from: station(z.from), to: station(z.to) }));
-    return { id, c, name, lap, laid, station, heights, inputs, zones };
+    const lapZoneList = lapZones(sub, lap);
+    const zones = lapZoneList.map((z) => ({ kind: z.kind, from: station(z.from), to: station(z.to) }));
+    // Its pit lanes, road A's words in them open road's: no zone lies in one.
+    const pits = lapPitLanes(sub, lap);
+    if (pits.some((p) => lapZoneList.some((z) => z.from < p.to && z.to > p.from)))
+      throw contractUnmet(`${name}'s zone lies in a pit lane`);
+    return { id, c, name, lap, laid, station, heights, inputs, zones, pits };
   });
   // The grades' factor, one for the eight: the lens ratio, its eye's rows at a distance over its screen's, within the
   // grade limit by the steepest grade any course reaches at factor 1.
   const steepest = Math.max(...laps.map((l) => steepestGrade(profileOf(l.heights.bends, [], l.heights.kinks))));
   const focalRows = POSITION_METRES / unit;
   const factor = lensFactor(focalRows, SCREEN_ROWS, steepest);
-  const courses = laps.map(({ id, c, name, lap, laid, station, heights, inputs, zones }) => {
+  // Road B, the pit lane: its picture, its parts' groups as the main program writes its words, and the two roads' order.
+  const pitLane = picture.pitLane;
+  const roadBGroups = roadB(main).map((w) => attributeOf(w).group);
+  const levels = pitLaneLevels(main, attributes.openWords);
+  const pitDeparts = Math.max(...laps.flatMap((l) => l.pits.map((p) => profileDeparts(p.samples))), 0);
+  const courses = laps.map(({ id, c, name, lap, laid, station, heights, inputs, zones, pits }) => {
     const { length, scale, report } = laid;
     const pieces = curvePlan(laid.intervals, scale);
     const model = inputs.model;
@@ -284,16 +363,8 @@ export function continentalCircusCourses(set: RomSet) {
       const runs = runsOf(attributes.open[part].group, pen);
       return { from, to, part, pen, runs, base: mostColor(runs) };
     };
-    const lines = picture.lines;
-    const across = [
-      ...[...picture.left].sort((a, b) => a.from - b.from).map((b) => pieceOf(b.from, b.to, 'left', b.pen)),
-      pieceOf(-halfMetres, lines[0]!.from, 'body', picture.bodyPen),
-      ...lines.flatMap((line, k) => [
-        pieceOf(line.from, line.to, 'body', line.pen),
-        pieceOf(line.to, lines[k + 1]?.from ?? halfMetres, 'body', picture.bodyPen),
-      ]),
-      ...[...picture.right].sort((a, b) => a.from - b.from).map((b) => pieceOf(b.from, b.to, 'right', b.pen)),
-    ];
+    const roadAPieces = piecesAcross(picture);
+    const across = roadAPieces.map((p) => pieceOf(p.from, p.to, p.part, p.pen));
     const bands: Band[] = across.map((p) => ({ left: p.from, right: p.to, colors: [p.base], material: ROAD }));
     const groundBase = mostColor(ground);
     const parts: SurfacePart[] = [
@@ -323,7 +394,53 @@ export function continentalCircusCourses(set: RomSet) {
         .filter((p) => !sameRuns(p.runs, p.open))
         .flatMap((p) => placeStrips(p.runs, z.from, z.to, zero, mean, p.left, p.right));
     });
-    const surface = [{ parts, every: period, count: Math.ceil((length - zero) / period) + 1 }, ...zoneStrips];
+    // Its pit lanes, each road B beside road A as two roads ([Its pit lanes](../../../docs/continental-circus-road-data.md#its-pit-lanes)):
+    // its centre a Boundary through its knots, and each piece of its picture where it shows over road A in the
+    // TC0150ROD's order (`shownPieces`), cut where the arrangement changes (`arrangements`) and drawn in where it narrows
+    // to nothing (`drawnIntervals`), a place's colors in its word's group by its place, of no material.
+    const roadBPieces = piecesAcross(pitLane);
+    const pictures = [roadPicture(roadAPieces, picture.bodyPen), roadPicture(roadBPieces, pitLane.bodyPen)];
+    const pitLines = pits.map((pit, j) => ({
+      id: `pit-lane-${j + 1}`,
+      knots: pitLaneKnots(pit, station, pitLane.halfMetres, lateral),
+    }));
+    const pitStrips = pitLines.flatMap(({ id: line, knots }) => {
+      const centre = straightThrough(knots);
+      const edgesAt = (s: number) => pictures.map((p, r) => p.map((e) => (r === 0 ? e.at : centre.at(s) + e.at)));
+      const regimes = arrangements(
+        knots[0]![0],
+        knots.at(-1)![0],
+        knots.map(([s]) => s),
+        (s) => edgesAt(s).flat(),
+        (s) => {
+          const shown = shownPieces(edgesAt(s), pictures, levels).filter((p) => p.road === 1);
+          return { key: JSON.stringify(shown), intervals: shown };
+        },
+      );
+      const lateralAt = (e: FeatureEdge, s: number) => (e.road === 0 ? e.at : centre.at(s) + e.at);
+      const written = (e: FeatureEdge): Lateral =>
+        e.road === 0 ? micrometre(e.at) : { boundary: line, offset: micrometre(e.at) };
+      return [...drawnIntervals(regimes, (p) => (s: number) => lateralAt(p.right, s) - lateralAt(p.left, s))].flatMap(
+        ({ interval, from, to }) => {
+          const piece = roadBPieces[interval.piece]!;
+          const group = roadBGroups[piece.part === 'left' ? 0 : piece.part === 'right' ? 1 : 2]!;
+          return placeStrips(
+            runsOf(group, piece.pen),
+            from,
+            to,
+            zero,
+            mean,
+            written(interval.left),
+            written(interval.right),
+          );
+        },
+      );
+    });
+    const surface = [
+      { parts, every: period, count: Math.ceil((length - zero) / period) + 1 },
+      ...zoneStrips,
+      ...pitStrips,
+    ];
     const sky = `${id}-sky`;
     outputs.file(`images/${sky}.json`, JSON.stringify(bakeSky(sky, continentalCircusSky(main, sub, tiles, c), UP)));
     const limits = {
@@ -358,6 +475,7 @@ export function continentalCircusCourses(set: RomSet) {
       limits,
       lane: halfMetres,
       leastLaneRadius: laneRadius(halfMetres),
+      lines: pitLines,
     });
     outputs.course(id, course.document);
     outputs.crestTrials(id, crestTrials(course.heights, course.write));
@@ -382,6 +500,12 @@ export function continentalCircusCourses(set: RomSet) {
         length: round3(z.to - z.from),
       })),
       ground: { colors: [...new Set(ground.map((r) => r.color))], material: groundIs },
+      // Its pit lanes: each its stretch's start and end, metres from the line, and its centre's farthest from P, left.
+      pitLanes: pitLines.map(({ knots }) => ({
+        from: round1(knots[0]![0]),
+        to: round1(knots.at(-1)![0]),
+        farthest: round3(-Math.min(...knots.map(([, x]) => x))),
+      })),
       startFromLine: round3(-start),
       gridFromLine: [course.grid[0]!, course.grid.at(-1)!].map((slot) => round3(length - slot.s)),
       heights: {
@@ -406,6 +530,12 @@ export function continentalCircusCourses(set: RomSet) {
       lateralMetres: Number(lateral.toPrecision(5)),
       heightUnitMetres: Number(unit.toPrecision(5)),
       limit: round3(limit),
+      // Road B, the pit lane: its half width, its lines, and the most its knots depart from its profile, metres.
+      pitLane: {
+        half: round3(pitLane.halfMetres),
+        lines: pitLane.lines.map((l) => [round3(l.from), round3(l.to)]),
+        departs: Number((pitDeparts * lateral).toPrecision(3)),
+      },
       // The grades' factor: the lens ratio, its eye's rows over its screen's, and the steepest grade at factor 1.
       grades: {
         factor: round3(factor),
@@ -435,8 +565,8 @@ function placeStrips(
   to: number,
   zero: number,
   mean: number,
-  left: number | null,
-  right: number | null,
+  left: Lateral | null,
+  right: Lateral | null,
 ): SurfaceStrip[] {
   const period = BANK_PERIOD * mean;
   const parts = runs.map((r) => ({ ...partAt(r, zero, mean), left, right }));
