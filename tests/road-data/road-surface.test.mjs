@@ -46,3 +46,24 @@ test('a parted band draws no part whose colors are those beneath it', () => {
   assert.equal(colorAt(drawn, 7.5), 7);
   assert.equal(colorAt(drawn, 1.5), undefined);
 });
+
+test('a parted band whose base color is not the one beneath it covers no hidden part', () => {
+  // A line white in two parts of four, the band beneath it in its two shades in the others: dashes, not a whole line.
+  const line = (set) => [9, 1, 9, 2].map((c) => c + 10 * set);
+  const beneath = (set) => [1, 1, 2, 2].map((c) => c + 10 * set);
+  const drawn = partedStrips(stretches.slice(0, 1), line, beneath, 8, 0, 0, 10, null, strip).flatMap((x) =>
+    x.kind === 'repeat'
+      ? Array.from({ length: x.count }, (_, n) =>
+          x.elements.map((e) => ({ ...e, from: e.from + n * x.every, to: e.to + n * x.every })),
+        ).flat()
+      : [x],
+  );
+  for (const [s, color] of [
+    [1, 9],
+    [3, undefined],
+    [5, 9],
+    [7, undefined],
+    [9, 9],
+  ])
+    assert.equal(colorAt(drawn, s), color, `at ${s} m`);
+});

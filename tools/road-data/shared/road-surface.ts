@@ -140,8 +140,9 @@ export function sectionSurface(
  * [Sky baking](../../../docs/original-road-data.md#sky-baking)): in each stretch over `[a, b]`, its base color (the one
  * most of its parts give, of as many the earliest) over the whole, with `material`, then each other part's color over
  * its part of each period, its parts repeated at the fewest that repeat in both its sets (`stripeParts`); within a change
- * each a pair from the set before. A part, or the whole, whose colors are `under`'s in both sets is not drawn, the band
- * beneath showing there. A place's color is its part's in its stretch alone, however `[a, b]` is cut.
+ * each a pair from the set before. A part whose colors are `under`'s in both sets is not drawn, the band beneath showing
+ * there: a band with such a part lays no color over the whole, and no material, each other part its color over its own
+ * part of each period. A place's color is its part's in its stretch alone, however `[a, b]` is cut.
  */
 export function partedStrips<T, S>(
   stretches: readonly ColorStretch<T>[],
@@ -160,16 +161,18 @@ export function partedStrips<T, S>(
     if (!(to - from > 1e-6)) continue;
     const [now, before] = [pick(t.colors), t.before === null ? null : pick(t.before)];
     const parts = now.length;
-    const key = (k: number) => `${now[k]} ${before?.[k] ?? now[k]}`;
+    const hidden = (k: number) =>
+      under !== null && [t.colors, t.before ?? t.colors].every((set) => pick(set)[k] === under(set)[k]);
+    const key = (k: number) => `${now[k]} ${before?.[k] ?? now[k]} ${hidden(k)}`;
     const cycle = [1, 2, 4, 8, parts].find((n) => parts % n === 0 && now.every((_, k) => key(k) === key(k % n)))!;
     const count = (k: number) => now.filter((_, j) => key(j) === key(k)).length;
     const base = now.reduce((best, _, k) => (count(k) > count(best) ? k : best), 0);
     const color = (k: number) => stretchColor(t, (set) => pick(set)[k]!);
-    const hidden = (k: number) =>
-      under !== null && [t.colors, t.before ?? t.colors].every((set) => pick(set)[k] === under(set)[k]);
-    if (!hidden(base)) out.push(strip(from, to, color(base), material));
+    // Where a part is hidden no color lies over the whole, which would cover it: each part drawn lies over its own.
+    const whole = !now.some((_, k) => hidden(k));
+    if (whole) out.push(strip(from, to, color(base), material));
     for (let k = 0; k < cycle; k++)
-      if (key(k) !== key(base) && !hidden(k))
+      if (!(whole && key(k) === key(base)) && !hidden(k))
         out.push(
           // Its repeats end short of the stretch's end by more than the written slack, as a Section resolves a repeat
           // from its joint, the last part drawn to the end itself.

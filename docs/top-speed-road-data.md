@@ -335,4 +335,4 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
-pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 14).
+pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 15).

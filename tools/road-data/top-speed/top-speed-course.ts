@@ -77,7 +77,7 @@ import {
   TOP_SPEED,
 } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 14;
+export const TOP_SPEED_CONVERSION_VERSION = 15;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
