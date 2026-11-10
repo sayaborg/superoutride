@@ -538,9 +538,10 @@ where it draws a road beside the course's (CHASE H.Q.'s road not taken).
 
 ### A circuit laid out
 
-An original raised from a curve table lays each course, a circuit, alike (`circuit-layout`): its lap cut at its line, at
-the middle of its longest straight the line does not lie on (of equal ones the earliest) and again where its road comes
-near itself ([Sections' cuts](#sections-cuts)); its profile, level or its original's heights (FINAL LAP 2's, [its
+An original raised from a curve table lays each course, a circuit, alike (`circuit-layout`): its lap cut at its line,
+at its checkpoints, each the end of its Section, as a checkpoint ends a timing sector, so that the start's Section holds
+none before its grid, or where it has none at the middle of its longest straight the line does not lie on (of equal ones
+the earliest), and again where its road comes near itself ([Sections' cuts](#sections-cuts)); its profile, level or its original's heights (FINAL LAP 2's, [its
 heights](final-lap-2-road-data.md#its-heights), and CONTINENTAL CIRCUS's), each Section's knots within on the step of
 computed values as every original's are ([Profile](#profile)); two lanes, a and b, of its original's lane width either
 side of P, P its road's centre, or where its road's left edge moves along its lap (FINAL LAP 2's) the halves of its road
@@ -551,7 +552,8 @@ draws its surface along the lap (FINAL LAP 2's, and CONTINENTAL CIRCUS's banks, 
 over the bands, and beyond its picture's edges its ground's color where its original gives one (FINAL LAP 2's and
 CONTINENTAL CIRCUS's), each a time or a repeat of times
 at a lap's stations, cut at its Sections' borders ([its road surface](final-lap-2-road-data.md#its-road-surface)); its
-boards, each on the road or at its height above it; its sky, facing by the road's turn from the course's start; its finish at its line, and its start gate in the
+boards, each on the road or at its height above it; its sky, facing by the road's turn from the course's start; its checkpoints where its
+original places them (CONTINENTAL CIRCUS's); its finish at its line, and its start gate in the
 Section returning to it by [the grid](#the-grid), each slot within its limits, a slot in a lane at its lane's centre;
 and a surface's Strip may reach beyond the road, its ground's second shade as far as its limits, or follow a line
 along the lap (CONTINENTAL CIRCUS's pit lanes), a Boundary in each Section it reaches.

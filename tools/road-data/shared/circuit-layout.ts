@@ -20,6 +20,7 @@ import {
   sectionStations,
   repeated,
   spriteElement,
+  type CourseGate,
   stripElement,
   widthLine,
   writtenPlan,
@@ -43,17 +44,20 @@ export interface Lap {
 }
 
 /**
- * The stations where a lap is cut into Sections: its line, at 0, and the middle of its longest straight the line does
- * not lie on (of equal ones the earliest), and again where its road comes near itself.
+ * The stations where a lap is cut into Sections: its line, at 0, and its checkpoints (`checkpoints`, stations of the
+ * lap), each the end of its Section, the start's Section holding none; a lap with none at the middle of its longest
+ * straight the line does not lie on (of equal ones the earliest); and again where its road comes near itself, more
+ * than `GATE_ROOM` from every gate.
  */
-function cuts(path: CoursePath, finish: number, leastLaneRadius: number) {
+function cuts(path: CoursePath, finish: number, leastLaneRadius: number, checkpoints: readonly number[]) {
   const straights = path.elements.filter((e) => e.turn === 0 && e.start > 0 && e.start + e.length < path.length);
   const longest = [...straights].sort((x, y) => micrometre(y.length) - micrometre(x.length) || x.start - y.start)[0];
   const middle = longest ? longest.start + longest.length / 2 : path.length / 2;
-  const parts = [0, middle, path.length];
+  const parts = [0, ...(checkpoints.length ? checkpoints : [middle]), path.length];
+  const gates = [...checkpoints, finish];
   return parts
     .slice(0, -1)
-    .flatMap((a, i) => [a, ...domainCuts(path, a, parts[i + 1]!, leastLaneRadius, [finish], { finish })]);
+    .flatMap((a, i) => [a, ...domainCuts(path, a, parts[i + 1]!, leastLaneRadius, gates, { finish })]);
 }
 
 /** A course's document: `name`'s lap, laps `laps`, its Sections' profile by `profile`, `id` its sections' prefix. */
@@ -66,6 +70,11 @@ export function layCourse(options: {
   readonly lap: Lap;
   readonly crossSection: CrossSection;
   readonly laps: number;
+  /**
+   * Its checkpoints, each its id and its station of the lap from its line (CONTINENTAL CIRCUS's), in their order; none
+   * where absent.
+   */
+  readonly checkpoints?: readonly CourseGate[];
   /** The original's cars at GO, metres ahead of the line and right of P ([the grid](../../../docs/original-road-data.md#the-grid)). */
   readonly grid: OriginalGrid;
   readonly sky: string;
@@ -146,7 +155,15 @@ export function layCourse(options: {
     : crossSection.bands.map((band) => ({ band, left: micrometre(band.left), right: micrometre(band.right) }));
   const path = new CoursePath(lap.pieces);
   const length = path.length;
-  const starts = cuts(path, length, options.leastLaneRadius);
+  const checkpoints = options.checkpoints ?? [];
+  if (checkpoints.some((c, k) => !(c.s > 0 && c.s < length) || (k > 0 && !(c.s > checkpoints[k - 1]!.s))))
+    throw contractUnmet(`${name}'s checkpoints do not lie in order within its lap`);
+  const starts = cuts(
+    path,
+    length,
+    options.leastLaneRadius,
+    checkpoints.map((c) => c.s),
+  );
   const ends = [...starts.slice(1), length];
   // The grids from the line, in the last Section.
   const grids: StartGrids = {
@@ -312,7 +329,7 @@ export function layCourse(options: {
           },
         ],
         gates: [
-          ...sectionGates(stations, from, [], { id: `${id}-GOAL`, s: length }),
+          ...sectionGates(stations, from, checkpoints, { id: `${id}-GOAL`, s: length }),
           ...(last ? [startGate(at, grids)] : []),
         ],
       } as SectionDocument;
