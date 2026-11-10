@@ -97,7 +97,8 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
   at P over the fork section's last four records (M 0x5A08 to 0x5B08) are not drawn (default; K confirms at the stage's
   end). The course's own lanes on the side not taken narrow a lane over 28.4 m from the branch's start, as every
   change of its lanes does, where the original's half there is the road not taken: a replacement that cannot be
-  avoided, as the format's Link joins roads of the same lanes alone (K, 2026-11-08).
+  avoided, as the format's Link joins roads of the same lanes alone (K, 2026-11-08). The things of the branch not
+  taken stand beside it ([Beside a road not taken](#its-things)).
 - **Its tunnels.** Where a tunnel's walls hold the car ([Its road across](#its-road-across)), the road and the sky are
   dark (default; K confirms at the stage's end: the dark taken over the walls), at once at their ends as a place's
   colors are ([Sky baking](original-road-data.md#sky-baking)): the original darkens the road's lines between its tunnel
@@ -260,9 +261,23 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   tunnel's ceiling above its right mouth) are a band across the road at its lateral, floating at their height, its
   last piece's columns extended outward each way (`topSpeedBands`, `topspeed-<index>-across`). A descriptor with no
   piece places no picture: a gate's right half, which holds its right post's hit alone ([Its hit](#its-things)). The
-  flat things but water (the roadside ground patches, type 0x1F) and the cloud banks a record's byte 7 sets behind the ground (S 0x6BB0) are not placed, nor the things the
-  original spawns on the branch not taken, nor the GOAL gate it stands 12.3 m past the run's end on the next stage's
-  records (default; K confirms at the stage's end).
+  flat things but water (the roadside ground patches, type 0x1F) and the cloud banks a record's byte 7 sets behind the
+  ground (S 0x6BB0) are not placed, nor the GOAL gate it stands 12.3 m past the run's end on the next stage's records
+  (default; K confirms at the stage's end).
+
+- **Beside a road not taken.** From the camera's record 27 of a section the record five ahead of it is the next
+  section's, at a fork each of its two next sections' (S 0x65DC, 0x675C to 0x6784): the original puts out both
+  branches' first five records' things, and frees every thing whose section is not the camera's as the road not
+  taken's slide ends, the main program then setting its word at 0x4010E4 (M 0x5FCA; S 0x65EC to 0x6612). A course
+  places the things of the branch it does not take that lie on its road not taken as it is drawn, within 0x2800
+  positions (30.7 m) of the branch's start ([Its roads not taken](#top-speeds-courses); K, 2026-11-10), the camera
+  five records behind in the fork's section: each at its lateral from that road's P as it slides away, its picture
+  with no body, and water as the ground's Strips from its lateral outward of that P over its records there. The car,
+  held within its limits, reaches none of them: the nearest's box lies 1.17 m beyond the limits, and the conversion
+  reports any whose box or water would lie within them (`notTaken.reached`) and gives it no body. The courses place 9
+  to 16 such things at their 7 to 9 forks, 79 in all, and water at three forks (two of C's, one of D's). The things the
+  original shows farther along that branch until the slide ends are not placed, as the road not taken is not drawn
+  there.
 
 - **Its hit.** A car meets a thing within its box, the long at S 0xBC32 by its descriptor with 0x100 added to each
   word, its low word the half width and its high word the depth ahead of it (S 0x7738 to 0x7746): a roadside thing
@@ -284,4 +299,4 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
-pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 10).
+pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 11).

@@ -226,6 +226,9 @@ export function groundAlong(main: Uint8Array, records: readonly CourseRecord[]):
 /** A road not taken: from a fork's branch's start, record `from`, the other branch's half beside the course's. */
 export interface RoadNotTaken {
   readonly from: number;
+  /** The other branch: its stage and its section. */
+  readonly stage: number;
+  readonly section: number;
   /** The side of the course's P it lies on, and its lanes there, out from its own P. */
   readonly beside: 'left' | 'right';
   readonly lanes: number;
@@ -241,7 +244,8 @@ export interface RoadNotTaken {
  * and slides outward by the camera's advance since then over 32 pixels on every line (M 0x5F46 to 0x5F8A), a pixel the
  * nearest line's `pixelMetres`, over 0x2800 positions (M 0x5F62), and then draws no more (M 0x5F92 to 0x6034). Its P
  * lies where the other branch's line lies from the course's, the two from the fork's end on the same heading, plus the
- * slide; its lanes its first record's mask's on its side; its steps the heights' `stepPositions`.
+ * slide; its lanes its first record's mask's on its side; its steps the heights' `stepPositions`. As the slide ends
+ * the main program sets the word the sub program frees the other branch's things by (M 0x5FCA).
  */
 export function roadsNotTaken(
   main: Uint8Array,
@@ -256,6 +260,7 @@ export function roadsNotTaken(
 ): RoadNotTaken[] {
   const [length] = instruction(main, 0x5f62, [0x0cb9, 0x0000, null, 0x0040, 0x105e], "the slide's positions (cmpi.l)");
   instruction(main, 0x5f74, [0xea80, 0x0839, 0x0000, 0x0040, 0x104c], 'a pixel 32 positions, by the side (asr.l #5)');
+  instruction(main, 0x5fca, [0x33fc, 0x0009, 0x0040, 0x10e4], "the slide's end, told the sub program (move.w)");
   const steps = length / stepPositions;
   const step = stepPositions * POSITION_METRES;
   const out: RoadNotTaken[] = [];
@@ -291,6 +296,8 @@ export function roadsNotTaken(
     const sign = beside === 'right' ? 1 : -1;
     out.push({
       from: record,
+      stage: s.stage,
+      section: other,
       beside,
       lanes,
       steps,

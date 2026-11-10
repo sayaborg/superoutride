@@ -39,6 +39,23 @@ export interface TopSpeedPlacement {
   readonly water?: 'left' | 'right';
 }
 
+/** A section's records. */
+const SECTION_RECORDS = 32;
+
+/**
+ * The records of a fork's branch not taken whose things the original puts out: from the camera's record 27 on, the
+ * record five ahead of it is the next section's (S 0x65DC), at a fork each of its two next sections' (S 0x675C to
+ * 0x6784), so each branch's first five; a thing whose section is not the camera's is freed as the main program's slide
+ * of the road not taken ends, its word at 0x4010E4 then set (S 0x65EC to 0x6612).
+ */
+export function branchRecords(sub: Uint8Array): number {
+  const [from] = instruction(sub, 0x65dc, [0x0c01, null, 0x6406], "the next section's records (cmpi.b, bcc)");
+  instruction(sub, 0x675c, [0x1432, 0x1001, 0xb432, 0x1000, 0x6724], "a fork's two next sections (move.b, cmp.b)");
+  instruction(sub, 0x65ec, [0x342d, 0x90e4], "the slide's end (move.w)");
+  instruction(sub, 0x6608, [0xb229, 0x0020, 0x670c, 0x0891, 0x0000], "another section's thing freed (cmp.b, bclr)");
+  return SECTION_RECORDS - (from >> 3);
+}
+
 /** An instruction's long operand: its two words. */
 const longOf = ([high, low]: readonly number[]) => high! * 0x10000 + low!;
 

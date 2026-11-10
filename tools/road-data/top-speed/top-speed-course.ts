@@ -22,6 +22,7 @@ import { colorStretches, joinedChanges } from '../shared/color-stretches.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { micrometre, simplified, spriteElement, stripElement } from '../shared/section-writing.js';
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
+import { RECORD_UNITS } from '../taito/course-records.js';
 import { rgb555Of } from '../taito/palette.js';
 import {
   colorSet,
@@ -61,7 +62,7 @@ import {
 } from './top-speed-road-picture.js';
 import { assembleTopSpeedMain, assembleTopSpeedSub, assembleTopSpeedTiles } from './top-speed-rom.js';
 import { topSpeedBands, topSpeedBoards, waterColors } from './top-speed-boards.js';
-import { topSpeedPlacements, type TopSpeedHit } from './top-speed-objects.js';
+import { branchRecords, topSpeedPlacements, type TopSpeedHit } from './top-speed-objects.js';
 import { assembleTopSpeedSprites, BIG_SPRITE } from './top-speed-sprites.js';
 import { pixelLaterals, SCREEN_WIDE, topSpeedThing } from './top-speed-things.js';
 import {
@@ -74,7 +75,7 @@ import {
   TOP_SPEED,
 } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 10;
+export const TOP_SPEED_CONVERSION_VERSION = 11;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -165,14 +166,13 @@ export function topSpeedCourses(set: RomSet) {
       );
     });
   });
+  // A thing's picture: the next descriptor's where it stands left of P and has one (S 0x16634 to 0x1664A).
+  const picturedOf = <T extends { readonly index: number; readonly lateral: number }>(p: T) => {
+    const shown = topSpeedThing(sub, p.index).leftVariant && p.lateral < P ? p.index + 1 : p.index;
+    return { ...p, shown, described: topSpeedThing(sub, shown) };
+  };
   const placed = spawned.map((things) => {
-    const pictured = things.flatMap((p) => {
-      if (p.water) return [];
-      const thing = topSpeedThing(sub, p.index);
-      // Its picture: the next descriptor's where it stands left of P and has one (S 0x16634 to 0x1664A).
-      const shown = thing.leftVariant && p.lateral < P ? p.index + 1 : p.index;
-      return [{ ...p, shown, described: topSpeedThing(sub, shown) }];
-    });
+    const pictured = things.flatMap((p) => (p.water ? [] : [picturedOf(p)]));
     // A flat thing (its size curve not the standing things') is not placed; one of no piece neither.
     const standing = pictured.filter((p) => p.described.curve === STANDING_CURVE && p.described.pieces.length);
     // A descriptor of no piece that hits is a gate's right post: its hit a part of the body of the thing its record
@@ -195,9 +195,31 @@ export function topSpeedCourses(set: RomSet) {
       ),
     }));
   });
+  // Each course's roads not taken, each over its fork's 30.7 m from its branch's start, and the things the original
+  // puts out on them: the branch's first records' (`branchRecords`), the camera then five records behind in the
+  // fork's section; those that lie on the road as it is drawn, `at` positions from the branch's start.
+  const branches = Array.from({ length: COURSES }, (_, course) =>
+    roadsNotTaken(main, stages, courseSections(stages, course), picture.pixelMetres, STEP_POSITIONS),
+  );
+  const besideBranches = branches.map((roads, course) => {
+    const recs = courseRecords(courseSections(stages, course));
+    return roads.map((n) =>
+      stages[n.stage]!.sections[n.section]!.records.slice(0, branchRecords(sub)).flatMap((record, i) => {
+        const camera = recs[n.from - SPAWN_AHEAD + i]!;
+        return place(record, n.stage, n.section, camera.section, colorSet(main, camera.stage, camera.section))
+          .map((p) => ({ ...picturedOf(p), record: i, at: i * RECORD_UNITS + p.ahead }))
+          .filter((p) => p.at <= n.steps * STEP_POSITIONS);
+      }),
+    );
+  });
+  const standingBeside = besideBranches.map((roads) =>
+    roads.map((things) =>
+      things.filter((p) => !p.water && p.described.curve === STANDING_CURVE && p.described.pieces.length),
+    ),
+  );
   // Water's colors, its shore's and its water's, by its descriptor.
   const waters = new Map(
-    [...new Set(spawned.flat().flatMap((p) => (p.water ? [p.index] : [])))].map((i) => [
+    [...new Set([...spawned.flat(), ...besideBranches.flat(2)].flatMap((p) => (p.water ? [p.index] : [])))].map((i) => [
       i,
       waterColors(main, sub, sprites, i),
     ]),
@@ -206,8 +228,7 @@ export function topSpeedCourses(set: RomSet) {
   const shoreWidth = BIG_SPRITE * pixelLaterals(sub, FLAT_CURVE) * metresAcross;
   const shownOf = (pick: (types: readonly number[]) => boolean) => [
     ...new Set(
-      placed
-        .flat()
+      [...placed.flat(), ...standingBeside.flat(2)]
         .map((t) => t.shown)
         .filter((i) => pick(topSpeedThing(sub, i).pieces.map((p) => p.type))),
     ),
@@ -243,7 +264,7 @@ export function topSpeedCourses(set: RomSet) {
       records[Math.min(records.length - 1, Math.max(0, Math.floor(s / RECORD_METRES + 1e-9)))]!;
     const stretches = limitStretches(sub, records);
     // Its roads not taken, each over its fork's 30.7 m from its branch's start.
-    const notTaken = roadsNotTaken(main, stages, courseSections(stages, course), picture.pixelMetres, STEP_POSITIONS);
+    const notTaken = branches[course]!;
     const goal = records.length * RECORD_METRES;
     const go = GO_POSITIONS * POSITION_METRES;
     // The own car alone at GO in lane d, the general form on it and lane c beside it.
@@ -277,20 +298,11 @@ export function topSpeedCourses(set: RomSet) {
       else if (!waterRuns.some((w) => w.side === side && from >= w.from - 1e-6 && from < w.to - 1e-6))
         waterRuns.push({ from, to: from + RECORD_METRES, lateral, side, colors });
     }
-    const things = placed[course]!.map((t) => {
-      const [board, band] = [boards.get(t.shown), bands.get(t.shown)];
-      const lateral = (t.lateral - P) * metresAcross;
-      // Its picture, with its body; and its band across the road, floating, with none.
+    // A thing's sprites: its picture, with its body `body`; and its band across the road, floating, with none.
+    const spritesOf = (shown: number, body: (colored: readonly [number, number]) => ReturnType<typeof bodyOf>) => {
+      const [board, band] = [boards.get(shown), bands.get(shown)];
       const picture = board
-        ? [
-            {
-              image: board.name,
-              palette: board.palette,
-              lateral: 0,
-              groundOffset: 0,
-              body: bodyOf(t.hit, lateral, metresAcross, board.colored, t.posts),
-            },
-          ]
+        ? [{ image: board.name, palette: board.palette, lateral: 0, groundOffset: 0, body: body(board.colored) }]
         : [];
       const across = band
         ? band.names.map((image, k) => ({
@@ -301,12 +313,16 @@ export function topSpeedCourses(set: RomSet) {
             body: null,
           }))
         : [];
+      return [...picture, ...across];
+    };
+    const ownThings = placed[course]!.map((t) => {
+      const lateral = (t.lateral - P) * metresAcross;
       return {
         s: back + t.record * RECORD_METRES + t.ahead * POSITION_METRES,
         lateral,
-        sprites: [...picture, ...across],
+        sprites: spritesOf(t.shown, (colored) => bodyOf(t.hit, lateral, metresAcross, colored, t.posts)),
       };
-    }).sort((a, b) => a.s - b.s || a.lateral - b.lateral);
+    });
     const at = (s: number) => s - back;
     // Its plan: the start's heading laid on back straight, then its records turned as its horizon band turns.
     const pieces = [
@@ -351,6 +367,63 @@ export function topSpeedCourses(set: RomSet) {
     // Its limits' stretches at the course's stations, the first from its start.
     const along = stretches.map((x, i) => ({ ...x, from: i === 0 ? 0 : x.from + back, to: x.to + back }));
     const reach = Math.max(...stretches.map((s) => Math.max(Math.abs(s.left), Math.abs(s.right))));
+    // The things beside its roads not taken, each at its lateral from its road's P as it slides away, with no body:
+    // the car, held within its limits, reaches none. One whose hit, or whose water, lies within the limits is
+    // reported (`reached`), not given a body; `clear` how far the nearest of them lies beyond the limits.
+    const offsetOf = (n: (typeof notTaken)[number], d: number) => {
+      const k = d / n.step,
+        k0 = Math.floor(k + 1e-9);
+      return n.offset(k0) + (n.offset(k0 + 1) - n.offset(k0)) * (k - k0);
+    };
+    const limitsAt = (s: number) => along.find((x) => s < x.to - 1e-9) ?? along.at(-1)!;
+    // Whether a range across lies within the limits at `s`, and how far the nearest of them lies beyond the limits.
+    let clear = Infinity;
+    const within = (s: number, a: number, b: number) => {
+      const inside = Math.min(b, limitsAt(s).right) - Math.max(a, limitsAt(s).left);
+      clear = Math.min(clear, -inside);
+      return inside > 1e-6;
+    };
+    const reached: { at: number; lateral: number; image: string }[] = [];
+    const besideThings = notTaken.flatMap((n, j) =>
+      standingBeside[course]![j]!.map((t) => {
+        const d = t.at * POSITION_METRES;
+        const s = back + n.from * RECORD_METRES + d;
+        const lateral = offsetOf(n, d) + (t.lateral - P) * metresAcross;
+        const sprites = spritesOf(t.shown, () => null);
+        const half = t.hit ? t.hit.half * metresAcross : 0;
+        if (
+          t.hit &&
+          t.hit.middles.some((m) => within(s, lateral + m * metresAcross - half, lateral + m * metresAcross + half))
+        )
+          reached.push({ at: round1(s), lateral: round3(lateral), image: sprites[0]?.image ?? '' });
+        return { s, lateral, sprites };
+      }),
+    );
+    // Their water, from its lateral outward of its road's P, over its records on the road as drawn.
+    const besideWater = notTaken.map((n, j) => {
+      const [from, end] = [back + n.from * RECORD_METRES, back + n.from * RECORD_METRES + n.steps * n.step];
+      const runs = new Map<
+        number,
+        { from: number; to: number; lateral: number; side: number; colors: readonly number[] }
+      >();
+      for (const p of besideBranches[course]![j]!)
+        if (p.water && !runs.has(p.record) && from + p.record * RECORD_METRES < end - 1e-6)
+          runs.set(p.record, {
+            from: from + p.record * RECORD_METRES,
+            to: Math.min(end, from + (p.record + 1) * RECORD_METRES),
+            lateral: (p.lateral - P) * metresAcross,
+            side: p.water === 'right' ? 1 : -1,
+            colors: waters.get(p.index)!,
+          });
+      for (const w of runs.values())
+        for (const s of [w.from, w.to]) {
+          const edge = offsetOf(n, s - from) + w.lateral;
+          if (w.side > 0 ? within(s, edge, Infinity) : within(s, -Infinity, edge))
+            reached.push({ at: round1(s), lateral: round3(edge), image: 'water' });
+        }
+      return [...runs.values()];
+    });
+    const things = [...ownThings, ...besideThings].sort((a, b) => a.s - b.s || a.lateral - b.lateral);
     // Its tunnels, where their walls hold the car (`limitStretches`): its road and its sky dark there, at once at
     // their ends (default; K confirms at the stage's end).
     // Under an overpass the road is dark too, from its near deck, whose line begins the dark road, to its far
@@ -619,11 +692,7 @@ export function topSpeedCourses(set: RomSet) {
           const [a, b] = [Math.max(span.from, from), Math.min(span.to, from + n.steps * n.step)];
           if (!(b - a > 1e-6)) return [];
           const sign = n.beside === 'right' ? 1 : -1;
-          const offsetAt = (s: number) => {
-            const k = (s - from) / n.step,
-              k0 = Math.floor(k + 1e-9);
-            return n.offset(k0) + (n.offset(k0 + 1) - n.offset(k0)) * (k - k0);
-          };
+          const offsetAt = (s: number) => offsetOf(n, s - from);
           const knots = [
             a,
             ...Array.from({ length: n.steps + 1 }, (_, k) => from + k * n.step).filter(
@@ -645,10 +714,28 @@ export function topSpeedCourses(set: RomSet) {
           const fromOuter = (x: number): Lateral => ({ boundary: outerId, offset: micrometre(sign * x) });
           const band = (inner: Lateral, outer: Lateral, part: Part) =>
             sign > 0 ? parted(inner, outer, part, null, a, b) : parted(outer, inner, part, null, a, b);
+          // Its water, its shore a piece wide from its lateral right of its P and its water beyond.
+          const water = besideWater[j]!.flatMap((w) => {
+            const [wa, wb] = [Math.max(a, w.from), Math.min(b, w.to)];
+            if (!(wb - wa > 1e-6)) return [];
+            const [start, end] = [positionAt(wa), positionAt(wb)];
+            const beside = (x: number): Lateral => ({ boundary: centreId, offset: micrometre(x) });
+            const [lateral, shore] = [beside(w.lateral), beside(w.lateral + w.side * shoreWidth)];
+            return w.side > 0
+              ? [
+                  stripElement(start, end, lateral, shore, w.colors[0]!, null),
+                  stripElement(start, end, shore, null, w.colors[1]!, null),
+                ]
+              : [
+                  stripElement(start, end, shore, lateral, w.colors[0]!, null),
+                  stripElement(start, end, null, shore, w.colors[1]!, null),
+                ];
+          });
           return [
             {
               boundaries: [boundaryOf(centreId, offsetAt), boundaryOf(outerId, (s) => offsetAt(s) + sign * across)],
               strips: [
+                ...water,
                 ...band(fromCentre(0), fromOuter(0), 'body'),
                 ...band(fromCentre(0), fromCentre(lineHalf), 'line'),
                 ...Array.from({ length: Math.max(0, n.lanes - 1) }, (_, k) =>
@@ -750,6 +837,15 @@ export function topSpeedCourses(set: RomSet) {
       sections: laid.spans.length,
       // Its gates, each its two posts' hits one body.
       gates: placed[course]!.filter((t) => t.posts.length).length,
+      // The things beside its roads not taken, their water's runs, those the car could reach within its limits, and
+      // how far the nearest's hit or water lies beyond them, metres.
+      notTaken: {
+        roads: notTaken.length,
+        things: besideThings.length,
+        water: besideWater.flat().length,
+        reached,
+        clear: round3(clear),
+      },
       // Where it crosses itself, metres along it, and how far its second passage lies above its first.
       crossings: crossed.map(([a, b]) => ({
         at: [round1(a), round1(b)],
