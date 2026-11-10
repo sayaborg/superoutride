@@ -1026,7 +1026,8 @@ the board's base point across. Whether it loops is K's decision by what it shows
   piece or of the piece the original repeats, from its first row holding a pixel to its last, a board extending outward,
   the left one mirrored, all cut from one texel grid so that their rows agree, a band standing as much higher than the
   picture as its last row lies above the picture's base (`bandBoards`, as FINAL LAP 2's underpass and its bank are
-  laid). Letters and tunnel
+  laid). A band the original draws from a lateral outward on one side alone has its band beyond its outer edge alone,
+  that edge's own columns, unmirrored (`sides`). Letters and tunnel
   mouths are not repeated: their picture alone is drawn. That the original's bands keep their width and period on the
   screen however near, where a board shrinks with distance, is a replacement that cannot be avoided, each chapter's.
 
