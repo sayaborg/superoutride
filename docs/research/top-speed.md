@@ -97,3 +97,9 @@ Read statically; MAME's driver (commit 9c0b6db1) for the hardware alone.
   A piece without a record (the gate posts' lamp, big sprite 0x29) shows what was loaded last.
 - A thing whose head's byte 6 bit 7 is set draws the next descriptor where it stands left of P, its left variant
   (S 0x16634 to 0x1664A).
+- A flat thing's left variant whose pieces start a piece from its head holds an anchor of a piece's width, which the
+  builder takes by the thing's zoom (S 0x16786): its pieces begin a piece beyond its lateral at every distance. Water's
+  two laterals differ by a lane, near that piece.
+- A thing that only bumps a car sets bit 5 of the car's byte 5 (S 0x7AF2), as a tunnel's wall does (S 0x7604, 0x7620).
+  The bit is tested at S 0x146AC and 0x14702, where the words written to the board's outputs are made, and no other
+  test of it was found; what they drive is not read.

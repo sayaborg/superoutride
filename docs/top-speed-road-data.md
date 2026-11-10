@@ -249,7 +249,9 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   - its roadside things by its bytes 5 and 4, right and left: a code 0x100 plus 0x200 the stage, 0x20 the section and
     the byte's low 5 bits, its pattern its top 3 (S 0x6812 to 0x6886); right at the mask's rightmost lane's centre
     0x940 out and left at its leftmost's, each pushed out by its descriptor's word at S 0xC132 (S 0x68A6 to 0x68CE).
-    The START gate, the CHECK POINT gates at the next stages' starts and the GOAL gate are roadside things;
+    The START gate, the CHECK POINT gates at the next stages' starts and the GOAL gate are roadside things. A
+    roadside thing of type 0x1F is flat on the ground: its code's bit 15 is set (S 0x685E), which draws it beneath the
+    others (S 0x15202);
   - a tunnel's mouths by its parameter below 0x50, the code and the code 0x40 on, 0xB0 beyond its mask's outermost
     lanes' centres, at the record's middle (S 0x6A60 to 0x6AA8); and its lamps by its parameter from 0x50, 0x600 left
     of the leftmost lane's centre and 0x160 right of the rightmost's (S 0x6AAA to 0x6AE2);
@@ -261,7 +263,23 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
     width, a piece beyond it, the anchor taken by the thing's zoom (S 0x16786). It is laid as the ground's Strips from
     that point outward over its records, its shore a piece wide at the flat things' full size (3.0 m) and its water
     beyond, each its piece's most frequent color: a replacement that cannot be avoided, as its strips keep their
-    width on the screen.
+    width on the screen. A roadside byte of type 0x1F places water's descriptor too, where its record's event is a
+    gantry's within a stretch of water (four records each, twice in A and B and once in C and D), 0xDC0 beyond the
+    leftmost lane's centre; it is laid as water.
+  - its ground patches, the other roadside things of type 0x1F: sand grains, grass and dunes, flat things as water is,
+    of one piece of a fixed width on the screen outward from their head's point, the dunes of two, placed one to four
+    a record 0x920 beyond the outermost lane's centre (5.3 m beyond the lanes; the left grass and dunes, whose
+    anchor is a piece's width, a piece farther). Each is laid in water's form (K, 2026-11-10), as the ground's Strips
+    over each record that places it, from its point outward. Where it differs from water: its width is its pieces',
+    each a piece wide at the flat things' full size (3.0 m, the dunes 6.0 m), the ground beyond; it is one color, its
+    piece's most frequent (its picture's colored pixels 17 to 33 % of a piece, in its lower rows); and it has a
+    material, by its color as the ground's ([The ground beside the
+    road](original-road-data.md#the-ground-beside-the-road)), the grass `GRASS` and the sand and the dunes `SAND`,
+    within the limits. The sub program treats a car over one as over water: within its box it sets the car's flag a
+    tunnel's wall sets and no more (S 0x7772 to 0x7790, 0x7AEE), with no crash and no change of speed; the flag is
+    read where the words of the board's outputs are made (S 0x146AC), what they drive not confirmed. That each
+    record's patches are one stretch of one color is a replacement that cannot be avoided, as water's. The courses
+    lay 7 to 22 such stretches, 393 to 1,622 m a course, of 52 to 217 patches.
   - an overpass by its event 4: its near face at the record's middle and its far face 0xE80 positions (11.1 m)
     beyond, each a deck at P, the codes 0x58 and 0x98 and twice the stage, and six posts a position nearer from
     0x800 every 0x3000 laterals (S 0x6AE4 to 0x6B6A), the two nearest P met each from its side and the others by none
@@ -278,8 +296,7 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   tunnel's ceiling above its right mouth) are a band across the road at its lateral, floating at their height, its
   last piece's columns extended outward each way (`topSpeedBands`, `topspeed-<index>-across`). A descriptor with no
   piece places no picture: a gate's right half, which holds its right post's hit alone ([Its hit](#its-things)). The
-  flat things but water (the roadside ground patches, type 0x1F) and the cloud banks a record's byte 7 sets behind the
-  ground (S 0x6BB0) are not placed, nor the GOAL gate it stands 12.3 m past the run's end on the next stage's records
+  cloud banks a record's byte 7 sets behind the ground (S 0x6BB0) are not placed, nor the GOAL gate it stands 12.3 m past the run's end on the next stage's records
   (default; K confirms at the stage's end).
 
 - **Beside a road not taken.** From the camera's record 27 of a section the record five ahead of it is the next
@@ -289,10 +306,12 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   places the things of the branch it does not take that lie on its road not taken as it is drawn, within 0x2800
   positions (30.7 m) of the branch's start ([Its roads not taken](#top-speeds-courses); K, 2026-11-10), the camera
   five records behind in the fork's section: each at its lateral from that road's P as it slides away, its picture
-  with no body, and water as the ground's Strips from its lateral outward of that P over its records there. The car,
+  with no body, and water and a ground patch as the ground's Strips, of color alone, from its point outward of that P
+  over its records there. The car,
   held within its limits, reaches none of them: the nearest's box lies 1.17 m beyond the limits, and the conversion
   reports any whose box or water would lie within them (`notTaken.reached`) and gives it no body. The courses place 9
-  to 16 such things at their 7 to 9 forks, 79 in all, and water at three forks (two of C's, one of D's). The things the
+  to 16 such things at their 7 to 9 forks, 79 in all, water at three forks (two of C's, one of D's) and a ground
+  patch at two (one of B's, one of D's). The things the
   original shows farther along that branch until the slide ends are not placed, as the road not taken is not drawn
   there.
 
@@ -316,4 +335,4 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
-pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 13).
+pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 14).

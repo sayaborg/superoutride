@@ -611,7 +611,7 @@ TOP SPEED's defaults, each in [its chapter](top-speed-road-data.md): GO 1.82 m i
 by the turn the instructions give, its radii 64.6 to 211 m; its cloud picture changed at a tunnel's change record; its
 raster words' bits as MAME's description reads them; its road not taken's slide and its fork's gap measured at the nearest
 line; its tunnels' road and sky dark over their walls, an overpass's road alone under its decks;
-and its ground patches, cloud banks and GOAL gate not placed.
+and its cloud banks and GOAL gate not placed.
 
 CONTINENTAL CIRCUS's defaults, each in [its chapter](continental-circus-road-data.md): its rises at 1.5 units a sample;
 its stripes' phase the race's first lap's; the rain's and the lightning's colors not drawn, on its road and in its skies;

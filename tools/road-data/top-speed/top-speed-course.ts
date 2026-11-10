@@ -17,6 +17,7 @@ import { crossings } from '../shared/overpasses.js';
 import { riseProfile, tableHeight } from '../shared/rise-profile.js';
 import { layRoad } from '../shared/road-layout.js';
 import { bendOf, profileOf } from '../shared/road-profile.js';
+import { groundMaterial } from '../shared/ground-material.js';
 import { partedStrips, type Material } from '../shared/road-surface.js';
 import { colorStretches, joinedChanges } from '../shared/color-stretches.js';
 import type { RomSet } from '../shared/rom-set.js';
@@ -65,7 +66,7 @@ import { assembleTopSpeedMain, assembleTopSpeedSub, assembleTopSpeedTiles } from
 import { topSpeedBands, topSpeedBoards, waterColors } from './top-speed-boards.js';
 import { branchRecords, topSpeedPlacements, type TopSpeedHit } from './top-speed-objects.js';
 import { assembleTopSpeedSprites, BIG_SPRITE } from './top-speed-sprites.js';
-import { pixelLaterals, SCREEN_WIDE, topSpeedThing } from './top-speed-things.js';
+import { FIXED_WIDTH, pixelLaterals, SCREEN_WIDE, topSpeedThing } from './top-speed-things.js';
 import {
   COURSES,
   courseSections,
@@ -76,7 +77,7 @@ import {
   TOP_SPEED,
 } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 13;
+export const TOP_SPEED_CONVERSION_VERSION = 14;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -227,9 +228,60 @@ export function topSpeedCourses(set: RomSet) {
       waterColors(main, sub, sprites, i),
     ]),
   );
-  // Water's shore's width: a piece's 128 pixels at the flat things' full size.
+  // Its ground patches, the flat things its roadside bytes place but water: their colors, each piece's most frequent,
+  // by the descriptor shown.
+  const isPatch = (p: ReturnType<typeof picturedOf<(typeof spawned)[number][number]>>) => !!p.flat && !p.water;
+  const patches = new Map(
+    [
+      ...new Set([...spawned.flat().map(picturedOf), ...besideBranches.flat(2)].filter(isPatch).map((p) => p.shown)),
+    ].map((i) => {
+      const thing = topSpeedThing(sub, i);
+      if (thing.curve !== FLAT_CURVE || !thing.pieces.length || thing.pieces.some((x) => x.type !== FIXED_WIDTH))
+        throw contractUnmet(`TOP SPEED's flat thing ${i} is not pieces of a fixed width on the flat things' curve`);
+      return [i, waterColors(main, sub, sprites, i)] as const;
+    }),
+  );
+  // A patch's material by its color (`groundMaterial`), no patch reading as water.
+  const patchMaterial = (color: number): Material => {
+    const material = groundMaterial(color);
+    if (material === 'WATER') throw contractUnmet(`TOP SPEED's ground patch's color ${color} reads as water`);
+    return material;
+  };
+  // A flat thing as it is laid: its side of the road, its pieces' colors outward from its inner edge, and whether
+  // its last piece's reaches on outward (water's) or the ground lies beyond it (a patch's).
+  const flatOf = (p: ReturnType<typeof picturedOf<(typeof spawned)[number][number]>>) =>
+    p.water
+      ? { side: p.water === 'right' ? 1 : -1, colors: waters.get(p.index)!, open: true }
+      : isPatch(p)
+        ? { side: p.lateral < P ? -1 : 1, colors: patches.get(p.shown)!, open: false }
+        : null;
+  interface FlatRun extends NonNullable<ReturnType<typeof flatOf>> {
+    from: number;
+    to: number;
+    /** Its inner edge, metres right of its road's P. */
+    lateral: number;
+  }
+  // Water's shore's width, and a patch's piece's: a piece's 128 pixels at the flat things' full size.
   const flatPixel = pixelLaterals(sub, FLAT_CURVE) * metresAcross;
   const shoreWidth = BIG_SPRITE * flatPixel;
+  // A flat run's piece `k`'s edges, metres right of its road's P, inner and outer.
+  const pieceEdges = (w: FlatRun, k: number) =>
+    [w.lateral + w.side * k * shoreWidth, w.lateral + w.side * (k + 1) * shoreWidth] as const;
+  // A flat run's Strips of color from `start` to `end`, a piece each outward from its inner edge, a lateral by
+  // `beside`; an open one's last reaching on outward.
+  const flatStrips = (
+    w: FlatRun,
+    start: Parameters<typeof stripElement>[0],
+    end: Parameters<typeof stripElement>[0],
+    beside: (x: number) => Lateral,
+  ) =>
+    w.colors.map((color, k) => {
+      const [inner, outer] = pieceEdges(w, k);
+      const beyond = w.open && k === w.colors.length - 1 ? null : beside(outer);
+      return w.side > 0
+        ? stripElement(start, end, beside(inner), beyond, color, null)
+        : stripElement(start, end, beyond, beside(inner), color, null);
+    });
   // A flat thing's inner edge, metres outward from its lateral on side `side`: its pieces lie from its head's point,
   // which its anchor moves (S 0x166BA to 0x16792), a left variant's a piece outward, each then at its pixels.
   const flatInner = (shown: number, side: number) => {
@@ -332,23 +384,23 @@ export function topSpeedCourses(set: RomSet) {
     // Laid on back for its grids and the camera behind their rearmost slot, as CHASE H.Q.'s are.
     const back = Math.ceil(gridReach(stand(go)) + cameraDistance(CAMERA_DEFINITION));
     // Its things at their stations, in station order.
-    // Its water, flat on the ground from its lateral outward (its strips of a fixed width on the screen, a
-    // replacement): its shore a piece wide, then its water; each record's, joined where the next goes on alike.
-    const waterRuns: { from: number; to: number; lateral: number; side: number; colors: readonly number[] }[] = [];
-    for (const p of spawned[course]!.filter((t) => t.water)) {
-      const side = p.water === 'right' ? 1 : -1;
+    // Its water and its ground patches, flat on the ground from their inner edges outward (their strips of a fixed
+    // width on the screen, a replacement): each piece a piece wide, water's last reaching on outward; each record's,
+    // joined where the next goes on alike.
+    const flatRuns: FlatRun[] = [];
+    for (const p of spawned[course]!.map(picturedOf)) {
+      const flat = flatOf(p);
+      if (!flat) continue;
       const [from, lateral] = [
         back + p.record * RECORD_METRES,
-        (p.lateral - P) * metresAcross + side * flatInner(picturedOf(p).shown, side),
+        (p.lateral - P) * metresAcross + flat.side * flatInner(p.shown, flat.side),
       ];
-      const colors = waters.get(p.index)!;
-      const last = waterRuns.find(
-        (w) =>
-          w.side === side && Math.abs(w.to - from) < 1e-6 && w.lateral === lateral && w.colors.join() === colors.join(),
-      );
+      const alike = (w: FlatRun) =>
+        w.side === flat.side && w.open === flat.open && w.colors.join() === flat.colors.join();
+      const last = flatRuns.find((w) => alike(w) && Math.abs(w.to - from) < 1e-6 && w.lateral === lateral);
       if (last) last.to = from + RECORD_METRES;
-      else if (!waterRuns.some((w) => w.side === side && from >= w.from - 1e-6 && from < w.to - 1e-6))
-        waterRuns.push({ from, to: from + RECORD_METRES, lateral, side, colors });
+      else if (!flatRuns.some((w) => alike(w) && from >= w.from - 1e-6 && from < w.to - 1e-6))
+        flatRuns.push({ ...flat, from, to: from + RECORD_METRES, lateral });
     }
     // A thing's sprites: its picture, with its body `body`; and its band across the road, floating, with none.
     const spritesOf = (shown: number, body: (colored: readonly [number, number]) => ReturnType<typeof bodyOf>) => {
@@ -451,29 +503,28 @@ export function topSpeedCourses(set: RomSet) {
         return { s, lateral, sprites };
       }),
     );
-    // Their water, from its lateral outward of its road's P, over its records on the road as drawn.
-    const besideWater = notTaken.map((n, j) => {
+    // Their water and ground patches, from their inner edges outward of their road's P, over their records on the
+    // road as drawn.
+    const besideFlats = notTaken.map((n, j) => {
       const [from, end] = [back + n.from * RECORD_METRES, back + n.from * RECORD_METRES + n.steps * n.step];
-      const runs = new Map<
-        number,
-        { from: number; to: number; lateral: number; side: number; colors: readonly number[] }
-      >();
-      for (const p of besideBranches[course]![j]!)
-        if (p.water && !runs.has(p.record) && from + p.record * RECORD_METRES < end - 1e-6) {
-          const side = p.water === 'right' ? 1 : -1;
-          runs.set(p.record, {
+      const runs = new Map<string, FlatRun>();
+      for (const p of besideBranches[course]![j]!) {
+        const flat = flatOf(p);
+        const key = `${p.record} ${flat?.side} ${flat?.open} ${flat?.colors.join()}`;
+        if (flat && !runs.has(key) && from + p.record * RECORD_METRES < end - 1e-6)
+          runs.set(key, {
+            ...flat,
             from: from + p.record * RECORD_METRES,
             to: Math.min(end, from + (p.record + 1) * RECORD_METRES),
-            lateral: (p.lateral - P) * metresAcross + side * flatInner(p.shown, side),
-            side,
-            colors: waters.get(p.index)!,
+            lateral: (p.lateral - P) * metresAcross + flat.side * flatInner(p.shown, flat.side),
           });
-        }
+      }
       for (const w of runs.values())
         for (const s of [w.from, w.to]) {
           const edge = offsetOf(n, s - from) + w.lateral;
-          if (w.side > 0 ? within(s, edge, Infinity) : within(s, -Infinity, edge))
-            reached.push({ at: round1(s), lateral: round3(edge), image: 'water' });
+          const reach = w.open ? Infinity : w.colors.length * shoreWidth;
+          if (w.side > 0 ? within(s, edge, edge + reach) : within(s, edge - reach, edge))
+            reached.push({ at: round1(s), lateral: round3(edge), image: w.open ? 'water' : 'patch' });
         }
       return [...runs.values()];
     });
@@ -782,22 +833,14 @@ export function topSpeedCourses(set: RomSet) {
           const fromOuter = (x: number): Lateral => ({ boundary: outerId, offset: micrometre(sign * x) });
           const band = (inner: Lateral, outer: Lateral, part: Part) =>
             sign > 0 ? parted(inner, outer, part, null, a, b) : parted(outer, inner, part, null, a, b);
-          // Its water, its shore a piece wide from its lateral right of its P and its water beyond.
-          const water = besideWater[j]!.flatMap((w) => {
+          // Its water and ground patches, from their inner edges right of its P.
+          const water = besideFlats[j]!.flatMap((w) => {
             const [wa, wb] = [Math.max(a, w.from), Math.min(b, w.to)];
             if (!(wb - wa > 1e-6)) return [];
-            const [start, end] = [positionAt(wa), positionAt(wb)];
-            const beside = (x: number): Lateral => ({ boundary: centreId, offset: micrometre(x) });
-            const [lateral, shore] = [beside(w.lateral), beside(w.lateral + w.side * shoreWidth)];
-            return w.side > 0
-              ? [
-                  stripElement(start, end, lateral, shore, w.colors[0]!, null),
-                  stripElement(start, end, shore, null, w.colors[1]!, null),
-                ]
-              : [
-                  stripElement(start, end, shore, lateral, w.colors[0]!, null),
-                  stripElement(start, end, null, shore, w.colors[1]!, null),
-                ];
+            return flatStrips(w, positionAt(wa), positionAt(wb), (x) => ({
+              boundary: centreId,
+              offset: micrometre(x),
+            }));
           });
           return [
             {
@@ -845,20 +888,9 @@ export function topSpeedCourses(set: RomSet) {
           linkLane: centreFrom(span.to),
           strips: [
             ...bands,
-            ...waterRuns.flatMap((w) => {
+            ...flatRuns.flatMap((w) => {
               const [a, b] = [Math.max(span.from, w.from), Math.min(span.to, w.to)];
-              if (!(b - a > 1e-6)) return [];
-              const [from, to] = [positionAt(a), positionAt(b)];
-              const [lateral, shore] = [micrometre(w.lateral), micrometre(w.lateral + w.side * shoreWidth)];
-              return w.side > 0
-                ? [
-                    stripElement(from, to, lateral, shore, w.colors[0]!, null),
-                    stripElement(from, to, shore, null, w.colors[1]!, null),
-                  ]
-                : [
-                    stripElement(from, to, shore, lateral, w.colors[0]!, null),
-                    stripElement(from, to, null, shore, w.colors[1]!, null),
-                  ];
+              return b - a > 1e-6 ? flatStrips(w, positionAt(a), positionAt(b), micrometre) : [];
             }),
             ...lines,
             ...centreLines,
@@ -871,6 +903,20 @@ export function topSpeedCourses(set: RomSet) {
               t.sprites.map((sprite) => spriteElement({ ...sprite, at: positionAt(t.s), lateral: t.lateral })),
             ),
           boundaries: notTakenParts.flatMap((n) => n.boundaries),
+          // Its ground patches' materials, each piece's by its color, over the ground's and within the limits.
+          over: flatRuns.flatMap((w) => {
+            const [a, b] = [Math.max(span.from, w.from), Math.min(span.to, w.to)];
+            if (w.open || !(b - a > 1e-6)) return [];
+            const limits = limitsAt(span.from);
+            return w.colors.flatMap((color, k) => {
+              const [inner, outer] = pieceEdges(w, k);
+              const [l, r] =
+                w.side > 0 ? [inner, Math.min(outer, limits.right)] : [Math.max(outer, limits.left), inner];
+              return r - l > 1e-6
+                ? [stripElement(positionAt(a), positionAt(b), micrometre(l), micrometre(r), null, patchMaterial(color))]
+                : [];
+            });
+          }),
           outermost: [
             {
               band: outerBand(l - edge, l - innerOut),
@@ -911,9 +957,19 @@ export function topSpeedCourses(set: RomSet) {
       notTaken: {
         roads: notTaken.length,
         things: besideThings.length,
-        water: besideWater.flat().length,
+        water: besideFlats.flat().filter((w) => w.open).length,
+        patches: besideFlats.flat().filter((w) => !w.open).length,
         reached,
         clear: round3(clear),
+      },
+      // Its water's and its ground patches' runs beside its own road, and their metres along it.
+      water: {
+        runs: flatRuns.filter((w) => w.open).length,
+        metres: round1(flatRuns.filter((w) => w.open).reduce((sum, w) => sum + w.to - w.from, 0)),
+      },
+      patches: {
+        runs: flatRuns.filter((w) => !w.open).length,
+        metres: round1(flatRuns.filter((w) => !w.open).reduce((sum, w) => sum + w.to - w.from, 0)),
       },
       // Where it crosses itself, metres along it, and how far its second passage lies above its first.
       crossings: crossed.map(([a, b]) => ({

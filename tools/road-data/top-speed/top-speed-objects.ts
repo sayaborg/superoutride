@@ -1,7 +1,7 @@
 /**
  * TOP SPEED's things' places and hits as its sub program spawns and tests them ([TOP SPEED road data](../../../docs/top-speed-road-data.md#its-things)):
- * each record's roadside things by its bytes 4 and 5, a gantry by its event 6 and a tunnel's mouths and lamps by its
- * event 3,
+ * each record's roadside things by its bytes 4 and 5, those of type 0x1F flat on the ground, a gantry by its event 6
+ * and a tunnel's mouths and lamps by its event 3,
  * each at its pattern's offsets along the record, beside its mask's outermost lanes or at their middle, with its hit
  * box and the side of P a car meets it from; each found by the instructions that read it.
  */
@@ -17,6 +17,9 @@ const GANTRY = 6;
 const OVERPASS = 4;
 const WATER_RIGHT = 1;
 const WATER_LEFT = 2;
+/** A roadside thing's type that is flat on the ground, and the color sets water's codes run through (1 to 10). */
+const FLAT_TYPE = 0x1f;
+const COLOR_SETS = 10;
 /** A pattern's row's bytes, and its end. */
 const PATTERN_BYTES = 8;
 const PATTERN_END = 0xff;
@@ -37,6 +40,8 @@ export interface TopSpeedPlacement {
   readonly hit: TopSpeedHit | null;
   /** Water's side: it lies from its lateral outward, flat on the ground. */
   readonly water?: 'left' | 'right';
+  /** Whether it is a roadside thing flat on the ground (its type 0x1F), drawn beneath the others. */
+  readonly flat?: boolean;
 }
 
 /** A section's records. */
@@ -114,6 +119,10 @@ function tables(sub: Uint8Array) {
  */
 export function topSpeedPlacements(sub: Uint8Array) {
   instruction(sub, 0x685a, [0x0242, 0x001f], "a roadside code's type (andi.w #$1f)");
+  instruction(sub, 0x685e, [0x0c42, FLAT_TYPE, 0x6604, 0x0042, 0x8000], "a flat type's bit 15 (cmpi.w, ori.w)");
+  instruction(sub, 0x7778, [0x1031, 0x4000, 0x660e], 'a thing that only bumps a car (move.b, bne)');
+  instruction(sub, 0x778c, [0x6100, 0x0360, 0x600c], 'its bump, and no more (bsr, bra)');
+  instruction(sub, 0x7aee, [0x6102, 0x4e75, 0x08eb, 0x0005, 0x0005, 0x4e75], "a bump, the car's flag alone (bset)");
   instruction(sub, 0x686e, [0xeb4c, 0x0244, 0x01e0], 'the section, 0x20 codes (lsl.w #5, andi.w #$1e0)');
   instruction(sub, 0x687c, [0xee5c, 0x0244, 0x0e00], 'the stage, 0x200 codes (ror.w #7, andi.w #$e00)');
   instruction(sub, 0x6884, [0xe44b], "a pattern's row, 8 bytes (lsr.w #2)");
@@ -130,6 +139,8 @@ export function topSpeedPlacements(sub: Uint8Array) {
     return { half: 0x100 + (b & 0xffff), depth: 0x100 + (b >>> 16) };
   };
   const bumps = (index: number) => sub[t.bumps + index] !== 0;
+  // Water's descriptors, its codes' by each color set.
+  const waters = new Set(Array.from({ length: COLOR_SETS }, (_, k) => indexOf(t.water + 1 + k)));
   const offsets = (row: number) => {
     const out: number[] = [];
     for (let k = 0; k < PATTERN_BYTES; k++) {
@@ -175,10 +186,25 @@ export function topSpeedPlacements(sub: Uint8Array) {
     ] as const) {
       if (!byte) continue;
       const type = byte & 0x1f;
-      const code = ((type === 0x1f ? 0x8000 : 0) | type | ((section << 5) & 0x1e0) | ((stage << 9) & 0xe00)) + t.base;
-      const push = sword(sub, t.pushes + 2 * indexOf(code));
+      const flat = type === FLAT_TYPE;
+      const code = ((flat ? 0x8000 : 0) | type | ((section << 5) & 0x1e0) | ((stage << 9) & 0xe00)) + t.base;
+      const index = indexOf(code);
+      const push = sword(sub, t.pushes + 2 * index);
       const lateral = right ? rightmost(record.mask, t.right) + push : leftmost(record.mask, t.left) - push;
-      place(code, byte >> 5, lateral, (index) => ({ middles: [0], half: box(index).half, ownSide: true }));
+      // A flat one, which only bumps a car: water where its descriptor is one of water's, else a ground patch.
+      if (flat && !bumps(index)) throw romDiffers(`TOP SPEED's flat thing ${index} does not only bump a car`);
+      if (flat)
+        for (const ahead of offsets(byte >> 5))
+          out.push({
+            code,
+            index,
+            ahead,
+            lateral,
+            hit: null,
+            flat,
+            ...(waters.has(index) ? { water: right ? ('right' as const) : ('left' as const) } : {}),
+          });
+      else place(code, byte >> 5, lateral, (index) => ({ middles: [0], half: box(index).half, ownSide: true }));
     }
     // A tunnel's mouths, met by no car (its walls its limits), beside the outermost lanes' centres.
     if (record.event === TUNNEL && record.parameter && record.parameter < t.inside) {
