@@ -3,5 +3,8 @@
   "version": 1,
   "title": "ARCADE TRIBUTE - BIG RUN",
   "selectionOrder": 12,
-  "loop": { "start": 0, "end": 24.798 }
+  "loop": {
+    "start": 0,
+    "end": 41.988
+  }
 }
