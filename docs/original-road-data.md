@@ -936,12 +936,12 @@ each road's surface is its asphalt, and so is the ground between two roads where
 original's chapter gives the arrangement at each road width ([OUTRUN's](outrun-road-data.md#cross-section), [TURBO
 OUTRUN's](turbo-outrun-road-data.md#turbo-outruns-courses)).
 
-The lanes driven over two roads, road 0's centre w left of their middle and road 1's w right, are one rule
-(`lanesOverTwoRoads`) taken from one road's picture alone: its lane lines' middle ℓ (its innermost line's), its outer
-lane's outer edge o (the next line's middle, or its edge band where that comes first) and its half width h, beyond
-which the ground shows. The lanes are a, b, c | median | d, e, f: a and f, each road's outer lane, are o − ℓ; b and e lie
-between a road's lane lines and c and d between road 0's and road 1's; the median is the ground between the roads,
-there only where it shows (K, 2026-10-26):
+The lanes driven over two roads are one rule (`lanesOverTwoRoads`) wherever each road's centre lies, either side of the
+other (K, 2026-11-09), w half the distance between their centres, taken from one road's picture alone: its lane lines'
+middle ℓ (its innermost line's), its outer lane's outer edge o (the next line's middle, or its edge band where that
+comes first) and its half width h, beyond which the ground shows. The lanes are a, b, c | median | d, e, f, left to
+right: a and f, each road's outer lane, are o − ℓ; b and e lie between a road's lane lines and c and d between the left
+road's and the right road's; the median is the ground between the roads, there only where it shows (K, 2026-10-26):
 
 - w ≤ ℓ: c = d = 0, b = e = w + ℓ, b and e sharing the lane between the roads' lane lines;
 - ℓ ≤ w ≤ h: b = e = 2ℓ, c = d = w − ℓ, no median, c and d meeting at the roads' middle;
@@ -950,8 +950,11 @@ there only where it shows (K, 2026-10-26):
 
 A lane is written where some position of its Section gives it a width over 10⁻⁹ units (`THERE`), else it is not there.
 
-Lane b's centre is road 0's (−w) wherever both its lane lines show (w ≥ ℓ), else −(w + ℓ) / 2. The roads are one road
-for the Sections' cuts ([Sections](#9-sections-gates-limits-of-admission)) where they have no median, w ≤ h.
+Lane b's centre is the left road's wherever both its lane lines show (w ≥ ℓ), else (w + ℓ) / 2 left of their middle.
+Where the roads change sides their centres meet: w is 0 there and the lanes' widths change slope, a, b, c staying the
+left road's lanes and d, e, f the right road's, whichever road each is. OUTRUN's and TURBO OUTRUN's roads lie w either
+side of P. The roads are one road for the Sections' cuts ([Sections](#9-sections-gates-limits-of-admission)) where they
+have no median, w ≤ h.
 
 ### A lateral changed straight between points
 

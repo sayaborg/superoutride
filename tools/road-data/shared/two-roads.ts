@@ -5,7 +5,7 @@
  * Every amount is in road units, positive right.
  */
 import { romDiffers } from './conversion-errors.js';
-import type { PiecewiseLinear } from './piecewise-linear.js';
+import { PiecewiseLinear, straightThrough } from './piecewise-linear.js';
 import { OPEN } from './shared-constants.js';
 
 /** A painted interval narrowing to nothing at a stretch's end is drawn to where it is this wide, metres. */
@@ -14,8 +14,8 @@ export const THIN = 1e-5;
 export const THERE = 1e-9;
 
 /**
- * Where two roads `halves` units either side of their centres (road 0's, road 1's), centred `w` either side of their
- * middle (`width`), leave ground between them no wider than `OPEN` (`unit` metres a unit): road positions, where
+ * Where two roads `halves` units either side of their centres (road 0's, road 1's), `w` half the distance between their
+ * centres (`width`), leave ground between them no wider than `OPEN` (`unit` metres a unit): road positions, where
  * 0 < (2w − halves' sum) × unit ≤ OPEN.
  */
 export const narrowGround = (width: PiecewiseLinear, halves: readonly [number, number], unit: number) => {
@@ -109,18 +109,48 @@ export interface DrivenLanes {
   readonly f: number;
 }
 
+/** The lanes over two roads at one place: their widths, the roads' middle and w, the left road and lane b's centre. */
+export interface LanesAt {
+  readonly lanes: DrivenLanes;
+  /** The roads' middle and half the distance between their centres, units from P. */
+  readonly middle: number;
+  readonly w: number;
+  /** The road whose centre lies left (0 or 1): a, b and c are its lanes, d, e and f the other's. */
+  readonly left: 0 | 1;
+  /** Lane b's centre, units from P. */
+  readonly centreLane: number;
+}
+
+/** The lanes over two roads along P: each lane's width and lane b's centre, and which road is left where. */
+export interface LanesAlong {
+  readonly widths: Readonly<Record<keyof DrivenLanes, PiecewiseLinear>>;
+  readonly centreLane: PiecewiseLinear;
+  /** The stretches over which each road is the left one, in order: one ends and the next begins where the centres meet. */
+  readonly left: readonly { readonly from: number; readonly to: number; readonly road: 0 | 1 }[];
+}
+
+/** The lanes' names, left to right. */
+const LANE_NAMES = ['a', 'b', 'c', 'm', 'd', 'e', 'f'] as const;
+/** Two positions along P this close are one vertex. */
+const SAME_PLACE = 1e-9;
+
 /**
- * The lanes driven over two roads of picture `picture`, road 0's centre at −w and road 1's at +w
- * ([Two roads](../../../docs/original-road-data.md#two-roads)), from the picture alone: its lane lines' middle `line`
- * (its innermost line's), its outer lane's outer edge `inside` (the next line's middle, or the edge band where it comes
- * first) and its half width `half`, beyond which the ground shows. Each road's outer lane is `inside − line`; b and e
- * lie between a road's lane lines, c and d between road 0's and road 1's; the median is the ground between the roads,
- * from where it shows:
+ * The lanes driven over two roads of picture `picture` ([Two roads](../../../docs/original-road-data.md#two-roads)), one
+ * rule wherever each road's centre lies, either side of the other, w half the distance between their centres, taken
+ * from the picture alone: its lane lines' middle `line` (its innermost line's), its outer lane's outer edge `inside`
+ * (the next line's middle, or its edge band where that comes first) and its half width `half`, beyond which the ground
+ * shows. The lanes are a, b, c | median | d, e, f, left to right: a and f, each road's outer lane, are `inside − line`;
+ * b and e lie between a road's lane lines and c and d between the left road's and the right road's; the median is the
+ * ground between the roads, there only where it shows:
  * - w ≤ line: c = d = 0, b = e = w + line (b and e share the lane between the roads' lane lines);
  * - line ≤ w ≤ half: b = e = 2 line, c = d = w − line, no median (c and d meet at the roads' middle);
  * - half ≤ w ≤ 2 half − inside: c = d = 2 half − line − w, the median 4(w − half);
  * - beyond: c = d = inside − line, the median 2(w − inside), the edge bands and the ground between.
- * Lane b's centre is road 0's wherever both its lane lines show. `breaks` are the widths at which the rule changes.
+ * Lane b's centre is the left road's wherever both its lane lines show (w ≥ line), else (w + line) / 2 left of their
+ * middle. Where the roads change sides their centres meet: w is 0 there and the lanes' widths change slope, a, b, c
+ * staying the left road's lanes and d, e, f the right road's, whichever road each is. OUTRUN's and TURBO OUTRUN's roads
+ * lie w either side of P (`lanes`, `centreLaneAt`); `lanesAt` takes each road's centre at one place and `lanesAlong`
+ * along P. `breaks` are the widths at which the rule changes.
  */
 export function lanesOverTwoRoads(picture: RoadPicture) {
   const right = picture.filter((e) => e.at >= 0);
@@ -141,11 +171,68 @@ export function lanesOverTwoRoads(picture: RoadPicture) {
     if (w <= farthest) return { ...sides, c: 2 * half - line - w, m: 4 * (w - half), d: 2 * half - line - w };
     return { ...sides, c: outer, m: 2 * (w - inside), d: outer };
   };
+  /** The centre of lane b at road width `w`, units from the roads' middle (negative: left). */
+  const centreLaneAt = (w: number) => (w >= line ? -w : -(w + line) / 2);
+  const breaks = Object.freeze([line, half, farthest]) as readonly number[];
+  /** The lanes with road 0's centre at `centre0` and road 1's at `centre1`, units from P. */
+  const lanesAt = (centre0: number, centre1: number): LanesAt => {
+    const middle = (centre0 + centre1) / 2;
+    const w = Math.abs(centre1 - centre0) / 2;
+    return { lanes: lanes(w), middle, w, left: centre0 <= centre1 ? 0 : 1, centreLane: middle + centreLaneAt(w) };
+  };
+  /**
+   * The lanes along P with road 0's centre at `centre0` and road 1's at `centre1` (units from P, each straight between
+   * its knots): each lane's width and lane b's centre straight between vertices at the centres' knots, where w crosses
+   * a width of the rule (`breaks`) and where the centres meet, the roads changing sides there; continuous at each.
+   */
+  const lanesAlong = (centre0: PiecewiseLinear, centre1: PiecewiseLinear): LanesAlong => {
+    const ends = [...centre0.breaks, ...centre1.breaks];
+    const [start, end] = [Math.min(...ends), Math.max(...ends)];
+    const knots = [...new Set(ends)].sort((x, y) => x - y);
+    // Between neighbouring knots both centres are straight, so their difference is: it meets 0 and ±2 × each width of
+    // the rule at most once each.
+    const vertices = [...knots];
+    for (let i = 0; i + 1 < knots.length; i++) {
+      const [p, q] = [knots[i]!, knots[i + 1]!];
+      const [dp, dq] = [centre1.at(p) - centre0.at(p), centre1.at(q) - centre0.at(q)];
+      for (const v of [0, ...breaks.flatMap((b) => [2 * b, -2 * b])]) {
+        if ((dp - v) * (dq - v) < 0) vertices.push(p + ((v - dp) * (q - p)) / (dq - dp));
+      }
+    }
+    const places = vertices
+      .sort((x, y) => x - y)
+      .filter((p, i, all) => p >= start && p <= end && (i === 0 || p - all[i - 1]! > SAME_PLACE));
+    const at = places.map((p) => lanesAt(centre0.at(p), centre1.at(p)));
+    const along = (value: (l: LanesAt) => number) =>
+      places.length > 1
+        ? straightThrough(places.map((p, i) => [p, value(at[i]!)] as const))
+        : new PiecewiseLinear([{ from: start, to: end, a: value(at[0]!), b: 0 }]);
+    const left: { from: number; to: number; road: 0 | 1 }[] = [];
+    for (let i = 0; i + 1 < places.length; i++) {
+      const [p, q] = [places[i]!, places[i + 1]!];
+      const road = lanesAt(centre0.at((p + q) / 2), centre1.at((p + q) / 2)).left;
+      const last = left.at(-1);
+      if (last && last.road === road) last.to = q;
+      else left.push({ from: p, to: q, road });
+    }
+    if (left.length === 0) left.push({ from: start, to: end, road: at[0]!.left });
+    return Object.freeze({
+      widths: Object.freeze(
+        Object.fromEntries(LANE_NAMES.map((n) => [n, along((l) => l.lanes[n])])) as Record<
+          keyof DrivenLanes,
+          PiecewiseLinear
+        >,
+      ),
+      centreLane: along((l) => l.centreLane),
+      left: Object.freeze(left.map((s) => Object.freeze(s))),
+    });
+  };
   return Object.freeze({
     lanes,
-    /** The centre of lane b at road width `w`, units from the roads' middle (negative: left). */
-    centreLaneAt: (w: number) => (w >= line ? -w : -(w + line) / 2),
-    breaks: Object.freeze([line, half, farthest]) as readonly number[],
+    centreLaneAt,
+    lanesAt,
+    lanesAlong,
+    breaks,
     /** A road's centre lies this far inside its outer lane's outer edge. */
     inside,
     /** The roads are one road, with no median, at widths up to this. */
@@ -186,7 +273,7 @@ export const segaLevels = (roads: number): readonly PaintLevels[] =>
   Array.from({ length: roads }, (_, r) => ({ surface: roads, line: roads - 1 - r, edge: roads - 1 - r }));
 
 /**
- * The picture of roads of pictures `pictures` centred at `centres` (units, left to right), drawn in their hardware's
+ * The picture of roads of pictures `pictures` centred at `centres` (units, in either order), drawn in their hardware's
  * order `levels` (Sega's by default). Returns the lines and edge bands that show, each delimited by the feature edges
  * either side, merged where they touch and paint alike.
  */

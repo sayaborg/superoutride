@@ -1,8 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkRoadPicture, compositeOf, narrowGround, paintAt } from '../../tools/road-data/shared/two-roads.ts';
+import {
+  checkRoadPicture,
+  composite,
+  compositeOf,
+  lanesOverTwoRoads,
+  narrowGround,
+  paintAt,
+  segaLevels,
+} from '../../tools/road-data/shared/two-roads.ts';
 import { PiecewiseLinear } from '../../tools/road-data/shared/piecewise-linear.ts';
 import { TC0150ROD_LEVELS } from '../../tools/road-data/taito/tc0150rod.ts';
+import { OUTRUN_ROAD } from '../../tools/road-data/outrun/outrun-constants.ts';
+import { TURBO_OUTRUN_ROAD } from '../../tools/road-data/turbo-outrun/turbo-outrun-cross-section.ts';
 
 /** A road 10 units either side of its centre: an edge band 2 units wide each side, a line 1 unit wide at its centre. */
 const ROAD = [
@@ -82,4 +92,100 @@ test('the ground between two roads of their own widths is narrow where it is no 
   const narrow = narrowGround(width, [4, 2], 0.1);
   assert.equal(narrow.length, 1);
   assert.ok(Math.abs(narrow[0].from - 30) < 1e-9 && Math.abs(narrow[0].to - 55) < 1e-9);
+});
+
+const close = (actual, expected, what) =>
+  assert.ok(Math.abs(actual - expected) < 1e-9, `${what}: ${actual} ≠ ${expected}`);
+const sameLanes = (actual, expected, what) => {
+  for (const k of ['a', 'b', 'c', 'm', 'd', 'e', 'f']) close(actual[k], expected[k], `${what} lane ${k}`);
+};
+/** A width in each of the rule's four stretches of `rule`, and its breaks. */
+const widthsOf = (rule) => {
+  const [line, half, farthest] = rule.breaks;
+  return [line / 2, line, (line + half) / 2, half, (half + farthest) / 2, farthest, farthest + 10];
+};
+
+test("the lanes over two roads centred w either side of P are OUTRUN's and TURBO OUTRUN's rule as it stood", () => {
+  for (const picture of [OUTRUN_ROAD, TURBO_OUTRUN_ROAD]) {
+    const rule = lanesOverTwoRoads(picture);
+    for (const w of widthsOf(rule)) {
+      const at = rule.lanesAt(-w, w);
+      sameLanes(at.lanes, rule.lanes(w), `w ${w}`);
+      close(at.middle, 0, `middle at w ${w}`);
+      close(at.centreLane, rule.centreLaneAt(w), `lane b's centre at w ${w}`);
+      assert.equal(at.left, 0);
+    }
+  }
+});
+
+test('the lanes over two roads take each road at its own lateral, road 0 left or right', () => {
+  const rule = lanesOverTwoRoads(OUTRUN_ROAD);
+  const [line] = rule.breaks;
+  for (const w of widthsOf(rule)) {
+    const centreLane = w >= line ? 0 : w - (w + line) / 2;
+    const right = rule.lanesAt(0, 2 * w);
+    sameLanes(right.lanes, rule.lanes(w), `road 1 right, w ${w}`);
+    close(right.centreLane, centreLane, `road 1 right, lane b's centre at w ${w}`);
+    assert.equal(right.left, 0);
+    const left = rule.lanesAt(2 * w, 0);
+    sameLanes(left.lanes, rule.lanes(w), `road 1 left, w ${w}`);
+    close(left.centreLane, centreLane, `road 1 left, lane b's centre at w ${w}`);
+    assert.equal(left.left, 1);
+  }
+});
+
+test("the lanes along two roads whose centres change sides keep their widths and lane b's centre unbroken", () => {
+  const rule = lanesOverTwoRoads(TURBO_OUTRUN_ROAD);
+  const [line, half, farthest] = rule.breaks;
+  // Road 0 along P; road 1's centre from 2 × farthest + 40 right of it to as far left over positions 0 to 1000.
+  const span = 2 * farthest + 40;
+  const centre0 = new PiecewiseLinear([{ from: 0, to: 1000, a: 0, b: 0 }]);
+  const centre1 = new PiecewiseLinear([{ from: 0, to: 1000, a: span, b: (-2 * span) / 1000 }]);
+  const along = rule.lanesAlong(centre0, centre1);
+  const crossing = 500;
+  // A vertex where they cross, and where w crosses each of the rule's widths, either side.
+  const vertices = along.centreLane.breaks;
+  const placeOf = (w) => (1000 * (span - 2 * w)) / (2 * span);
+  for (const p of [crossing, ...[line, half, farthest].flatMap((w) => [placeOf(w), 1000 - placeOf(w)])])
+    assert.ok(
+      vertices.some((v) => Math.abs(v - p) < 1e-6),
+      `a vertex at ${p}`,
+    );
+  for (const k of ['a', 'b', 'c', 'm', 'd', 'e', 'f']) assert.deepEqual(along.widths[k].breaks, vertices);
+  // At the crossing the roads are one: w is 0.
+  sameLanes(
+    Object.fromEntries(['a', 'b', 'c', 'm', 'd', 'e', 'f'].map((k) => [k, along.widths[k].at(crossing)])),
+    { a: rule.outer, b: line, c: 0, m: 0, d: 0, e: line, f: rule.outer },
+    'at the crossing',
+  );
+  // Unbroken: each piece meets the next.
+  for (const f of [along.centreLane, ...Object.values(along.widths)]) {
+    for (let i = 0; i + 1 < f.pieces.length; i++) {
+      const [q, r] = [f.pieces[i], f.pieces[i + 1]];
+      close(q.a + q.b * (q.to - q.from), r.a, `continuous at ${q.to}`);
+    }
+  }
+  // Everywhere the lanes and lane b's centre are the rule's at the place.
+  for (let p = 0; p <= 1000; p += 7.3) {
+    const at = rule.lanesAt(centre0.at(p), centre1.at(p));
+    for (const k of ['a', 'b', 'c', 'm', 'd', 'e', 'f']) close(along.widths[k].at(p), at.lanes[k], `${k} at ${p}`);
+    close(along.centreLane.at(p), at.centreLane, `lane b's centre at ${p}`);
+  }
+  // The left road changes where they cross.
+  assert.deepEqual(along.left, [
+    { from: 0, to: crossing, road: 0 },
+    { from: crossing, to: 1000, road: 1 },
+  ]);
+});
+
+test('two roads composed with road 1 left of road 0 show what they show with the roads named the other way', () => {
+  const levels = segaLevels(2);
+  const swapped = composite([20, -20], [ROAD, LANE], levels);
+  const named = composite([-20, 20], [LANE, ROAD], [levels[1], levels[0]]);
+  const shown = (intervals, road) =>
+    intervals.map((i) => [i.paint, road(i.left.road), i.left.at, road(i.right.road), i.right.at]);
+  assert.deepEqual(
+    shown(swapped, (r) => r),
+    shown(named, (r) => 1 - r),
+  );
 });

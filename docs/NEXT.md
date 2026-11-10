@@ -70,9 +70,9 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls); later [Stage BR](#stage-br--big-run-from-the-roms) and
-[Stage CS](#stage-cs--cisco-heat-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then
-[Stage 16](#stage-16--produce-product-courses).
+Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
+BR](#stage-br--big-run-from-the-roms)'s raising, BR-4 next; later [Stage CS](#stage-cs--cisco-heat-from-the-roms);
+[RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -467,32 +467,10 @@ K's decisions (2026-11-09):
   no water stops the conversion for K, as in Stage TA. Its road's is as the study's table of its sets of road colors has
   it: `ASPHALT` for its towns' paving (STARTING RUN's first 1.1 km), `DIRT` for its desert's road and `WATER` for its
   river crossings, each set named in its chapter.
-- **Its order.** It is raised after Stage TA closes, and CISCO HEAT after it.
-
-It runs beside Stage TA in its own sessions and branches, with the BR auditor's terms (2026-11-08), until Stage TA
-closes:
-
-- A BR PR writes this section, Stage CS's and the next PR line's words on the two, and nothing else: no code, command,
-  test or content and no other document or section. The study changes nothing in the repository: it reads with the
-  research commands and `dis68.py` as main has them, its runs are throwaway steps outside the repository, their outputs
-  under `reference-media/<original>/research/`, and a tool it lacks or would mend is reported, with why, and made when
-  the two are raised.
-- A BR PR changes no conversion and no input of one, so every original's outputs stay main's, whose `--check` the main
-  line ran; it is checked by `npm test` and CI.
-- When main moves, a BR branch is brought up to it and validated again before main is fast-forwarded; NEXT outside the
-  lines above stays as main has it.
-
-The terms go when Stage TA closes, or sooner as K decides from the study, and the first BR PR after them removes them
-and mends the next PR line. From then on the two are raised as every original is: a BR session holds every original's
-zips, and every original's `--check` passes before each BR PR.
+- **Its order.** It is raised beside Stage RM now that Stage TA has closed, and CISCO HEAT after it.
 
 The PRs, in order:
 
-- **BR-3** The lanes over [two roads](original-road-data.md#two-roads) whose centres lie each at its own lateral, on
-  either side of the other, a shared rule (`lanesOverTwoRoads`, now road 0's centre w left of their middle and road 1's
-  w right), the two drawn by the parts Stage TA leaves in `two-roads` (`composite` already takes each road's centre);
-  BIG RUN's keep their order and CISCO HEAT's change it in STAGE 5. Every other original's outputs stay as they are, as
-  `--check` shows.
 - **BR-4** A plan from a table's arcs, a shared rule: its reader and section, a heading's jump laid as a turn.
 - **BR-5** BIG RUN's skies, with the JALECO board's layer as they need it.
 - **BR-6** BIG RUN's six courses without objects: its readers and conversion, its chapter and research note (its Camera
@@ -516,8 +494,8 @@ K's decisions (2026-11-09):
 - **Its courses** are its five stages, one a course, as the [course texts](#course-names-and-descriptions) name them
   (`cisco-heat-stage-1` to `cisco-heat-stage-5`); its two roads are BIG RUN's, the one that leaves at STAGE 5's end the
   road not taken. In STAGE 5 they change their order across eight times, its first road on one side of its second where
-  they run side by side and on the other where they part widest, as BIG RUN's and its other stages' never do (BR-3's
-  rule).
+  they run side by side and on the other where they part widest, as BIG RUN's and its other stages' never do; [the lanes
+  over two roads](original-road-data.md#two-roads) take either order.
 - **Its heading's jumps** between straights (4° to 20°) are laid as turns by BR-4's rule, and where its second road
   jumps back onto its first at the end of their parting, a Section is cut.
 - **Its heights** are no 3D road times f: its grades pass −90° and its stages fall by up to a fifth of their length,
