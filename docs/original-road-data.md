@@ -1213,7 +1213,9 @@ its ROMs:
   2's 1536 each; POLE POSITION II's 2048), its picture's width or, where the original turns it at another rate, more or
   less than one picture, in RGB555 or transparent, with its bottom row's place: how many rows below the horizon (0 the
   first row below it); and the layer that faces the sky (`facing`; Sega's and FINAL LAP 2's back), whose turn is the
-  sky's and whose rows set the sky's.
+  sky's and whose rows set the sky's. An original that holds no turn, its background moving by the road's curve alone,
+  turns each picture in the whole number of copies nearest its own size: round(1504 ÷ the picture's width) copies a
+  turn (`copiesATurn`; CONTINENTAL CIRCUS's 6 of 256 pixels, 1536), every layer alike, with the car's heading.
 - **Overlap.** For each other layer, the facing layer's pixel its pixel 0 lies over, as the original has it, a whole
   pixel or not: its pixel f lies over the facing layer's f × (the facing's turn ÷ its turn) + overlap (Sega's front
   0.75f, FINAL LAP 2's f with its overlap 0), rounded only where the sky is laid (step 2). A layer whose turn is no

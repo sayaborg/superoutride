@@ -38,3 +38,22 @@ test('a layer whose turn is no whole number of its pictures is laid round from t
   compileTilePicture(whole).paintRow(plain, 0, 0, 319, SKY_WIDTH);
   assert.deepEqual([plain[0], plain[SKY_WIDTH - 1]], [RED, BLUE]);
 });
+
+test('a facing layer of whole copies a turn repeats its picture, each layer over it alike', () => {
+  // Two pictures of 256 pixels, each 6 copies a turn (1536): the facing all blue but its pixel 0, the other red in its
+  // first half. Every copy shows, and the rows are chosen by the turn, not the picture.
+  const turn = 6 * 256;
+  const facing = layer(256, (x) => (x === 0 ? RED : BLUE), { turn });
+  const near = layer(256, (x) => (x >= 128 && x < 192 ? RED : TRANSPARENT), { turn });
+  const sky = bakeSky('test', { layers: [facing, near], facing: 0, ramp: { rows: [0], below: 0 } }, 1);
+  const row = new Uint16Array(SKY_WIDTH);
+  compileTilePicture(sky).paintRow(row, 0, 0, 319, SKY_WIDTH);
+  const at = (pixel) => row[Math.floor(((pixel + 0.5) * SKY_WIDTH) / turn)];
+  for (let copy = 0; copy < 6; copy++) {
+    assert.equal(at(256 * copy + 64), BLUE, `copy ${copy}: the facing layer`);
+    assert.equal(at(256 * copy + 160), RED, `copy ${copy}: the layer over it`);
+  }
+  // Its two rows at 1504 / 1536 a row lie in the two rows above the horizon; a row at 1504 / 256 would fill 12.
+  compileTilePicture(sky).paintRow(row, 0, 0, 316, SKY_WIDTH);
+  assert.equal(row[100], 0);
+});

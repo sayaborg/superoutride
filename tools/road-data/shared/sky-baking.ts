@@ -21,6 +21,12 @@ export const SKY_HORIZON = 320;
 const SKY_PERIOD = ((SKY_WIDTH / CAMERA_DEFINITION.focalLength) * 180) / Math.PI;
 
 /**
+ * The copies of a picture `width` pixels wide that make a turn where the original holds none: the whole number that
+ * turns the picture nearest its own size in the sky's width.
+ */
+export const copiesATurn = (width: number) => Math.round(SKY_WIDTH / width);
+
+/**
  * A Section's sky's yaw origin, degrees: the course's, `origin`, and the road's turn from the course's start to the
  * Section's start, `turn` degrees, continued from Section to Section, so that the sky never jumps at a border; taken
  * by the sky's period only where it would leave the format's ±360°, which moves the picture by a whole width.
@@ -51,9 +57,9 @@ export interface SkyLayer {
 }
 
 /**
- * A layer as the sky lays it: its pixels a turn (`turn`), its picture's width where absent, and the facing layer's
- * pixel its pixel 0 lies over (`overlap`), as the original has it, a whole pixel or not: its pixel f lies over the
- * facing layer's f × (the facing's turn ÷ its turn) + overlap.
+ * A layer as the sky lays it: its pixels a turn (`turn`), its picture's width where absent, and, but for the facing
+ * layer, the facing layer's pixel its pixel 0 lies over (`overlap`), as the original has it, a whole pixel or not: its
+ * pixel f lies over the facing layer's f × (the facing's turn ÷ its turn) + overlap.
  */
 export interface SkyBand extends SkyLayer {
   readonly turn?: number;
@@ -78,36 +84,38 @@ export interface SkyBands {
 
 /**
  * Sky `name` laid from `bands` by chosen lines: each layer's columns chosen to the sky's 1504 (`chosenGrid`) over its
- * turn, a layer's column j over the facing layer's j + `overlap` × 1504 / the facing's width, a layer of a turn other
- * than its picture's laid round from the facing layer's pixel `seam`; the ramp, then each layer over it in its order,
- * each by its bottom row, in the original's rows; then the rows chosen each way from the horizon to 320, its pixels'
- * `aspect` × 1504 / the facing layer's width a row; drawn as a tile picture as the skies command draws one.
+ * turn, a layer's column j over the facing layer's j + `overlap` × 1504 / the facing's turn, a layer of a turn other
+ * than its picture's, the facing layer too, laid round from the facing layer's pixel `seam` (0 where none is given, as
+ * a turn of whole pictures needs none); the ramp, then each layer over it in its order, each by its bottom row, in the
+ * original's rows; then the rows chosen each way from the horizon to 320, its pixels' `aspect` × 1504 / the facing
+ * layer's turn a row; drawn as a tile picture as the skies command draws one.
  */
 export function bakeSky(name: string, bands: SkyBands, aspect: number): TilePictureDocument {
   const { layers, ramp } = bands;
-  const facing = layers[bands.facing]!;
+  const turnOf = (layer: SkyBand) => layer.turn ?? layer.width;
+  const facingTurn = turnOf(layers[bands.facing]!);
   const columns = (pixels: Int32Array, width: number) => chosenGrid(pixels, width, SKY_WIDTH / width, 1).columns;
   const wrap = (x: number) => ((x % SKY_WIDTH) + SKY_WIDTH) % SKY_WIDTH;
   // Each layer's picture column at each of the sky's columns.
   const placed = layers.map((layer, k): ((x: number) => number) => {
-    const chosen = columns(layer.pixels, layer.width);
-    if (k === bands.facing) return (x) => chosen[x]!;
-    const overlap = layer.overlap ?? 0;
-    if (layer.turn === undefined || layer.turn === layer.width) {
-      const shift = Math.round((overlap * SKY_WIDTH) / facing.width);
+    const overlap = k === bands.facing ? 0 : (layer.overlap ?? 0);
+    const turn = turnOf(layer);
+    if (turn === layer.width) {
+      const chosen = columns(layer.pixels, layer.width);
+      const shift = Math.round((overlap * SKY_WIDTH) / facingTurn);
       return (x) => chosen[wrap(x - shift)]!;
     }
     // Laid round from the facing layer's pixel `seam`: its turn's pixels from its own pixel there, chosen to the sky.
     const seam = bands.seam ?? 0;
-    const length = Math.round(layer.turn);
-    const start = ((seam - overlap) * layer.turn) / facing.width;
+    const length = Math.round(turn);
+    const start = ((seam - overlap) * turn) / facingTurn;
     const height = layer.pixels.length / layer.width;
     const round = new Int32Array(length * height);
     const source = (k: number) => ((Math.floor(start + k) % layer.width) + layer.width) % layer.width;
     for (let y = 0; y < height; y++)
       for (let k = 0; k < length; k++) round[y * length + k] = layer.pixels[y * layer.width + source(k)]!;
     const roundColumns = columns(round, length);
-    const from = Math.round((seam * SKY_WIDTH) / facing.width);
+    const from = Math.round((seam * SKY_WIDTH) / facingTurn);
     return (x) => source(roundColumns[wrap(x - from)]!);
   });
   const layerPixel = (layer: SkyLayer, x: number, y: number) => {
@@ -132,7 +140,7 @@ export function bakeSky(name: string, bands: SkyBands, aspect: number): TilePict
     }
     return pixels;
   };
-  const down = (SKY_WIDTH / facing.width) * aspect;
+  const down = (SKY_WIDTH / facingTurn) * aspect;
   // The original's rows each way, as many as the nearest whole number gives 320 of, one more where they give fewer, the
   // 320 nearest the horizon kept.
   const reach = (count: number) => chosenGrid(new Int32Array(SKY_WIDTH * count), SKY_WIDTH, 1, down).rows.length;
