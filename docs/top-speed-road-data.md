@@ -84,18 +84,32 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
   its start and each change within it, the road's bands and the ground taking each change's colors in pairs over it
   (`colorStretches`, `placedStretches`). The courses change 22 to 26 times, over 5.9 to 65.2 m, the longest the
   bands' wipe; ten of the changes begin 12.3 m before a tunnel's walls, where its dark sky comes at once.
+- **Its forks.** While the camera's record or one of the five after it in its section is a fork's (its join 3,
+  M 0x5B0A to 0x5B62), and on until the road not taken is gone (M 0x5A08 to 0x5A54, 0x5FF0), the main program draws
+  each half by a fork picture (M 0x3FAC, 0x4198; `topSpeedForkPicture`): the half as it is, but at its P, in place of
+  the line there, a band of the outer band's pen 0.316 m wide outward from P, the left half's picture clear beyond P
+  and the right half's, the layer beneath it (M 0x3EEE, 0x4122), the ground's pen there. While the camera is in the
+  last four records of the fork's section it moves each half outward by pixels on every line (M 0x5A80 to 0x5B08,
+  added to the halves' slides at M 0x3B64 to 0x3B78), the left by 1 to 5 and the right by 2 to 4, so that a gap of 3,
+  7, 8 and 9 pixels opens at P, the ground's pen in it. A course lays them as its road's Strips where the camera is
+  when the original draws them, as its hills' stripes are laid: over a fork's section's last six records (147.4 m)
+  each half's band at P, striped as the outer band, and no line at P; over its last four the ground's color between
+  the two bands, striped as the ground, 0.073, 0.170, 0.195 and 0.219 m wide, a pixel taken at the nearest line as the
+  slide's is; and over the road not taken's 30.7 m the course's own half's band at P. The gap is color alone, the
+  road's material under it: the sub program slows a car by its lateral from its outermost lanes' centres alone
+  (S 0x5DFE) and reads neither the gap's pixels nor the flag of the fork's approach. The halves' lanes and edges are
+  not moved by the gap's 1 to 5 pixels (24 to 122 mm).
 - **Its roads not taken.** At each of its 7 to 9 forks, from its branch's start, the other branch's half of the road
   is drawn beside its own over 30.7 m and no further, as the main program draws it ([Two
   roads](original-road-data.md#two-roads), `roadsNotTaken`): its lanes on its side by its first record's mask, out from
-  its own P, its body, lines and edge as the course's and striped as the course's, drawn over it, of no material, as the
-  original slows a car by its lateral alone. Its P lies where the other branch's line lies from the course's, the two
+  its own P, its body, lines and edge as the course's, at its P the fork picture's band ([Its
+  forks](#top-speeds-courses)), striped as the course's, drawn over it, of no material, as the original slows a car by
+  its lateral alone. Its P lies where the other branch's line lies from the course's, the two
   leaving the fork's end on one heading, each turned by its own records (M 0x5B64, 0x5C34), plus the program's slide
   outward, the camera's advance since the branch's start over 32 pixels on every line (M 0x5F46 to 0x5F8A) up to 0x2800
   positions (M 0x5F62), a pixel taken at the nearest line, 24.3 mm, 7.8 m in all (default; K confirms at the stage's
   end: the original slides it the same pixels on every line, more laterals the farther the line): 18.0 to 20.4 m out
-  at its end. The fork pictures the program shows from six records before a fork and the gap of 3 to 9 pixels it opens
-  at P over the fork section's last four records (M 0x5A08 to 0x5B08) are not drawn (default; K confirms at the stage's
-  end). The course's own lanes on the side not taken narrow a lane over 28.4 m from the branch's start, as every
+  at its end. The course's own lanes on the side not taken narrow a lane over 28.4 m from the branch's start, as every
   change of its lanes does, where the original's half there is the road not taken: a replacement that cannot be
   avoided, as the format's Link joins roads of the same lanes alone (K, 2026-11-08). The things of the branch not
   taken stand beside it ([Beside a road not taken](#its-things)).
@@ -109,7 +123,8 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
 - **Its bands.** As the road picture draws them ([Its road picture](#its-road-picture)): its body over its lanes, each
   edge's inner band from 0.073 m within the lanes to 0.219 m beyond them and its outer band on to 0.535 m, the ground
   beyond, and its lines 0.146 m wide about its lanes' sides within; at P the right half's line, its right half where
-  three lanes lie right of P and both where one or two do, none where a side has none, its edge's inner band then at P.
+  three lanes lie right of P and both where one or two do, none where a side has none, its edge's inner band then at P,
+  and none at a fork ([Its forks](#top-speeds-courses)).
   Its road is `ASPHALT`.
 - **Its stripes.** Each line of the road takes a raster word by its place, the position's bits 11 and 10 adding a word
   each to a base, four parts of 0x400 positions (3.07 m) each 0x1000 (12.29 m), counted from the run's start (M 0x38D6
@@ -299,4 +314,4 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
-pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 11).
+pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 12).

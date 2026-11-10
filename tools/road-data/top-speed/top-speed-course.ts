@@ -57,6 +57,7 @@ import {
   PENS,
   RASTER,
   stripeWords,
+  topSpeedForkPicture,
   topSpeedRoadColors,
   topSpeedRoadPicture,
 } from './top-speed-road-picture.js';
@@ -75,7 +76,7 @@ import {
   TOP_SPEED,
 } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 11;
+export const TOP_SPEED_CONVERSION_VERSION = 12;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -148,6 +149,8 @@ export function topSpeedCourses(set: RomSet) {
   const lineHalf = (picture.lines[1]!.right - picture.lines[1]!.left) / 2;
   const [innerIn, innerOut] = [lanesAcross - picture.inner.left, picture.inner.right - lanesAcross];
   const edge = picture.edgeMetres;
+  // The fork's pictures: the band at each half's P, and the gap's pixels at the nearest line.
+  const fork = topSpeedForkPicture(main, tiles);
   const resolution = gradeResolution(sub);
   const outputs = new OriginalOutputs();
   // Its things: each course's placements, their pictures drawn once for all its courses, a pixel the standing things'
@@ -265,6 +268,48 @@ export function topSpeedCourses(set: RomSet) {
     const stretches = limitStretches(sub, records);
     // Its roads not taken, each over its fork's 30.7 m from its branch's start.
     const notTaken = branches[course]!;
+    // Its forks' pictures (`topSpeedForkPicture`), by the camera's record, metres from its start: over each fork's
+    // record and those before it in its section that look ahead to it, each half's band at its P in place of the line
+    // there, the halves `left` and `right` metres from P over the gap's records, the ground's color between them; and
+    // on from each fork over its road not taken's length, the course's own half's band.
+    const forkRecords = records.flatMap((r, i) => (r.record.join === 3 ? [i] : []));
+    if (forkRecords.length !== notTaken.length || forkRecords.some((i, k) => i + 1 !== notTaken[k]!.from))
+      throw contractUnmet(`${name}'s forks' records are not its roads not taken's`);
+    const forkParts = forkRecords.flatMap((i, k) => {
+      const first = records.findIndex((r, j) => j >= i - fork.records + 1 && r.section === records[i]!.section);
+      const n = notTaken[k]!;
+      const parts: {
+        from: number;
+        to: number;
+        left: number;
+        right: number;
+        halves: Record<'left' | 'right', boolean>;
+      }[] = [];
+      for (let j = first; j <= i; j++) {
+        const gap = fork.gaps.find((g) => g.record === fork.gaps.at(-1)!.record - (i - j));
+        const [left, right] = [(gap?.left ?? 0) * picture.pixelMetres, (gap?.right ?? 0) * picture.pixelMetres];
+        const last = parts.at(-1);
+        if (last && last.left === left && last.right === right) last.to = (j + 1) * RECORD_METRES;
+        else
+          parts.push({
+            from: j * RECORD_METRES,
+            to: (j + 1) * RECORD_METRES,
+            left,
+            right,
+            halves: { left: true, right: true },
+          });
+      }
+      return [
+        ...parts,
+        {
+          from: n.from * RECORD_METRES,
+          to: n.from * RECORD_METRES + n.steps * n.step,
+          left: 0,
+          right: 0,
+          halves: { left: n.beside === 'right', right: n.beside === 'left' },
+        },
+      ];
+    });
     const goal = records.length * RECORD_METRES;
     const go = GO_POSITIONS * POSITION_METRES;
     // The own car alone at GO in lane d, the general form on it and lane c beside it.
@@ -659,7 +704,8 @@ export function topSpeedCourses(set: RomSet) {
         const rightOf = (s: number) => {
           const mask = recordAt(at(s)).record.mask;
           const [left, right] = [(mask >> 4) & 7, (mask >> 1) & 7].map((n) => n.toString(2).replace(/0/g, '').length);
-          return left === 0 ? 0 : right;
+          // None where a fork's pictures are drawn, each half's band at P in its place.
+          return left === 0 || forkParts.some((f) => at(s) >= f.from - 1e-6 && at(s) < f.to - 1e-6) ? 0 : right;
         };
         const centreCuts = [
           span.from,
@@ -683,6 +729,19 @@ export function topSpeedCourses(set: RomSet) {
                   );
             })
           : [];
+        // Its forks' pictures within it: each half's band at P, the outer band's pen, striped as it, and the ground's
+        // color in the gap between the halves; of no material (the sub program treats a car there as on the road).
+        const fromP = (x: number): Lateral =>
+          present.includes('d') ? lane('d', 'left', x) : lane(present.at(-1)!, 'right', x);
+        const forkStrips = forkParts.flatMap((f) => {
+          const [a, b] = [Math.max(span.from, back + f.from), Math.min(span.to, back + f.to)];
+          if (!(b - a > 1e-6)) return [];
+          return [
+            ...(f.left + f.right > 0 ? parted(fromP(-f.left), fromP(f.right), 'ground', null, a, b) : []),
+            ...(f.halves.left ? parted(fromP(-f.left - fork.band), fromP(-f.left), 'outer', null, a, b) : []),
+            ...(f.halves.right ? parted(fromP(f.right), fromP(f.right + fork.band), 'outer', null, a, b) : []),
+          ];
+        });
         // Its roads not taken within it: each the other branch's half beside its own, its P and its outer side two
         // Boundaries straight between its steps, its body over its lanes, its lines and its edge's bands as the
         // course's, striped as the course's and drawn over it, of no material (the original slows a car by its
@@ -737,7 +796,7 @@ export function topSpeedCourses(set: RomSet) {
               strips: [
                 ...water,
                 ...band(fromCentre(0), fromOuter(0), 'body'),
-                ...band(fromCentre(0), fromCentre(lineHalf), 'line'),
+                ...band(fromCentre(0), fromCentre(fork.band), 'outer'),
                 ...Array.from({ length: Math.max(0, n.lanes - 1) }, (_, k) =>
                   band(
                     fromCentre((k + 1) * LANE_METRES - lineHalf),
@@ -794,6 +853,7 @@ export function topSpeedCourses(set: RomSet) {
             }),
             ...lines,
             ...centreLines,
+            ...forkStrips,
             ...notTakenParts.flatMap((n) => n.strips),
           ],
           sprites: things

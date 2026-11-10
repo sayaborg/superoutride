@@ -609,8 +609,8 @@ would pass `spritePlacements`; and a ground made `WATER` that is not water `SAND
 
 TOP SPEED's defaults, each in [its chapter](top-speed-road-data.md): GO 1.82 m into its first section (0x260); its plan
 by the turn the instructions give, its radii 64.6 to 211 m; its cloud picture changed at a tunnel's change record; its
-raster words' bits as MAME's description reads them; its road not taken's slide measured at the nearest line, its fork
-pictures and gap not drawn; its tunnels' road and sky dark over their walls, an overpass's road alone under its decks;
+raster words' bits as MAME's description reads them; its road not taken's slide and its fork's gap measured at the nearest
+line; its tunnels' road and sky dark over their walls, an overpass's road alone under its decks;
 and its ground patches, cloud banks and GOAL gate not placed.
 
 CONTINENTAL CIRCUS's defaults, each in [its chapter](continental-circus-road-data.md): its rises at 1.5 units a sample;

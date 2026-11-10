@@ -63,6 +63,11 @@ Read statically; MAME's driver (commit 9c0b6db1) for the hardware alone.
   lanes (0x7F80 to 0x803C). Its drawn edges move toward the camera's record's mask by the advance over 32 a frame
   (0x7F4C, 0x8044), twice that while 0x401102 is set, which 0x626A sets each frame only in a goal section; the flag the
   fork's approach sets (0x5A28, 0x5FFE) is cleared again before the edges move (0x7D50 runs after 0x626A).
+- The fork pictures (the lists the choices at 0x3FAC and 0x4198 name by each side's lanes) are the steady ones with a
+  band of pen 3 at P; the left half's layer is the first chip's (0x3EEE) and the right half's the second chip's
+  (0x4122), which is drawn beneath it, so the right half's ground pen beyond P shows wherever the left half is clear:
+  in the gap and between the course's half and the road not taken. Of the fork's state S reads the word at 0x40105C
+  alone, in its sprite builder (S 0x16604), for the curve table a thing is drawn by.
 - S holds a car by its record's lanes' centres at once at each record's start (0x58BA to 0x5964), so that the limits
   change at once where the drawn edges move. A tunnel's walls follow the covered bit, which S sets by the record's
   parameter and the position's half of the record (0x58F2 to 0x5934); its event 4, a structure across the road, sets

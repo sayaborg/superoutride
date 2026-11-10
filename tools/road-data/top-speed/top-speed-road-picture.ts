@@ -26,8 +26,8 @@ const SCREEN_ROWS = 240;
  * pixels there the main program's edge offsets', 0x128 units a lane (M 0x7FC0) times the line's number over 0xA0
  * (M 0x7F28 to 0x7F30).
  */
-function nearestLine(main: Uint8Array, gfx: Uint8Array) {
-  const [high, low] = instruction(main, 0x4190, [0x47f9, null, null], "the right half's picture (lea)");
+function nearestLine(main: Uint8Array, gfx: Uint8Array, at = 0x4190, what = "the right half's picture (lea)") {
+  const [high, low] = instruction(main, at, [0x47f9, null, null], what);
   const list = high * 0x10000 + low;
   const [units] = instruction(main, 0x7fc0, [0x303c, null], "a lane's edge units (move.w)");
   const [divisor] = instruction(main, 0x7f30, [0x343c, null], "a line's edge offsets' divisor (move.w)");
@@ -37,6 +37,31 @@ function nearestLine(main: Uint8Array, gfx: Uint8Array) {
     tilePen(gfx, word(main, row + 2 * (x >> 3)) & 0x3fff, x & 7, line & 7),
   );
   return { pixels, lanePixels: (units * (line + 1)) / divisor };
+}
+
+/** A line's runs of one pen. */
+function runsOf(pixels: readonly number[]) {
+  const runs: { from: number; to: number; pen: number }[] = [];
+  for (let x = 0; x < pixels.length;) {
+    let end = x;
+    while (end < pixels.length && pixels[end] === pixels[x]) end++;
+    runs.push({ from: x, to: end, pen: pixels[x]! });
+    x = end;
+  }
+  return runs;
+}
+
+/** The steady picture's P, pixels, where its lane lines' middles lie a lane and two from it, and a pixel's metres from it. */
+function pictureScale({ pixels, lanePixels }: ReturnType<typeof nearestLine>) {
+  // The lane lines a lane and two from P, its last lines before its edge.
+  const lanes = runsOf(pixels)
+    .filter((r) => r.pen === PENS.line)
+    .slice(-(PICTURE_LANES - 1));
+  const middles = lanes.map((r) => (r.from + r.to) / 2);
+  const p = middles[0]! - lanePixels;
+  if (lanes.length !== PICTURE_LANES - 1 || middles.some((m, k) => Math.abs(m - p - (k + 1) * lanePixels) > 0.5))
+    throw romDiffers("The road picture's lane lines are not a lane apart");
+  return { p, metres: (x: number) => ((x - p) / lanePixels) * LANE_METRES };
 }
 
 /** A band of the picture, metres right of P. */
@@ -51,22 +76,11 @@ export interface PictureBand {
  * lane lines' middles lie a lane apart from it.
  */
 export function topSpeedRoadPicture(main: Uint8Array, gfx: Uint8Array) {
-  const { pixels, lanePixels } = nearestLine(main, gfx);
-  const runs: { from: number; to: number; pen: number }[] = [];
-  for (let x = 0; x < pixels.length;) {
-    let end = x;
-    while (end < pixels.length && pixels[end] === pixels[x]) end++;
-    runs.push({ from: x, to: end, pen: pixels[x]! });
-    x = end;
-  }
+  const line = nearestLine(main, gfx);
+  const { lanePixels } = line;
+  const runs = runsOf(line.pixels);
   const lines = runs.filter((r) => r.pen === PENS.line);
-  // The lane lines a lane and two from P, its last line before its edge.
-  const lanes = lines.slice(-(PICTURE_LANES - 1));
-  const middles = lanes.map((r) => (r.from + r.to) / 2);
-  const p = middles[0]! - lanePixels;
-  if (lanes.length !== PICTURE_LANES - 1 || middles.some((m, k) => Math.abs(m - p - (k + 1) * lanePixels) > 0.5))
-    throw romDiffers("The road picture's lane lines are not a lane apart");
-  const metres = (x: number) => ((x - p) / lanePixels) * LANE_METRES;
+  const { metres } = pictureScale(line);
   const band = (pen: number): PictureBand => {
     const r = runs.filter((x) => x.pen === pen);
     if (r.length !== 1) throw romDiffers(`The road picture holds ${r.length} bands of pen ${pen}`);
@@ -85,6 +99,64 @@ export function topSpeedRoadPicture(main: Uint8Array, gfx: Uint8Array) {
     /** A pixel's metres across at the nearest line. */
     pixelMetres: LANE_METRES / lanePixels,
   };
+}
+
+/** A section's records, and a record's positions' bits in the camera's position (its bits 17 to 13 its record). */
+const SECTION_RECORDS = 32;
+const RECORD_BITS = 13;
+
+/**
+ * The fork's pictures and its gap ([Its fork](../../../docs/top-speed-road-data.md#top-speeds-courses)): while the
+ * camera's record or one of the `records - 1` after it in its section is a fork's (its join 3, M 0x5B0A to 0x5B62), and
+ * after it until the road not taken is gone (M 0x5A08 to 0x5A54, 0x5FF0), each half is drawn by a fork picture (M
+ * 0x3FAC, 0x4198), which holds at its P, in place of the line there, a band of the outer band's pen `band` metres wide,
+ * the left half's clear beyond P and the right half's, the layer beneath it (M 0x3EEE, 0x4122), the ground's pen. Over
+ * the camera's records `gaps` of a fork's section each half is moved outward by pixels on every line (M 0x5A80 to
+ * 0x5B08, added to each half's slide at M 0x3B64 to 0x3B78), `left` and `right`, the ground's pen showing between them.
+ */
+export function topSpeedForkPicture(main: Uint8Array, gfx: Uint8Array) {
+  const { p, metres } = pictureScale(nearestLine(main, gfx));
+  const bandOf = (at: number, what: string, beyond: number) => {
+    const runs = runsOf(nearestLine(main, gfx, at, what).pixels);
+    const k = runs.findIndex((r) => r.pen === PENS.outer);
+    const band = runs[k];
+    if (k !== 1 || !band || Math.abs(band.from - p) > 0.5 || runs[0]!.pen !== beyond || runs[2]?.pen !== PENS.surface)
+      throw romDiffers(`A fork picture's band (${what}) does not lie at P between pen ${beyond} and the surface`);
+    return metres(band.to) - metres(band.from);
+  };
+  const [left, right] = [
+    bandOf(0x3fde, "the left half's fork picture (lea)", 0),
+    bandOf(0x41ca, "the right half's fork picture (lea)", PENS.ground),
+  ];
+  if (left !== right) throw romDiffers("The fork pictures' bands differ in width");
+  instruction(main, 0x3eee, [0x43f9, 0x00a0, 0x8002], "the left half's layer, the first chip's (lea)");
+  instruction(main, 0x4122, [0x43f9, 0x00b0, 0x0002], "the right half's layer, the second chip's (lea)");
+  instruction(main, 0x5b0a, [0x343c, 0x0300], "a fork's join (move.w #$300)");
+  const [ahead] = instruction(main, 0x5b0e, [0x3c3c, null], 'the records looked ahead (move.w)');
+  instruction(main, 0x5b3c, [0x3012, 0x0240, 0x0300, 0xb042, 0x6718], "a record's join a fork's (andi.w, cmp.w, beq)");
+  instruction(main, 0x5b56, [0x51ce, 0xffe4], 'the next record (dbra)');
+  // The gap: the camera's record of its section, its position's bits 17 to 13, against four records, each setting the
+  // left half's pixels (negative, leftward) and the right half's.
+  instruction(main, 0x5a8e, [0x0280, 0x0003, 0xe000], "the camera's record of its section (andi.l #$3e000)");
+  instruction(main, 0x3b64, [0x3239, 0x0040, 0x10d0, 0xd279, 0x0040, 0x10f6], "the right half's pixels (add.w)");
+  instruction(main, 0x3b72, [0x3239, 0x0040, 0x10ce, 0xd279, 0x0040, 0x10f4], "the left half's pixels (add.w)");
+  const gaps = [0x5a94, 0x5a9c, 0x5aa4, 0x5aac].map((at) => {
+    const [position, branch] = instruction(main, at, [0x0c80, 0x0003, null, null], "a gap's record (cmpi.l, beq)");
+    if (branch >> 8 !== 0x67) throw romDiffers(`The program at 0x${at.toString(16)} is not a gap's record's branch`);
+    const [l, r] = instruction(
+      main,
+      at + 8 + (branch & 0xff),
+      [0x33fc, null, 0x0040, 0x10f4, 0x33fc, null, 0x0040, 0x10f6],
+      "a gap's pixels, left and right (move.w)",
+    );
+    const leftward = -((l << 16) >> 16);
+    if (leftward < 0 || r > 0x7fff) throw romDiffers('A gap moves a half inward');
+    return { record: (0x30000 + position) >> RECORD_BITS, left: leftward, right: r };
+  });
+  gaps.sort((a, b) => a.record - b.record);
+  if (gaps.some((g, k) => g.record !== SECTION_RECORDS - gaps.length + k))
+    throw romDiffers("The gap's records are not a section's last");
+  return { band: left, records: ahead + 1, gaps };
 }
 
 /**
