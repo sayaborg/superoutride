@@ -24,7 +24,8 @@ export interface BandNames {
  * mirror a board extending left; on `right` that band alone; on `left` the band beyond its left edge, its own columns so
  * cut, a board extending left. Each band is anchored at the picture's base point, outside it, or, where its last row
  * lies above that point, at its own bottom edge, standing `rise` metres higher than the picture. All in `palettes`, each
- * its name and colors, the first the default. A band with a transparent texel is refused: it fills its plane.
+ * its name and colors, the first the default. A band with a transparent texel is refused, as a band fills its plane,
+ * unless it is `clear`, a band whose picture's own edges are ragged, which keeps its clear texels.
  */
 export function bandBoards(
   names: BandNames,
@@ -35,6 +36,7 @@ export function bandBoards(
   texels: { readonly across: number; readonly down: number },
   palettes: readonly { readonly name: string; readonly colors: readonly number[] }[],
   sides: 'both' | 'left' | 'right' = 'both',
+  clear = false,
 ): {
   readonly picture: SpriteLodDocument;
   readonly bands: readonly SpriteLodDocument[];
@@ -63,13 +65,13 @@ export function bandBoards(
   const [from, to] = sides === 'left' ? [0, left] : [right, grid.width];
   const band = slice(from, to);
   const across = to - from;
-  const clear = (y: number) => band.slice(y * across, (y + 1) * across).every((v) => !v);
+  const empty = (y: number) => band.slice(y * across, (y + 1) * across).every((v) => !v);
   let [top, bottom] = [0, grid.height];
-  while (top < grid.height && clear(top)) top++;
-  while (bottom > top && clear(bottom - 1)) bottom--;
+  while (top < grid.height && empty(top)) top++;
+  while (bottom > top && empty(bottom - 1)) bottom--;
   const rows = { width: across, height: bottom - top };
   const indices = slice(from, to, top).slice(0, rows.height * across);
-  if (indices.some((v) => !v)) throw new Error(`${names.band} has a hole`);
+  if (!clear && indices.some((v) => !v)) throw new Error(`${names.band} has a hole`);
   const anchorY = Math.min(grid.anchorY - top, rows.height - 0.5);
   const outward = namedBoardMaster(names.band, rows, indices, { x: at - from - 0.5, y: anchorY }, palettes, {
     extend: sides === 'left' ? 'left' : 'right',

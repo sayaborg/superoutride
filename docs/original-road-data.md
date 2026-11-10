@@ -1020,14 +1020,15 @@ the board's base point across. Whether it loops is K's decision by what it shows
 - **Bands fixed on the screen** (K, 2026-11-06). Pieces an original draws at a width or a period on the screen whatever
   their distance (the TAITO originals' among them) are boards of this rule too, outside [things of several
   pieces](#things-of-several-pieces) and with no body, each extended (`extend`), repeating to the frame's edge in its
-  plane as the original's reach the screen's edge. A band across the road stands at its thing's station, floating at
-  the original's height (`groundOffset`) or standing: its picture, the original's pieces drawn once at their full size
-  as a thing's are, its middle the thing's lateral; and beyond each of its edges its band, the columns of its outermost
-  piece or of the piece the original repeats, from its first row holding a pixel to its last, a board extending outward,
-  the left one mirrored, all cut from one texel grid so that their rows agree, a band standing as much higher than the
+  plane as the original's reach the screen's edge. A band across the road stands at its thing's station, floating at the
+  original's height (`groundOffset`) or standing: its picture, the original's pieces drawn once at their full size as a
+  thing's are, its middle the thing's lateral; and beyond each of its edges its band, the columns of its outermost piece
+  or of the piece the original repeats, from its first row holding a pixel to its last, a board extending outward, the
+  left one mirrored, all cut from one texel grid so that their rows agree, a band standing as much higher than the
   picture as its last row lies above the picture's base (`bandBoards`, as FINAL LAP 2's underpass and its bank are
   laid). A band the original draws from a lateral outward on one side alone has its band beyond its outer edge alone,
-  that edge's own columns, unmirrored (`sides`). Letters and tunnel
+  that edge's own columns, unmirrored (`sides`). A band fills its plane, so one with a clear texel is refused, but one
+  whose picture's own edges are ragged (`clear`: CHASE H.Q.'s banks of cloud), which keeps them. Letters and tunnel
   mouths are not repeated: their picture alone is drawn. That the original's bands keep their width and period on the
   screen however near, where a board shrinks with distance, is a replacement that cannot be avoided, each chapter's.
 

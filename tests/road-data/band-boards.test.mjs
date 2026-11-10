@@ -63,3 +63,20 @@ test('a band with a clear pixel is refused, as a band fills its plane', () => {
     /thing-band has a hole/,
   );
 });
+
+test('a clear band keeps its clear pixels', () => {
+  const picture = source([5, 0, 7, 8]);
+  const { bands } = bandBoards(
+    names,
+    picture,
+    pictureParts(picture, undefined),
+    [4, 8],
+    6,
+    { across: 1, down: 1 },
+    palettes,
+    'both',
+    true,
+  );
+  assert.deepEqual(indices(bands[0]), [5, 0, 7, 8, 5, 0, 7, 8]);
+  assert.deepEqual(indices(bands[1]), [8, 7, 0, 5, 8, 7, 0, 5]);
+});
