@@ -602,7 +602,7 @@ before TA-18 (K, 2026-11-09).
 
 CHASE H.Q.'s defaults, each in [its chapter](chase-hq-road-data.md): its tunnels dark over their records (an estimate a
 run of both programs would confirm); its dirt road one color; the road not taken's roads in the TC0150ROD's order with
-no priority bit; its things with no shadow; event 2's backdrop not placed; a body on its side of P where only that side
+no priority bit; its things with no shadow; a body on its side of P where only that side
 is hit, and with no depth; its tunnels' mouths' pieces kept; a long passage's Section cut at a record where its sprites
 would pass `spritePlacements`; and a ground made `WATER` that is not water `SAND`.
 
@@ -1030,6 +1030,9 @@ Left by the stages that raised them, beside what follows:
   scale (2.15 m, its own car) by driving in DEV, its courses with a model then solved again, and sees JAPAN's
   underpass in DEV ([FINAL LAP 2's
   objects](final-lap-2-road-data.md#final-lap-2s-objects)).
+- CHASE H.Q.: event 2's banks of cloud (kind 0x681) are bands across the road at their records' own distances ([its
+  objects](chase-hq-road-data.md#chase-hqs-objects)); drawing them as the original does, as though 0x400 + 0.75 d² /
+  65,536 positions away at a distance d, needs a rule by which a board is drawn at a depth other than its station's.
 
 When the product's pictures are drawn again, a picture's shadow is cast from its shape, by one rule as a vehicle's is
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course

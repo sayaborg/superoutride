@@ -49,7 +49,7 @@ import {
 } from './chase-hq-backgrounds.js';
 import { chaseHqBands, chaseHqBoards, chaseHqKeptPieces } from './chase-hq-boards.js';
 import { CHASE_HQ_GOALS, TOP_SPEED } from './chase-hq-goals.js';
-import { gradeResolution, STEP_METRES, stepGrades } from './chase-hq-heights.js';
+import { gradeResolution, heightMetres, STEP_METRES, stepGrades } from './chase-hq-heights.js';
 import { coursePieces, RECORD_METRES } from './chase-hq-plan.js';
 import {
   drawnMask,
@@ -89,7 +89,7 @@ import { passageSteps } from '../shared/passage-steps.js';
 import { PIXEL_ASPECT } from '../taito/z-system-display.js';
 import { SECTION_RECORDS } from '../taito/course-records.js';
 
-export const CHASE_HQ_CONVERSION_VERSION = 11;
+export const CHASE_HQ_CONVERSION_VERSION = 12;
 
 /** A stage's far sky set where the original picks one at random: 0 in stages 1, 3 and 5, 2 in 2 and 4 (K, 2026-11-08). */
 const STAGE_SETS = Object.freeze([0, 2, 0, 2, 0]);
@@ -189,16 +189,20 @@ export function chaseHqCourses(set: RomSet) {
       ),
     ),
   );
-  // A gate's middle a band across the road; a tunnel's mouth, larger than a picture may be, its pieces.
+  // A gate's middle and a bank of cloud bands across the road; a tunnel's mouth, larger than a picture may be, its
+  // pieces.
   const sprites = assembleChaseHqSprites(set);
   const pixel = chaseHqPixelLaterals(main) * metresAcross;
-  const kindsOf = (across?: 'gate' | 'mouth') =>
+  const kindsOf = (across?: 'gate' | 'mouth' | 'bank') =>
     courseThings
       .flat(2)
       .filter((thing) => thing.across === across)
       .map((thing) => thing.kind);
   const boards = chaseHqBoards(main, sprites, kindsOf(), pixel);
-  const bands = chaseHqBands(main, sprites, kindsOf('gate'), pixel);
+  const bands = [
+    ...chaseHqBands(main, sprites, kindsOf('gate'), pixel),
+    ...chaseHqBands(main, sprites, kindsOf('bank'), pixel, true),
+  ];
   const kept = chaseHqKeptPieces(main, sprites, kindsOf('mouth'), pixel);
   for (const image of [...boards.map((b) => b.image), ...bands.flatMap((b) => b.images), ...kept.images])
     outputs.file(image.path, image.bytes);
@@ -206,13 +210,15 @@ export function chaseHqCourses(set: RomSet) {
   const bandOf = new Map(bands.map((b) => [b.kind, b]));
   /** A thing's sprites, each its image, palette, lateral right of the thing's, height and body. */
   const spritesOf = (thing: ChaseHqPlacement, lateral: number) => {
-    if (thing.across === 'gate') {
+    if (thing.across === 'gate' || thing.across === 'bank') {
       const band = bandOf.get(thing.kind)!;
+      // A bank floats at its height above the road, its picture's clear rows above that.
+      const height = (thing.height ?? 0) * heightMetres(main);
       return band.names.map((image, k) => ({
         image,
         palette: band.palette,
         lateral: 0,
-        groundOffset: band.groundOffset + (k ? band.rise : 0),
+        groundOffset: height + band.groundOffset + (k ? band.rise : 0),
         body: null,
       }));
     }

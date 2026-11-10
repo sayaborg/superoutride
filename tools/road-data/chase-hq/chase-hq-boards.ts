@@ -145,9 +145,16 @@ export function chaseHqBoards(main: Uint8Array, sprites: Sprites, kinds: readonl
  * `pixel` metres across: each kind its picture drawn once, its point the thing's, and beyond its edges its band, the
  * columns of its outermost piece (the last 128 of the picture's), a board extending right and its mirror left, all cut
  * from one grid (`bandBoards`), floating at its lowest colored row's height (`groundOffset`, metres), the bands `rise`
- * metres higher where their last row lies above it; the band's names the picture's and `-band`, `-band-mirrored`.
+ * metres higher where their last row lies above it; the band's names the picture's and `-band`, `-band-mirrored`. A
+ * bank of cloud (`clear`) is one too, its bands keeping its ragged edges' clear pixels.
  */
-export function chaseHqBands(main: Uint8Array, sprites: Sprites, kinds: readonly number[], pixel: number) {
+export function chaseHqBands(
+  main: Uint8Array,
+  sprites: Sprites,
+  kinds: readonly number[],
+  pixel: number,
+  clear = false,
+) {
   const d = drawing(main, sprites, pixel);
   return [...new Set(kinds)]
     .sort((a, b) => a - b)
@@ -167,7 +174,7 @@ export function chaseHqBands(main: Uint8Array, sprites: Sprites, kinds: readonly
         }
       const joined = d.colorsOf({ ...laid, width, pens, owner }, pieces);
       const ground = d.groundRow(laid);
-      if (ground < h) throw contractUnmet(`${name}, a gate's middle, reaches the ground`);
+      if (ground < h) throw contractUnmet(`${name}, a band across the road, reaches the ground`);
       const { picture, bands, rise } = bandBoards(
         { picture: name, band: `${name}-band`, mirrored: `${name}-band-mirrored` },
         joined.picture,
@@ -176,6 +183,8 @@ export function chaseHqBands(main: Uint8Array, sprites: Sprites, kinds: readonly
         BIG_SPRITE - laid.left / pixel,
         d.texels,
         joined.palettes,
+        'both',
+        clear,
       );
       return {
         kind,

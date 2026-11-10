@@ -202,10 +202,30 @@ Each course's things stand where its main program places them (`chase-hq-objects
   lanes c and d, 0x8000). A record's event places its own things before its table's (the handlers from 0x92AA): event 6
   a sign over the road, kind 0x440 + 8 × (its parameter & 3), one more for each lane beyond three, centred on its outer
   lanes. A tunnel's record (event 3) and a gate's (event 4) place theirs instead of their table's (M 0x9158, 0x9166),
-  laid as below. Event 2's thing (kind 0x681, at P) is a backdrop: its composer draws it as though it
-  stood 0x400 + 0.75 d² / 65,536 positions away at a distance d (M 0x44FC2 to 0x44FD2), never near, where a board stands
-  at one distance, so it is not placed (default; K confirms at the stage's end). A course stands 2,558 to 3,012 things
-  of 40 to 77 kinds, 157 kinds in all; those placed before the road laid on back or past its end are left out.
+  laid as below. Event 2's record (M 0x92D0) places kind 0x681 at its start, at P, 0x600 height units (10.1 m) up,
+  before its table's things: a bank of grey cloud, one sprite four times across, 512 pixels, hit by nothing (what it is
+  meant to be is not confirmed, nor whether its colors change along a course). Its composer (M 0x44F8A) draws it from
+  0xC000 positions (147 m) ahead, as though it stood a = 0x400 + 0.75 d² / 65,536 positions away at a distance d (M
+  0x44FC2 to 0x44FD2): at its full width whatever its distance and at twice a's zoom down, 0x7F at most (M 0x45072 to
+  0x45080), its bottom the projection's own row for a less its height there and 32 rows (M 0x44FE6, 0x4500E, 0x450B6),
+  with neither the sub program's rows of the road nor its bend, the car's lateral alone moving it across. So a bank
+  comes out 9 rows tall, its bottom 42 rows above the projection's farthest row, rises as the car nears, 128 rows tall
+  at the screen's top, and is dropped about 20 m ahead (M 0x450DA); one a record, six at once cover the screen from its
+  top down to 42 to 46 rows above that row at every moment, streaming up it as the car advances. Event 2's records are
+  28 to 32 in a row about where a stage's approach road meets its chase road, on both of its courses, and 30 more at
+  stage 5's end: from the stage's start 3,907 to 4,595 m in stage 1, 3,440 to 4,226 m in stage 2, 4,029 to 4,717 m in
+  stage 3, 3,513 to 4,300 m in stage 4, and 3,538 to 4,324 m and from 9,459 m on in stage 5. Each bank is laid as a band
+  across the road ([Strips](original-road-data.md#strips); K, 2026-11-10) at its record's start, at P, with no body: its
+  picture once and its outermost sprite's columns beyond each edge, keeping its ragged edges (`chasehq-681`, `-band`,
+  `-band-mirrored`), floating 10.27 m up, its height and its picture's 5 clear rows; 28 to 54 a course, 348 in all. A
+  board is drawn at its station's own distance, not at a, a replacement that cannot be avoided: far banks lie low over
+  the horizon and small where the original's cover the upper screen. By the original's own projection a bank's bottom at
+  its own distance lies 6, 9, 17, 32 and 57 rows above the farthest row at 0xC000, 0x8000, 0x4000, 0x2000 and 0x1000
+  positions, where the composer draws it 42, 52, 89 and 135 rows above it and then past the screen's top; near the car
+  both pass overhead. The original's banks keep the screen's middle however the road turns and take no hill, where the
+  bands follow the road; the 32 rows it lifts them whatever their distance are not laid, and a band is as tall as its
+  distance draws it, not twice. A course stands 2,684 to 3,120 things of 45 to 84 kinds, 177 kinds in all; those placed
+  before the road laid on back or past its end are left out.
 - **Pictures.** A kind's picture is its pieces at their full size ([research notes](research/chase-hq.md#things)), laid
   in the order its sprite list is drawn, from the last entry, so its first piece is over those after it. Each piece is
   in its palette line's colors as the program fades them in (M 0x1484: entry e's word at 0x2C6D2 + 2e), pen 0
@@ -263,5 +283,5 @@ Each course's things stand where its main program places them (`chase-hq-objects
 ## CHASE H.Q.'s conversion
 
 `chase-hq-course` writes the ten courses to `content/originals/courses/` (`chase-hq-1-left` to `chase-hq-5-right`),
-their crest trials, their 38 skies (`chase-hq-sky-<set>-<mode>-<scene>`) and their 186 things' pictures
-(`chasehq-<kind>`) to `content/originals/images/` (`chase-hq-course`; its conversion's version 11).
+their crest trials, their 38 skies (`chase-hq-sky-<set>-<mode>-<scene>`) and their 189 things' pictures
+(`chasehq-<kind>`) to `content/originals/images/` (`chase-hq-course`; its conversion's version 12).

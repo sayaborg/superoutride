@@ -194,7 +194,11 @@ Read with the research commands and `cpu-68000`; MAME's driver (commit 9c0b6db1)
   thing in a slot of 0x40 bytes from 0x10A400 to 0x10BE00 (0x9170 to 0x9294); its event's handler (the table at 0x92AA)
   lays a backdrop, the tunnels' walls and mouths, the gates and the signs over the road through one helper (0x9432), the
   tunnels' and the gates' handlers leaving the record's table unread. The backdrop's composer (0x44F8A) takes a distance
-  d as 0x400 + 0.75 d² / 65,536 before it projects it (0x44FC2 to 0x44FD2), so it is drawn far away, approaching slowly. A slot's flags, set there, decide how it is hit.
+  d as 0x400 + 0.75 d² / 65,536 before it projects it (0x44FC2 to 0x44FD2), and draws it at zoom 0x7F across and at
+  twice that distance's zoom down (the table at 0x68978), its row the projection's own for that distance less its
+  slot's height (0x600, the helper's high word) by the row's height factor and 0x20, with neither the sub program's rows
+  nor the shift the other composers add: banks of cloud that rise up the screen and pass over its top as the car nears,
+  six at once, one a record. A slot's flags, set there, decide how it is hit.
 - M tests the player against the scenery's slots on its road (0x9C56 to 0x9D30): a slot hit from its
   side of P alone, from either side, or on two posts, by the hit table at 0xB9B8 (a half width and a reach toward the
   car for each kind from 0x300 to 0x5FF), or not at all. A hit knocks the dustbins and their like away (0x9D32: kinds

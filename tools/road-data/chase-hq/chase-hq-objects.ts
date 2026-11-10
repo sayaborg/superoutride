@@ -35,7 +35,8 @@ const RIGHT_WALL = 0x02;
 const SECOND_MOUTHS = 0x20;
 /** P, lanes on from the outer lanes' first centre (the mask's top bit's): between lanes c and d. */
 const P_LANES = 3.5;
-/** The event whose things this module places beside its record's table's: the sign over the road. */
+/** The events whose things this module places beside its record's table's: the bank of cloud, the sign over the road. */
+const BANK = 2;
 const SIGN = 6;
 
 /**
@@ -52,14 +53,16 @@ export interface ChaseHqHit {
 
 /**
  * A thing placed: its kind, its place (positions from its record's start), its lateral (road laterals right of P) and
- * its hit; `across`, what it lays across the road: a gate's middle, or a tunnel's mouth.
+ * its hit; `across`, what it lays across the road: a gate's middle, a tunnel's mouth, or a bank of cloud, `height`
+ * height units above the road.
  */
 export interface ChaseHqPlacement {
   readonly kind: number;
   readonly ahead: number;
   readonly lateral: number;
   readonly hit: ChaseHqHit | null;
-  readonly across?: 'gate' | 'mouth';
+  readonly across?: 'gate' | 'mouth' | 'bank';
+  readonly height?: number;
 }
 
 const s8 = (v: number) => (v << 24) >> 24;
@@ -102,6 +105,13 @@ function tables(main: Uint8Array) {
   const [displacement] = instruction(main, 0x9296, [0x4dfa, null], "the events' handlers (lea)");
   const events = 0x9298 + s16(displacement);
   const handler = (event: number) => long([word(main, events + 4 * event), word(main, events + 4 * event + 2)]);
+  // The bank of cloud: its height and kind, its lateral, flags and places, its table's things after it (M 0x92D0).
+  const [bankHeight, bankKind, bankLateral, bankFlags, bankPlaces] = instruction(
+    main,
+    handler(BANK),
+    [0x243c, null, null, 0x3c3c, null, 0x4840, 0x103c, null, 0x4840, 0x363c, null, 0x6100, null, 0x426d, 0x82d6],
+    "a bank's thing (move.l, move.w, move.b, move.w, bsr, clr.w)",
+  );
   // The sign: its kinds by the parameter and the road's width, centred on it, its flags and places (M 0x93EE, 0x94BC).
   const sign = handler(SIGN);
   const [signKinds] = instruction(main, sign, [0x1430, 0x0007, 0x0282, 0x0000, null, 0xe742], "a sign's parameter");
@@ -151,6 +161,7 @@ function tables(main: Uint8Array) {
     lanes: { first, step },
     hits,
     knocked: { from: knockedFrom, to: knockedTo },
+    bank: { kind: bankKind, height: bankHeight, lateral: bankLateral, flags: bankFlags, places: bankPlaces },
     sign: { kinds: signKinds, first: signFirst, places: signPlaces, flags: signFlags, narrowest },
     mouth: { kinds: [mouthFirst, mouthSecond], flags: mouthFlags, places: mouthPlaces },
     walls: {
@@ -183,9 +194,9 @@ function tables(main: Uint8Array) {
  * gate's (4) instead of them (their handlers leave M 0x7D2A set): the sign over the road (6), centred on the outer
  * lanes, its kind wider by one for each lane beyond three; a tunnel's mouth, centred alike, or its walls, each 0x600
  * beyond an outer lane's centre; a gate's two middles at P, the second 0xE80 positions ahead, each with its six posts
- * one position before it, each its flags. The backdrop event 2 places (kind 0x681) is not: its
- * composer draws it as though it stood 0x400 + 0.75 d² / 65,536 positions away at a distance d (M 0x44FC2 to
- * 0x44FD2), where a board stands at one distance.
+ * one position before it, each its flags; and the bank of cloud (2, kind 0x681) at P at its height, before its table's
+ * things, at its record's own place, where its composer draws it as though it stood 0x400 + 0.75 d² / 65,536 positions
+ * away at a distance d (M 0x44FC2 to 0x44FD2).
  */
 export function chaseHqPlacements(main: Uint8Array) {
   const t = tables(main);
@@ -242,6 +253,14 @@ export function chaseHqPlacements(main: Uint8Array) {
     const [left, right] = outerLanes(record.mask);
     const out: ChaseHqPlacement[] = [];
     const parameter = record.parameter;
+    if (record.event === BANK)
+      out.push(
+        ...spawned(t.bank.kind, t.bank.places, t.bank.lateral, t.bank.flags).map((m) => ({
+          ...m,
+          across: 'bank' as const,
+          height: t.bank.height,
+        })),
+      );
     if (record.event === SIGN) {
       const kind = t.sign.first + (parameter & t.sign.kinds) * 8 + wider(left, right);
       out.push(...spawned(kind, t.sign.places, (left + right) >> 1, t.sign.flags));
