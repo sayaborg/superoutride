@@ -31,19 +31,25 @@ of even and odd bytes), the sub 68000's two, the TC0100SCN's tile ROM b52-29.27 
 Ten courses, two to a stage, each its stage's approach road from its section 0 through its fork's branch, the left or
 the right as the cars' next sections name them, on to its chase road (`courseSections`), to the end of the record its
 goal lies in: 9,767 m in stage 1, 9,990 m in 2 and 5, 10,013 m in 3 and 10,025 m in 4, the run's (K, 2026-11-07;
-`goal-ticks`), the same on both of a stage's courses. Each is laid by `road-layout` ([A road laid
-out](original-road-data.md#a-road-laid-out)), its road laid on back 186 m straight before the stage's start for its
-grids and the camera behind them (`cameraDistance`), as TURBO OUTRUN's leg is: 18 to 32 Sections a course, 9,965 to
-10,235 m.
+`goal-ticks`), the same on both of a stage's courses. A stage's goal is where the original's time runs out: how far
+beyond its stage's start the criminal is, as the original counts it, when both of the player's times are spent, the
+first and the one that replaces it when the criminal is sighted, the player driving flat out without turbo on the road
+the stage's arrow names, the left where the arrow falls at random (K, 2026-11-07; [research
+notes](research/chase-hq.md#the-goals)). Where its two roads meet, where their tables become one again and the end of
+its approach road are no goals: all come before the criminal is caught, the player within its close band (0x300 units)
+4,241 m beyond the stage's start in stage 1, 4,495 m in 2, 4,472 m in 3, 4,531 m in 4 and 4,511 m in 5. Each is laid by
+`road-layout` ([A road laid out](original-road-data.md#a-road-laid-out)), its road laid on back 186 m straight before
+the stage's start for its grids and the camera behind them (`cameraDistance`), as TURBO OUTRUN's leg is: 18 to 32
+Sections a course, 9,965 to 10,235 m.
 
 ### Its plan
 
-A course turns as its far sky band turns ([A
-turn](NEXT.md#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)): each record its curve's size's word
-of the band's turn table (M 0x6332) over 8 pixels, of 768 a turn (`coursePieces`, `skyTurnPlan`). A positive curve turns
-right: run on `cpu-68000` with a curve forced each way, the sub program's road frame (S 0x6C2) bends the road ahead
-right for a positive curve, and at each fork the left branch begins bending left and the right one right. Each line's
-shift across in the road's picture is a replacement that cannot be avoided: the curves look otherwise.
+A course turns as its far sky band turns ([Plan from a curve table](original-road-data.md#plan-from-a-curve-table)):
+each record its curve's size's word of the band's turn table (M 0x6332) over 8 pixels, of 768 a turn (`coursePieces`,
+`skyTurnPlan`). A positive curve turns right: run on `cpu-68000` with a curve forced each way, the sub program's road
+frame (S 0x6C2) bends the road ahead right for a positive curve, and at each fork the left branch begins bending left
+and the right one right. Each line's shift across in the road's picture is a replacement that cannot be avoided: the
+curves look otherwise.
 
 ### Its heights
 
@@ -113,7 +119,8 @@ start of the record after the one that begins the fork, its own lanes by its own
 moves away from the course's by its table's laterals (0xF654, a word each 0x80 positions), right of the course's P where
 the side table (0xF5E4) by the camera's section keeps its sign (the left branch) and left where it negates it (the
 right), to 3,072 laterals (9.34 m) by 0x10000 positions (197 m), where it is drawn no more: beyond its last metre the
-course shows its ground, the other road ending across its width at once. It is drawn with the course's road as [two
+course shows its ground, the other road ending across its width at once. Where the two roads meet again it is not drawn,
+as the original draws no distance there (K, 2026-11-05). It is drawn with the course's road as [two
 roads](original-road-data.md#two-roads) (`compositeOf`), the course's road 0 (the TC0150ROD's road A) and the road not
 taken road 1 (its road B), each road's edge bands and body where its lanes pass, in the TC0150ROD's order
 (`chaseHqRoadLevels`): the course's edge bands lowest, then its body with its lines, the road not taken's edge bands and

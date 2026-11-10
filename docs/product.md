@@ -172,22 +172,25 @@ of its own ([C03](NEXT.md#selected-real-courses); K, 2026-11-09), not as that ga
 is drawn with sprites, SUPER MONACO GP among them, waits for a model of its own
 ([NEXT](NEXT.md#originals-with-a-sprite-road-surface)).
 
-| Series                              | Reference game | MAME parent set | Classes (courses)             |
-| ----------------------------------- | -------------- | --------------- | ----------------------------- |
-| ARCADE TRIBUTE - ENDURO RACER       | SEGA, 1986     | `enduror`       | ENDURO RACER                  |
-| ARCADE TRIBUTE - SUPER HANG-ON      | SEGA, 1987     | `shangon`       | AFRICA, ASIA, AMERICA, EUROPE |
-| ARCADE TRIBUTE - OUTRUN             | SEGA, 1986     | `outrun`        | A, B, C LEFT, C RIGHT, D, E   |
-| ARCADE TRIBUTE - TURBO OUTRUN       | SEGA, 1989     | `toutrun`       | SECTION 1–4                   |
-| ARCADE TRIBUTE - POLE POSITION II   | NAMCO, 1983    | `polepos2`      | FUJI, TEST, SUZUKA, SEASIDE   |
-| ARCADE TRIBUTE - FINAL LAP 2        | NAMCO, 1990    | `finalap2`      | JAPAN, MONACO, ITALY, USA     |
-| ARCADE TRIBUTE - TOP SPEED          | TAITO, 1987    | `topspeed`      | after Stage TA                |
-| ARCADE TRIBUTE - CONTINENTAL CIRCUS | TAITO, 1987    | `contcirc`      | after Stage TA                |
-| ARCADE TRIBUTE - CHASE H.Q.         | TAITO, 1988    | `chasehq`       | after Stage TA                |
-| ARCADE TRIBUTE - BIG RUN            | JALECO, 1989   | `bigrun`        | after Stage BR                |
-| ARCADE TRIBUTE - CISCO HEAT         | JALECO, 1990   | `cischeat`      | after Stage CS                |
+| Series                              | Reference game | MAME parent set | Classes (courses)                                              |
+| ----------------------------------- | -------------- | --------------- | -------------------------------------------------------------- |
+| ARCADE TRIBUTE - ENDURO RACER       | SEGA, 1986     | `enduror`       | ENDURO RACER                                                   |
+| ARCADE TRIBUTE - SUPER HANG-ON      | SEGA, 1987     | `shangon`       | AFRICA, ASIA, AMERICA, EUROPE                                  |
+| ARCADE TRIBUTE - OUTRUN             | SEGA, 1986     | `outrun`        | A, B, C LEFT, C RIGHT, D, E                                    |
+| ARCADE TRIBUTE - TURBO OUTRUN       | SEGA, 1989     | `toutrun`       | SECTION 1–4                                                    |
+| ARCADE TRIBUTE - POLE POSITION II   | NAMCO, 1983    | `polepos2`      | FUJI, TEST, SUZUKA, SEASIDE                                    |
+| ARCADE TRIBUTE - FINAL LAP 2        | NAMCO, 1990    | `finalap2`      | JAPAN, MONACO, ITALY, USA                                      |
+| ARCADE TRIBUTE - TOP SPEED          | TAITO, 1987    | `topspeed`      | A–G                                                            |
+| ARCADE TRIBUTE - CONTINENTAL CIRCUS | TAITO, 1987    | `contcirc`      | BRAZIL, AMERICA, FRANCE, MONACO, GERMANY, SPAIN, MEXICO, JAPAN |
+| ARCADE TRIBUTE - CHASE H.Q.         | TAITO, 1988    | `chasehq`       | STAGE 1 RIGHT, 2 LEFT, 3 LEFT, 4 LEFT, 5 LEFT                  |
+| ARCADE TRIBUTE - BIG RUN            | JALECO, 1989   | `bigrun`        | after Stage BR                                                 |
+| ARCADE TRIBUTE - CISCO HEAT         | JALECO, 1990   | `cischeat`      | after Stage CS                                                 |
 
-CONTINENTAL CIRCUS came out in Japan in 1988. OUTRUN's six SHORT roads are not in its tribute; they serve the game's
-own series (K, 2026-11-03).
+CONTINENTAL CIRCUS came out in Japan in 1988. OUTRUN's six SHORT roads are not in its tribute; they serve the game's own
+series (K, 2026-11-03). TOP SPEED's classes are its seven roads, TOP SPEED A to G ([its
+courses](top-speed-road-data.md#its-course-tables)). CHASE H.Q.'s are one a stage, on the road the stage's arrow names
+where the original fixes it (stage 1 right, stage 3 left) and on its left road where the original chooses at random
+(stages 2, 4 and 5); its other five courses serve the game's own series, as OUTRUN's SHORT roads do (K, 2026-11-05).
 
 ### The game's own series
 

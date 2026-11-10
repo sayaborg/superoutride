@@ -426,7 +426,7 @@ kinds' pictures as boards (`final-lap-2-boards`, `finalap2-<kind>`):
   0xB2C beside the sign green (color 0xC), the bank's green one of them; 19.3 m wide.
 
   **Its band.** Beyond the sprites' edges the band, all of face 2's columns, reaches the screen's edges: a band fixed on
-  the screen (`docs/NEXT.md`, Stage TA, K, 2026-11-06), boards extending sideways (`extend`) with no body,
+  the screen ([Strips](original-road-data.md#strips); K, 2026-11-06), boards extending sideways (`extend`) with no body,
   `finalap2-1cee` right and `finalap2-1cee-mirrored` left, each 16 of its tile's columns (128 pixels, 4.83 m), laid on
   one texel grid with the picture and cut from it at the sprites' edges, so that their rows agree and each meets its
   edge: each stands where the picture does (its station and lateral, its base point the picture's, outside the band),

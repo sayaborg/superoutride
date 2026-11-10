@@ -23,12 +23,13 @@ Each line is one area as it stands, with the document that owns it.
   ([Product courses](content-and-gameplay.md#product-courses),
   [Series documents](content-and-gameplay.md#series-documents)).
 - **Courses of the originals.** OUTRUN's twelve roads, SUPER HANG-ON's four courses, TURBO OUTRUN's, ENDURO RACER's,
-  POLE POSITION II's four, FINAL LAP 2's four and CHASE H.Q.'s ten courses are raised from the ROMs by the road data
-  tool ([Original road data](original-road-data.md), [Courses of the originals](#courses-of-the-originals)). Stage EX
-  has put them on their road path P: their plans raised from the ROMs' heading tables, their widths unrounded and joined
-  by one monotone cubic, their material ended at the plan's clearance and their ground at each original's own limit
-  beside the road; OUTRUN's forks and goals are the original's, with parting gates, and the lying pictures have no
-  material. What remains is [Courses of the originals](#courses-of-the-originals)' list.
+  POLE POSITION II's four, FINAL LAP 2's four, CHASE H.Q.'s ten, TOP SPEED's seven and CONTINENTAL CIRCUS's eight
+  courses are raised from the ROMs by the road data tool ([Original road data](original-road-data.md), [Courses of the
+  originals](#courses-of-the-originals)). Stage EX has put them on their road path P: their plans raised from the ROMs'
+  heading tables, their widths unrounded and joined by one monotone cubic, their material ended at the plan's clearance
+  and their ground at each original's own limit beside the road; OUTRUN's forks and goals are the original's, with
+  parting gates, and the lying pictures have no material. What remains is [Courses of the
+  originals](#courses-of-the-originals)' list.
 - **Features no course uses.** BRANCH (forks, seam joins and signs shown by a fork's choice), solid walls (TSUKUBA's
   walls are looks alone), open course limits, a grid longer than 16 slots (`startGridSlots` 32), movable objects (and
   their knocked pictures), and the `WET_ASPHALT`, `SHOULDER` and `SNOW` materials (`SNOW` for RALLY STAGE's WINTER) stay
@@ -69,10 +70,9 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s close, TA-18; later [Stage
-BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
-[RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
+Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls); later [Stage BR](#stage-br--big-run-from-the-roms) and
+[Stage CS](#stage-cs--cisco-heat-from-the-roms); [RD-6e](#courses-of-the-originals) once K's recordings come; then
+[Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -408,220 +408,6 @@ model needs and how to start it are in [The sprite-road model](sprite-road-model
 Stage RM makes what Stage PG left to later stages in [Courses of the originals](#courses-of-the-originals). BRANCH
 and the walls go, so their follow-ups (forks' transfer, a fork's conditional bodies, wall Strips and the walls'
 open decisions) are not kept.
-
-## Stage TA — TOP SPEED, CONTINENTAL CIRCUS and CHASE H.Q. from the ROMs
-
-Stage TA raises three TAITO originals from their ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), each from its MAME parent set (K, 2026-11-05): TOP
-SPEED (1987; FULL THROTTLE in Japan; `topspeed`), CONTINENTAL CIRCUS (1987; `contcirc`) and CHASE H.Q. (1988;
-`chasehq`). It comes before Stages BR and CS (K, 2026-11-04) and starts as every stage raising an original starts
-([How a stage starts](original-road-data.md#0-rules)). The three were studied before any is raised,
-so that the rules they share are decided once; K decides from the study.
-
-The study read from the programs which CPU writes each road and found nothing encrypted. CONTINENTAL CIRCUS and CHASE
-H.Q. are on Taito's Z system, whose road generator (TC0150ROD) draws two roads a line at a time: CONTINENTAL CIRCUS's
-main 68000 writes it, its second road the pit lane, and CHASE H.Q.'s second 68000 alone does, its second road a fork's
-other. TOP SPEED is on the Z system's forerunner, two of whose tile layers draw its road. CHASE H.Q. and TOP SPEED hold
-their courses in one form, which one reader can serve: records of 8 bytes, 32 to a section, each section naming its next
-for the left and for the right. Each board has two 68000s sharing RAM and a Z80 for the sound; the zips hold every ROM
-of their MAME sets but TOP SPEED's and CHASE H.Q.'s for the CPU that moves the cabinet, which no road needs. K has no
-MAME (K, 2026-11-05), so what was to be seen running is read statically, or run on `cpu-68000` where one CPU's routine
-suffices, as FINAL LAP 2's road is: the study's runs by throwaway steps outside the repository, their outputs under
-`reference-media/<original>/research/`, and a check a conversion's value needs by a research command (K, 2026-11-06).
-Where both 68000s are needed together, K decides when it arises whether a research tool runs them or the chapter states
-it as an assumption.
-
-K's decisions (2026-11-05):
-
-- **TOP SPEED is inside the boundary.** A row of its tile layers is one depth of its road, moved by the row's scroll
-  and colored by the row's color word, so its road layer draws its road surface a line at a time; that the
-  cross-section's pictures sit in tiles is how they are held.
-- **TOP SPEED's courses** are seven roads from its start to its goal through its five stages. A stage's paths are
-  numbered from 0 in the order its forks are followed from its first section, left before right, so that path 0 keeps
-  left at every fork and the last keeps right: its stages have 1, 2, 3, 7 and 5 paths, so 210 roads run from start to
-  goal. Road N, from 0 to 209, takes in each stage the path N modulo that stage's count; as no two of 2, 3, 5 and 7
-  share a factor, each N is one road and each road one N. The courses are roads 0 to 6, which run every path of every
-  stage: TOP SPEED A to G, lettered by their paths in the fourth stage, 0 as A.
-- **CHASE H.Q.'s courses** are ten, two to each of its five stages, each stage on roads of its own. Each runs from its
-  stage's start through the stage's fork on one of its two roads, the left or the right as its table names them, to
-  its goal. A course holds one road through a fork, as TOP SPEED's do, so no two roads need meet in one plane.
-- **The tributes' classes.** Stage TA raises all ten of CHASE H.Q.'s courses. ARCADE TRIBUTE - CHASE H.Q. has five
-  classes, one a stage, each on the road the stage's arrow names where the original fixes it (stage 1 right, stage 3
-  left) and on its left road, path 0, where the original chooses at random (stages 2, 4 and 5): CHASE H.Q. STAGE 1
-  RIGHT, STAGE 2 LEFT, 3 LEFT, 4 LEFT and 5 LEFT; the other five serve the game's own series, as OUTRUN's SHORT roads
-  do. ARCADE TRIBUTE - TOP SPEED's classes are TOP SPEED A to G. CHASE H.Q.'s courses are CHASE H.Q. STAGE 1 LEFT to
-  CHASE H.Q. STAGE 5 RIGHT as the [course texts](#course-names-and-descriptions) name them (K, 2026-11-07), their ids
-  `chase-hq-1-left` and so on. The PR closing the stage writes the classes into the [tributes'
-  table](product.md#arcade-tribute).
-- **CHASE H.Q.'s goal** is where the original's time runs out: how far beyond its stage's start the criminal is, as the
-  original counts it, when both of the player's times are spent, the first and the one that replaces it when the
-  criminal is sighted, the player driving flat out without turbo on the road the stage's arrow names, path 0 where the
-  arrow falls at random; the goal lies that far along both of the stage's courses. The main program's own routines run
-  tick by tick on `cpu-68000` (`goal-ticks`): its speed routine reaches its top speed of 494, which shows 320 km/h and
-  gains 1.48 m a tick as the clock's scale gives, at tick 1,847, and with the criminal's routines and the time beside
-  it, a time 3,790 ticks, it gives 9,767 m in stage 1, 9,990 m in stage 2, 10,013 m in stage 3, 10,025 m in stage 4 and
-  9,990 m in stage 5, 201 to 238 m short of the static reading, which counted a time 3,852 ticks and the criminal
-  keeping 0.875 and 0.90625 of the player's pace where the program keeps 0.8125 and 0.84375. Within a tick the player's
-  routines run before the criminal's, which of the two the program's scheduler runs first being inferred; the other
-  order moves the goals 0 to 5 m, less than a record. The goals are the run's (K, 2026-11-07). Where the two roads meet
-  (2,580 to 2,973 m), where their tables become one again at section 15 (3,145 m) and the end of the approach road
-  (3,931 m) are not goals: all come before the criminal is caught, the player within its close band (0x300 units) at
-  4,241 m in stage 1, 4,495 m in stage 2, 4,472 m in stage 3, 4,531 m in stage 4 and 4,511 m in stage 5, where the
-  tribute's stage is to pass it before the stage's end.
-- **The road not taken** is drawn where TOP SPEED's and CHASE H.Q.'s roads part as two roads ([Two
-  roads](original-road-data.md#two-roads)), only as far as the original draws it: CHASE H.Q.'s over the 197 m its table
-  opens them by, TOP SPEED's half not taken over 30.7 m. Where they meet it is not drawn, as the original draws no
-  distance there. Two roads takes the original's road picture as its input in place of a Sega road ROM's line. The two
-  roads overlap in the original hardware's order: Two roads takes each road's levels of its surface, lines and edges
-  from its hardware, Sega's for OUTRUN and TURBO OUTRUN as before and the TC0150ROD's for CHASE H.Q., in the form
-  CONTINENTAL CIRCUS's pit and BIG RUN's two roads take too (K, 2026-11-09).
-- **A turn** is one rule for CHASE H.Q. and TOP SPEED: a plan's heading is read from its farthest sky layer's turning,
-  as OUTRUN's plan is from its heading table, how far that layer has turned being the original's heading, so that the
-  sky turns as the original's does. One turn is the width over which that layer's picture goes round once, not its tile
-  layer's 512 pixels (K, 2026-11-06). TOP SPEED's farthest layer, its picture 128 columns of 8 pixels (1,024), turns by
-  128 less the curve's class, as its car drifts, half a pixel a unit a record, giving radii of 64.6 to 118 m (167 m in
-  E and 211 m in G; K, 2026-11-10: a quarter of the earlier reading, which TA-10 read again
-  from the instructions). CHASE H.Q.'s, the upper band of its second tile layer, 144 rows, its picture 96 columns (768
-  pixels), turns 160 pixels over a divisor a record, read as its table stands: the divisor is the class up to 8, holds
-  at 20 from 32 to 48 and above 40 mirrors itself about 40, as the table itself does, which a course meets only in
-  stages 1 and 2 (74 m at most), giving arcs of 75 to 375 m. Each line's shift across in the road's picture is then a replacement that cannot be avoided: the curves look
-  otherwise. TOP SPEED's courses then cross themselves 23 to 53 times up to their goals; CHASE H.Q.'s 19 times, 14 as
-  bridges and 5 at one height; their passages keep the original's heights (K, 2026-11-02).
-- **Things of several pieces.** The three conversions write a body as parts ([the
-  format](content-and-gameplay.md#sprites-and-environment), NM-15a), and of the pieces an original puts out at once, a
-  floating one and those it touches are one picture baked again from the ROMs' pixels as the original draws them, their
-  pieces' bodies its parts, by [Things of several pieces](original-road-data.md#things-of-several-pieces) (NM-15b; K,
-  2026-11-06). TOP SPEED puts a thing out as one description of pieces at one station, its courses placing 60 of them,
-  of 8 pieces at most (its descriptions of up to 24 are placed by none); CHASE H.Q. as one list of 1 to 45; and
-  CONTINENTAL CIRCUS's 70 placements of 3,877 join into 27 things, one picture each, its start gantry of nine pieces the
-  largest. A piece the original draws at a zoom fixed in one axis or both (TOP SPEED's placements of types 1 to 3) is
-  laid at the thing's full size, where every piece is a pixel a pixel; that the original's thing changes shape as it is
-  drawn smaller is a replacement that cannot be avoided, its chapter's, as [the rule](original-road-data.md#things-of-several-pieces)
-  says. A thing's
-  hit parts are two at most (TOP SPEED's one box a thing and a gate's two posts', CHASE H.Q.'s two posts at most,
-  CONTINENTAL CIRCUS's two ranges at most), so `bodyParts` stays 16; CONTINENTAL CIRCUS's hit ranges, which do not hold its own car's width, are
-  its bodies' widths, at most their pictures' colored columns, as [the rule](original-road-data.md#chosen-lines) has
-  every original's (K, 2026-11-06). A tunnel is no thing: its darkness is the road layer's color line by line, laid as
-  the road's Strips and the ground's colors beside it (TA-7c, TA-10); its mouth is a thing (TA-8, TA-11), and the
-  mouth's full-width part a band (below). The transparent pens are those the original's sprite hardware does not draw, as its
-  hardware's layer names them: 0 and 15 for Sega's and Namco's, as now, and 0 alone for the three TAITO originals, whose
-  15 is a color (TA-8). Colors that move are held at the start's, as POLE POSITION II's lamps are, and a thing the
-  original draws from a description for each side keeps a picture for each side, unmirrored. Each PR of things (TA-8,
-  TA-11, TA-16) writes in its chapter where the original's code decides what it puts out at once, its drawing order and
-  its rounding.
-- **Bands fixed on the screen** (K, 2026-11-06) are boards of [the strips' rule](original-road-data.md#strips), the band
-  across the road among them, its band the piece the original repeats where it repeats one (CONTINENTAL CIRCUS's
-  128-pixel period). CONTINENTAL CIRCUS's side faces (its type 0 and zone 0x8003) are looping strips as
-  they are; MONACO's tunnel ceiling (type −1, 30 beams about 23.6 m apart) is bands across the road at the original's
-  height; CHASE H.Q.'s full-width pieces (its gates' centres, its tunnel mouths and its kinds 0x500 to 0x57F) are bands
-  across the road, clear where the road passes ([Tunnels](content-and-gameplay.md#tunnels)); TOP SPEED's stage gates'
-  pieces at fixed screen columns, each band covering the screen's width, are bands across the road. JAPAN's bridge is no
-  roof, the format having no surface over the road: its two edges and its span between them, step by step, are bands
-  across the road, the steps so fine that the eye at the player's height sees nothing through them, their count TA-16's,
-  as [Tunnels](content-and-gameplay.md#tunnels) and Suzuka's crossing in [Reference and remaster
-  goals](#reference-and-remaster-goals) are drawn with ordinary boards; its crossing road is no bridge, the passages not
-  drawn to each other and its heights the ROM's.
-- **CONTINENTAL CIRCUS's models** are the circuits the original drew, in the shapes its lengths and corners show, as
-  POLE POSITION II's SEASIDE is Long Beach in 1982 for a 1983 original: the circuits whose lengths its ROM lists (at
-  0x046FA). BRAZIL is Jacarepaguá (5.031 km); AMERICA Watkins Glen as it was from 1975 to 1985 (5.435 km), its esses
-  there; FRANCE Dijon-Prenois's Grand Prix circuit as it has been since 1976 (3.800 km); MONACO as it was from 1976 to
-  1985 (3.312 km), whose chicanes of 1976 the ROM draws as no tight pairs, as its chapter says; GERMANY Hockenheim as it
-  was from 1970 to 1981 (6.789 km); SPAIN Jarama as it was from 1967 to 1979 (3.404 km); JAPAN Suzuka as it was from
-  1962 to 1982 (6.004 km), as `suzuka_1983_1984` has the chicane made in 1983; MEXICO Long Beach, the United States
-  Grand Prix West, as it was from 1976 to 1981 (3.251 km), its lap the ROM's 3.250 km (K, 2026-11-06). K's course
-  sources hold all eight layouts ([A lap on its model](original-road-data.md#a-lap-on-its-model)), used when it is
-  raised. The original's year is 1987, its Japanese
-  release 1988 ([ARCADE TRIBUTE](product.md#arcade-tribute)). Its pit lane, the original's second road, half its road's
-  width and a picture of its own, is drawn as two roads where the original draws it and is not driven, as this game has
-  no damage to mend there (K, 2026-11-06).
-- **The rest.** CHASE H.Q.'s and TOP SPEED's scale across is a lane of 3.6 m, a lane's width being each original's own
-  constant in its chapter and module, not shared (K, 2026-11-05); CONTINENTAL CIRCUS's is its own car, as wide as a
-  Formula One car could be in 1987 (2.15 m), its width at its depth measured once. Up is the screen's: 15/14 of across
-  in CONTINENTAL CIRCUS, across in CHASE H.Q. and TOP SPEED. CHASE H.Q.'s and TOP SPEED's lanes are [lanes by a
-  mask](original-road-data.md#lanes-by-a-mask); CONTINENTAL CIRCUS's three painted lanes are two lanes, its lines
-  Strips. Skies are baked ([Sky baking](original-road-data.md#sky-baking)), every band an original's tile layers draw
-  above its horizon, as it draws them and each at its own turn (K, 2026-11-08); CHASE H.Q.'s nearer two bands turn 2.4
-  and 3.2 times as fast as its far one, no whole number of their pictures a turn, and keep those turns, each cut once
-  behind the start's heading (K, 2026-11-08). CHASE H.Q.'s far band takes one of three pictures, its sky changing where
-  a record's byte 6 sets another background, as the original's does (K, 2026-11-06). The original takes picture 1 where
-  that byte's mode is 4 (stages 2 and 5 at their starts) and picks picture 0 or picture 2 at random elsewhere (bit 1 of
-  0x108006; stages 1, 3 and 4 at their starts and every course once along it); where it picks at random a stage takes
-  its own picture, 0 in stages 1, 3 and 5 and 2 in stages 2 and 4, both of a stage's courses alike (K, 2026-11-06,
-  2026-11-08). Each course has a car grid and a bike grid by [the grid's rule](original-road-data.md#the-grid) (K,
-  2026-11-05). CHASE H.Q. and TOP SPEED stand their own car alone at GO, CHASE H.Q.'s at its stage's start in its
-  rightmost lane (e, d in stage 5) and TOP SPEED's 1.82 m (0x260) into its first section in lane d, where its run before
-  GO stops, the 147.5 m read before being where that run starts (K, 2026-11-10), its place the
-  front slot and the general form behind it, the road laid on back before the stage's start; CONTINENTAL CIRCUS stands
-  its own car on its road's centre 3.7 m before the line and, as far as the study read, no rival, which TA-15 reads
-  further. A tick is its board's frames a second (`FRAMES_A_SECOND`) over the frames its program's loop takes, as every
-  original's is (K, 2026-11-08): CHASE H.Q.'s loop runs once a frame, a tick 1/60.056 s, while its clock counts 63.16
-  ticks a second, so that a shown 60 seconds take 63.1, as FINAL LAP 2's clock counts 0x3C a second and its metres take
-  its board's 60.606 frames; each chapter states as an assumption only that no program overruns a frame. CHASE H.Q.'s
-  limits are its program's, its outermost lanes' centres ± 0xDE0, 9.0 m beyond the drawn edge, and change at once at a
-  tunnel's ends, as the original's do, to its wall 0.34 m within the edge (0x9B4C) and back, each end a Section's cut
-  and the change at its Link (K, 2026-11-08). Its lanes change over the 12.3 m ending at a record whose mask differs at
-  its forks and merges too, where the original changes them at once, as the format's Link joins roads of the same lanes
-  alone, its limits still changing at once at the record's start, so that a car in a lane its fork does not take is
-  pushed back onto the road (K, 2026-11-08). What runs is checked as the boards' paragraph says. They are raised in the
-  order CHASE H.Q., TOP SPEED, CONTINENTAL CIRCUS, whose eight layouts K's course sources hold.
-- **Heights.** CHASE H.Q.'s and TOP SPEED's are a [rise table](original-road-data.md#profile-from-a-rise-table)'s, their
-  resolution a step of the table's grade and their grades fed at the step at which the program adds height (0x100
-  positions); the rule keeps grades, not heights, and each chapter gives how far a course's height departs (TOP SPEED's
-  2.3 m, and 28.4 m in G, where one run's line leans a step either way over 3,661 m; CHASE H.Q.'s up to 35.2 m, where a
-  run's line meets its resolution exactly). Where a road crosses itself the rise table keeps the original's heights at
-  its passages: each passage and the course's start are fixed points, the departure there is taken off along the road
-  straight between neighbouring fixed points and held after the last, so that a road crossing nowhere is as today and a
-  stretch so mended keeps its grade within two steps of the table's (K, 2026-11-06; TA-6c). TOP SPEED's grades stay its
-  original's (−21 % to +30 %) and CHASE H.Q.'s (−34 % to +55 %), a rise table having no grade limit (`GRADE_LIMIT` is
-  the screen read-back's): TOP SPEED's height unit, 2.884 mm, is its main program's pitch (at 0x75C8) read back through
-  its eye, whose focal length is 266 pixels, and CHASE H.Q.'s, read back so through its eye, is 6.58 mm. CONTINENTAL
-  CIRCUS's heights are a 3D road in its ROMs times one factor that keeps its steepest grade within `GRADE_LIMIT` (0.570,
-  SPAIN's steepest grade 0.438 at 1 and its lens ratio 0.902, the one step twice its neighbours' in three hill shapes
-  laid as their mean; K, 2026-11-10), its lap closed by taking the lap's mean from its
-  grades, as FINAL LAP 2's is.
-- **Materials.** CHASE H.Q.'s and TOP SPEED's road is `ASPHALT`, its drawn surface and edge bands, as ENDURO RACER's
-  road is its own; CHASE H.Q.'s dirt road (a record's byte 4 of 6) `DIRT`, its surface and edge bands. The ground's
-  material is read from its color, left and right of the road, by ENDURO RACER's rule (`groundMaterial`, moved to the
-  shared rules): `GRASS` where green is its strongest channel, `WATER` where blue is, `SAND` otherwise, changing where
-  the ground's color changes on its side. Where CHASE H.Q.'s program starts to slow the car (1.22 m beyond the drawn
-  edge) is no boundary of materials, its chapter stating it as the original's fact. A ground not water that the rule
-  makes `WATER` (a bluish grey of a town's ground) is `SAND` (K, 2026-11-10). CONTINENTAL
-  CIRCUS's materials are CHASE H.Q.'s: its road and edge bands `ASPHALT`, its ground by `groundMaterial` from its color
-  (K, 2026-11-09); that an F1 car is not slowed on grass, as POLE POSITION II shows, is mended on the vehicles' and
-  materials' side, not in Stage TA.
-
-The three are raised as every original is: a TA session holds every original's zips, and every original's `--check`
-passes before each TA PR. Each original's skies come before its courses, as every Section takes a sky (K,
-2026-11-08): CHASE H.Q.'s skies (TA-9) before its courses (TA-7b3b0 to TA-7c) and its things (TA-8) after them.
-
-Stage TA's PRs follow one another without stopping at each, and K is reported to once an original: CHASE H.Q. after
-TA-8, TOP SPEED after TA-11 and CONTINENTAL CIRCUS after TA-16, TA-13 and TA-14 among its PRs. What K would decide is
-decided by default (K, 2026-11-09); K accepted the defaults together, and closed as estimates, not confirmed, those the
-chapters write so (K, 2026-11-10).
-
-CHASE H.Q.'s defaults, each in [its chapter](chase-hq-road-data.md): its tunnels dark over their records (an estimate a
-run of both programs would confirm); its dirt road one color; the road not taken's roads in the TC0150ROD's order with
-no priority bit; its things with no shadow; a body on its side of P where only that side
-is hit, and with no depth; its tunnels' mouths' pieces kept; a long passage's Section cut at a record where its sprites
-would pass `spritePlacements`; and a ground made `WATER` that is not water `SAND`.
-
-TOP SPEED's defaults, each in [its chapter](top-speed-road-data.md): GO 1.82 m into its first section (0x260); its plan
-by the turn the instructions give, its radii 64.6 to 211 m; its cloud picture changed at a tunnel's change record; its
-raster words' bits as MAME's description reads them; its road not taken's slide and its fork's gap measured at the nearest
-line; and its tunnels' road and sky dark over their walls, an overpass's road alone under its decks.
-
-CONTINENTAL CIRCUS's defaults, each in [its chapter](continental-circus-road-data.md): its rises at 1.5 units a sample;
-its stripes' phase the race's first lap's; the rain's and the lightning's colors not drawn, on its road and in its skies;
-its skies facing the start's heading, their copy at column 32 not drawn;
-its pit lanes from their records' places less 0x2FD, their centres
-through every fourth sample, their things placed always without a body; its checkpoints at their things' stations; its
-things' bodies fixed; its side faces hit; its zone's side face at its zone's end less 0x3E8; JAPAN's bridge's body on
-its first step; and MONACO's ground made `WATER` `SAND`.
-
-The PRs, in order:
-
-- **TA-18** The stage closes: this section goes, what is left goes to [Courses of the
-  originals](#courses-of-the-originals), and the tributes' classes go into [the product](product.md#arcade-tribute).
 
 ## Stage BR — BIG RUN from the ROMs
 
@@ -978,11 +764,9 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 
 ### Courses of the originals
 
-OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's, POLE POSITION II's and FINAL LAP 2's courses are raised
-from their ROMs' road data ([Original road data](original-road-data.md)); RACING HERO is not made (K, 2026-10-22). How TOP SPEED's,
-CONTINENTAL CIRCUS's and CHASE H.Q.'s are raised, K decides in [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms).
-Their time limits come from reference driving, as for every course.
+OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's, POLE POSITION II's, FINAL LAP 2's, CHASE H.Q.'s, TOP SPEED's
+and CONTINENTAL CIRCUS's courses are raised from their ROMs' road data ([Original road data](original-road-data.md));
+RACING HERO is not made (K, 2026-10-22). Their time limits come from reference driving, as for every course.
 
 Left by the stages that raised them, beside what follows:
 
@@ -1001,9 +785,17 @@ Left by the stages that raised them, beside what follows:
   the same driver. Its ARCADE TRIBUTE series runs its originals for now (K, 2026-11-10): the TESTAROSSA's reference
   runs recover 9 to 16 times a road, and outrun-a's ends off the pavement past its GOAL, so its class has no clock
   until the driver is mended; then its product courses, its vehicles and the original's traffic.
-- TOP SPEED: its cloud banks' rows and size by their distance (each is a band across the road of one height and one
-  size; the original lays it on the screen by its own curve, behind the ground): a picture laid on the screen by its
-  distance to a station ([Its cloud banks](top-speed-road-data.md#its-things)).
+- TOP SPEED: its ARCADE TRIBUTE series, of the classes [the product](product.md#arcade-tribute) names, is not made. Not
+  drawn as the original draws them: its cloud banks' rows and size by their distance (each is a band across the road
+  of one height and one size; the original lays it on the screen by its own curve, behind the ground), which needs a
+  picture laid on the screen by its distance to a station ([Its cloud banks](top-speed-road-data.md#its-things)); the
+  things of the branch not taken beyond the 30.7 m its road not taken is drawn over, which the original shows until
+  its slide ends ([Beside a road not taken](top-speed-road-data.md#its-things)); and the fifth stage's gate's and the
+  GOAL gate's right posts' hits, whose boxes lie wholly beyond their pictures, which needs a body outside its picture
+  ([Its hit](top-speed-road-data.md#its-things)). Estimates, not confirmed: its tunnels' road and sky dark over their
+  walls and, under an overpass, the road alone dark; a run of both programs through a tunnel and under an overpass
+  would confirm them ([its chapter](top-speed-road-data.md#top-speeds-conversion)). K adjusts its scale (a lane of
+  3.6 m) by driving in DEV; its grades are its original's (−21 % to +30 %), a rise table having no grade limit.
 - SUPER HANG-ON: its ARCADE TRIBUTE series runs its originals for now, with VFR750Rs until the GP machines are made
   (K, 2026-11-10); its product courses, its vehicles, the turbo, sounds and race music, the mini ride-on cabinets'
   courses (their programs are encrypted), the ending's motion (its last frame alone stands; when the motion is made,
@@ -1026,14 +818,34 @@ Left by the stages that raised them, beside what follows:
   DEV the airship's and
   plane's height (`CRAFT_HEIGHT`, 30 m, provisional) and how their banner's sprites meet, whose hardware stretch is not
   read ([Its craft](pole-position-ii-road-data.md#its-craft)).
-- FINAL LAP 2: its ARCADE TRIBUTE series runs its originals for now (K, 2026-11-10), the player's car to be decided;
-  its product courses, sounds and race music, and the product's pictures drawn again. K adjusts its
-  scale (2.15 m, its own car) by driving in DEV, its courses with a model then solved again, and sees JAPAN's
-  underpass in DEV ([FINAL LAP 2's
-  objects](final-lap-2-road-data.md#final-lap-2s-objects)).
-- CHASE H.Q.: event 2's banks of cloud (kind 0x681) are bands across the road at their records' own distances ([its
-  objects](chase-hq-road-data.md#chase-hqs-objects)); drawing them as the original does, as though 0x400 + 0.75 d² /
-  65,536 positions away at a distance d, needs a rule by which a board is drawn at a depth other than its station's.
+- FINAL LAP 2: its ARCADE TRIBUTE series runs its originals for now (K, 2026-11-10), the player's car to be decided; its
+  product courses, sounds and race music, and the product's pictures drawn again. K adjusts its scale (2.15 m, its own
+  car) by driving in DEV, its courses with a model then solved again, and sees JAPAN's underpass in DEV ([FINAL LAP 2's
+  objects](final-lap-2-road-data.md#final-lap-2s-objects)). Its cells stay as they are (K, 2026-11-10).
+- CHASE H.Q.: its ARCADE TRIBUTE series, of the classes [the product](product.md#arcade-tribute) names, is not made; a
+  tribute's stage is to pass the criminal before its end ([its courses](chase-hq-road-data.md#chase-hqs-courses)). Not
+  drawn as the original draws them: event 2's banks of cloud (kind 0x681), bands across the road at their records' own
+  distances ([its objects](chase-hq-road-data.md#chase-hqs-objects)); drawing them as the original does, as though
+  0x400 + 0.75 d² / 65,536 positions away at a distance d, needs a rule by which a board is drawn at a depth other
+  than its station's. Estimates, not confirmed: its tunnels dark over their records, which a run of both programs
+  through a tunnel would confirm, and its lines' colors in banks 3 and 7 set by no program after the palette's start,
+  which a run of the main program through a stage would confirm ([its
+  chapter](chase-hq-road-data.md#chase-hqs-conversion)). K adjusts its scale (a lane of 3.6 m) by driving in DEV, where
+  K also sees what its chapter names: the grey green ground, the lanes and limits at its forks and merges, the limits
+  on stage 4 and 5's tight bends, and the nearer sky bands' proportions; its grades are its original's (−34 % to
+  +55 %), a rise table having no grade limit.
+- CONTINENTAL CIRCUS: its ARCADE TRIBUTE series, of the classes [the product](product.md#arcade-tribute) names, is not
+  made. Estimates, not confirmed ([its chapter](continental-circus-road-data.md#its-conversion)): its rises' resolution
+  (1.5 units a sample), which counting its laps' runs at 1, 1.5 and 2 units would confirm; its skies' facing at the
+  start, which a run of both programs to a race's start would confirm; and the 0x12C its program adds at a checkpoint
+  read as time, which a run of both programs past a checkpoint would confirm. The other readings its chapter marks not
+  confirmed stay so. Not drawn as the original draws them: JAPAN's bridge's span, the format having no surface over
+  the road, and its tile layers' bands over a zone's far lines where it draws no ground ([Its
+  bands](continental-circus-road-data.md#its-bands), [Its zones](continental-circus-road-data.md#its-zones)). Its pit
+  lanes are not driven, as this game has no damage to mend there (K, 2026-11-06). That an F1 car is not slowed on
+  grass, as POLE POSITION II shows, is mended on the vehicles' and materials' side. K adjusts its scale
+  (2.15 m, its own car) and its grade limit (`GRADE_LIMIT`, its heights' factor 0.570) by driving in DEV, its courses
+  with a model then solved again; MEXICO's lap stays as the procedure gives it (K, 2026-11-10).
 
 When the product's pictures are drawn again, a picture's shadow is cast from its shape, by one rule as a vehicle's is
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course
@@ -1071,11 +883,14 @@ made again; then the walls' feature removed, replaced by rows of boards.
 The course editor is the human inspection and adjustment view over the file/CLI workflow. Decide the default rounding
 steps and joining tolerances of its cleaning operations while producing the first product courses, and which findings
 become build rules once those defaults hold. The findings are worked out after every change, so their time is the
-author's wait (one worker, the default amounts): TSUKUBA 39 s (digits 0.2 s, unneeded knots 13 s, near and referable
-27 s, merge kinds 0.3 s). Show anchor displacement after geometry changes if producing courses
-needs it. It shows both a Section's edges as its document writes them and as the format clips them (the course limits).
-Before master-course production, document/compiler versions can advance without migration readers; replace development
-inputs with the corresponding version.
+author's wait (one worker, the default amounts): TSUKUBA 39 s (digits 0.2 s, unneeded knots 13 s, near and referable 27
+s, merge kinds 0.3 s). Show anchor displacement after geometry changes if producing courses needs it. It shows both a
+Section's edges as its document writes them and as the format clips them (the course limits). Before master-course
+production, document/compiler versions can advance without migration readers; replace development inputs with the
+corresponding version.
+
+`course render --section` serves only a course's start Section and the one after: the route window is refreshed at the
+grid and does not go back, so a frame farther along a course of many Sections is not served.
 
 Develop production sprites, BG and tunnel artwork. Inspect distant sprites, source-camera/variant
 sampling, palettes and braking lamps on real devices. Preserve the authoring goals of dimensioned

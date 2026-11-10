@@ -176,13 +176,17 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   key is read. A dump records the ROMs read by MAME's names and CRC-32s, from the set's table.
 - **Running an original's code.** A research command alone runs an original's code (`cpu-68000`): an unencrypted
   routine, from its entry until it returns or reaches a trap, where its program waits for its next frame, at most 10⁷
-  instructions a call, given the base register, frame and stack its program gives it and the regions beside its work
-  RAM it reads and writes (a shared RAM, a chip's), a routine it calls for hardware it does not need (a sound)
-  returning at once, to check a model or a value against it: `height-ticks`, the heights' procedure tick by tick, every
-  table the courses name, at the original's top speed; `goal-ticks`, CHASE H.Q.'s speed routine tick by tick from a
-  standing start, its top speed and the tick it reaches it, and each stage's goal with its criminal's routines and its
-  time run beside it, against the values its conversion takes. No conversion runs an original's code, and
-  nothing encrypted is run.
+  instructions a call, given the base register, frame and stack its program gives it and the regions beside its work RAM
+  it reads and writes (a shared RAM, a chip's), a routine it calls for hardware it does not need (a sound) returning at
+  once, to check a model or a value against it: `height-ticks`, the heights' procedure tick by tick, every table the
+  courses name, at the original's top speed; `goal-ticks`, CHASE H.Q.'s speed routine tick by tick from a standing
+  start, its top speed and the tick it reaches it, and each stage's goal with its criminal's routines and its time run
+  beside it, against the values its conversion takes. No conversion runs an original's code, and nothing encrypted is
+  run. K has no MAME (K, 2026-11-05), so what a stage would see running is read statically, or run so where one CPU's
+  routine suffices: a study's runs by throwaway steps outside the repository, their outputs under
+  `reference-media/<original>/research/`, and a check a conversion's value needs by a research command (K, 2026-11-06).
+  Where two CPUs are needed together, K decides when it arises whether a research tool runs them or the chapter states
+  it as an assumption.
 - **What is not linked or shown.** No link to a public place to download ROMs is written in the repository or a PR,
   and no picture setting the original's screen or its ROMs' pictures beside this game's one to one enters either (K may
   be given one privately).
@@ -446,9 +450,10 @@ from its clock (`metresAPosition`) and the turn scale that turns it once in its 
 interval; a course with a model takes its runs' lengths and its turn scale from its model ([A lap on its
 model](#a-lap-on-its-model)). A road that closes no lap is not read round, its table's start and end parting it, and its
 turn scale is its original's farthest sky layer's (K, 2026-11-06): each value the pixels that layer turns over an
-interval, the scale 2π over a turn's pixels times the interval's length (`skyTurnPlan`), so that the road turns as the
-sky does, its sign, which way a positive value turns, its conversion's. No arc is tighter than its lanes' least radius
-(`leastLaneRadius`); a plan that would be stops its conversion.
+interval, the scale 2π over a turn's pixels times the interval's length (`skyTurnPlan`), a turn the width over which
+that layer's picture goes round once, not its tile layer's, so that the road turns as the sky does, its sign, which way
+a positive value turns, its conversion's. No arc is tighter than its lanes' least radius (`leastLaneRadius`); a plan
+that would be stops its conversion.
 
 ### A lap on its model
 
@@ -1438,14 +1443,16 @@ Besides what its conversion writes, a raised original holds these in the reposit
 ### 4. Length and time
 
 - Find the tick (often two frames, from the main loop's wait on the frame interrupt) and the road position (usually a
-  16.16 long).
+  16.16 long). A tick is its board's frames a second over the frames its program's loop takes (K, 2026-11-08); a chapter
+  states as an assumption only that no program overruns a frame.
 - Along the road the scale follows the [rules of the originals](#rules-of-the-originals): find the program's amounts
   that give it (the advance per tick against the displayed speed, or the clock against the camera's units a tick) and
   check them where possible (K's video, the clock against frames).
-- Across and up, the original's world often keeps no one scale, so the scale is K's, decided by driving (K,
-  2026-10-26): a lane of 3.6 m in OUTRUN and TURBO OUTRUN, 4.3 m in SUPER HANG-ON and 3.8 m in ENDURO RACER. Up is 15/14 of across where the original projects both alike (its 320 × 224 screen is shown at 4:3). For a
-  new original, report the alternatives with their costs (texel bounds, grid lengths, closure, how objects and the eye
-  compare) for K to choose.
+- Across and up, the original's world often keeps no one scale, so the scale is K's, decided by driving (K, 2026-10-26):
+  a lane of 3.6 m in OUTRUN and TURBO OUTRUN, 4.3 m in SUPER HANG-ON and 3.8 m in ENDURO RACER, and 3.6 m in CHASE H.Q.
+  and TOP SPEED (K, 2026-11-05), a lane's width each original's own constant in its chapter and module. Up is 15/14 of
+  across where the original projects both alike (its 320 × 224 screen is shown at 4:3). For a new original, report the
+  alternatives with their costs (texel bounds, grid lengths, closure, how objects and the eye compare) for K to choose.
 - An original whose own car is a Formula One car has one scale across (K, 2026-11-04): its own car, at the depth the
   original draws it on its road, is as wide as a Formula One car could be in the original's year, 2.15 m in 1983 and
   in 1990, measured against the road at that depth; its chapter records the measurement and the lane it gives, which K

@@ -17,11 +17,14 @@ a pair of even and odd bytes (`top-speed-rom`); and the sixteen OBJ ROMs of its 
 ## TOP SPEED's hardware
 
 - **Its screen.** 320 × 240 pixels at 60.0532 frames a second, as MAME's description has it, measured on the hardware.
-- **Its tile layers.** Two PC080SNs, each two layers of 64 × 64 tiles of 8 × 8 pixels at 4 bits a pixel (the tile
-  ROMs' format the TC0100SCN's, `tilePen`), each tile two words, its attribute (its palette line, 9 bits, and its flips)
-  and its code, each row of a layer moved across by its own scroll word. The second chip's layer 1 is drawn at the
-  bottom, opaque, then its layer 0 and the first chip's layer 1, the road, each line colored by its raster word, then
-  the first chip's layer 0, the text, then the sprites.
+- **Its tile layers.** Two PC080SNs, each two layers of 64 × 64 tiles of 8 × 8 pixels at 4 bits a pixel (the tile ROMs'
+  format the TC0100SCN's, `tilePen`), each tile two words, its attribute (its palette line, 9 bits, and its flips) and
+  its code, each row of a layer moved across by its own scroll word. The second chip's layer 1 is drawn at the bottom,
+  opaque, then its layer 0 and the first chip's layer 1, the road, each line colored by its raster word, then the first
+  chip's layer 0, the text, then the sprites. A row of the road's layers is one depth of its road, moved by the row's
+  scroll and colored by the row's color word, so its road layer draws its road surface a line at a time and TOP SPEED is
+  inside the tool's boundary ([Rules](original-road-data.md#0-rules)); that the cross-section's pictures sit in tiles is
+  how they are held (K, 2026-11-05).
 - **Its colors.** A palette word is xBGR555, as the Z system's (`rgb555Of`).
 - **Its tick and a position.** The sub program's race step runs once a frame (S 0x151DE, its frame interrupt), so a tick
   is a frame, 1/60.0532 s, as MAME's description has it (`FRAMES_A_SECOND`, `top-speed-road`); that no program overruns
@@ -50,8 +53,9 @@ records of 8 bytes a section, each section its next for the left and for the rig
   goal section); byte 3 its lane mask (bits 6 to 1 lanes a to f); bytes 4 and 5 the things beside the road, left and
   right (S 0x6812); byte 7 a thing in the middle, or a tunnel's walls' parameter (S 0x58F2). Byte 6 is read by neither
   program.
-- **The courses.** Road N takes in each stage the path N modulo the stage's count of paths (K, 2026-11-05); the courses
-  are roads 0 to 6, TOP SPEED A to G (`courseSections`).
+- **The courses.** Road N takes in each stage the path N modulo the stage's count of paths, 210 roads from start to
+  goal, each N one road as no two of the counts share a factor; the courses are roads 0 to 6, which run every path of
+  every stage, TOP SPEED A to G by their paths in the fourth stage (K, 2026-11-05; `courseSections`).
 - **The start.** The game stands the car 0xC000 positions (147.4 m) into section 0 facing back, drives it back toward
   the camera, turns it round and stands it at 0x260 (1.82 m), lane d (S 0x5344, 0x7C7E to 0x7D58, 0x7CF2), before the
   count to GO (S 0x7BE0).
@@ -149,15 +153,14 @@ its start for its grid and the camera behind it (`cameraDistance`), as CHASE H.Q
 
 ## Its plan
 
-A course turns as its horizon band turns ([A
-turn](NEXT.md#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)): each record (128 − |c|) / 2 pixels
-of the band's 1,024 a turn, c its curve's class, none for a class of 0 (`coursePieces`, `skyTurnPlan`). The main
-program's turn a frame is the class's complement to 0x8000 times the camera's advance over 2 (M 0x6156 to 0x6168), the
-band keeping 21 bits of its fraction (M 0x8A9E), and a record is 0x2000 of the advance ([research
-notes](research/top-speed.md#the-sky)). A positive class turns right: it moves the band left, as the scenery moves as
-the road turns right. The courses' classes run from 4 to 60, to 80 in E and 90 in G, their radii from 64.6 m to
-117.8 m, 166.9 m and 210.8 m. Each line's shift across in the road's picture is a replacement that cannot be avoided:
-the curves look otherwise.
+A course turns as its horizon band turns ([Plan from a curve table](original-road-data.md#plan-from-a-curve-table)):
+each record (128 − |c|) / 2 pixels of the band's 1,024 a turn, c its curve's class, none for a class of 0
+(`coursePieces`, `skyTurnPlan`). The main program's turn a frame is the class's complement to 0x8000 times the camera's
+advance over 2 (M 0x6156 to 0x6168), the band keeping 21 bits of its fraction (M 0x8A9E), and a record is 0x2000 of the
+advance ([research notes](research/top-speed.md#the-sky)). A positive class turns right: it moves the band left, as the
+scenery moves as the road turns right. The courses' classes run from 4 to 60, to 80 in E and 90 in G, their radii from
+64.6 m to 117.8 m, 166.9 m and 210.8 m. Each line's shift across in the road's picture is a replacement that cannot be
+avoided: the curves look otherwise.
 
 ## Its road across
 
