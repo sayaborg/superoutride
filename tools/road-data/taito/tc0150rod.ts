@@ -52,3 +52,18 @@ export const TC0150ROD_LEVELS: readonly PaintLevels[] = Object.freeze([
   Object.freeze({ edge: 1, surface: 2, line: 2 }),
   Object.freeze({ edge: 3, surface: 4, line: 4 }),
 ]);
+
+/**
+ * The TC0150ROD's order of its two roads as a line's words 0 to 2 (its left edge's, its right edge's and its body's)
+ * of road A (`a`) and road B (`b`) set their priority bits (`PRIORITY_BIT`), as MAME's driver describes it: none set,
+ * `TC0150ROD_LEVELS`; road A's body's set raises its body with its lines over road B's edges to road B's body's level,
+ * at which road A wins. Any other part's, whose level this program has not read, is refused.
+ */
+export function tc0150rodLevels(a: readonly number[], b: readonly number[]): readonly PaintLevels[] {
+  const [aLeft, aRight, aBody] = a.map((w) => (w & PRIORITY_BIT) !== 0);
+  if (aLeft || aRight || b.some((w) => (w & PRIORITY_BIT) !== 0))
+    throw romDiffers("A road line's edge, or road B's part, sets its priority bit");
+  if (!aBody) return TC0150ROD_LEVELS;
+  const [roadA, roadB] = TC0150ROD_LEVELS as [PaintLevels, PaintLevels];
+  return Object.freeze([Object.freeze({ ...roadA, surface: roadB.surface, line: roadB.line }), roadB]);
+}

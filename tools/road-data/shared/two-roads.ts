@@ -202,6 +202,62 @@ export function composite(
   );
 }
 
+/** A stretch between two neighbouring feature edges of the roads' picture: its sides and what shows over it. */
+interface ShownStretch {
+  readonly left: FeatureEdge;
+  readonly right: FeatureEdge;
+  /** Its sides' laterals. */
+  readonly from: number;
+  readonly to: number;
+  /** The road whose paint shows, its picture's piece (from its edge `piece` to the next) and that paint; -1 where none. */
+  readonly road: number;
+  readonly piece: number;
+  readonly paint: Paint;
+}
+
+/**
+ * Each stretch between neighbouring feature edges of roads given by where their pictures' edges lie (`edges`, as
+ * `compositeOf`), left to right, and the paint that shows over it: the highest level's of the roads that paint it, at a
+ * tie the earlier road's.
+ */
+function* shownStretches(
+  edges: readonly (readonly number[])[],
+  pictures: readonly RoadPicture[],
+  levels: readonly PaintLevels[],
+): Generator<ShownStretch> {
+  // Road r's piece at `x`: the last of its edges at or left of x, -1 left of them all.
+  const pieceOf = (r: number, x: number) => {
+    const road = edges[r]!;
+    let k = road.length - 1;
+    while (k >= 0 && x < road[k]!) k--;
+    return k;
+  };
+  const all = edges
+    .flatMap((road, r) => road.map((x, k) => ({ road: r, at: pictures[r]![k]!.at, x })))
+    .sort((a, b) => a.x - b.x || a.road - b.road);
+  for (let i = 0; i + 1 < all.length; i++) {
+    const [a, b] = [all[i]!, all[i + 1]!];
+    if (b.x <= a.x) continue;
+    const mid = (a.x + b.x) / 2;
+    let [paint, road, piece, level]: [Paint, number, number, number] = ['outside', -1, -1, -Infinity];
+    for (let r = 0; r < edges.length; r++) {
+      const k = pieceOf(r, mid);
+      const shown = k < 0 ? 'outside' : pictures[r]![k]!.right;
+      if (shown !== 'outside' && levels[r]![shown] > level)
+        [paint, road, piece, level] = [shown, r, k, levels[r]![shown]];
+    }
+    yield {
+      left: { road: a.road, at: a.at },
+      right: { road: b.road, at: b.at },
+      from: a.x,
+      to: b.x,
+      road,
+      piece,
+      paint,
+    };
+  }
+}
+
 /**
  * `composite` of roads each given by where its picture's edges lie (`edges[road][k]` the lateral of
  * `pictures[road][k]`, in order): a road laid where it passes, its edges not at fixed distances from its centre.
@@ -211,39 +267,46 @@ export function compositeOf(
   pictures: readonly RoadPicture[],
   levels: readonly PaintLevels[] = segaLevels(edges.length),
 ): PaintedInterval[] {
-  const paintOf = (r: number, x: number): Paint => {
-    const road = edges[r]!;
-    let k = road.length - 1;
-    while (k >= 0 && x < road[k]!) k--;
-    return k < 0 ? 'outside' : pictures[r]![k]!.right;
-  };
-  // The paint that shows at `x`: the highest level's of the roads that paint it, at a tie the earlier road's.
-  const shownAt = (x: number): Paint => {
-    let shown: Paint = 'outside',
-      level = -Infinity;
-    for (let r = 0; r < edges.length; r++) {
-      const paint = paintOf(r, x);
-      if (paint !== 'outside' && levels[r]![paint] > level) [shown, level] = [paint, levels[r]![paint]];
-    }
-    return shown;
-  };
-  const all = edges
-    .flatMap((road, r) => road.map((x, k) => ({ road: r, at: pictures[r]![k]!.at, x })))
-    .sort((a, b) => a.x - b.x || a.road - b.road);
   const out: (PaintedInterval & { x: number })[] = [];
-  for (let i = 0; i + 1 < all.length; i++) {
-    const [a, b] = [all[i]!, all[i + 1]!];
-    if (b.x <= a.x) continue;
-    const shown = shownAt((a.x + b.x) / 2);
-    if (shown === 'outside' || shown === 'surface') continue;
+  for (const { left, right, from, to, paint } of shownStretches(edges, pictures, levels)) {
+    if (paint === 'outside' || paint === 'surface') continue;
     const last = out.at(-1);
-    const left = { road: a.road, at: a.at },
-      right = { road: b.road, at: b.at };
-    if (last && last.paint === shown && last.x === a.x) {
-      out[out.length - 1] = { ...last, right, x: b.x };
-    } else out.push({ paint: shown, left, right, x: b.x });
+    if (last && last.paint === paint && last.x === from) {
+      out[out.length - 1] = { ...last, right, x: to };
+    } else out.push({ paint, left, right, x: to });
   }
   return out.map(({ paint, left, right }) => ({ paint, left, right }));
+}
+
+/** A piece of one road's picture where it shows: road `road`'s piece `piece` (from its edge `piece` to the next). */
+export interface ShownPiece {
+  readonly road: number;
+  readonly piece: number;
+  readonly paint: Exclude<Paint, 'outside'>;
+  readonly left: FeatureEdge;
+  readonly right: FeatureEdge;
+}
+
+/**
+ * Where each road's picture shows among roads each given by where its picture's edges lie (`edges`, as `compositeOf`),
+ * in their hardware's order `levels`: each piece of a road's picture that shows, its surface's too, between the feature
+ * edges either side, merged where they touch and are one road's one piece, so that a road whose surface lies beneath
+ * another's paint is drawn only where it shows.
+ */
+export function shownPieces(
+  edges: readonly (readonly number[])[],
+  pictures: readonly RoadPicture[],
+  levels: readonly PaintLevels[] = segaLevels(edges.length),
+): ShownPiece[] {
+  const out: (ShownPiece & { x: number })[] = [];
+  for (const { left, right, from, to, road, piece, paint } of shownStretches(edges, pictures, levels)) {
+    if (paint === 'outside') continue;
+    const last = out.at(-1);
+    if (last && last.road === road && last.piece === piece && last.x === from) {
+      out[out.length - 1] = { ...last, right, x: to };
+    } else out.push({ road, piece, paint, left, right, x: to });
+  }
+  return out.map(({ road, piece, paint, left, right }) => ({ road, piece, paint, left, right }));
 }
 
 /** An arrangement shorter than this is not written: the format writes stations to the micrometre, metres. */

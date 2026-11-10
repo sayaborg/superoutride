@@ -550,7 +550,8 @@ CONTINENTAL CIRCUS's), each a time or a repeat of times
 at a lap's stations, cut at its Sections' borders ([its road surface](final-lap-2-road-data.md#its-road-surface)); its
 boards, each on the road or at its height above it; its sky, facing by the road's turn from the course's start; its finish at its line, and its start gate in the
 Section returning to it by [the grid](#the-grid), each slot within its limits, a slot in a lane at its lane's centre;
-and a surface's Strip may reach beyond the road, its ground's second shade as far as its limits.
+and a surface's Strip may reach beyond the road, its ground's second shade as far as its limits, or follow a line
+along the lap, a Boundary in each Section it reaches.
 
 ### Places and patterns
 
@@ -907,7 +908,11 @@ own picture and width, show at each point the paint of the highest level in thei
 surface, lines and edges at levels of its own and at a tie road 0's (`PaintLevels`): Sega's (`segaLevels`, OUTRUN's and
 TURBO OUTRUN's) the surface of either road (its shoulder included) over road 0's (the left one's) lines and edges, over
 road 1's, over the ground; the TC0150ROD's (`TC0150ROD_LEVELS`, CHASE H.Q.'s) road A's edges, its body with its lines,
-road B's edges and its body, each over the one before. Each line and band shown is a Strip between
+road B's edges and its body, each over the one before, and where road A's body's word sets its priority bit
+(`tc0150rodLevels`, CONTINENTAL CIRCUS's) its body with its lines over road B's edges at road B's body's level, at which
+road A wins (MAME's description; another part's bit, its level not read, is refused). Where a road's surface lies
+beneath another's paint, each piece of each road's picture that shows (`shownPieces`) is where that road is drawn
+alone. Each line and band shown is a Strip between
 two features' edges held to lanes, or to a road laid where it passes, its edges on Boundaries (`compositeOf`,
 OUTRUN's and CHASE H.Q.'s roads not taken), cut where the arrangement changes (`arrangements`: every edge is straight
 between the lines' knots, the roads' ends and the road not taken's whole positions or its table's steps, so the

@@ -91,6 +91,12 @@ export function layCourse(options: {
   readonly limits: ProgramLimits;
   /** The road's surface drawn over its bands, as its picture draws it (FINAL LAP 2's), in its order. */
   readonly surface?: readonly SurfaceStrip[];
+  /**
+   * Lines along the lap the surface's Strips may follow (CONTINENTAL CIRCUS's pit lanes): each a Boundary `id`, its
+   * laterals, metres right of P, at stations of the lap, straight between, written in each Section it reaches with its
+   * knots within and its laterals where the Section cuts it.
+   */
+  readonly lines?: readonly { readonly id: string; readonly knots: readonly (readonly [number, number])[] }[];
   /** The sky's yaw origin at the course's start, degrees. */
   readonly skyYawOrigin: number;
   /**
@@ -212,7 +218,24 @@ export function layCourse(options: {
               positionAt,
             )
           : micrometre(-LANE / 2),
-        boundaries: limitLines.boundaries(from, to, positionAt),
+        boundaries: [
+          ...limitLines.boundaries(from, to, positionAt),
+          ...(options.lines ?? []).flatMap(({ id: line, knots }) => {
+            const [a, b] = [Math.max(from, knots[0]![0]), Math.min(to, knots.at(-1)![0])];
+            if (!(b > a)) return [];
+            const through = straightThrough(knots);
+            const written = [[a, through.at(a)] as const, ...knots.filter(([s]) => s > a + 1e-6 && s < b - 1e-6)];
+            return [
+              {
+                id: line,
+                knots: [...written, [b, through.at(b)] as const].map(([s, lateral]) => ({
+                  at: positionAt(s),
+                  lateral: micrometre(lateral),
+                })),
+              },
+            ];
+          }),
+        ],
         strips: [
           ...(options.beyond === undefined
             ? []
