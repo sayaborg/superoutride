@@ -76,7 +76,7 @@ import {
   TOP_SPEED,
 } from './top-speed-road.js';
 
-export const TOP_SPEED_CONVERSION_VERSION = 12;
+export const TOP_SPEED_CONVERSION_VERSION = 13;
 
 /** Where the car stands at GO, positions into its first section (S 0x13EE0, 0x7CF2), and its lane. */
 const GO_POSITIONS = 0x260;
@@ -228,7 +228,14 @@ export function topSpeedCourses(set: RomSet) {
     ]),
   );
   // Water's shore's width: a piece's 128 pixels at the flat things' full size.
-  const shoreWidth = BIG_SPRITE * pixelLaterals(sub, FLAT_CURVE) * metresAcross;
+  const flatPixel = pixelLaterals(sub, FLAT_CURVE) * metresAcross;
+  const shoreWidth = BIG_SPRITE * flatPixel;
+  // A flat thing's inner edge, metres outward from its lateral on side `side`: its pieces lie from its head's point,
+  // which its anchor moves (S 0x166BA to 0x16792), a left variant's a piece outward, each then at its pixels.
+  const flatInner = (shown: number, side: number) => {
+    const xs = topSpeedThing(sub, shown).pieces.map((piece) => piece.x);
+    return (side > 0 ? Math.min(...xs) : -(Math.max(...xs) + BIG_SPRITE)) * flatPixel;
+  };
   const shownOf = (pick: (types: readonly number[]) => boolean) => [
     ...new Set(
       [...placed.flat(), ...standingBeside.flat(2)]
@@ -329,10 +336,10 @@ export function topSpeedCourses(set: RomSet) {
     // replacement): its shore a piece wide, then its water; each record's, joined where the next goes on alike.
     const waterRuns: { from: number; to: number; lateral: number; side: number; colors: readonly number[] }[] = [];
     for (const p of spawned[course]!.filter((t) => t.water)) {
-      const [from, lateral, side] = [
+      const side = p.water === 'right' ? 1 : -1;
+      const [from, lateral] = [
         back + p.record * RECORD_METRES,
-        (p.lateral - P) * metresAcross,
-        p.water === 'right' ? 1 : -1,
+        (p.lateral - P) * metresAcross + side * flatInner(picturedOf(p).shown, side),
       ];
       const colors = waters.get(p.index)!;
       const last = waterRuns.find(
@@ -452,14 +459,16 @@ export function topSpeedCourses(set: RomSet) {
         { from: number; to: number; lateral: number; side: number; colors: readonly number[] }
       >();
       for (const p of besideBranches[course]![j]!)
-        if (p.water && !runs.has(p.record) && from + p.record * RECORD_METRES < end - 1e-6)
+        if (p.water && !runs.has(p.record) && from + p.record * RECORD_METRES < end - 1e-6) {
+          const side = p.water === 'right' ? 1 : -1;
           runs.set(p.record, {
             from: from + p.record * RECORD_METRES,
             to: Math.min(end, from + (p.record + 1) * RECORD_METRES),
-            lateral: (p.lateral - P) * metresAcross,
-            side: p.water === 'right' ? 1 : -1,
+            lateral: (p.lateral - P) * metresAcross + side * flatInner(p.shown, side),
+            side,
             colors: waters.get(p.index)!,
           });
+        }
       for (const w of runs.values())
         for (const s of [w.from, w.to]) {
           const edge = offsetOf(n, s - from) + w.lateral;

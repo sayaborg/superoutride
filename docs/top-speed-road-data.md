@@ -256,10 +256,12 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
   - a gantry by its event 6 at the lanes' middle, its code by the camera's section, odd or even (S 0x6B78).
   - water by its event 1 or 2, right or left, its code 0x61 and the camera's color set, 0x1190 beyond the rightmost
     lane's centre or 0xCF0 beyond the leftmost's (S 0x6A18 to 0x6A5E), bumping a car alone. Its descriptor is two
-    pieces of a fixed width on the screen, flat on the ground from its lateral outward, its shore and its water; it is
-    laid as the ground's Strips from its lateral outward over its records, its shore a piece wide at the flat things'
-    full size (3.0 m) and its water beyond, each its piece's most frequent color: a replacement that cannot be avoided,
-    as its strips keep their width on the screen.
+    pieces of a fixed width on the screen, flat on the ground outward from its head's point, its shore and its water;
+    the point is its lateral, and left of P, where its picture is the next descriptor, whose anchor is a piece's
+    width, a piece beyond it, the anchor taken by the thing's zoom (S 0x16786). It is laid as the ground's Strips from
+    that point outward over its records, its shore a piece wide at the flat things' full size (3.0 m) and its water
+    beyond, each its piece's most frequent color: a replacement that cannot be avoided, as its strips keep their
+    width on the screen.
   - an overpass by its event 4: its near face at the record's middle and its far face 0xE80 positions (11.1 m)
     beyond, each a deck at P, the codes 0x58 and 0x98 and twice the stage, and six posts a position nearer from
     0x800 every 0x3000 laterals (S 0x6AE4 to 0x6B6A), the two nearest P met each from its side and the others by none
@@ -314,4 +316,4 @@ A thing is drawn by its sub program's sprite builder (S 0x164EA), the main progr
 
 `top-speed-course` writes the seven courses to `content/originals/courses/` (`top-speed-a` to `top-speed-g`), their
 crest trials, their 32 skies (`top-speed-sky-<horizon>-<clouds>-<set>`, set 0 a tunnel's) and their things'
-pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 12).
+pictures and bands (`topspeed-<index>`, `topspeed-<index>-across`) to `content/originals/images/` (`top-speed-course`; its conversion's version 13).

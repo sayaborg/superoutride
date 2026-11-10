@@ -55,6 +55,12 @@ function tables(sub: Uint8Array) {
   instruction(sub, 0x16622, [0xe544, 0x0284, 0x0000, 0x03fc], 'an index, a long each (asl.w #2, andi.l #$3fc)');
   const [dh, dl] = instruction(sub, 0x1662a, [0x47f9, null, null, 0x2673, 0x4000], 'the descriptors (lea, movea.l)');
   instruction(sub, 0x16634, [0x082b, 0x0007, 0x0006], "a left variant's flag (btst #7, $6(a3))");
+  instruction(
+    sub,
+    0x16786,
+    [0x302b, 0x0004, 0xc1e9, 0x003a, 0xee40, 0x9240],
+    "a head's anchor by its zoom, left of its point (muls, asr.w #7, sub.w)",
+  );
   instruction(sub, 0x168d0, [0x47eb, HEAD_BYTES], "a head's bytes (lea $e(a3))");
   instruction(sub, 0x168e4, [0x362b, 0x0002, 0x0243, 0xfffe], "a part's y offset's word (move.w $2(a3), andi.w)");
   instruction(sub, 0x16902, [0x182b, 0x0006, 0x0244, 0x001c], "a part's type (move.b $6(a3), andi.w #$1c)");
