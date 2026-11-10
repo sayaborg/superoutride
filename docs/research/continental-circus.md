@@ -17,7 +17,7 @@ Read statically; MAME's description for the hardware alone.
   at 0x100000 (an index, then a color) and the road chip at 0x300000.
 - The sky's setup (M 0x7590) runs with the course (0x845A4, 0 to 7 in the order of the names at M 0x46FA) at a race's
   start (M 0x177E) and in attract with −1, where it takes course 0's pictures and draws the upper one again above row 0. It fills BG0's rows 13 to 44 with a tile all of pen 1 in line 0xD1 before drawing BG0's band: under the band BG0
-  shows a ground color the road's colors write, seen only over a crest. What the setup's second call (M 0x213A) is for
+  shows a color the road's colors write, entry 0xD11, seen over a crest and beyond an edge whose word a zone clears. What the setup's second call (M 0x213A) is for
   is open.
 - BG1's x word stays 0 in a race (M 0x4C70); the sub program's scroll task (S 0x25D2) keeps 176 line scrolls for BG1 in
   two buffers it clears at its start (S 0x2630) and BG0's scroll as one long (S 0x28FC), which M copies each frame (M

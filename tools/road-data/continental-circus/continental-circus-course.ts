@@ -31,6 +31,7 @@ import { lensFactor, steepestGrade } from '../shared/screen-pieces.js';
 import {
   CONTINENTAL_CIRCUS_COURSES,
   PICTURE_WIDTH,
+  continentalCircusFill,
   continentalCircusSky,
   SKY_MIDDLE,
 } from './continental-circus-backgrounds.js';
@@ -57,7 +58,13 @@ import {
   type ContinentalCircusThing,
 } from './continental-circus-things.js';
 import { carLimit, continentalCircusRoadPicture, SCREEN_ROWS, UP } from './continental-circus-road-picture.js';
-import { BANK_PERIOD, continentalCircusRoadColors, GROUP, stripeBank } from './continental-circus-road-colors.js';
+import {
+  BANK_PERIOD,
+  continentalCircusRoadColors,
+  GROUP,
+  roadEntry,
+  stripeBank,
+} from './continental-circus-road-colors.js';
 import { lapHills, lapRises, SAMPLE_POSITIONS, type Rises } from './continental-circus-heights.js';
 import { attributeOf, lapZones, zoneAttributes, type Attribute, type LinePart } from './continental-circus-zones.js';
 import { lapPitLanes, pitLaneLevels, PROFILE_POSITIONS, roadB, type PitLane } from './continental-circus-pit-lanes.js';
@@ -69,7 +76,7 @@ import {
 } from './continental-circus-rom.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 5;
+export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 6;
 
 /** The conversion's course ids, by the program's course numbers. */
 export const COURSE_IDS = CONTINENTAL_CIRCUS_COURSES.map((name) => `continental-circus-${name.toLowerCase()}`);
@@ -377,6 +384,7 @@ export function continentalCircusCourses(set: RomSet) {
   const { halfMetres, pixelMetres } = picture;
   const bank = stripeBank(main);
   const attributes = zoneAttributes(main, sub);
+  const fill = roadEntry(continentalCircusFill(main, sub, tiles));
   // A lateral unit, metres: the road's half width over 0x40000 (`HALF_WIDTH_UNITS`); a height unit is UP of it, a row
   // at a distance as a unit across is a column ([Its scale across](../../../docs/continental-circus-road-data.md#its-road-across)).
   const lateral = halfMetres / 0x40000;
@@ -529,9 +537,9 @@ export function continentalCircusCourses(set: RomSet) {
     ];
     // Its zones, each a place's colors over its stretch, at once at its ends ([Its zones](../../../docs/continental-circus-road-data.md#its-zones)):
     // each part its zone's kind gives another word in that word's group by its place, its bands and, beyond an edge,
-    // the ground its pixel 0 gives; beyond an edge whose word draws no ground, the course's ground beyond the road
-    // (default; K confirms at the stage's end); a part whose colors are open road's not laid again.
-    const beyondRuns: Run[] = [{ from: 0, length: BANK_PERIOD, color: groundBase }];
+    // the ground its pixel 0 gives; beyond an edge whose word draws no ground, BG0's fill's color, the road's colors'
+    // entry, unstriped; a part whose colors are open road's not laid again.
+    const beyondRuns: Run[] = [{ from: 0, length: BANK_PERIOD, color: colors(fill.bank, fill.group, fill.pixel) }];
     const groundOf = (a: Attribute) => (a.ground ? runsOf(a.group, 0) : beyondRuns);
     const zoneStrips = zones.flatMap((z) => {
       const words = attributes.of(z.kind);

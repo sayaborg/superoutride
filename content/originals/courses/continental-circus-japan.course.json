@@ -12052,7 +12052,7 @@
           "end": { "joint": "c6", "offset": -90.466935762 },
           "left": null,
           "right": -6.4271276595744675,
-          "color": 19136,
+          "color": 19026,
           "material": null
         },
         {
@@ -12061,7 +12061,7 @@
           "end": { "joint": "c6", "offset": -90.466935762 },
           "left": 6.4271276595744675,
           "right": null,
-          "color": 19136,
+          "color": 19026,
           "material": null
         }
       ],

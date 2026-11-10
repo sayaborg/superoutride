@@ -6,6 +6,7 @@
  * chip for this board's road, its palette bank 3 by the byte the main program writes at 0x90001).
  */
 import { instruction, long, word } from '../cpu/program-words.js';
+import { romDiffers } from '../shared/conversion-errors.js';
 import { xrgb555Of } from '../taito/palette.js';
 
 /** The road's banks, a bank's groups, and a group's entries: a pixel's entry less one (`1 + ((p − 1) & 3)`). */
@@ -15,6 +16,19 @@ export const GROUPS = 4;
 export const GROUP = Object.freeze({ edge: 0, body: 1, darkEdge: 2, darkBody: 3 } as const);
 /** A pixel's entry in its group, 0 to 3: pixel 1 the first, 2 the second, 3 the third and 0 the fourth. */
 export const entryOf = (pixel: number) => (pixel + 3) & 3;
+/** The road's first palette entry, a bank's entries and a group's. */
+const [ROAD_ENTRIES, BANK_ENTRIES, GROUP_ENTRIES] = [0xc00, 0x40, 0x10];
+
+/**
+ * The bank, group and road pixel whose color palette entry `entry` holds (`continentalCircusRoadColors`): one of a
+ * group's four entries the palette task writes, from the group's second.
+ */
+export function roadEntry(entry: number): { bank: number; group: number; pixel: number } {
+  const [e, k] = [entry - ROAD_ENTRIES, (entry % GROUP_ENTRIES) - 1];
+  if (e < 0 || e >= BANKS * BANK_ENTRIES || k < 0 || k > 3)
+    throw romDiffers(`Palette entry 0x${entry.toString(16)} is none the road's colors write`);
+  return { bank: Math.floor(e / BANK_ENTRIES), group: Math.floor(e / GROUP_ENTRIES) % GROUPS, pixel: (k + 1) & 3 };
+}
 
 /**
  * Course `course`'s road colors (0 to 7): the palette task's (M 0x6E4A) source of the course's 16 words (its long at

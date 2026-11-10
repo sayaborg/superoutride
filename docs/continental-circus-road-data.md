@@ -205,10 +205,20 @@ A zone (command 5, S 0xC28A) gives a line's parts other words over its stretch (
   start's station to its end's on the lap as laid ([Places and patterns](original-road-data.md#places-and-patterns)),
   each part whose word it changes in its word's group by its place, as open road's stripes are, the color most of its
   stretch takes over it and the rest over their parts: its bands, and beyond an edge the ground its pixel 0 gives
-  (black in MONACO's and JAPAN's B 2). Beyond an edge whose word draws no ground lies the course's ground beyond the
-  road, its base color, unstriped (default; K confirms at the stage's end: the original shows its BG0's fill there,
-  palette entry 0xD11, bank 4's asphalt grey, which is not laid). A part whose colors are open road's is not
-  laid again. That kind 7's and 0x8007's dark road is a shadow is not confirmed.
+  (black in MONACO's and JAPAN's B 2). A part whose colors are open road's is not laid again. That kind 7's and
+  0x8007's dark road is a shadow is not confirmed.
+- **Where it draws no ground.** Beyond an edge whose word draws no ground (JAPAN's kind 5, both edges) lies BG0's
+  fill's color, unstriped, as far as the course reaches (K, 2026-11-10). The road chip draws nothing there, so the tile
+  layers behind it show (MAME's description of the board's order), and under its band BG0, drawn over BG1, is one tile
+  of one pen: before BG0's band the sky's setup writes tile 0x257, all of its pen 1, in line 0xD1 over BG0's rows 13
+  to 44 (M 0x76E4 to 0x770E; `continentalCircusFill`), so palette entry 0xD11, which the road's colors write: bank 4's
+  B 1's first, that bank's asphalt, every course's, a grey of 18/31. On level road the fill lies from 4 rows below the
+  road's first line to 219 below it, past the screen's last line, 105 below. Its material is the course's ground's:
+  the zones' slots are read by the stream task's handler and the zone task alone (S 0xC28A, 0x2E3C, read statically),
+  so the program treats its car there as on its open ground. BG0's band and BG1's pictures, which lie over a zone's
+  far lines where a hill moves BG0's rows against the road's ([Its skies](#its-skies)), are not drawn there, nor the
+  rain's darker grey. That the screen shows the fill there is read from the layers' order and rows; no picture of the
+  original was compared (not confirmed).
 
 | Course  | Its zones: kind, metres from the line (length)                         |
 | ------- | ---------------------------------------------------------------------- |
@@ -465,4 +475,4 @@ near, as the original's do, is the replacement [the rule](original-road-data.md#
 `continental-circus-course` writes the eight courses to `content/originals/courses/` (`continental-circus-brazil` to
 `continental-circus-japan`), their crest trials, and their skies (`continental-circus-<course>-sky`) to
 `content/originals/images/`, with its things' pictures (`contcirc-<address>`, `contcirc-joined-<address>`) and its
-bands' (`-band`, `-band-mirrored`, `contcirc-zone-8003`) (its conversion's version 5).
+bands' (`-band`, `-band-mirrored`, `contcirc-zone-8003`) (its conversion's version 6).

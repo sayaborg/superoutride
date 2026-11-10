@@ -7,6 +7,7 @@
  */
 import { instruction, long, word } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
+import { SCREEN_ROWS } from './continental-circus-road-picture.js';
 import type { SkyBand, SkyBands } from '../shared/sky-baking.js';
 import { xrgb555Of } from '../taito/palette.js';
 import { bottomLayer, TILE, tilePen, TRANSPARENT_PEN } from '../taito/tc0100scn.js';
@@ -42,6 +43,7 @@ const BG1_MAP = 0x208000;
  * screen line 119, BG1's row 142 there and BG0's row 140 (BG1's y word d − 0x20 with d 1, BG0's −29, M 0x5316, 0x52E6,
  * by the chip's offsets as the CHASE H.Q. chapter reads them).
  */
+const ROAD_FIRST_LINE = 119;
 const rowBelow = { bg1: (row: number) => row - 142, bg0: (row: number) => row - 140 } as const;
 
 /**
@@ -118,6 +120,33 @@ function picture(main: Uint8Array, at: number): { columns: number; rows: number;
     else codes.push(code);
   }
   return { columns, rows, codes: Array.from({ length: rows }, (_, r) => codes.slice(r * columns, (r + 1) * columns)) };
+}
+
+/**
+ * BG0's fill ([Its zones](../../../docs/continental-circus-road-data.md#its-zones)): before it draws BG0's band, the sky's
+ * setup writes one attribute and code over BG0's tile rows from the band's first down (M 0x76E4 to 0x770E), a tile all
+ * of one pen, so that under its band BG0, drawn over BG1, shows one palette entry, its line × 16 + that pen, wherever
+ * the road chip draws nothing: on level road from the band's last row, 3 rows below the road's first line, past the
+ * screen's last line. That entry.
+ */
+export function continentalCircusFill(main: Uint8Array, sub: Uint8Array, gfx: Uint8Array): number {
+  const t = tables(main, sub);
+  if (bottomLayer(t.control6) !== 1) throw romDiffers('CONTINENTAL CIRCUS draws its BG0 at the bottom, under BG1');
+  const [at] = instruction(main, 0x76e4, [0x41f9, 0x0020, null], "BG0's fill's first row (lea)");
+  const [tiles] = instruction(main, 0x76f6, [0x0c40, null], "BG0's fill's tiles (cmpi.w)");
+  instruction(main, 0x7700, [0x58ae, 0xfffc], "BG0's fill's next tile (addq.l #4)");
+  const [line, code] = instruction(main, 0x7704, [0x22bc, null, null], "BG0's fill's tile (move.l)");
+  const [first, rows] = [(at - (BG0_MAP & 0xffff)) / MAP_ROW, (tiles * 4) / MAP_ROW];
+  const band = t.pictures(0).near;
+  // From its band's first row to past the screen's last line on level road.
+  if (first !== band.row || rowBelow.bg0((first + rows) * TILE) < SCREEN_ROWS - ROAD_FIRST_LINE)
+    throw romDiffers("BG0's fill does not lie from its band's row past the screen's last line");
+  const pen = tilePen(gfx, code, 0, 0);
+  for (let y = 0; y < TILE; y++)
+    for (let x = 0; x < TILE; x++)
+      if (tilePen(gfx, code, x, y) !== pen) throw romDiffers("BG0's fill's tile is not of one pen");
+  if (pen === TRANSPARENT_PEN) throw romDiffers("BG0's fill's tile is transparent");
+  return line * 16 + pen;
 }
 
 /** A picture's pixel rows `from` to `to` (inclusive), RGB555 row by row, its pen 0 transparent unless opaque. */
