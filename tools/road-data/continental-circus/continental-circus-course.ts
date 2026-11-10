@@ -12,6 +12,7 @@ import type { RomSet } from '../shared/rom-set.js';
 import { crestTrials } from '../shared/crest-trials.js';
 import { crossings } from '../shared/overpasses.js';
 import { PASSAGE_STEP } from '../shared/shared-constants.js';
+import { passageSteps } from '../shared/passage-steps.js';
 import { curvePlan, type CurveInterval } from '../shared/curve-plan.js';
 import { CoursePath } from '../shared/course-path.js';
 import { OriginalOutputs, round1, round3, type Conversion } from '../shared/conversion.js';
@@ -40,9 +41,21 @@ import {
   POSITION_METRES,
   type LapRecord,
 } from './continental-circus-road.js';
-import { continentalCircusBoards, stationThings } from './continental-circus-boards.js';
+import {
+  continentalCircusBands,
+  continentalCircusBoards,
+  stationThings,
+  stemOf,
+  type BandOf,
+} from './continental-circus-boards.js';
 import { assembleContinentalCircusSprites } from './continental-circus-sprites.js';
-import { continentalCircusThings, THING_TYPE } from './continental-circus-things.js';
+import { BIG_SPRITE } from '../taito/z-sprites.js';
+import {
+  continentalCircusThings,
+  THING_TYPE,
+  zoneSideFace,
+  type ContinentalCircusThing,
+} from './continental-circus-things.js';
 import { carLimit, continentalCircusRoadPicture, SCREEN_ROWS, UP } from './continental-circus-road-picture.js';
 import { BANK_PERIOD, continentalCircusRoadColors, GROUP, stripeBank } from './continental-circus-road-colors.js';
 import { lapHills, lapRises, SAMPLE_POSITIONS, type Rises } from './continental-circus-heights.js';
@@ -56,7 +69,7 @@ import {
 } from './continental-circus-rom.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 4;
+export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 5;
 
 /** The conversion's course ids, by the program's course numbers. */
 export const COURSE_IDS = CONTINENTAL_CIRCUS_COURSES.map((name) => `continental-circus-${name.toLowerCase()}`);
@@ -321,6 +334,38 @@ function lapThings(records: readonly LapRecord[], pits: readonly PitLane[], name
   return [...stations].map(([at, addresses]) => ({ at, addresses }));
 }
 
+/**
+ * A band's side: a side face's, from its lateral outward, its band beyond its outer edge alone; any other's both.
+ */
+const sideOf = (t: ContinentalCircusThing): BandOf['sides'] =>
+  t.type !== THING_TYPE.sideFace ? 'both' : t.lateral < 0 ? 'left' : 'right';
+
+/** A band of one description, `contcirc-<its address>`, or a zone's side face, `contcirc-zone-<its kind>`. */
+const bandOf = (t: ContinentalCircusThing, name = stemOf([t.address])): BandOf => ({
+  name,
+  described: [t],
+  sides: sideOf(t),
+});
+
+/**
+ * A passage's face's opening ([Things of several pieces](../../../docs/original-road-data.md#things-of-several-pieces)):
+ * the clear columns about its point `x` in its row on the ground (`base` rows above its bottom edge), pixels either side.
+ */
+function openingOf(face: {
+  readonly picture: { readonly width: number; readonly height: number; readonly pixels: ArrayLike<number> };
+  readonly x: number;
+  readonly base: number;
+}) {
+  const { width, height, pixels } = face.picture;
+  const row = (height - 1 - Math.round(face.base)) * width;
+  const point = Math.floor(face.x);
+  if (pixels[row + point]) throw contractUnmet("A passage's face has no opening at its point");
+  let [left, right] = [point, point];
+  while (left > 0 && !pixels[row + left - 1]) left--;
+  while (right < width - 1 && !pixels[row + right + 1]) right++;
+  return Math.min(face.x - left, right + 1 - face.x);
+}
+
 /** CONTINENTAL CIRCUS's courses, from the ROM set: each one's document, crest trials and report. */
 export function continentalCircusCourses(set: RomSet) {
   const [main, sub, tiles] = [
@@ -343,6 +388,7 @@ export function continentalCircusCourses(set: RomSet) {
   const sprites = assembleContinentalCircusSprites(set);
   const described = continentalCircusThings(sub);
   const joined = stationThings(sub, sprites, pixelMetres);
+  const zoneFace = zoneSideFace(sub);
   // Each course's lap on its model, its stations, and its heights at factor 1.
   const laps = COURSE_IDS.map((id, c) => {
     const lap = continentalCircusLap(sub, c);
@@ -358,8 +404,54 @@ export function continentalCircusCourses(set: RomSet) {
     const pits = lapPitLanes(sub, lap);
     if (pits.some((p) => lapZoneList.some((z) => z.from < p.to && z.to > p.from)))
       throw contractUnmet(`${name}'s zone lies in a pit lane`);
-    const things = lapThings(lap.records, pits, name).map((t) => ({ ...t, things: joined(t.addresses) }));
-    return { id, c, name, lap, laid, station, heights, inputs, zones, pits, things };
+    // Its stations' things, and its bands fixed on the screen ([Its bands](../../../docs/continental-circus-road-data.md#its-bands)):
+    // each side face and ceiling a band of its own; a tunnel's start whose thing spans the road's centre (JAPAN's
+    // bridge) that thing and its station's side faces one band across the road, a passage as far as the tunnel's end;
+    // and each zone of the zone task's side face's kind that face, its zone's end less its `nearer` positions.
+    const stations = lapThings(lap.records, pits, name).map((t) => ({ ...t, groups: joined(t.addresses) }));
+    const spans = (group: readonly number[]) =>
+      group.some((a) =>
+        described(a).pieces.some((p) => -BIG_SPRITE < described(a).lateral + p.x && described(a).lateral + p.x <= 0),
+      );
+    const isOf = (type: number) => (t: { addresses: readonly number[] }) =>
+      t.addresses.some((a) => described(a).type === type);
+    const passages = stations.flatMap((t) => {
+      const face = isOf(THING_TYPE.tunnelStart)(t) ? t.groups.find(spans) : undefined;
+      if (!face) return [];
+      const end = stations.find((u) => u.at > t.at && isOf(THING_TYPE.tunnelEnd)(u));
+      if (!end) throw contractUnmet(`${name}'s passage at ${t.at} has no tunnel's end`);
+      const addresses = t.addresses.filter((a) => face.includes(a) || described(a).type === THING_TYPE.sideFace);
+      return [
+        {
+          at: t.at,
+          to: end.at,
+          face,
+          band: { name: stemOf(addresses), described: addresses.map(described), sides: 'both' as const },
+        },
+      ];
+    });
+    const things = stations.map((t) => ({
+      ...t,
+      things: t.groups.filter((g) => !passages.some((p) => p.at === t.at && p.face === g)),
+    }));
+    const screenBands = [
+      ...stations.flatMap((t) =>
+        t.addresses
+          .map(described)
+          .filter(
+            (d) =>
+              d.type <= THING_TYPE.sideFace && !passages.some((p) => p.at === t.at && p.band.described.includes(d)),
+          )
+          .map((d) => ({ at: t.at, band: bandOf(d) })),
+      ),
+      ...lapZoneList
+        .filter((z) => z.kind === zoneFace.kind)
+        .map((z) => ({
+          at: z.to - zoneFace.nearer.by,
+          band: bandOf(zoneFace.face, `contcirc-zone-${z.kind.toString(16)}`),
+        })),
+    ];
+    return { id, c, name, lap, laid, station, heights, inputs, zones, pits, things, fixed: { screenBands, passages } };
   });
   const keyOf = (addresses: readonly number[]) => addresses.join('+');
   const boards = new Map(
@@ -373,6 +465,17 @@ export function continentalCircusCourses(set: RomSet) {
     ).map((b) => [keyOf(b.addresses), b]),
   );
   for (const b of boards.values()) outputs.file(b.image.path, b.image.bytes);
+  const bandBoards = new Map(
+    continentalCircusBands(
+      main,
+      sub,
+      sprites,
+      laps.flatMap((l) => [...l.fixed.screenBands, ...l.fixed.passages].map((b) => b.band)),
+      pixelMetres,
+      lateral,
+    ).map((b) => [b.name, b]),
+  );
+  for (const b of bandBoards.values()) for (const image of b.images) outputs.file(image.path, image.bytes);
   // The grades' factor, one for the eight: the lens ratio, its eye's rows at a distance over its screen's, within the
   // grade limit by the steepest grade any course reaches at factor 1.
   const steepest = Math.max(...laps.map((l) => steepestGrade(profileOf(l.heights.bends, [], l.heights.kinks))));
@@ -383,7 +486,7 @@ export function continentalCircusCourses(set: RomSet) {
   const roadBGroups = roadB(main).map((w) => attributeOf(w).group);
   const levels = pitLaneLevels(main, attributes.openWords);
   const pitDeparts = Math.max(...laps.flatMap((l) => l.pits.map((p) => profileDeparts(p.samples))), 0);
-  const courses = laps.map(({ id, c, name, lap, laid, station, heights, inputs, zones, pits, things }) => {
+  const courses = laps.map(({ id, c, name, lap, laid, station, heights, inputs, zones, pits, things, fixed }) => {
     const { length, scale, report } = laid;
     const pieces = curvePlan(laid.intervals, scale);
     const model = inputs.model;
@@ -517,6 +620,33 @@ export function continentalCircusCourses(set: RomSet) {
         };
       }),
     );
+    // Its bands at their stations, each its picture, with its body, and its bands beyond its edges; a passage's at equal
+    // steps from its start as far as its tunnel's end, so fine that the eye sees nothing through them (`passageSteps`),
+    // its body on its first, at its start.
+    const bandsAt = (at: number, name: string, withBody: boolean) => {
+      const band = bandBoards.get(name)!;
+      return band.names.map((image, k) => ({
+        s: at,
+        lateral: band.lateral,
+        height: band.groundOffset + (k ? band.rise : 0),
+        image,
+        palette: band.palette,
+        body: k === 0 && withBody ? band.body : null,
+      }));
+    };
+    const { screenBands, passages } = fixed;
+    const steps = passages.map((p) => {
+      const { face } = bandBoards.get(p.band.name)!;
+      const [from, to] = [station(p.at), station(p.to)];
+      const laid = passageSteps(face.picture, { ...face, half: openingOf(face) }, pixelMetres * UP, to - from);
+      return { from, ...laid, name: p.band.name };
+    });
+    const bandObjects = [
+      ...screenBands.flatMap((b) => bandsAt(station(b.at), b.band.name, true)),
+      ...steps.flatMap((p) =>
+        Array.from({ length: p.steps }, (_, k) => bandsAt(p.from + k * p.step, p.name, k === 0)).flat(),
+      ),
+    ];
     const checkpoints = things
       .filter((t) => t.addresses.some((a) => described(a).type === THING_TYPE.checkpoint))
       .map((t, k) => ({ id: `${id}-CP${k + 1}`, s: station(t.at) }));
@@ -536,7 +666,7 @@ export function continentalCircusCourses(set: RomSet) {
       startLine: [],
       // The facing layer's column at the camera's centre at the start's heading, the line's.
       skyYawOrigin: skyYawOrigin(SKY_MIDDLE, PICTURE_WIDTH),
-      objects,
+      objects: [...objects, ...bandObjects],
       checkpoints,
       limits,
       lane: halfMetres,
@@ -581,6 +711,15 @@ export function continentalCircusCourses(set: RomSet) {
         bodies: objects.filter((o) => o.body).length,
         checkpoints: checkpoints.map((k) => round1(k.s)),
       },
+      // Its bands: each its image, station, metres from the line, and whether it has a body; its passages' steps.
+      bands: [
+        ...screenBands.map((b) => ({
+          image: b.band.name,
+          at: round1(station(b.at)),
+          body: !!bandBoards.get(b.band.name)!.body,
+        })),
+        ...steps.map((p) => ({ image: p.name, at: round1(p.from), steps: p.steps, step: round3(p.step) })),
+      ],
       startFromLine: round3(-start),
       gridFromLine: [course.grid[0]!, course.grid.at(-1)!].map((slot) => round3(length - slot.s)),
       heights: {
@@ -588,7 +727,10 @@ export function continentalCircusCourses(set: RomSet) {
         runs: heights.runs,
         // The model's factor, and the most the grade and the height depart from the ROM's, as laid.
         factor: round3(within.factor),
-        departs: { grade: round3(heights.departure.grade * scaled), height: round3(heights.departure.height * scaled) },
+        departs: {
+          grade: round3(heights.departure.grade * scaled),
+          height: round3(heights.departure.height * scaled),
+        },
         // Where it crosses itself, its two passages' stations and heights.
         passages: crossings(pieces, length, PASSAGE_STEP).map((x) => ({
           at: x.map(round1),

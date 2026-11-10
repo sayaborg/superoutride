@@ -119,13 +119,41 @@ function checkDescriptions(sub: Uint8Array) {
 }
 
 /**
- * The description at `address` at its full size, its car's x `xPixels` pixels a unit at its own car's line: its pieces
- * in a grid of its columns and rows from its top left, each the next sprite's width right and its height down; a
- * piece of sprite 0 is not drawn (the sprite list's merge passes it, S 0x2508; MAME's description). A thing scaled on both axes and a side face lie a sprite's
- * height above and below their point's height, a scaled one's columns half a sprite either side of its lateral (the
- * half pixel by which the program's half of zoom 0x7F falls short, and the chips' line offsets, aside: not
- * confirmed), a side face's from its lateral rightward, or leftward on the left; a ceiling's top at its height, its
- * columns from its lateral (S 0x6E1A). It hits its own car whose x lies above its fourth long and up to its third
+ * A drawing's cells at its full size, row by row from its top left, each the next sprite's width right and its height
+ * down, its lateral and height as the program holds them (`lateralUnits`, `heightUnits`) over its own car's distance,
+ * whole as the program divides them: a thing scaled on both axes and a side face lie a sprite's height above and below
+ * their point's height, a scaled one's columns half a sprite either side of its lateral (the half pixel by which the
+ * program's half of zoom 0x7F falls short, and the chips' line offsets, aside: not confirmed), a side face's from its
+ * lateral rightward, or leftward on the left; a ceiling's top at its height, its columns from its lateral (S 0x6E1A). A
+ * cell of sprite 0 is not drawn (the sprite list's merge passes it, S 0x2508; MAME's description).
+ */
+function laidCells(
+  type: number,
+  lateralUnits: number,
+  heightUnits: number,
+  columns: number,
+  cells: readonly { readonly sprite: number; readonly line: number }[],
+  flipX: boolean,
+) {
+  const lateral = Math.trunc(lateralUnits / CAR_DISTANCE);
+  const height = Math.trunc(heightUnits / CAR_DISTANCE);
+  const [x0, y0] =
+    type === THING_TYPE.ceiling
+      ? [0, height]
+      : type === THING_TYPE.sideFace
+        ? [lateral < 0 ? -BAND_COLUMNS * BAND_STEP : 0, height - BIG_SPRITE / 2]
+        : [-BIG_SPRITE / 2, height - BIG_SPRITE / 2];
+  const pieces = cells.flatMap(({ sprite, line }, k): ContinentalCircusPiece[] =>
+    sprite
+      ? [{ sprite, line, x: x0 + BIG_SPRITE * (k % columns), y: y0 + BIG_SPRITE * Math.floor(k / columns), flipX }]
+      : [],
+  );
+  return { lateral, height, pieces: Object.freeze(pieces) };
+}
+
+/**
+ * The description at `address` at its full size (`laidCells`), its car's x `xPixels` pixels a unit at its own car's
+ * line: its pieces in a grid of its columns and rows. It hits its own car whose x lies above its fourth long and up to its third
  * while it lies within 0x100 positions of the car along the road (S 0x2B2A to 0x2B36), the car's lateral the negative
  * of its x (the road's lines moved by it, S 0x26E0 to 0x26EC), where its car can reach.
  */
@@ -146,27 +174,11 @@ function readDescription(sub: Uint8Array, address: number, unitPixels: number, r
   if (columns * rows !== count) throw romDiffers(`The description at 0x${address.toString(16)} is no grid`);
   if (type <= THING_TYPE.sideFace && columns !== BAND_COLUMNS)
     throw romDiffers(`The band at 0x${address.toString(16)} is not ${BAND_COLUMNS} columns`);
-  const lateral = Math.trunc(lateralUnits / CAR_DISTANCE);
-  const height = Math.trunc(heightUnits / CAR_DISTANCE);
-  const [x0, y0] =
-    type === THING_TYPE.ceiling
-      ? [0, height]
-      : type === THING_TYPE.sideFace
-        ? [lateral < 0 ? -BAND_COLUMNS * BAND_STEP : 0, height - BIG_SPRITE / 2]
-        : [-BIG_SPRITE / 2, height - BIG_SPRITE / 2];
-  const pieces: ContinentalCircusPiece[] = [];
-  for (let k = 0; k < count; k++) {
+  const cells = Array.from({ length: count }, (_, k) => {
     const at = address + HEAD_BYTES + PIECE_BYTES * k;
-    const sprite = word(sub, at);
-    if (!sprite) continue;
-    pieces.push({
-      sprite,
-      line: word(sub, at + 2) >> 8,
-      x: x0 + BIG_SPRITE * (k % columns),
-      y: y0 + BIG_SPRITE * Math.floor(k / columns),
-      flipX: !!(flags & FLIP_X),
-    });
-  }
+    return { sprite: word(sub, at), line: word(sub, at + 2) >> 8 };
+  });
+  const { lateral, height, pieces } = laidCells(type, lateralUnits, heightUnits, columns, cells, !!(flags & FLIP_X));
   // The car's x within (low, high], its lateral within [−high, −low); none where that lies wholly beyond its reach.
   const [from, to] = [-high * unitPixels, -low * unitPixels];
   const hits = type !== THING_TYPE.ceiling && from < to && to > -reach && from < reach;
@@ -176,7 +188,7 @@ function readDescription(sub: Uint8Array, address: number, unitPixels: number, r
     units: Object.freeze({ lateral: lateralUnits, height: heightUnits }),
     lateral,
     height,
-    pieces: Object.freeze(pieces),
+    pieces,
     behindRoad: type === THING_TYPE.sideFace && !!(flags & BEHIND_ROAD),
     hit: hits ? Object.freeze({ from: from - lateral, to: to - lateral }) : null,
   });
@@ -194,4 +206,68 @@ export function continentalCircusThings(sub: Uint8Array): (address: number) => C
     if (!read.has(address)) read.set(address, readDescription(sub, address, unitPixels, reach));
     return read.get(address)!;
   };
+}
+
+/**
+ * A zone's side face ([Its bands](../../../docs/continental-circus-road-data.md#its-bands)): the zone task (S 0x2E3C)
+ * draws one for a zone of the kind its `cmpi.w` names (S 0x2F28), a side face (S 0x6CE0, its arguments its rows less
+ * one, its distance, lateral and height, S 0x6CE8, 0x6D14, 0x6DC0) of its sprite in every cell of its palette line (S
+ * 0x2F3E to 0x2F72), its flags none it sets, at its lateral and height (S 0x2F78), its rows' count (S 0x2F96), hitting
+ * nothing; at the distance of its zone's end from the car, at most 0x7FFF, and `nearer` positions nearer where that lies
+ * from `from` to `to` (S 0x2EA2, 0x2EF6, 0x2F84 to 0x2F90). Its address the code that draws it.
+ */
+export function zoneSideFace(sub: Uint8Array) {
+  instruction(sub, 0x2ea2, [0x2a28, 0x0006, 0x9a81], "a zone's end from the car (move.l, sub.l)");
+  instruction(sub, 0x2ef6, [0x0c85, 0x0000, 0x7fff, 0x6f04, 0x3a3c, 0x7fff], 'at most 0x7FFF (cmpi.l, ble, move.w)');
+  instruction(sub, 0x2f20, [0x3828, 0x0000, 0x6a00], "a zone's kind, its bit 15 set (move.w, bpl.w)");
+  const [kind] = instruction(sub, 0x2f28, [0x0c44, null, 0x667c], "the side face's kind (cmpi.w, bne)");
+  const [sprite, lineWord] = instruction(sub, 0x2f3e, [0x383c, null, 0x3e3c, null], 'its sprite and line (move.w)');
+  const cells = Array.from({ length: BAND_COLUMNS * 2 }, (_, k) => 0x10 * k);
+  instruction(
+    sub,
+    0x2f46,
+    cells.flatMap((at) => [0x3944, at + 2]),
+    "each cell's sprite (move.w d4)",
+  );
+  instruction(
+    sub,
+    0x2f5e,
+    cells.flatMap((at) => [0x3947, at + 6]),
+    "each cell's line (move.w d7)",
+  );
+  const [hh, hl, lh, ll] = instruction(
+    sub,
+    0x2f78,
+    [0x2f3c, null, null, 0x2f3c, null, null],
+    'its height and lateral (move.l #)',
+  );
+  const [from, to, nearer] = instruction(
+    sub,
+    0x2f84,
+    [0x0c45, null, 0x6d0a, 0x0c45, null, 0x6e04, 0x0445, null],
+    'nearer within a stretch (cmpi.w, blt, cmpi.w, bgt, subi.w)',
+  );
+  const [lastRow] = instruction(sub, 0x2f94, [0x3f05, 0x3f3c, null, 0x4eba, 0x3d44], 'its rows less one (jsr $6ce0)');
+  instruction(sub, 0x6ce8, [0x302e, 0x000a], "a side face's distance (move.w $a(a6))");
+  instruction(sub, 0x6d14, [0x222e, 0x000c, 0x242e, 0x0010], "a side face's lateral and height (move.l)");
+  instruction(sub, 0x6dc0, [0x536e, 0x0008], "a side face's rows (subq.w $8(a6))");
+  if ((lastRow + 1) * BAND_COLUMNS !== cells.length) throw romDiffers("A zone's side face's cells are not its rows'");
+  const units = { lateral: (lh << 16) | ll, height: (hh << 16) | hl };
+  const laid = laidCells(
+    THING_TYPE.sideFace,
+    units.lateral,
+    units.height,
+    BAND_COLUMNS,
+    cells.map(() => ({ sprite, line: lineWord >> 8 })),
+    false,
+  );
+  const face: ContinentalCircusThing = Object.freeze({
+    address: 0x2f28,
+    type: THING_TYPE.sideFace,
+    units: Object.freeze(units),
+    ...laid,
+    behindRoad: false,
+    hit: null,
+  });
+  return Object.freeze({ kind, face, nearer: Object.freeze({ from, to, by: nearer }) });
 }

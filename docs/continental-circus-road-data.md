@@ -193,7 +193,7 @@ A zone (command 5, S 0xC28A) gives a line's parts other words over its stretch (
 - **Its words.** The sub's task S 0x2E3C gives each line within a zone's stretch (from its end's line to its start's by
   the distance table at S 0x20000) the words its kind's handler sets: the handler is the word at S 0x3092 + twice the
   kind, from S 0x3092, the kind doubled as a word, so that its bit 15 drops (S 0x3088 to 0x308E; 0x8003 acts as 3 and
-  0x8007 as 7, their side pieces things, TA-16). Each handler, up to S 0x30EE, is `move.w` or `clr.w` of the line
+  0x8007 as 7, their side pieces [its bands](#its-bands)). Each handler, up to S 0x30EE, is `move.w` or `clr.w` of the line
   buffer's 0x1800, the left edge's word, 0x1802, the body's, or 0x1804, the right edge's (road A's words 0, 2 and 1, M
   0x4E5C, 0x4E80, 0x4E84); a part it does not set keeps open road's, 0x8000 at either edge and 0xA800 the body (S
   0x26EE to 0x26FA). A word's group is its bits 11 and 12, and an edge draws the ground beyond it only where its bit 15
@@ -342,22 +342,23 @@ Its pictures are read as follows (`continental-circus-sprites`, `continental-cir
   point. Of the descriptions a station puts out, the records of one running position read at once, a floating one
   and those it touches are one thing ([Things of several pieces](original-road-data.md#things-of-several-pieces);
   `stationThings`), its base point the middle of its outer edges; a side face and a ceiling are bands, not among them
-  (`continentalCircusBoards`: `contcirc-<the description's address, five hex digits>`, and a joined thing
+  ([Its bands](#its-bands); `continentalCircusBoards`: `contcirc-<the description's address, five hex digits>`, and a joined thing
   `contcirc-joined-<the address of the description drawn first>`, `-2` and on from its second arrangement so named).
 
 Its laps place 3,920 descriptions (3,853 of command 2, 59 of command 4 within the pit lanes and 8 of command 7) at
 3,382 stations, 157 distinct: 142 of type 1, 7 side faces, 2 ceilings, 2 each of types 5 and 6 and one each of 2 and
 3, of 6 pieces at most; 92 hit within the car's limits, 2,700 placements. The 31 ceilings' and 7 side faces'
-placements are bands; one description (JAPAN's tunnel's end, 0x312AA) draws nothing. 28 things join 74 placements, 19
-of two descriptions and 9 of four, the start gantry of 9 pieces the largest, each course's own banner over its
-line, and JAPAN's bridge of 8; so its laps draw 149 pictures, 130 descriptions alone and 19 joined, of 22 colors at
+placements are bands, and JAPAN's bridge's 4 descriptions with them ([Its bands](#its-bands)); one description (JAPAN's
+tunnel's end, 0x312AA) draws nothing. 27 things join 70 placements, 19 of two descriptions and 8 of four, the start
+gantry of 9 pieces the largest, each course's own banner over its line; so its laps draw 148 pictures, 130
+descriptions alone and 18 joined, of 22 colors at
 most, 7 of them past 15 (`joinedColors`). 72 of them lie 1 or 2 pixels (2 to 5 cm) clear of the ground, their sprites' lowest rows clear, and so
 float by [the rule's](original-road-data.md#pictures-from-the-extract) pixel; 22 float higher.
 
 ### Its things placed
 
-`continental-circus-course` places each lap's things but its bands, its side faces and ceilings, which are bands fixed
-on the screen (TA-16c), and the description that draws nothing (JAPAN's tunnel's end, 0x312AA):
+`continental-circus-course` places each lap's things but its bands, its side faces, ceilings and JAPAN's bridge, which
+are [its bands](#its-bands), and the description that draws nothing (JAPAN's tunnel's end, 0x312AA):
 
 - **Its place.** Each station's descriptions, the records of one running position (commands 2, 4 and 7), at its
   station on the lap as laid ([Places and patterns](original-road-data.md#places-and-patterns)), the station's
@@ -399,14 +400,69 @@ on the screen (TA-16c), and the description that draws nothing (JAPAN's tunnel's
 | GERMANY | 369                 | 365 (46)                   | 214         | 2,792.1                           |
 | SPAIN   | 575                 | 569 (43)                   | 389         | 1,978.5                           |
 | MEXICO  | 370                 | 365 (39)                   | 262         | 1,449.9                           |
-| JAPAN   | 367                 | 360 (43)                   | 239         | 2,066.0                           |
+| JAPAN   | 363                 | 359 (42)                   | 239         | 2,066.0                           |
 
-So its laps place 3,881 descriptions, 59 of them its pit lanes', as 3,835 pictures, 74 descriptions joined into 28
-things, of 149 pictures in all; 2,670 have a body, of 2,694 parts.
+So its laps place 3,877 descriptions, 59 of them its pit lanes', as 3,834 pictures, 70 descriptions joined into 27
+things, of 148 pictures in all; 2,670 have a body, of 2,694 parts.
+
+### Its bands
+
+`continental-circus-course` lays the bands its original draws fixed on the screen as [the strips'
+rule](original-road-data.md#strips) lays them (K, 2026-11-06), each its pieces drawn once at their full size as a
+thing's are, its picture, and beyond its edges its band, the piece the original repeats, 128 pixels, a board extending
+outward, all on one grid (`continentalCircusBands`, `bandBoards`), its base point and body a thing's ([Its
+things](#its-things)), at its station on the lap as laid. A board stands where its lowest colored row meets the ground,
+else lies at that row's height as the program holds it, below the ground where it reaches there, its part below standing
+at its depth so that the nearer road hides it, as the original draws the road over a side face of flag bit 15 (S
+0x6D6A). Its images are `contcirc-<address>`, `-band` and on both sides `-band-mirrored`.
+
+- **Side faces** (type 0, S 0x6CE0: three columns 0x80 pixels apart on the screen, at their full width and their height
+  scaled, from their lateral outward, on the left 0x180 further left) are looping strips as they are (K, 2026-11-06):
+  its picture its three columns from its lateral outward, its band beyond its outer edge alone, its outer column
+  unmirrored. A side face hits as a thing (S 0x2B4A), so its picture has its body, its hit within its colored columns
+  ([Chosen lines](original-road-data.md#chosen-lines)), where its car can reach it (default; K confirms at the stage's
+  end: the rule's bands have no body, and a board extending sideways may carry none).
+- **A zone's side face.** For a zone of the kind its `cmpi.w` names, 0x8003 (S 0x2F28), the zone task (S 0x2E3C) draws
+  a side face (S 0x6CE0) of its own sprite, palette line, lateral and height (S 0x2F3E to 0x2F78), with no flags and no
+  hit, at the distance of its zone's end from the car, held at most a record's reach, and 0x3E8 positions nearer where
+  that end lies within a nearer range (S 0x2EA2, 0x2EF6, 0x2F84 to 0x2F90). It is laid as a side face at its zone's end
+  less 0x3E8 positions, where the original draws it over that nearer range (default; K confirms at the stage's end: the
+  original draws it at its farthest ahead of the car while the end lies farther, which no board does),
+  `contcirc-zone-8003`.
+- **Ceilings** (type −1, S 0x6DCE: three columns 0x80 pixels apart on the screen at their full size on both axes, its
+  top at its height, never hit) are bands across the road at the original's height (K, 2026-11-06): its picture its
+  three columns from its lateral rightward, its bands both its outer column, the left one mirrored, with no body.
+- **JAPAN's bridge** is no roof (K, 2026-11-06): the original draws its span, the zone 0x8007's side pieces (S 0x2FAA to
+  0x307A), as the full screen's width of its sprite in two rows between the rows of its zone's ends, which is not
+  laid. Its face, the descriptions of its tunnel's start's station (type 5) whose thing spans the road's centre, with
+  that station's two side faces, is one band across the road (`contcirc-joined-31250`), its two edges and its span
+  between them: its pieces drawn once, the side faces drawn over the face as the sprite list draws them, its bands the
+  right side face's outer column and its mirror. It is a passage ([Things of several
+  pieces](original-road-data.md#things-of-several-pieces)): laid again at equal steps from its station to its tunnel's
+  end's (type 6), so fine that the eye at the player's height sees nothing through them (`passageSteps`), its opening the
+  clear columns about its point on the ground (±5.86 m), the far edge the side faces the original draws there; its body
+  on its first step alone, its side faces' hits (default; K confirms at the stage's end: the stretch its tunnel's start
+  and end bound, where its dark road, the zone, lies 0x258 positions later). The things under it (0x3126E, 0x3128C,
+  their lamps, 7.3 m either side of P) stand within its walls, beyond its opening, with their bodies.
+
+| Course | Band                                      | Metres from the line |
+| ------ | ----------------------------------------- | -------------------- |
+| MONACO | ceiling 0x29C1E, its tunnel's mouth       | 1,507.0              |
+| MONACO | side face 0x29C44, its tunnel's mouth     | 1,507.0              |
+| MONACO | 30 ceilings 0x29C98, 11.2 m apart         | 1,518.6 to 1,842.9   |
+| MONACO | zone 0x8003's side face                   | 1,840.6              |
+| JAPAN  | its bridge, 12 steps 3.08 m apart         | 2,440.8 to 2,474.6   |
+| JAPAN  | side faces 0x312C8, 0x312FA, its far edge | 2,477.7              |
+| JAPAN  | side faces 0x3132C, 0x3135E               | 4,938.3              |
+
+The ceilings float 4.68 m up, from 8.76 m left of P. The side faces stand 6.57 m from P, the bridge's far edge's a
+pixel (0.04 m) lower, but JAPAN's on its crossing road (0x3132C, 0x3135E, flag bit 15), which reach from 0.2 m above the
+road to 6.07 m below it and hit nothing its car can reach; the others hit from 6.57 m, within the car's limits (8.06 m). That the bands keep no width or period on the screen however
+near, as the original's do, is the replacement [the rule](original-road-data.md#strips) names.
 
 ## Its conversion
 
 `continental-circus-course` writes the eight courses to `content/originals/courses/` (`continental-circus-brazil` to
 `continental-circus-japan`), their crest trials, and their skies (`continental-circus-<course>-sky`) to
-`content/originals/images/`, with its things' pictures (`contcirc-<address>`, `contcirc-joined-<address>`) (its
-conversion's version 4).
+`content/originals/images/`, with its things' pictures (`contcirc-<address>`, `contcirc-joined-<address>`) and its
+bands' (`-band`, `-band-mirrored`, `contcirc-zone-8003`) (its conversion's version 5).

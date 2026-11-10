@@ -1108,7 +1108,7 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   II's (`polepos2`) board its first big sprite (two hex digits) and an object composed of sprites the routine laying
   them (four hex digits), its craft that and its first sprite's code (`16fc-<code>`); FINAL LAP 2's (`finalap2`)
   object its kind (three digits); CHASE H.Q.'s (`chasehq`) thing its kind (three hex digits); CONTINENTAL CIRCUS's (`contcirc`) its description's address
-  (five hex digits); a [thing of several pieces](#things-of-several-pieces) as that section says. A sky is
+  (five hex digits) or a zone's side face `zone-<its kind>`; a [thing of several pieces](#things-of-several-pieces) as that section says. A sky is
   `<original>-<its stage or course>-sky`.
 
 Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags are

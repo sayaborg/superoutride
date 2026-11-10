@@ -10,13 +10,19 @@
 import { courseImageFile } from '../../graphics/sprite-import.js';
 import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
+import { bandBoards } from '../shared/band-boards.js';
 import { croppedPieces, joinedColors, layPieces, touchingThings, type JoinPiece } from '../shared/joined-pictures.js';
 import { namedBoardMaster, paletteName, texelsAPixel } from '../shared/pixel-grid.js';
 import { floats, partsOnGrid, pictureParts } from '../shared/sprite-rules.js';
 import { BIG_SPRITE } from '../taito/z-sprites.js';
 import { UP } from './continental-circus-road-picture.js';
 import { continentalCircusSprite, spriteColors, type ContinentalCircusSprites } from './continental-circus-sprites.js';
-import { continentalCircusThings, THING_TYPE, type ContinentalCircusPiece } from './continental-circus-things.js';
+import {
+  continentalCircusThings,
+  THING_TYPE,
+  type ContinentalCircusPiece,
+  type ContinentalCircusThing,
+} from './continental-circus-things.js';
 
 /** The largest picture the course format admits (`imageMasterTexels`). */
 const MASTER_TEXELS = 1024 * 1024;
@@ -28,12 +34,21 @@ const hex5 = (address: number) => address.toString(16).padStart(5, '0');
  * `contcirc-joined-<the address of the one drawn first>`, the last a station puts out, and `-<n>` from the second
  * thing so named, in their order (`continentalCircusBoards`).
  */
-const stemOf = (addresses: readonly number[]) =>
+export const stemOf = (addresses: readonly number[]) =>
   addresses.length === 1 ? `contcirc-${hex5(addresses[0]!)}` : `contcirc-joined-${hex5(addresses.at(-1)!)}`;
+
+/** A picture's colored columns, pixels from its left edge: its first holding a pen other than 0 and past its last. */
+function coloredOf(width: number, pens: Uint8Array) {
+  let [from, to] = [Infinity, -Infinity];
+  pens.forEach((v, at) => {
+    if (v) [from, to] = [Math.min(from, at % width), Math.max(to, (at % width) + 1)];
+  });
+  return [from, to] as const;
+}
 
 /**
  * What every picture is drawn from, a pixel `pixel` metres across and `UP` times that down: the descriptions, a piece's
- * pens as drawn, and the pieces of descriptions `addresses` (in the order a station puts them out) laid at their full
+ * pens as drawn, and the pieces of descriptions (`described`, in the order a station puts them out) laid at their full
  * size, laterals from the road's centre, the first over those after it.
  */
 function drawing(sub: Uint8Array, sprites: ContinentalCircusSprites, pixel: number) {
@@ -47,10 +62,10 @@ function drawing(sub: Uint8Array, sprites: ContinentalCircusSprites, pixel: numb
       return pens[y * BIG_SPRITE + (p.flipX ? BIG_SPRITE - 1 - x : x)]!;
     });
   };
-  const piecesOf = (addresses: readonly number[]) =>
-    addresses.flatMap((address) => things(address).pieces.map((p) => ({ lateral: things(address).lateral, p })));
-  const laidOf = (unit: string, addresses: readonly number[]) => {
-    const pieces = piecesOf(addresses);
+  const piecesOf = (described: readonly ContinentalCircusThing[]) =>
+    described.flatMap((t) => t.pieces.map((p) => ({ lateral: t.lateral, p })));
+  const laidOf = (unit: string, described: readonly ContinentalCircusThing[]) => {
+    const pieces = piecesOf(described);
     return croppedPieces(
       layPieces(
         pieces.map(({ lateral, p }, k) => ({
@@ -68,7 +83,34 @@ function drawing(sub: Uint8Array, sprites: ContinentalCircusSprites, pixel: numb
       ),
     );
   };
-  return { things, piecesOf, laidOf };
+  const of = (addresses: readonly number[]) => addresses.map(things);
+  /**
+   * The point of `described` laid as `laid`, metres from the road's centre: one description's lateral, or the middle
+   * of their outer edges.
+   */
+  const pointOf = (described: readonly ContinentalCircusThing[], laid: { left: number; width: number }) =>
+    described.length === 1 ? described[0]!.lateral * pixel : laid.left + (laid.width * pixel) / 2;
+  /**
+   * The body of `described` about its point `lateral` (metres from the road's centre), `across` metres on its image a
+   * source column: each description that hits its own car a part, the range of the car's centre it hits within its
+   * own colored columns; null where none.
+   */
+  const bodyOf = (described: readonly ContinentalCircusThing[], lateral: number, across: number) => {
+    const body = described.flatMap((t) => {
+      if (!t.hit || !t.pieces.length) return [];
+      const alone = laidOf('alone', [t]);
+      const [c0, c1] = coloredOf(alone.width, alone.pens).map((c) => alone.left / pixel + c);
+      const [a, b] = [Math.max(t.lateral + t.hit.from, c0!), Math.min(t.lateral + t.hit.to, c1!)];
+      return b > a ? [{ across: ((a + b) / 2 - lateral / pixel) * across, width: (b - a) * across }] : [];
+    });
+    return body.length ? body : null;
+  };
+  /** The point of `first` as the program holds it, from its point at its full size, metres across and up. */
+  const shiftOf = (first: ContinentalCircusThing, lateralMetres: number) => ({
+    lateral: first.units.lateral * lateralMetres - first.lateral * pixel,
+    up: (first.height * pixel - first.units.height * lateralMetres) * UP,
+  });
+  return { things, piecesOf, laidOf, of, pointOf, bodyOf, shiftOf };
 }
 
 /**
@@ -83,7 +125,7 @@ export function stationThings(sub: Uint8Array, sprites: ContinentalCircusSprites
   return (addresses: readonly number[]) => {
     const drawnHere = addresses.filter((a) => d.things(a).type > THING_TYPE.sideFace && d.things(a).pieces.length);
     const pieces = drawnHere.map((address, k): JoinPiece => {
-      const laid = d.laidOf('station', [address]);
+      const laid = d.laidOf('station', d.of([address]));
       const bottom = laid.top - laid.height * pixel * UP;
       return {
         unit: 'station',
@@ -102,15 +144,6 @@ export function stationThings(sub: Uint8Array, sprites: ContinentalCircusSprites
     const alone = drawnHere.flatMap((_, k) => (joined.some((thing) => thing.includes(k)) ? [] : [[k]]));
     return [...joined, ...alone].sort((a, b) => a[0]! - b[0]!).map((thing) => thing.map((k) => drawnHere[k]!));
   };
-}
-
-/** A picture's colored columns, pixels from its left edge: its first holding a pen other than 0 and past its last. */
-function coloredOf(width: number, pens: Uint8Array) {
-  let [from, to] = [Infinity, -Infinity];
-  pens.forEach((v, at) => {
-    if (v) [from, to] = [Math.min(from, at % width), Math.max(to, (at % width) + 1)];
-  });
-  return [from, to] as const;
 }
 
 /**
@@ -146,10 +179,11 @@ export function continentalCircusBoards(
       const n = (named.get(stem) ?? 0) + 1;
       named.set(stem, n);
       const name = n === 1 ? stem : `${stem}-${n}`;
-      const laid = d.laidOf(name, addresses);
+      const described = d.of(addresses);
+      const laid = d.laidOf(name, described);
       const joined = joinedColors(
         laid,
-        d.piecesOf(addresses).map(({ p }) => [{ name: paletteName(p.line), colors: colors(p.line) }]),
+        d.piecesOf(described).map(({ p }) => [{ name: paletteName(p.line), colors: colors(p.line) }]),
       );
       const source = joined.picture;
       const ground = Math.round(laid.top / (pixel * UP)) - 1;
@@ -161,28 +195,15 @@ export function continentalCircusBoards(
       );
       const grid = partsOnGrid(source, parts, texels.across, texels.down);
       if (grid.width * grid.height > MASTER_TEXELS) throw contractUnmet(`${name} is larger than imageMasterTexels`);
-      const first = d.things(addresses[0]!);
-      const lateral = addresses.length === 1 ? first.lateral * pixel : laid.left + (source.width * pixel) / 2;
+      const lateral = d.pointOf(described, laid);
       const point = (lateral - laid.left) / pixel;
       const anchor = { x: (point * grid.width) / source.width - 0.5, y: grid.anchorY };
       const master = namedBoardMaster(name, grid, grid.indices, anchor, joined.palettes);
       const [from, to] = coloredOf(source.width, source.pixels);
       // A source column's metres on the image's grid.
       const across = grid.width / source.width / SPRITE_SOURCE_TEXELS_PER_METER;
-      // Each hit's range, pixels from the road's centre, within its description's own colored columns.
-      const body = addresses.flatMap((address) => {
-        const t = d.things(address);
-        if (!t.hit || !t.pieces.length) return [];
-        const alone = d.laidOf(name, [address]);
-        const [c0, c1] = coloredOf(alone.width, alone.pens).map((c) => alone.left / pixel + c);
-        const [a, b] = [Math.max(t.lateral + t.hit.from, c0!), Math.min(t.lateral + t.hit.to, c1!)];
-        return b > a ? [{ across: ((a + b) / 2 - lateral / pixel) * across, width: (b - a) * across }] : [];
-      });
-      // Its point as the program holds its first description's, from its point at its full size.
-      const shift = {
-        lateral: first.units.lateral * lateralMetres - first.lateral * pixel,
-        up: (first.height * pixel - first.units.height * lateralMetres) * UP,
-      };
+      const body = d.bodyOf(described, lateral, across);
+      const shift = d.shiftOf(described[0]!, lateralMetres);
       return {
         addresses,
         name,
@@ -190,12 +211,105 @@ export function continentalCircusBoards(
         pieces: laid.places.length,
         palette: joined.palettes[0]!.name,
         colored: [(from - point) * across, (to - point) * across] as const,
-        body: body.length ? body : null,
+        body,
         groundOffset: stands ? 0 : (ground - source.height + 1) * pixel * UP + shift.up,
         width: grid.width / SPRITE_SOURCE_TEXELS_PER_METER,
         distinct: joined.distinct,
         replaced: joined.replaced,
         image: courseImageFile(master),
+      };
+    });
+}
+
+/** A band fixed on the screen to lay: its image's name, its descriptions in the order a station puts them out, its sides. */
+export interface BandOf {
+  readonly name: string;
+  readonly described: readonly ContinentalCircusThing[];
+  /** Where its bands lie: beyond both its edges, the left the right's mirror, or beyond its one outer edge. */
+  readonly sides: 'both' | 'left' | 'right';
+}
+
+/**
+ * Bands fixed on the screen as boards ([Strips](../../../docs/original-road-data.md#strips), [Its
+ * bands](../../../docs/continental-circus-road-data.md#its-bands)), a pixel `pixel` metres across and `UP` times that
+ * down, from the main and the sub programs and `sprites`: each of `bands` its descriptions' pieces drawn once at their
+ * full size, as a thing's are, and beyond its edges (`sides`) its band, the piece the original repeats, its outermost
+ * 128 columns, a board extending outward, all cut from one grid (`bandBoards`); its base point and body as a thing's
+ * (`continentalCircusBoards`), the body on the picture; standing on the ground where its lowest colored row meets it,
+ * else at that row's height as the program holds it (`groundOffset`, metres; below the ground where it reaches there,
+ * standing at its depth), the bands `rise` metres higher where their last row lies
+ * above it; the band's names the picture's and `-band`, and `-band-mirrored` on both sides. With its face, its pieces'
+ * colored pixels, its point `x` pixels from its left and the ground `base` rows above its bottom edge, for a passage.
+ */
+export function continentalCircusBands(
+  main: Uint8Array,
+  sub: Uint8Array,
+  sprites: ContinentalCircusSprites,
+  bands: readonly BandOf[],
+  pixel: number,
+  lateralMetres: number,
+) {
+  const d = drawing(sub, sprites, pixel);
+  const colors = spriteColors(main);
+  const texels = texelsAPixel(pixel, UP);
+  return [...new Map(bands.map((b) => [b.name, b])).values()]
+    .sort((a, b) => (a.name < b.name ? -1 : 1))
+    .map(({ name, described, sides }) => {
+      const laid = d.laidOf(name, described);
+      // The laid grid and its outermost columns beyond its edges: on the right copied, on the left mirrored on both
+      // sides and copied on the left alone.
+      const [w, h] = [laid.width, laid.height];
+      const [before, after] = [sides === 'right' ? 0 : BIG_SPRITE, sides === 'left' ? 0 : BIG_SPRITE];
+      const width = before + w + after;
+      const pens = new Uint8Array(width * h);
+      const owner = new Int16Array(width * h).fill(-1);
+      for (let y = 0; y < h; y++)
+        for (let x = 0; x < width; x++) {
+          const u =
+            x < before ? (sides === 'both' ? w - 1 - x : x) : x < before + w ? x - before : x - before - BIG_SPRITE;
+          [pens[y * width + x], owner[y * width + x]] = [laid.pens[y * w + u]!, laid.owner[y * w + u]!];
+        }
+      const joined = joinedColors(
+        { ...laid, width, pens, owner },
+        d.piecesOf(described).map(({ p }) => [{ name: paletteName(p.line), colors: colors(p.line) }]),
+      );
+      const lateral = d.pointOf(described, laid);
+      const point = (lateral - laid.left) / pixel;
+      const {
+        picture,
+        bands: beyond,
+        rise,
+      } = bandBoards(
+        { picture: name, band: `${name}-band`, ...(sides === 'both' ? { mirrored: `${name}-band-mirrored` } : {}) },
+        joined.picture,
+        pictureParts(joined.picture, undefined),
+        [before, before + w],
+        before + point,
+        texels,
+        joined.palettes,
+        sides,
+      );
+      if (picture.width * picture.height > MASTER_TEXELS)
+        throw contractUnmet(`${name} is larger than imageMasterTexels`);
+      // Its lowest colored row, and the ground's row, rows from the laid grid's top.
+      let bottom = h - 1;
+      while (bottom > 0 && !laid.pens.subarray(bottom * w, (bottom + 1) * w).some((v) => v)) bottom--;
+      const ground = Math.round(laid.top / (pixel * UP)) - 1;
+      const shift = d.shiftOf(described[0]!, lateralMetres);
+      return {
+        name,
+        names: [picture.name, ...beyond.map((b) => b.name)],
+        palette: joined.palettes[0]!.name,
+        lateral: lateral + shift.lateral,
+        body: d.bodyOf(described, lateral, picture.width / w / SPRITE_SOURCE_TEXELS_PER_METER),
+        groundOffset: bottom === ground ? 0 : (ground - bottom) * pixel * UP + shift.up,
+        rise,
+        face: {
+          picture: { width: w, height: h, pixels: laid.pens.map((v) => (v ? 1 : 0)) },
+          x: point,
+          base: h - 1 - ground,
+        },
+        images: [picture, ...beyond].map((master) => courseImageFile(master)),
       };
     });
 }

@@ -70,7 +70,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s raising, TA-15 next; later [Stage
+TA](#stage-ta--top-speed-continental-circus-and-chase-hq-from-the-roms)'s close, TA-18 next once K confirms its defaults; later [Stage
 BR](#stage-br--big-run-from-the-roms) and [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -493,7 +493,7 @@ K's decisions (2026-11-05):
   pieces' bodies its parts, by [Things of several pieces](original-road-data.md#things-of-several-pieces) (NM-15b; K,
   2026-11-06). TOP SPEED puts a thing out as one description of pieces at one station, its courses placing 60 of them,
   of 8 pieces at most (its descriptions of up to 24 are placed by none); CHASE H.Q. as one list of 1 to 45; and
-  CONTINENTAL CIRCUS's 74 placements of 3,881 join into 28 things, one picture each, its start gantry of nine pieces the
+  CONTINENTAL CIRCUS's 70 placements of 3,877 join into 27 things, one picture each, its start gantry of nine pieces the
   largest. A piece the original draws at a zoom fixed in one axis or both (TOP SPEED's placements of types 1 to 3) is
   laid at the thing's full size, where every piece is a pixel a pixel; that the original's thing changes shape as it is
   drawn smaller is a replacement that cannot be avoided, its chapter's, as [the rule](original-road-data.md#things-of-several-pieces)
@@ -612,9 +612,16 @@ raster words' bits as MAME's description reads them; its road not taken's slide 
 pictures and gap not drawn; its tunnels' road and sky dark over their walls, an overpass's road alone under its decks;
 and its ground patches, cloud banks, branch not taken's things and GOAL gate not placed, its gates' right posts not hit.
 
+CONTINENTAL CIRCUS's defaults, each in [its chapter](continental-circus-road-data.md): its rises at 1.5 units a sample;
+its stripes' phase the race's first lap's; the rain's and the lightning's colors not drawn, on its road and in its skies;
+its skies' turn its clouds' bottom strip's 256 pixels, facing the start's heading, their copy at column 32 not drawn;
+where a zone draws no ground, its base color; its pit lanes from their records' places less 0x2FD, their centres
+through every fourth sample, their things placed always without a body; its checkpoints at their things' stations; its
+things' bodies fixed; its side faces hit; its zone's side face at its zone's end less 0x3E8; JAPAN's bridge's body on
+its first step; and MONACO's ground made `WATER` `SAND`.
+
 The PRs, in order:
 
-- **TA-15 and TA-16** CONTINENTAL CIRCUS on K's models: its eight courses, their skies laid; its objects.
 - **TA-18** The stage closes: this section goes, what is left goes to [Courses of the
   originals](#courses-of-the-originals), and the tributes' classes go into [the product](product.md#arcade-tribute).
 
