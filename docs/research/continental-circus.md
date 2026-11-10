@@ -56,3 +56,23 @@ Read statically; MAME's description for the hardware alone.
 - Each lap's commands: 17 (FRANCE) to 38 (MONACO) curves, 8 to 42 hills, 1 to 3 pit lanes, 2 to 7 zones, 369 to 737
   things, one finish mark and one finish thing. The car stands 800 positions, 3.70 m, before the line at the start; the
   goal thing lies 800 positions before the line, so the race of one lap ends where the car started.
+
+## Things
+
+- The stream task keeps a slot a thing (0x82D6E on, 32 bytes, its count 0x82D66, the next piece's place 0x82D6A) and
+  its pieces in two sprite lists 0x6E0 bytes apart, from 0x822B8 and 0x82998 (S 0xC112 to 0xC19C); the slot task (S
+  0x2A1A) drops a slot once it lies within 0x2FD of the pinhole and moves the lists down (S 0x2A3A to 0x2AFA). The slot's +0xC is its
+  first piece's place, +0x10 its columns and rows less one, +0x1C its type.
+- A piece's 16 bytes are the sprite chip's four words (its y and zoom down, its code, its flags and x, its line and
+  zoom across) and, at +0xA, its distance, by which S 0x2490 merges the car's list, two others and the things' into
+  the shared buffer nearest first, a piece of code 0 passed. That the hardware draws the first entry over the later is
+  read from that order, as CHASE H.Q.'s and TOP SPEED's notes read theirs; no picture of the original was compared.
+- The frames alternate between two line buffers' tables and two sprite lists (bit 0 of 0x845A3, 0x845A2's low bits
+  picking one of four line buffers, S 0x6A1C), and the road task moves the car's x by ±0x2094 with the frame (S 0x26B0
+  to 0x26CC): its two eyes' pictures, as its 3D cabinet shows them, read so and not confirmed. A thing's pieces are
+  alike in both lists but the finish's (command 7, S 0xC21A), whose second pairs are read only outside a race.
+- The left post of the start gantry hits the car's centre from 96 pixels left of its lateral to 42 right of it, the
+  right post the mirror: its pole stands left of its cell's middle. What the gantry's beam, which hits nothing, and the
+  hit ranges of things across the road mean beyond their pictures is not traced.
+- A thing within 0x87BCC's distance is drawn over the road and one beyond it under the road (bit 15 of the chip's word
+  2, S 0x6BC2 to 0x6BC8); what the word 0x87BCC holds is not traced.

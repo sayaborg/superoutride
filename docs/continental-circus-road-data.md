@@ -11,7 +11,8 @@ set, whose programs are not encrypted. Its hardware and ROM list are MAME's desc
 ## CONTINENTAL CIRCUS's ROM set
 
 K's `contcirc.zip` matches MAME's `contcirc` by CRC-32. The conversion reads the main 68000's program pair (its even and
-odd bytes from 0), the sub 68000's pair, and the TC0100SCN's tile ROM (`continental-circus-rom`).
+odd bytes from 0), the sub 68000's pair, and the TC0100SCN's tile ROM (`continental-circus-rom`); its things' pictures
+the four OBJ ROMs and the spritemap ROM (`continental-circus-sprites`).
 
 ## CONTINENTAL CIRCUS's hardware
 
@@ -78,7 +79,7 @@ its course's name (BRAZIL to JAPAN; the course format admits 21 characters a nam
 course texts'), each its lap on its model laid by [a circuit laid out](original-road-data.md#a-circuit-laid-out) from its
 line: 3,291.1 m (MEXICO) to 6,789.1 m (GERMANY), 18 to 39 pieces, 2 Sections (3 in MONACO and JAPAN). A lap's position
 lies at its record's interval's place on the lap as laid ([Places and
-patterns](original-road-data.md#places-and-patterns)). Its things (TA-16) are not laid yet.
+patterns](original-road-data.md#places-and-patterns)). Its things ([Its things](#its-things)) are read and not laid yet.
 
 - **Its race.** One lap (`LAPS`): the lap's one thing of type 3 sets the goal flag (S 0x2B8A to 0x2BF8), on which the
   main program stops the time (M 0x1E7E). That thing stands where the car starts, 800 positions before the line; the
@@ -295,6 +296,62 @@ each course its own, set once at the race's start and not changed along it (`con
   (`SKY_MIDDLE`; default, K confirms at the stage's end: where the road vanishes on the original's screen at the start
   is not read, nor BG0's scroll at a race's start), and each other layer's seam behind it, at the facing
   layer's pixel 128 (`SKY_SEAM`).
+
+## Its things
+
+A thing record (command 2, 4 or 7) names a description in the sub program. The stream task copies it into a slot of 32
+bytes of the list at 0x82D6E, and its pieces into the sprite list from 0x822B8, 16 bytes a piece and 60 pieces at most
+(S 0xC112 to 0xC19C); the slot task (S 0x2A1A) draws every slot each frame by its type and hits its own car as it
+passes; S 0x2490 merges the lists into the sprites, nearest first ([research notes](research/continental-circus.md#things)).
+Its pictures are read as follows (`continental-circus-sprites`, `continental-circus-things`, `continental-circus-boards`).
+
+- **Its sprites.** The Z system's ([CHASE H.Q.'s hardware](chase-hq-road-data.md#chase-hqs-hardware)), on this board of
+  chunks 16 × 8 pixels: a sprite is 8 × 16 chunks, 128 × 128 pixels at its full size, its chunks the 128 words of the
+  spritemap ROM (b33-07.64) from 128 × its code, its tiles 64 bytes from the four OBJ ROMs, each a 16-bit word of every
+  8 bytes, b33-06 the first (MAME's description). Its colors are the palette lines the main program loads at its start
+  (entries 0 to 0xBFF from the table at M 0xAD70, M 0xEC8); the colors it writes after, its own car's wheels' among
+  them (M 0x1052), are not taken, as colors that move are held at the start's.
+- **A description** (S 0xC112 to 0xC184): a word, its type; four longs, its lateral and its height (lateral units, the
+  road's half width 0x40000, up negative) and the upper and lower bounds of the car's x it hits; a word of flags, bit
+  14 its sprites' flip across and, on a side face, bit 15 the road over it (S 0x6D6A); its columns and rows less one;
+  its pieces' count, their product; and its pieces, two words each, its sprite (0 none, S 0x2508) and its palette line,
+  the second word's high byte, row by row from its top left. A piece's pair goes to both of the sprite lists the frames
+  alternate between (S 0xC174 to 0xC180); command 7's second pairs are not read in a race (S 0xC21A).
+- **Its pieces at their full size.** A piece's zoom is its distance's line's (the bytes at S 0x20000, the words at S
+  0x7316), 0x7F at its own car's line (`CAR_DISTANCE`) alone, where a lateral or a height over that distance is a
+  pixel, 22.9 mm. A thing of type 1 or above is its grid scaled on both axes, its top left piece's middle at its
+  lateral and height (half the zoom left and down, S 0x6C42 and 0x6B8C), its columns and rows the zoom and a pixel
+  apart, a sprite's 128 pixels at its full size (S 0x6CBE, 0x6CCA); the half pixel by which the program's half of 0x7F
+  falls short, and the chips' line offsets, are aside (not confirmed: MAME's offsets of 5 and −3 would draw each piece
+  a row lower). A side face (type 0) is three columns 0x80 pixels apart on the screen whatever its distance, at their
+  full width and their height scaled, from its lateral outward, on the left three columns less (S 0x6CE0 to 0x6DCC);
+  a ceiling (type −1) is three columns so, at their full size on both axes, its top at its height (S 0x6DCE to
+  0x6EAA). The sprite list's first entry is drawn over those after it, so a description's first piece over the rest
+  and a station's first record's over those after it.
+- **Its types.** Its hit is by the jump table at S 0x2B4A: 1 a thing; 2 a checkpoint, setting bit 0 of 0x84564, on
+  which S 0x115C adds 0x12C to the word 0x8458A; 3 the goal ([Its race](#its-courses-laid)); 5 and 6 a tunnel's start
+  and end, setting and clearing bit 3 of 0x845B0 with their sounds (S 0x2C1A, 0x2CB4); each of these then hit as 1; 0
+  a side face, hit as 1; −1 a ceiling, not hit. No course places a type 4.
+- **Its hit.** While a slot lies within 0x100 positions of the car (S 0x2B2A to 0x2B36), its own car hits it where its
+  x lies above the lower bound and up to the upper (S 0x2D60 to 0x2D6A), once, both bounds then 0x1F4280 (S 0x2D84).
+  The car's x moves the road right ([Its limits](#its-courses-laid)), so the car's lateral is its x's negative, 94
+  pixels a 0x10000 at its line (`xPixels`): the range of the car's centre, as wide as the thing, not its car's width
+  more (the goal's three barrels' 408 pixels, their cells' 384). A range wholly beyond the car's limits hits nothing.
+- **Its pictures.** A description is one picture, its pieces drawn as one unit at one point, its base point its
+  point. Of the descriptions a station puts out, the records of one running position read at once, a floating one
+  and those it touches are one thing ([Things of several pieces](original-road-data.md#things-of-several-pieces);
+  `stationThings`), its base point the middle of its outer edges; a side face and a ceiling are bands, not among them
+  (`continentalCircusBoards`: `contcirc-<the description's address, five hex digits>`, and a joined thing
+  `contcirc-joined-<the address of the description drawn first>`, `-2` and on from its second arrangement so named).
+
+Its laps place 3,920 descriptions (3,853 of command 2, 59 of command 4 within the pit lanes and 8 of command 7) at
+3,382 stations, 157 distinct: 142 of type 1, 7 side faces, 2 ceilings, 2 each of types 5 and 6 and one each of 2 and
+3, of 6 pieces at most; 92 hit within the car's limits, 2,700 placements. The 31 ceilings' and 7 side faces'
+placements are bands; one description (JAPAN's tunnel's end, 0x312AA) draws nothing. 28 things join 74 placements, 19
+of two descriptions and 9 of four, the start gantry of 9 pieces the largest, each course's own banner over its
+line, and JAPAN's bridge of 8; so its laps draw 149 pictures, 130 descriptions alone and 19 joined, of 22 colors at
+most, 7 of them past 15 (`joinedColors`). 72 of them lie 1 or 2 pixels (2 to 5 cm) clear of the ground, their sprites' lowest rows clear, and so
+float by [the rule's](original-road-data.md#pictures-from-the-extract) pixel; 22 float higher. None is placed yet.
 
 ## Its conversion
 

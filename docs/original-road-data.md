@@ -106,8 +106,10 @@ holds and links the section here that states its rule; this is their one map.
   CIRCUS's (`continental-circus/`) are its programs' and tile ROM (`continental-circus-rom`), its skies' bands
   (`continental-circus-backgrounds`), its courses' laps and clock (`continental-circus-road`), its road's picture and
   scale across and its car's limits (`continental-circus-road-picture`), its road's colors
-  (`continental-circus-road-colors`), its heights (`continental-circus-heights`), its laps' inputs on their models and
-  its conversion (`continental-circus-course`) and its commands (`continental-circus-commands`).
+  (`continental-circus-road-colors`), its heights (`continental-circus-heights`), its sprites' ROMs and colors
+  (`continental-circus-sprites`), its things' descriptions and hits (`continental-circus-things`) and pictures
+  (`continental-circus-boards`), its laps' inputs on their models and its conversion (`continental-circus-course`) and
+  its commands (`continental-circus-commands`).
 - **The commands**, at the tool's root and in each original's `<original>-commands` module: the entry (`road-data`),
   the register of the originals (`originals-register`: each original's ROM source, conversion and commands, in the
   order they are raised; the one list of them, which the entry and `originals` read), what the commands share
@@ -1102,7 +1104,8 @@ rules (`sprite-rules`) makes it a course image, the originals differing only by 
   is not 2 road units) or a strip's (`strip-<size list>`); ENDURO RACER's size set (five hex digits); POLE POSITION
   II's (`polepos2`) board its first big sprite (two hex digits) and an object composed of sprites the routine laying
   them (four hex digits), its craft that and its first sprite's code (`16fc-<code>`); FINAL LAP 2's (`finalap2`)
-  object its kind (three digits); CHASE H.Q.'s (`chasehq`) thing its kind (three hex digits); a [thing of several pieces](#things-of-several-pieces) as that section says. A sky is
+  object its kind (three digits); CHASE H.Q.'s (`chasehq`) thing its kind (three hex digits); CONTINENTAL CIRCUS's (`contcirc`) its description's address
+  (five hex digits); a [thing of several pieces](#things-of-several-pieces) as that section says. A sky is
   `<original>-<its stage or course>-sky`.
 
 Every original's pictures are made so, OUTRUN's and TURBO OUTRUN's strips as [Strips](#strips) says. Their flags are
