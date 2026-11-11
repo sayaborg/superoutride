@@ -23,3 +23,22 @@ RUN](big-run.md)).
   frame (M 0x5E70, 0x63D2). 0xF0220 is the same for the yaw, from the list at +0x50 (12 B records, M 0x5E20).
 - **Open.** Where the pinhole lies, its height and how far behind the car (the projection's table at R1 0x3232), is read
   with the courses (CS-3).
+
+## Its skies
+
+- **The planes' ROMs.** Plane 0's tiles are `ch9071.a14`'s and plane 1's `ch9071.t74`'s, 2,048 tiles each, read by
+  drawing the scenes with each ROM; the scenes' tile words reach 4,095, tile 2,048 the most used in several, and drawn
+  modulo 2,048 the pictures are whole (San Francisco's bay, its skyline and Alcatraz in STAGE 1), tile 0 of each ROM
+  blank.
+- **The scenes' objects.** Plane 1's from M 0xA1A2 (its table by the stage, `$f011a`, at 0xA1A6), plane 0's from 0xA5EA
+  (0xA600); each waits for the road position (`$f0410`) to reach a scene's start, loads its palette (to 0xBAC00 and
+  0xB9C00) and writes its first 18 columns, then streams a column as its scroll crosses 16 pixels (0xA3C0 to 0xA3F6,
+  0xA524, 0xA58A). Plane 0's record's +26 is a tile word it writes into its plane beside its picture (0xA6D6).
+- **The slide.** Its routine (M 0xA454) runs while the game plays (`$f0024` 4); the curve is the main's list's record
+  (`$f0330`: +0 its side by bit 15, +2 its radius, none on a straight; the lists at player +0x50 and +0x54, M 0x5E4C,
+  0x5E60), the same records as the plan's. The front adds `$f034c` only past STAGE 1, the back always: the change of
+  `$f021e` ÷ 64 (M 0xA502), the angle the objects are also turned by (M 0x63B6), not the road's heading.
+- **Their rows.** A plane's vertical scroll is its scene's +8, its steps' (M 0xA3F8 to 0xA44E) and the road CPU's word
+  at shared 0x500 (`$f0228`, M 0xA1EE: the first road CPU's, the second's in STAGE 4).
+- **Open.** The steps along a scene, which a sky does not lay; the speed's other tops, by the player's +2C and +C8
+  (0x676DB5, 0x5BFFFF and 0x9C9249, M 0x317A to 0x321C), lower than the one taken.

@@ -23,8 +23,9 @@ the main's and the road CPUs' programs are plain.
 - **Its screen.** 256 × 224 pixels shown of 256 × 256 (MAME's description), at 4:3 its pixel 7/6 as wide as high.
 - **Its tile planes.** Three Mega System 1 tile generators: plane 0 (the back) and plane 1 (the front) draw the sky's
   pictures, plane 2 the text. A plane is of 16 × 16 tiles, each four tiles of 8 × 8 of its tile ROM at 4 bits a pixel,
-  the left pixel of a byte its high nibble; a tile word holds its tile in bits 0–11 and its palette entry in 12–15; pen
-  15 is not drawn (`jaleco/ms1-tiles`). The board draws the road's far rows (their priority 4 to 7), then plane 0, plane
+  the left pixel of a byte its high nibble; a tile word holds its tile in bits 0–11 and its palette entry in 12–15, a
+  tile past its ROM the one its address lines reach (the tile modulo the ROM's tiles); pen 15 is not drawn
+  (`jaleco/ms1-tiles`). The board draws the road's far rows (their priority 4 to 7), then plane 0, plane
   1, the road's near rows and plane 2.
 - **Its colors.** A palette word is RRRRGGGGBBBBRGBx, each channel's four high bits and then its low bit
   (`jaleco/palette`).

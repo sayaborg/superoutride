@@ -100,12 +100,23 @@ export function boardScenes(main: Uint8Array, board: BoardSkies, plane: Plane, s
   return out;
 }
 
+/** A record's columns where its scene clears its plane, each column tile 0 (CISCO HEAT's M 0xA2E6). */
+const NO_COLUMNS = 0xffffffff;
+/** A plane showing no picture. */
+const noScene = (board: BoardSkies, plane: Plane): SkyBand => ({
+  width: 1,
+  pixels: new Int32Array([TRANSPARENT]),
+  bottom: 0,
+  turn: board.turn[plane],
+});
+
 /**
- * A scene's picture as the sky lays it: its tile columns side by side, its rows from the plane's first, the tiles' pens
+ * A scene's picture as the sky lays it, none where its columns are 0xFFFFFFFF: its tile columns side by side, its rows from the plane's first, the tiles' pens
  * in their palette entries' RGB555 (`TRANSPARENT` at pen 15 and above its first row), its bottom row's place below the
  * horizon, and its plane's turn.
  */
 export function scenePicture(main: Uint8Array, board: BoardSkies, tiles: Uint8Array, scene: BoardScene): SkyBand {
+  if (scene.from === NO_COLUMNS) return noScene(board, scene.plane);
   const columns = (scene.to - scene.from) / scene.stride + 1;
   if (!Number.isInteger(columns)) throw romDiffers(`A scene's columns at 0x${scene.from.toString(16)} are not whole`);
   const height = (scene.top + scene.rows) * TILE;
@@ -172,16 +183,10 @@ export function boardSky(
   front: BoardScene | undefined,
 ): SkyBands {
   const ramp = skyRamp(road, board, palette);
-  const none = (plane: Plane): SkyBand => ({
-    width: 1,
-    pixels: new Int32Array([TRANSPARENT]),
-    bottom: 0,
-    turn: board.turn[plane],
-  });
   const layers = [
-    back ? scenePicture(main, board, tiles[0], back) : none(0),
+    back ? scenePicture(main, board, tiles[0], back) : noScene(board, 0),
     {
-      ...(front ? scenePicture(main, board, tiles[1], front) : none(1)),
+      ...(front ? scenePicture(main, board, tiles[1], front) : noScene(board, 1)),
       overlap: SKY_MIDDLE - (SKY_MIDDLE * board.turn[0]) / board.turn[1],
     },
   ];

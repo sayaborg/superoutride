@@ -29,7 +29,8 @@ test("a 16 × 16 tile is four 8 × 8 tiles, the left column's upper and lower, t
     [1, 2, 3, 4],
   );
   assert.equal(tilePen(rom, 1, 1, 0), 2);
-  assert.throws(() => tilePen(rom, 2, 0, 0), /past the tile ROM/);
+  // A tile past the ROM is the one its address lines reach: tile 3 of a ROM of two is tile 1.
+  assert.equal(tilePen(rom, 3, 0, 8), 2);
 });
 
 /** A main program with a stage's scenes for plane 1 and the road layers' palette, at the addresses BIG RUN's has. */
