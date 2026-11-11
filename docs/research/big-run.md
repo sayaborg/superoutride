@@ -69,3 +69,13 @@ routine sufficed; MAME's driver (commit 179cfab5) for the hardware alone.
   once the position `$f2a26` reaches it, copies the next 64 bytes of the sets each call over two of the entries 25 to 30
   in turn (M 0xBC66 to 0xBCD6), 48 calls through the 16 sets. SPECIAL STAGES 3 and VICTORY RUN's positions, 500,000,
   are never reached; SPECIAL STAGES 1 and 4's sets are alike.
+
+## Its objects
+
+- The spawner (M 0x9ECE) puts out each record whose position lies within 0x24B8 positions ahead of `$f2a26`, and its
+  routine (M 0xAAF8) places it: its distance's zoom by the tables at 0x11DE00 and 0x122E00, its road's centre at its
+  row from that road's CPU (`$883BE` and on for road 2, `$8C3BE` for road 1, by its flags' bit 7; bit 14 takes road
+  2's), its height (+A) times its zoom over the road, its descriptor's scales times its zoom (M 0xB25A to 0xB27E), its
+  palette entry its flags' bits 0 to 5 (M 0xB284), and its record's +E its width for the screen's edges (M 0xB110).
+- Kinds other than 0 are moved or drawn by the program (M 0xAC5E on: 0x24 to 0x2C, 0x30, 0x38, 0x4C to 0x78), and some
+  priorities are set by stage and position (M 0xB2C6 to 0xB51A); they are read with the objects' PR.

@@ -75,6 +75,25 @@ export const BIG_RUN_ROAD_ROMS: readonly Rom[] = Object.freeze([
   { name: 'mb88004h.t46', size: 0x80000, crc: 0x6b31a1ba },
 ]);
 
+/** The sprites' ROMs: three pairs, each its even and odd bytes, one after the other. */
+export const BIG_RUN_SPRITE_ROMS = Object.freeze([
+  {
+    even: { name: 'mr88004a.t41', size: 0x80000, crc: 0xc781d8c5 },
+    odd: { name: 'mr88004d.t43', size: 0x80000, crc: 0xe4041208 },
+  },
+  {
+    even: { name: 'mr88004b.t42', size: 0x80000, crc: 0x2df2e7b9 },
+    odd: { name: 'mr88004e.t44', size: 0x80000, crc: 0x7af7fbf6 },
+  },
+  {
+    even: { name: 'mb88004c.t48', size: 0x40000, crc: 0x02e2931d },
+    odd: { name: 'mb88004f.t49', size: 0x40000, crc: 0x4f012dab },
+  },
+] as const);
+
+/** The sprites' ROMs from the ROM set, as the sprite generator reads them. */
+export const assembleBigRunSprites = (set: RomSet): Uint8Array => programImage(set, BIG_RUN_SPRITE_ROMS);
+
 /** ROMs `roms` from the ROM set, one after the other. */
 export function concatenated(set: RomSet, roms: readonly Rom[]): Uint8Array {
   const out = new Uint8Array(roms.reduce((n, r) => n + r.size, 0));
@@ -88,7 +107,7 @@ export function concatenated(set: RomSet, roms: readonly Rom[]): Uint8Array {
 
 /** Every ROM BIG RUN's conversion reads, for its dump's record. */
 export const BIG_RUN_READ_ROMS: readonly Rom[] = Object.freeze([
-  ...[BIG_RUN_MAIN_ROMS, BIG_RUN_MAIN_HIGH_ROMS, ...BIG_RUN_ROAD_CPU_ROMS].flatMap((pairs) =>
+  ...[BIG_RUN_MAIN_ROMS, BIG_RUN_MAIN_HIGH_ROMS, ...BIG_RUN_ROAD_CPU_ROMS, BIG_RUN_SPRITE_ROMS].flatMap((pairs) =>
     pairs.flatMap((p) => [p.even, p.odd]),
   ),
   ...BIG_RUN_TILE_ROMS.flat(),

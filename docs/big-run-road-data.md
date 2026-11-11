@@ -163,3 +163,20 @@ Its six courses (`big-run-course`) are its stages, `big-run-starting-run`, `big-
 - **Its skies** are its planes' scenes in force with the sky's entries' first set, and their last from where its stage's
   sky changes, laid where a scene starts and over 1.6 s at 200 km/h where the sky changes; a sky's yaw is its back
   plane facing its middle column where its scene loads, turning 8 pixels a degree.
+
+## Its objects
+
+Its objects stand along its roads as each stage's table holds them (`big-run-objects`), drawn by the JALECO board's
+zoomed sprites (`jaleco/zoom-sprites`; [research notes](research/big-run.md#its-objects)).
+
+- **A record** (16 bytes, in the order of their positions, M 0x9874's table a stage): its position (+0), its picture's
+  descriptor (+4, bytes into the descriptors' table at M 0xB07A), its kind (+6: 0 a picture standing where it is put,
+  others moved or picked by the program), its lateral from its road's centre (+8), its height over the road (+A) and
+  its flags (+C), whose bit 7 puts it on road 1 and else on road 2, and whose bits 0 to 5 are its palette entry.
+- **A descriptor** (12 bytes): its scales across and down (the high bytes of +0 and +2, 128 its own size), its sprite's
+  tiles across and down (+4) from its first tile (+6), and its attribute (+0xA).
+- **A sprite's tiles** are 16 × 16 pixels at 4 bits, a tile's left 8 columns, 4 bytes a row, before its right 8 (MAME's
+  description untangles them so), the left pixel of a byte its high nibble; pen 15 is not drawn and pen 0 is a shadow
+  where the attribute's bit 12 asks for one. A zoom of 128 draws a tile at its size.
+- **Their colors** are the sprites' palette as the stage loads it: its first 24 entries at boot (M 0x179C), then its
+  stage's list from entry 25 (M 0xB884: an entry's words' offset, signed, into the table at M 0xB894 each).
