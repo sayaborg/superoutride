@@ -268,7 +268,9 @@ rules), chosen before the course and kept as chosen (§4). SELECT COURSE shows e
 games' order, the game's own courses last: the courses stand as courses, apart from the ARCADE TRIBUTE series, as their
 descriptions do (K, 2026-11-11). SELECT SERIES shows, in the front end's order, the
 series whose picture exists; one without a series document yet shows its picture and denies CONFIRM (K, 2026-11-09).
-The cards' contents are still to be designed ([NEXT](NEXT.md#card-ui)).
+A class's and a course's cards are pages to read: the title, the course's map, the rules and the description
+(K, 2026-11-11: the card UI as before; [browser](browser.md#card-rows)); the other cards' contents are still to be
+designed ([NEXT](NEXT.md#card-ui)).
 
 RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race time, best lap on
 circuits and new records; a TIME ATTACK on a CIRCUIT shows its completed laps and its best lap, with no outcome line

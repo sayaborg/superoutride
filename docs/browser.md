@@ -149,26 +149,48 @@ delivered course.
 A card is 28×21 tiles (224×168 pixels) at 1:1. At rest the card in focus stands at x 48 (column 6) and y 32 (row 4),
 four rows clear above and below it over the path's row, which balances it in the frame (K, 2026-11-11), its
 neighbours 29 tiles (232 pixels) away on either side, the tile between and everything outside the cards showing the
-world behind them; cards cast no shadow (K, 2026-11-08). Until the cards are designed each shows, over a bright
-1-pixel edge and a dark ground, its name in the ornate large font's SUNSET style, in two lines when it is longer than 26
-characters, and one line in WHITE (K, 2026-11-09):
+world behind them; cards cast no shadow (K, 2026-11-08). SELECT CLASS and SELECT COURSE show page cards (below).
+Until the other rows' cards are designed each shows, over a bright 1-pixel edge and a dark ground, its name in the
+ornate large font's SUNSET style, in two lines when it is longer than 26 characters, and one line in WHITE (K,
+2026-11-09):
 
-| Row            | Name                        | Line                                                                 |
-| -------------- | --------------------------- | -------------------------------------------------------------------- |
-| MAIN MENU      | SERIES, FREE PLAY, SETTINGS | none                                                                 |
-| SELECT CLASS   | the class's title           | `<n> LAPS  <field> BIKES\|CARS`, BIKES when the whole field is bikes |
-| SELECT VEHICLE | manufacturer and model      | the color's display name                                             |
-| RULES          | RULES, a list card          | RIVALS, POOL, TRAFFIC and LAPS with their values                     |
-| SELECT COURSE  | the course index's name     | `CIRCUIT`, `LINEAR` or `BRANCH`                                      |
-| SETTINGS       | SETTINGS, a list card       | each setting with its value (none for CONTROLS and CLEAR RECORDS)    |
-| CONTROLS       | CONTROLS                    | none                                                                 |
-| CLEAR RECORDS? | NO, YES                     | `CLEAR RECORDS?`                                                     |
+| Row            | Name                        | Line                                                              |
+| -------------- | --------------------------- | ----------------------------------------------------------------- |
+| MAIN MENU      | SERIES, FREE PLAY, SETTINGS | none                                                              |
+| SELECT VEHICLE | manufacturer and model      | the color's display name                                          |
+| RULES          | RULES, a list card          | RIVALS, POOL, TRAFFIC and LAPS with their values                  |
+| SETTINGS       | SETTINGS, a list card       | each setting with its value (none for CONTROLS and CLEAR RECORDS) |
+| CONTROLS       | CONTROLS                    | none                                                              |
+| CLEAR RECORDS? | NO, YES                     | `CLEAR RECORDS?`                                                  |
 
 A list card (K, 2026-11-11: settings are completed within one card) writes its name centred on rows 1–2 and an entry
 a row from row 5: the label from column 1 in DARK and the value centred between columns 18 and 26 in WHITE, the chosen
 entry's label and value in YELLOW with WHITE `◀` and `▶` at those columns. UP and DOWN choose the entry, stopping at
 either end, LEFT and RIGHT change its value (RIGHT the next or more), CONFIRM does the entry's action or else the
 card's, and BACK the row's; the chosen entry, not the card, rests in focus, and its path names it.
+
+A page card is read before it is chosen: a class on SELECT CLASS, a course on SELECT COURSE (K's prototype of the cards,
+2026-11-09; K, 2026-11-11: the card UI as before; [card face](../src/shell/card-face.ts)). Its boxes each have a
+1-pixel edge on the left and top and a 2-pixel edge on the right and bottom around their ground:
+
+- **The title band,** rows 0–2: the title from column 1 on rows 1–2 in the ornate large font's SUNSET style or,
+  longer than its 26 columns, in two lines of the ornate small font's, broken as a card's name.
+- **The picture,** columns 0–15 of rows 3–11 on a deep ground: the course's map from the
+  [course index](content-and-gameplay.md#course-index), drawn as the PRE-RACE card draws it, its arrowhead outlined in
+  the deep ground.
+- **The facts,** columns 16–27 beside it: the rules in WHITE, one a row from row 4, 10 columns from column 17. A
+  class's: its course's length (`<km>KM`, to the metre), its laps on a circuit or else its course's stages (one more
+  than the checkpoint gates on its route), its field (`<n> CARS`, `BIKES` when every entry is a bike), and `TRAFFIC`
+  and `TIME LIMIT` where it has them; one is written in the singular (`1 LAP`). A course's: its length, and `CIRCUIT`
+  with the laps it admits (`1-<n> LAPS`) or its stages. A class's record is to follow them (GD-6).
+- **The words,** rows 12–20: 26 columns from column 1, seven lines from row 13, broken at spaces: a class's course's
+  description in WHITE, under the course's name in YELLOW where the class has a title of its own; a course's
+  description.
+
+Words taller than their seven lines rise while their card rests in focus, within those lines: held at their top for 90
+fixed steps, a pixel every 10 steps until their last line shows, held there for 180, then at their top again
+(provisional, for K); every other card shows their top. A board would write the lines' tiles anew at each pixel, as
+the CPU would a 4×8 font's. Nothing on a card leaves its box: a line that would is an error.
 
 Every row but TITLE shows its path on the frame's last row (K, 2026-11-11), as a folder's: from SUPER OUTRIDE, the
 names chosen down to the row and the card in focus (a list card's chosen entry), each in full and joined by `>` (`SUPER

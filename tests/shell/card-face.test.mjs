@@ -1,0 +1,119 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { readDeliveredContent } from '../../tools/course/read-content.ts';
+import { loadTextTiles } from '../../src/content/text-tiles-catalog.js';
+import { COURSE_INDEX_MAP, loadCourseIndex } from '../../src/content/course-index.js';
+import { COURSE_DOCUMENT_LIMITS, COURSE_TEXT_LIMITS } from '../../src/course/course-limits.js';
+import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
+import {
+  CARD,
+  createCardFaces,
+  PAGE_TEXT,
+  WORDS_SCROLL,
+  wordsScroll,
+  wrappedLines,
+} from '../../src/shell/card-face.js';
+import { classPage, coursePage } from '../../src/shell/course-page.js';
+import { SoftwareSurface } from '../../src/view/software-surface.js';
+
+const content = await readDeliveredContent();
+const tiles = await loadTextTiles(content);
+const courses = await loadCourseIndex(content);
+const BEHIND = 0x1234;
+
+test('words break at spaces into lines of their columns, a longer word where its line ends', () => {
+  assert.deepEqual(wrappedLines('A BB CCC', 4), ['A BB', 'CCC']);
+  assert.deepEqual(wrappedLines('ABCDEFGHIJ K', 4), ['ABCD', 'EFGH', 'IJ K']);
+  assert.deepEqual(wrappedLines('', 4), []);
+});
+
+test('words taller than their box rise: held at the top, a pixel at a time, held at the end, then at the top', () => {
+  const { hold, pixel, end } = WORDS_SCROLL,
+    overflow = 8;
+  assert.equal(wordsScroll(0, hold + 100 * pixel), 0);
+  assert.equal(wordsScroll(overflow, hold - 1), 0);
+  assert.equal(wordsScroll(overflow, hold + pixel), 1);
+  assert.equal(wordsScroll(overflow, hold + overflow * pixel), overflow);
+  assert.equal(wordsScroll(overflow, hold + overflow * pixel + end - 1), overflow);
+  assert.equal(wordsScroll(overflow, hold + overflow * pixel + end), 0);
+});
+
+// A card's face drawn at rest after `steps` over a frame of one color, which it must not leave.
+function draw(faces, face, steps) {
+  const frame = new SoftwareSurface(320, 240);
+  frame.clear(BEHIND);
+  faces.draw(frame, face, CARD.x, CARD.y, steps);
+  for (let y = 0; y < frame.height; y++)
+    for (let x = 0; x < frame.width; x++)
+      if (x < CARD.x || x >= CARD.x + CARD.columns * 8 || y < CARD.y || y >= CARD.y + CARD.rows * 8)
+        assert.equal(frame.pixels[y * frame.width + x], BEHIND, `(${x}, ${y}) lies outside the card`);
+  return frame;
+}
+// Whether the pixel (x, y) of the frame lies within the words' lines of a card at the card's place.
+const inWords = (x, y) => {
+  const { column, row, columns, rows } = PAGE_TEXT.words;
+  const [left, top] = [CARD.x + column * 8, CARD.y + row * 8];
+  return x >= left && x < left + columns * 8 && y >= top && y < top + rows * 8;
+};
+
+test('a page holds the longest title, rules and words the readers admit, and its words rise within their lines', () => {
+  const faces = createCardFaces(tiles);
+  const [first] = courses;
+  // The longest course the index admits: its name and description, laps, length and stages.
+  const longest = Object.freeze({
+    ...first,
+    name: 'W'.repeat(COURSE_TEXT_LIMITS.nameCodeUnits),
+    description: 'WW '
+      .repeat(COURSE_TEXT_LIMITS.descriptionCodeUnits)
+      .slice(0, COURSE_TEXT_LIMITS.descriptionCodeUnits),
+    maxLaps: RUN_RULE_LIMITS.laps,
+    map: Object.freeze({
+      ...first.map,
+      lengthMeters: COURSE_DOCUMENT_LIMITS.lengthMeters,
+      checkpoints: Array(COURSE_INDEX_MAP.checkpoints).fill(first.map.start.point),
+    }),
+  });
+  // A class with the most of every rule, under a title of its own.
+  const runClass = {
+    title: 'X'.repeat(COURSE_TEXT_LIMITS.nameCodeUnits),
+    laps: RUN_RULE_LIMITS.laps,
+    entries: Array(RUN_RULE_LIMITS.competitors).fill(null),
+    traffic: {},
+    timeMargin: 1.35,
+  };
+  for (const page of [
+    coursePage({ ...longest, type: 'CIRCUIT' }),
+    coursePage({ ...longest, type: 'LINEAR', maxLaps: 1 }),
+    classPage(runClass, { ...longest, type: 'CIRCUIT' }, true),
+    classPage(runClass, { ...longest, type: 'BRANCH', maxLaps: 1 }, false),
+  ]) {
+    const face = { name: page.title, line: '', dim: false, page };
+    const still = draw(faces, face, 0),
+      risen = draw(faces, face, WORDS_SCROLL.hold + 8 * WORDS_SCROLL.pixel);
+    let moved = 0;
+    for (let y = 0; y < still.height; y++)
+      for (let x = 0; x < still.width; x++) {
+        const i = y * still.width + x;
+        if (still.pixels[i] === risen.pixels[i]) continue;
+        assert.ok(inWords(x, y), `(${x}, ${y}) changed outside the words`);
+        moved++;
+      }
+    assert.ok(moved > 0, `${page.rules.join(' ')}: the words rise`);
+  }
+});
+
+test("every delivered course's page fits its card, and its words rise only when taller than their lines", () => {
+  const faces = createCardFaces(tiles);
+  for (const course of courses) {
+    const page = coursePage(course);
+    const face = { name: page.title, line: '', dim: false, page };
+    const still = draw(faces, face, 0),
+      later = draw(faces, face, WORDS_SCROLL.hold + 8 * WORDS_SCROLL.pixel);
+    const fits = wrappedLines(course.description, PAGE_TEXT.words.columns).length <= PAGE_TEXT.words.rows;
+    assert.equal(
+      still.pixels.every((pixel, i) => pixel === later.pixels[i]),
+      fits,
+      course.id,
+    );
+  }
+});

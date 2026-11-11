@@ -18,6 +18,8 @@ import type { Screen } from './screen-host.js';
 import { clearRecordCards, settingCards } from './settings-screens.js';
 import type { CardFaces } from './card-face.js';
 import { createCardRows, PATH_ROOT, type Card, type CardRow, type MainWorld, type RowChange } from './card-rows.js';
+import type { CoursePage } from './card-face.js';
+import { classPage, coursePage } from './course-page.js';
 
 /** MAIN MENU's cards, in order, by the player record's key for them. */
 const MENU = Object.freeze(['SERIES', 'FREE PLAY', 'SETTINGS'] as const);
@@ -181,8 +183,22 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         return 'back';
       },
     });
-  const form = (bikes: boolean) => (bikes ? 'BIKES' : 'CARS');
   const vehicleOf = (id: string) => vehicles.find((v) => v.compiledVehicle.id === id)!;
+  // The class and course cards' pages, each made once.
+  const pages = new Map<SeriesClass | string, CoursePage>();
+  const pageOf = (key: SeriesClass | string, make: () => CoursePage) => {
+    let page = pages.get(key);
+    if (!page) pages.set(key, (page = make()));
+    return page;
+  };
+  const classPageOf = (c: SeriesClass) =>
+    pageOf(c, () =>
+      classPage(
+        c,
+        courseOf(c.course),
+        c.entries.every((e) => vehicleOf(e.vehicle).listing.form === 'bike'),
+      ),
+    );
   const classRow = (): CardRow => {
     const chosen = seriesChoice!;
     return row({
@@ -192,8 +208,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       initial: at(chosen.classes, (c) => c.id === (classChoice?.id ?? latest('class'))),
       cards: chosen.classes.map((c): Card => ({
         name: c.title,
-        line: () =>
-          `${c.laps} LAPS  ${c.entries.length} ${form(c.entries.every((e) => vehicleOf(e.vehicle).listing.form === 'bike'))}`,
+        page: classPageOf(c),
         confirm: () => {
           // Another class offers its own vehicles.
           if (c !== classChoice) vehicleId = null;
@@ -262,7 +277,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       initial: at(offered, (id) => id === (courseId ?? latest('course'))),
       cards: offered.map((id): Card => ({
         name: courseOf(id).name,
-        line: () => courseOf(id).type,
+        page: pageOf(id, () => coursePage(courseOf(id))),
         confirm: () => {
           courseId = id;
           remember('course', id);

@@ -3,12 +3,13 @@ import { halveRgb555 } from '../image/rgb555.js';
 import type { TilePicture } from '../image/tile-picture.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import type { CourseMap } from '../course/course-map.js';
-import { drawCourseMap } from '../view/course-map.js';
+import { courseMapColors, drawCourseMap } from '../view/course-map.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { Screen } from './screen-host.js';
 import { SCREEN_BACKGROUND, writeCentred } from './menu.js';
 import { formatMilliseconds, NO_TIME } from './race-time.js';
+import { courseLength } from './course-page.js';
 import { classTitleLines } from '../content/series-catalog.js';
 import { isFreePlay, SESSION_NAMES, type RunRequest } from './run-request.js';
 import type { SeriesCatalog } from '../content/series-catalog.js';
@@ -24,9 +25,7 @@ const COLUMN = 17;
 const MAP_BOX = Object.freeze({ x: 8, y: 136, width: 129, height: 97 });
 /** The progress bar: columns 17–37 of row 28, 4 pixels high in the row's middle. */
 const BAR = Object.freeze({ column: 17, columns: 21, row: 28, height: 4 });
-/** RGB555 colors of the map's line and core, of the bar's empty part and of the arrow's outline. */
-const WHITE = 0x7fff;
-const GRAY = (16 << 10) | (16 << 5) | 16;
+/** RGB555 colors of the bar's empty part and of the map's arrowhead's outline. */
 const DARK_GRAY = (6 << 10) | (6 << 5) | 6;
 const BLACK = 0;
 
@@ -101,6 +100,7 @@ export function createPreRaceScreen(
     loaded = false,
     done = false;
   const minimum = Math.ceil(PRE_RACE_SECONDS / SIM_DT - 1e-9);
+  const mapColors = courseMapColors(text, BLACK);
   const check = () => {
     if (done || !loaded || steps < minimum) return;
     done = true;
@@ -124,15 +124,8 @@ export function createPreRaceScreen(
       classTitleLines(card.title).forEach((line, i) => text.write(COLUMN, 18 + i, line, TEXT_PALETTES.YELLOW));
       if (card.session) text.write(COLUMN, 20, card.session, TEXT_PALETTES.WHITE);
       writeCentred(text, NAME_ROW, card.courseName, TEXT_PALETTES.WHITE);
-      drawCourseMap(frame, card.map, MAP_BOX, {
-        line: WHITE,
-        core: GRAY,
-        start: text.mainColor(TEXT_PALETTES.YELLOW),
-        checkpoint: text.mainColor(TEXT_PALETTES.GREEN),
-        arrow: text.mainColor(TEXT_PALETTES.YELLOW),
-        outline: BLACK,
-      });
-      const length = `${(card.map.lengthMeters / 1000).toFixed(3)}KM`;
+      drawCourseMap(frame, card.map, MAP_BOX, mapColors);
+      const length = courseLength(card.map);
       text.write(COLUMN, 21, card.laps === null ? length : `${length}  ${card.laps} LAPS`, TEXT_PALETTES.WHITE);
       if (facts) {
         text.write(
