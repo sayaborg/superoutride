@@ -503,6 +503,10 @@ Defaults for K to confirm before the stage closes, each its PR's:
   never meets P again keeps its own arcs. Where the two start apart, the second is laid from its own first point, taken
   from P's, its miss where they first meet spread the same way. So the two are one, part and meet where the original's
   tables have them, whatever their records' small departures add up to.
+- **A 3D road's grade** (BR-6a). A record's grade is the sine of its angle, as the table's heights rise along its
+  positions, a vertical arc's changing evenly to the next record's; the steepest is taken among the records starting
+  before each goal, 25°, so f is 0.537 as K decided, while SPECIAL STAGE 1's last record bends on to 30° past its goal.
+- **The eight partings in height** (BR-6). Waiting for K; provisionally as K decided on 2026-11-11.
 
 The PRs, in order:
 

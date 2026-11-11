@@ -33,3 +33,26 @@ routine sufficed; MAME's driver (commit 179cfab5) for the hardware alone.
   0x11DA00) and the road's rows above its last line (0x90AC to 0x9100); plane 0's alike.
 - Open: the scenes' change seen on the screen (its 18 frames of columns and its palette's), and the vertical steps
   along a scene, which a sky does not lay.
+
+## Its roads
+
+- Each road CPU draws the road whose tables it loads into `$c0008` (R1 0xA1E: 0x8D4; R2 0xA0E: 0x864) and reads the
+  plan record's picture (+0x16, +0x18) from it (R1 0x0CAC); the other table (R1 0x85E: 0x874; R2 0x84E: 0x8C4, into
+  `$c002c`) is a copy of the other road's, which it takes to place its own. So road 1 is 0x8D4 in R1 (0x8C4 in R2) and
+  road 2 0x864 in R2 (0x874 in R1). The first road CPU inverts `$c00b0`, the main's `$f047e`, as it takes it (R1
+  0x81E). The study had taken each CPU's own road for the copy, and so read road 1's records as road 2's.
+- Seen running R2's frame on a level road with `$f047e` 0, the second road CPU's layer is centred on the car (its
+  scroll 384 on every row, the road's line centred at 512): the car is on road 2 there. Where both tables turn on an
+  arc whose flag's top bit is set (SPECIAL STAGE 1, 26,000), the far rows' scroll falls, their road lying right of the
+  screen's middle: the flag turns the road right. MAME draws BIG RUN unflipped (`ROT0`).
+- The main sets `$f047e` to 1 where the first road CPU's road is nearer the car (M 0x4B5E: each road CPU's centre at
+  the car's row less 0x180, the second road CPU's kept on a tie) and from its lists of stretches (`$f0154` sets it to
+  1, `$f0158` to 0, M 0x4B2E to 0x4BEE): each points into the main's copy of a road's profile records (M 0xA4C, 16
+  bytes a stage: `$f0154` road 1's, `$f0158` road 2's, 10 bytes a record), a record's +8 bit 1 holding the car on that
+  road from where it starts. In STARTING RUN (138,756 to 163,731 and from 189,612) and SPECIAL STAGE 1 the car is held
+  on road 2, above road 1; in SPECIAL STAGE 2 (213,346 to 229,233) on road 1, below road 2; in VICTORY RUN from 200,867
+  on road 2, which turns 90° from 186,655 while road 1 goes straight on.
+- A profile record's height rises by the sine of its grade's angle a position (SPECIAL STAGE 1's straight at −20° from
+  83,198: 1,025 down over 3,000). SPECIAL STAGE 1's last records fall from 0° at 364,936 to −30° at 370,172 and on to
+  −150°, past its goal; VICTORY RUN's road 1 in the first road CPU's program holds no end after 275,264 (its copy in the
+  second's does).

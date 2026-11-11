@@ -7,7 +7,8 @@ its [research notes](research/big-run.md)'s.
 BIG RUN's courses are raised from MAME's `bigrun` (Big Run (11th Rallye version, Europe?), JALECO, 1989), its parent
 set (K, 2026-11-05). Its hardware and ROM list were read from MAME's drivers `src/mame/jaleco/cischeat.cpp`,
 `jaleco_road.cpp`, `jaleco_zoomspr.cpp` and `ms1_tmap.cpp` at MAME commit `179cfab56339b66c056e42d128dfe4e132cf2616`.
-Its skies are read so far; its courses come with Stage BR's next PRs ([NEXT](NEXT.md#stage-br--big-run-from-the-roms)).
+Its skies and its course tables are read so far; its courses come with Stage BR's next PRs
+([NEXT](NEXT.md#stage-br--big-run-from-the-roms)).
 
 ## Its ROM set
 
@@ -60,3 +61,44 @@ plane showing a scene of pictures that changes along the road (`big-run-backgrou
   gives (`$f6022`, M 0x8E88), so that a picture's bottom row lies its scene's offset below the horizon less the screen's
   240 rows, whatever the road's rows: 32 to 138 rows below it. Along a scene the program moves a plane up and down by its
   record's table of steps (+1A); a sky lays its scene's own offset.
+
+## Its course tables
+
+Each stage's two roads are held by the road CPUs, road N by the Nth road CPU, which draws it (`big-run-road`): road 1
+from the table the first road CPU reads at R1 0xA1E, road 2 from the second's at R2 0xA0E, 16 bytes a stage of four
+pointers; each CPU holds a copy of the other's to place it ([research notes](research/big-run.md#its-roads)). The car
+is on road 2 where the main program's `$f047e` is 0, on road 1 where it is 1.
+
+- **A plan record** (26 bytes, a table of starts beside it): its flag (+0), whose top bit turns its arc right on the
+  screen; its radius (+2, 0 a straight); its position where it starts, +0xA along heading 0 and +6 a quarter turn to
+  the right; its heading (+0xE, 16,384 a turn, turning right); its road's picture (+0x16, +0x18).
+- **A profile record** (24 bytes, its own table of starts): its flag (+0), whose top bit makes its grade rise along
+  it; its vertical radius (+2, 0 a straight); its height where it starts (+6); its grade's angle (+0xE, 16,384 a turn,
+  up positive).
+- **The ends.** A table of starts ends at 0xFFFFFFFF or at a start no later than the one before; a course reads its
+  records up to its end.
+- **A stage's goal, checkpoint and grid.** The main program holds each stage's goal (M 0x10A2: 215,000 positions in
+  STARTING RUN and VICTORY RUN, 370,000 in the SPECIAL STAGES), its checkpoint (M 0x10B8: 185,000, 182,500 in SPECIAL
+  STAGE 4; none in STARTING RUN and VICTORY RUN, at 999,999) and its grid (M 0xF54: eight slots of a lateral, a road and
+  a position).
+- **A road position** is 13.23 mm: a speed unit shows 0xB6DB / 65,536 km/h (M 0x15DEA) and gains the road half a
+  position a tick straight ahead (M 0x3248), at BIG RUN's tick of 1/30 s.
+
+## Its plan
+
+Each road's table is laid by [the plan from a table's arcs](original-road-data.md#plan-from-a-tables-arcs)
+(`big-run-plan`), its records taken record by record within 0.03° and 14 positions (K, 2026-11-09 and 2026-11-11): road
+2 as P, and road 1 [from its own table](original-road-data.md#plan-from-a-tables-arcs) beside it. Its headings turning
+right, a record's heading is its negative in the shared rule's plane, and its +6 its negative there. Every stage's
+records keep within 0.026° and 6.3 positions to its goal; laid on from the first record, its plan departs from the
+table's points by up to 0.041° and 72.7 positions (SPECIAL STAGE 4), and road 1 misses P by up to 4.4 positions where
+they meet again (SPECIAL STAGE 2's goal). In VICTORY RUN road 1 parts from P at 162,831 and never meets it again: P
+turns 90° right from 186,655 and road 1 goes straight on. BIG RUN's tables hold no jump.
+
+## Its heights
+
+A road's 3D road becomes a profile along its positions (`big-run-heights`): each record's grade is its height's rise a
+position, the sine of its grade's angle, as the table's heights rise; a vertical arc's grade changes evenly to the next
+record's, a straight's at once where it ends. Laid on from the first record, it departs from the table's heights by up
+to 25.8 positions where a record starts. Its steepest grade among the records starting before a goal is the tangent of
+25° (STARTING RUN's and SPECIAL STAGE 2's), so its factor f is 0.25 ÷ 0.466, 0.537, as K decided (2026-11-09).
