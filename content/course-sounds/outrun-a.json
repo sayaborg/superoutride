@@ -1,0 +1,10 @@
+{
+  "format": "superoutride.course-sounds",
+  "version": 1,
+  "courses": [
+    "outrun-a"
+  ],
+  "race": [
+    "magical-sound-shower"
+  ]
+}

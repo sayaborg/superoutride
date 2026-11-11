@@ -1984,11 +1984,13 @@ courses it serves, at least one, unique (an original's courses may share one; a 
 `race` names its race tracks, delivered music tracks by ID, 1 to 16, unique, in order. A course is in at most one
 document; a document may name a course not yet raised. The build admits them and the [course index](#course-index)
 carries each course's race tracks, none for a course no document names. A run requested from the selection screens
-plays its course's first race track ([run music](#run-setup)): from READY, looped, pausing while the run is not live,
+plays its course's first race track ([run music](#run-setup)): from GO, after the signal (K, 2026-11-11), looped, pausing while the run is not live,
 fading out at GOAL or GAME OVER. The jingles (signal lamp, GO, checkpoint, extension, lap, final lap, GOAL, GAME OVER,
 new record) are the game's effects until their fields are made ([NEXT](NEXT.md#music-and-jingles-with-the-course)).
 SUPER HANG-ON's four courses play K's recordings, stand-ins until the internal sound source plays them (K,
-2026-11-11): AFRICA OUTRIDE A CRISIS, ASIA SPRINTER, AMERICA WINNING RUN and EUROPE HARD ROAD.
+2026-11-11): AFRICA OUTRIDE A CRISIS, ASIA SPRINTER, AMERICA WINNING RUN and EUROPE HARD ROAD. So do OUTRUN's six,
+A MAGICAL SOUND SHOWER, B PASSING BREEZE, C LEFT SPLASH WAVE, C RIGHT CRUISING LINE, D CAMINO A MI AMOR and E STEP ON
+BEAT, and ENDURO RACER's ENDURO RACER IN GAME.
 
 ## Course texts
 

@@ -1,0 +1,10 @@
+{
+  "format": "superoutride.course-sounds",
+  "version": 1,
+  "courses": [
+    "outrun-e"
+  ],
+  "race": [
+    "step-on-beat"
+  ]
+}

@@ -16,10 +16,10 @@ export function playTrack(
 }
 
 /**
- * The one owner of when a run's track plays. Each run's track starts from its beginning when its race enters READY
- * and loops; it pauses while the run is not live and continues from there when it is again; at GOAL or GAME OVER it fades
+ * The one owner of when a run's track plays. Each run's track starts from its beginning at GO, when its race is
+ * first RUNNING after the signal (K, 2026-11-11), and loops; it pauses while the run is not live and continues from there when it is again; at GOAL or GAME OVER it fades
  * out with the music fade and stays silent through RESULT. A new run (a DEV rebuild) stops the previous run's
- * track, and its own starts at its READY. It reads only the race's status and whether the run is live, never a clock.
+ * track, and its own starts at its GO. It reads only the race's status and whether the run is live, never a clock.
  * A run with MUSIC OFF (no track) plays none.
  */
 export function createRunMusic(shell: Pick<BrowserDrivingShell, 'playRecording'>, track: MusicTrack | null) {
@@ -36,7 +36,7 @@ export function createRunMusic(shell: Pick<BrowserDrivingShell, 'playRecording'>
       }
       if (ended) return;
       if (!handle) {
-        if (status !== 'READY' || track === null) return;
+        if (status !== 'RUNNING' || track === null) return;
         handle = playTrack(shell, track);
       }
       if (status === 'GOAL' || status === 'GAME_OVER') {

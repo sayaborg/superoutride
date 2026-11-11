@@ -134,7 +134,7 @@ test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK 
   assert.equal(screen.row.world, null);
   send('CONFIRM');
   assert.equal(log.runs.at(-1).request.courseId, 'enduro-racer');
-  assert.equal(log.runs.at(-1).request.track, null);
+  assert.equal(log.runs.at(-1).request.track, 'enduro-racer-in-game');
   for (const name of ['SELECT COURSE', 'SELECT ORIGINAL', 'RULES', 'MAIN MENU'])
     assert.equal(send('BACK'), 'back', name);
   // SETTINGS: a card a setting; CONTROLS and CLEAR RECORDS open their own rows.

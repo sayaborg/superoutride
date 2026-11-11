@@ -1,0 +1,10 @@
+{
+  "format": "superoutride.course-sounds",
+  "version": 1,
+  "courses": [
+    "outrun-b"
+  ],
+  "race": [
+    "passing-breeze"
+  ]
+}
