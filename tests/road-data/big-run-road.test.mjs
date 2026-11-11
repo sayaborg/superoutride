@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   ANGLE_RADIANS,
   bigRunRoad,
+  heldStretches,
   positionMetres,
   stageCheckpoint,
   stageGoal,
@@ -129,4 +130,24 @@ test("a road's profile rises by its grades' sines, a vertical arc's grade changi
   assert.ok(Math.abs(laid.height(2000) - (1000 * sine(deg(10))) / 2) < 1e-9);
   // How far it departs from the table's heights where its records start.
   assert.ok(Math.abs(departure - (100 - (1000 * sine(deg(10))) / 2)) < 1e-9);
+});
+
+test("the main program holds the car on a road from the end of a flagged record's one before to its own end", () => {
+  const main = new Uint8Array(0x4000);
+  const { put, long } = writer(main);
+  put(0xede, [0x41fa, 0xa4c - 0xee0]);
+  put(0xee8, [0xe948]);
+  put(0xefa, [0x23f0, 0x0008, 0x000f, 0x0154]);
+  put(0xf02, [0x23f0, 0x000c, 0x000f, 0x0158]);
+  // Stage 1: road 1's copy at 0x1000, road 2's at 0x2000; records of 10 bytes, their ends at +4 and flags at +8.
+  long(0xa4c + 16 + 8, 0x1000);
+  long(0xa4c + 16 + 12, 0x2000);
+  const records = (at, ends, flags) =>
+    ends.forEach((end, k) => (long(at + 10 * k + 4, end), put(at + 10 * k + 8, [flags[k]])));
+  records(0x1000, [100, 200, 300, 400, 0], [1, 3, 3, 1, 0]);
+  records(0x2000, [150, 500, 0], [3, 1, 0]);
+  assert.deepEqual(heldStretches(main, 1), [
+    { road: 2, from: 0, to: 150 },
+    { road: 1, from: 100, to: 300 },
+  ]);
 });

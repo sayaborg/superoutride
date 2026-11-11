@@ -7,7 +7,7 @@ its [research notes](research/big-run.md)'s.
 BIG RUN's courses are raised from MAME's `bigrun` (Big Run (11th Rallye version, Europe?), JALECO, 1989), its parent
 set (K, 2026-11-05). Its hardware and ROM list were read from MAME's drivers `src/mame/jaleco/cischeat.cpp`,
 `jaleco_road.cpp`, `jaleco_zoomspr.cpp` and `ms1_tmap.cpp` at MAME commit `179cfab56339b66c056e42d128dfe4e132cf2616`.
-Its skies, its course tables and its road across are read so far; its courses come with Stage BR's next PRs
+Its six courses are raised without their objects, which come with Stage BR's next PR
 ([NEXT](NEXT.md#stage-br--big-run-from-the-roms)).
 
 ## Its ROM set
@@ -128,3 +128,38 @@ entry of its layer's palette (`big-run-road-picture`, [research notes](research/
   it loads for each layer and no later stage replaces (M 0xB8FA, 0xB91C), entry 31 its stage's (M 0xB93E, 0xB8DE) and
   the sky's entries 25 to 30 its stage's first set of 16 (M 0xB97E), which fade to its last as a position passes its
   stage's (M 0xBC66 to 0xBCD6): STARTING RUN's from dawn to day after 20,000 and SPECIAL STAGE 2's to dusk after 360,000.
+
+## Its camera
+
+Its eye lies 600 units behind the plane a unit is a pixel at (R1's depths at 0x1ADC and scales at 0x1B9A: a row at depth
+z has scale s, z + 600 = 600 × 16,384 ÷ s), so its focal length is 600 pixels, 2.68 of its 224 rows. Its level road's
+nearest row lies 96.95 rows below the horizon (its scale 16,384, a unit a pixel), so its eye is 96.95 units over the road:
+1.28 m at the plan's scale up (K, 2026-11-09). This game's camera is its own (`CAMERA_DEFINITION`).
+
+## Its conversion
+
+Its six courses (`big-run-course`) are its stages, `big-run-starting-run`, `big-run-special-stage-1` to `-4` and
+`big-run-victory-run` (K, 2026-11-09):
+
+- **Its road.** From its start, laid on back for its grid and the camera, to its goal and on to the first record of
+  either road past it, at most 2,000 positions: road 2's plan as P ([its plan](#its-plan)), its heights road 2's 3D
+  road times f, 0.537, and road 1's where the main program holds the car on road 1 (SPECIAL STAGE 2, 211,885 to
+  229,233; [research notes](research/big-run.md#its-roads)), the crests' rule taking them on
+  ([Crests](original-road-data.md#crests)).
+- **Its lanes** are the town paving's ([its road across](#its-road-across)) over its two roads, each at its own centre
+  ([two roads](original-road-data.md#two-roads)), road 1 at its lateral from P wherever it meets P again. Where it never
+  does (VICTORY RUN's from 162,831), the course's lanes are road 2's alone.
+- **Its pictures.** Each road's picture across, its nearest line's runs, is laid at its centre, cut where either road's
+  picture changes: road 2's clear runs first, road 1's picture over them, then road 2's own, as MAME draws the second
+  road layer over the first at one priority. Each run's colors are its stripes' over 510 positions, the most common laid
+  over the whole and the others repeated, in its layer's palette as its stage loads it. Road 1 is not drawn where the
+  two share their plan and lie more than 1 m apart in height (K, 2026-11-11); where road 2's side is clear and nothing
+  lies beneath, its ground is transparent. VICTORY RUN's road 1 is drawn as the road not taken as far as it heads
+  within 60° of P, with no material.
+- **Its materials.** The town's road `ASPHALT`, the desert's `DIRT`; a river's (kind 2) and a one-line picture's, and
+  the ground beside the road, by their colors (`groundMaterial`), water only in a river; under a clear run and between
+  the roads `SAND`, and the lanes keep the held road's surface's where a picture gives them none.
+- **Its limits** lie 512 units, a line's half, beyond the outermost road's centre on each side.
+- **Its skies** are its planes' scenes in force with the sky's entries' first set, and their last from where its stage's
+  sky changes, laid where a scene starts and over 1.6 s at 200 km/h where the sky changes; a sky's yaw is its back
+  plane facing its middle column where its scene loads, turning 8 pixels a degree.

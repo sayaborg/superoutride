@@ -23,8 +23,8 @@ Each line is one area as it stands, with the document that owns it.
   ([Product courses](content-and-gameplay.md#product-courses),
   [Series documents](content-and-gameplay.md#series-documents)).
 - **Courses of the originals.** OUTRUN's twelve roads, SUPER HANG-ON's four courses, TURBO OUTRUN's, ENDURO RACER's,
-  POLE POSITION II's four, FINAL LAP 2's four, CHASE H.Q.'s ten, TOP SPEED's seven and CONTINENTAL CIRCUS's eight
-  courses are raised from the ROMs by the road data tool ([Original road data](original-road-data.md), [Courses of the
+  POLE POSITION II's four, FINAL LAP 2's four, CHASE H.Q.'s ten, TOP SPEED's seven, CONTINENTAL CIRCUS's eight and BIG
+  RUN's six courses are raised from the ROMs by the road data tool ([Original road data](original-road-data.md), [Courses of the
   originals](#courses-of-the-originals)). Stage EX has put them on their road path P: their plans raised from the ROMs'
   heading tables, their widths unrounded and joined by one monotone cubic, their material ended at the plan's clearance
   and their ground at each original's own limit beside the road; OUTRUN's forks and goals are the original's, with
@@ -71,7 +71,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-BR](#stage-br--big-run-from-the-roms)'s raising, BR-6 next; later [Stage CS](#stage-cs--cisco-heat-from-the-roms);
+BR](#stage-br--big-run-from-the-roms)'s raising, BR-7 next; later [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -509,12 +509,22 @@ Defaults for K to confirm before the stage closes, each its PR's:
 - **The town's entries in every stage** (BR-6b). Entries 1 to 24 of each road layer's palette are STARTING RUN's in
   every stage, as a game plays its stages in turn from it and no later stage loads them again.
 - **The eight partings in height** (BR-6). Waiting for K; provisionally as K decided on 2026-11-11.
+- **A course's end** (BR-6c). Its goal, and on to the first record of either road past it, at most 2,000 positions:
+  enough for the finish, short of SPECIAL STAGE 1's fall past its goal.
+- **The two roads' order** (BR-6c). Road 2's picture over road 1's, as MAME draws the second road layer over the first at
+  one priority; the rows' priorities, set from both roads' flags, are not read.
+- **Where pictures leave the lanes no material** (BR-6c). The lanes keep the held road's surface's material, and a clear
+  run and the ground between the roads `SAND`; the car drives on there, as the original lets it off its road.
+- **Its limits** (BR-6c). 512 units, a line's half, beyond the outermost road's centre on each side, where the original
+  draws its pictures to; the program's own limit to the car's lateral is not read.
+- **The road not taken** (BR-6c). VICTORY RUN's road 1 is drawn, with no material, as far as it heads within 60° of P,
+  where its lateral can be taken across P.
+- **Its skies** (BR-6c). A sky's change laid over its fade's 48 ticks at 200 km/h; a sky's yaw its back plane facing its
+  middle column where its scene loads, the front plane's overlap as when both load together (BR-5).
+- **Its own car's width** (BR-6c). Measured again with its zoom sprites' reader in BR-7; the courses keep 71.7 units.
 
 The PRs, in order:
 
-- **BR-6** BIG RUN's six courses without objects: its readers and conversion, its chapter and research note (its Camera
-  (eye height) section among them), its register entry, its own car's width measured again, and its ground transparent
-  where K's decision of 2026-11-11 makes it.
 - **BR-7** BIG RUN's objects, its boards whose foot is below the ground (a cliff's drop, the other road's objects where
   it lies below) among them.
 - **BR-8** The stage closes, its scale across left for K to adjust at the end: this section goes, Stage CS taking what
@@ -779,8 +789,8 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 
 ### Courses of the originals
 
-OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's, POLE POSITION II's, FINAL LAP 2's, CHASE H.Q.'s, TOP SPEED's
-and CONTINENTAL CIRCUS's courses are raised from their ROMs' road data ([Original road data](original-road-data.md));
+OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's, POLE POSITION II's, FINAL LAP 2's, CHASE H.Q.'s, TOP SPEED's,
+CONTINENTAL CIRCUS's and BIG RUN's courses are raised from their ROMs' road data ([Original road data](original-road-data.md));
 RACING HERO is not made (K, 2026-10-22). Their time limits come from reference driving, as for every course.
 
 Left by the stages that raised them, beside what follows:

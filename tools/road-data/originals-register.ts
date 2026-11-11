@@ -33,6 +33,9 @@ import { TOP_SPEED_COMMANDS } from './top-speed/top-speed-commands.js';
 import { CONTINENTAL_CIRCUS_ROMS } from './continental-circus/continental-circus-rom.js';
 import { CONTINENTAL_CIRCUS_CONVERSION } from './continental-circus/continental-circus-course.js';
 import { CONTINENTAL_CIRCUS_COMMANDS } from './continental-circus/continental-circus-commands.js';
+import { BIG_RUN_ROMS } from './big-run/big-run-rom.js';
+import { BIG_RUN_CONVERSION } from './big-run/big-run-course.js';
+import { BIG_RUN_COMMANDS } from './big-run/big-run-commands.js';
 
 /** An original as the tool raises it: its ROM source (its name, `source.original`), its conversion and its commands. */
 export interface RegisteredOriginal {
@@ -55,6 +58,7 @@ export const ORIGINALS: readonly RegisteredOriginal[] = Object.freeze([
     conversion: CONTINENTAL_CIRCUS_CONVERSION,
     commands: CONTINENTAL_CIRCUS_COMMANDS,
   },
+  { source: BIG_RUN_ROMS, conversion: BIG_RUN_CONVERSION, commands: BIG_RUN_COMMANDS },
 ]);
 
 /** An original's conversion command's name: `<original>-course`. */

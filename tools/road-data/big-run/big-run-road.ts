@@ -184,3 +184,42 @@ function pcTable(main: Uint8Array, at: number, what: string) {
   const [disp] = instruction(main, at, [0x41fa, null], `${what} (lea pc)`);
   return at + 2 + ((disp << 16) >> 16);
 }
+
+/** A stretch the main program holds the car on a road over, positions `[from, to)`. */
+export interface BigRunHeld {
+  readonly road: BigRunRoad;
+  readonly from: number;
+  readonly to: number;
+}
+
+/** The main program's copy of a road's profile records: 10 bytes each, its end at +4, its flags at +8. */
+const HELD_BYTES = 10;
+const HELD_FLAG = 2;
+
+/**
+ * The stretches the main program holds the car on a road over in stage `stage` (M 0xEDE to 0xF02, 0x4B2E to 0x4BEE):
+ * its copies of the roads' profile records (16 bytes a stage, road 1's at +8, read as `$f0154`, and road 2's at +12,
+ * `$f0158`), a record whose flags' bit 1 is set holding the car on its road from the end of the record before to its
+ * own end, joined where they follow one another.
+ */
+export function heldStretches(main: Uint8Array, stage: number): readonly BigRunHeld[] {
+  const table = pcTable(main, 0xede, "the main's copies of the roads");
+  instruction(main, 0xee8, [0xe948], 'a stage of 16 bytes (lsl.w #4)');
+  instruction(main, 0xefa, [0x23f0, 0x0008, 0x000f, 0x0154], "road 1's copy ($f0154)");
+  instruction(main, 0xf02, [0x23f0, 0x000c, 0x000f, 0x0158], "road 2's copy ($f0158)");
+  const out: BigRunHeld[] = [];
+  for (const road of [1, 2] as const) {
+    let [at, from] = [long(main, table + 16 * stage + (road === 1 ? 8 : 12)), 0];
+    for (;;) {
+      const end = long(main, at + 4);
+      if (end <= from) break;
+      if (word(main, at + 8) & HELD_FLAG) {
+        const last = out.at(-1);
+        if (last && last.road === road && last.to === from) out[out.length - 1] = { ...last, to: end };
+        else out.push({ road, from, to: end });
+      }
+      [at, from] = [at + HELD_BYTES, end];
+    }
+  }
+  return out.sort((a, b) => a.from - b.from);
+}

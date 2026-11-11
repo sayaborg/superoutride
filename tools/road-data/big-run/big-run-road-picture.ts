@@ -212,3 +212,9 @@ export function paintedRuns(runs: readonly PenRun[]): PaintedRun[] {
 /** A line's road picture across from its centre (`RoadPicture`): its painted runs' edges, the ground's and clear's outside. */
 export const roadPictureOf = (runs: readonly PaintedRun[]): RoadPicture =>
   runs.slice(1).map((r) => ({ at: r.from, right: r.paint === 'clear' ? 'outside' : r.paint }));
+
+/** The position from which a stage's sky fades from its first set to its last (M 0xB97E's table, its record's +0). */
+export function skyChangeAt(main: Uint8Array, stage: number): number {
+  const at = leaAt(main, 0xb97e, "the stages' skies") + 8 * stage;
+  return word(main, at) * 0x10000 + word(main, at + 2);
+}
