@@ -50,7 +50,19 @@ RUN](big-run.md)).
   6,025 positions where it leaves road 2 again, and in STAGE 5 both roads' headings jump beside an arc (road 1 at
   78,497, road 2 at 351,908), where the shared rule lays a jump only between straights.
 - **Its 3D road.** Read as BIG RUN's (its grade's sine a position, a vertical arc's grade changing evenly to the next
-  record's), its heights depart from its records' by thousands of positions: its vertical records are not read yet.
+  record's), its heights depart from its records' by thousands of positions: each vertical arc's angle changes evenly
+  along it (a record of radius 10,000 from −36° to level over 6,283 positions, 10,000 × 0.628), where BIG RUN's model
+  changes its grade's sine evenly, near alike only at small grades; its heights need its arcs as they are.
 - **Held stretches.** As the study found, and past each goal, both roads, stretches its last records hold (not
   courses').
 - **Open.** The speedometer's factor (1.75 km/h a unit) and each stage's goal are not found in the program yet.
+
+## Its road across
+
+- **Its nearest lines.** R1 0x198C to 0x19A6 (R2 the same, its table 4 bytes on): kinds 0 and 2 line 294, then 291 a
+  kind step to kind 14's 2,040; kinds 20, 22 and 24 lines 2,041 (pen 0), 2,042 (pen 6) and 2,043 (clear); the record's
+  +0x18 its entry and +0x1A its stripes' table (from R1 0x1018E by `$c0084`, 0x19AC to 0x19DE).
+- **Its pictures.** Line 294: ground pen 0 beyond 408 units, sidewalk 1 to 312, kerbs 2 to 5 and 9 to 13 to 252, then
+  pen 6 with lane lines of pen 8 at 0 and ±142 (12 units wide); 585 its left side clear to −312, 876 its right, 1,167
+  both; 1,749 a patterned road (pens 7 to 13); 2,040 a striped deck (pens 8 and 14). BIG RUN's paints take the run at
+  the centre as the surface, here a lane line: how CISCO HEAT's lines are painted is open (CS-3).

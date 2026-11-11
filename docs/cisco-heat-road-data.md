@@ -27,6 +27,14 @@ position along and across. The main program holds the car on a road where its li
 record, its end at +4 and its flags at +8), a record whose flags' bit 1 is set holding the car on its road from the end
 of the record before to its own end; each list's first record ends at 0, before the road.
 
+## Its road across
+
+Each line of a road layer is a line of the road ROMs, BIG RUN's format (`jaleco/road-lines`). A plan record's picture
+(+0x16, its kind) is picked as its road CPU picks it (`cisco-heat-road-picture`, R1 and R2 0x198C to 0x19A6): its
+nearest line the word its line-kind table gives the kind (R1 0x2848, R2 0x284C), 294 more below kind 0x14, a picture of
+291 lines; from 0x14 on, one line. Its stages take kinds 0 to 14 (lines 294 to 2,040) and 20 to 24 (lines 2,041 to
+2,043). The run at a line's centre is a lane line (pen 8, as at ±142 units), its surface pen 6 about it.
+
 ## Its skies
 
 CISCO HEAT's sky is the board's: its two tile planes over its road layer's sky rows, each plane showing a scene of
