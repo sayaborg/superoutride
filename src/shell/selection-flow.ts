@@ -35,7 +35,7 @@ export interface SelectionCatalog {
   readonly series: SeriesCatalog;
   readonly frontEnd: FrontEndSelection;
   readonly vehicles: readonly CompiledVehicleDefinition[];
-  /** The driving definition the vehicles run under: their cards' graphs end at its fuel cut. */
+  /** The driving definition the vehicles run under: their cards' engines rev and their graphs end at its fuel cut. */
   readonly driving: CompiledDrivingDefinition;
   readonly freePlay: FreePlayRules;
   /** The delivered tracks; the SETTINGS audition plays the latest, else the first. */
@@ -314,7 +314,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
           page: () => {
             const color = colorOf(v);
             return pageOf(`${v.compiledVehicle.id}/${color}/${changes}`, () =>
-              vehicleCard(v, { color, changes }, catalog.driving.compiledDriving.powertrain.fuelCutEnterRedlineRatio),
+              vehicleCard(v, { color, changes }, catalog.driving),
             );
           },
           change: (by) => {

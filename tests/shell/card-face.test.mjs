@@ -125,11 +125,10 @@ test("every delivered course's page fits its card, and its words rise only when 
 
 test("every delivered vehicle's card fits its card in each of its colors, and only its color line tells the colors apart", () => {
   const faces = createCardFaces(tiles);
-  const fuelCut = driving.compiledDriving.powertrain.fuelCutEnterRedlineRatio;
   for (const vehicle of vehicles)
     for (const changes of [true, false]) {
       const shown = spriteSetColors(vehicle.spriteSet).map((color) => {
-        const page = vehicleCard(vehicle, { color, changes }, fuelCut);
+        const page = vehicleCard(vehicle, { color, changes }, driving);
         return draw(faces, { name: page.title, line: '', dim: false, page }, 0);
       });
       // Two colors' cards differ in the picture and on the color line (row 19) alone.
@@ -144,4 +143,31 @@ test("every delivered vehicle's card fits its card in each of its colors, and on
           assert.ok(inPicture || onColorLine, `${vehicle.compiledVehicle.id}: (${cx}, ${cy}) differs between colors`);
         }
     }
+});
+
+test("a vehicle's card at rest in focus turns its picture and revs its engine, within the picture and the graph", () => {
+  const faces = createCardFaces(tiles);
+  const vehicle = vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
+  const page = vehicleCard(vehicle, { color: spriteSetColors(vehicle.spriteSet)[0], changes: true }, driving);
+  const face = { name: page.title, line: '', dim: false, page };
+  const still = draw(faces, face, 0);
+  // Which of the picture and the graph differ from the still card after `steps`; nothing else may.
+  const moved = (steps) => {
+    const shown = draw(faces, face, steps),
+      found = new Set();
+    for (let y = 0; y < still.height; y++)
+      for (let x = 0; x < still.width; x++) {
+        const i = y * still.width + x;
+        if (still.pixels[i] === shown.pixels[i]) continue;
+        const [cx, cy] = [x - CARD.x, y - CARD.y];
+        assert.ok(cy >= 3 * 8 && cy < 12 * 8, `(${cx}, ${cy}) moved outside the picture and the graph`);
+        found.add(cx < 16 * 8 ? 'picture' : 'graph');
+      }
+    return [...found].sort();
+  };
+  // Full throttle from 1.5 s: past a turn's sixteenth the picture has turned, and the engine stands on the graph.
+  assert.deepEqual(moved(120), ['graph', 'picture']);
+  // Five whole turns of the picture later it stands as at rest again, while the free revving, repeating its second
+  // turn of 6 s, stands 2 s into it at full throttle once more.
+  assert.deepEqual(moved(5 * 64 * 6), ['graph']);
 });
