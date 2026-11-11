@@ -437,9 +437,9 @@ K's decisions (2026-11-09):
   middle, P the second road CPU's road (K, 2026-11-09). Each object stands by the road its record's flag names, its
   lateral measured from that road's centre: P for the second road's, P plus the first road's lateral for the first's.
   They part and meet again in SPECIAL STAGES 1, 2 and 4, and STARTING RUN starts with them side by side. Where one
-  leaves and does not come back, VICTORY RUN's first road turning away 90° from 2.16 km, the course holds the other and
-  draws the one that leaves as the road not taken, its objects with it, as far as the original draws it; VICTORY RUN
-  stays one course, as the course texts have it.
+  leaves and does not come back, VICTORY RUN's first road going on straight where the second turns 90° from 2.47 km, the
+  course holds the other and draws the one that leaves as the road not taken, its objects with it, as far as the
+  original draws it; VICTORY RUN stays one course, as the course texts have it.
 - **Its scale across** is its own car's (K, 2026-11-09): at the depth the original draws it, its straight picture is as
   wide as a real car of its kind in 1989, 1.76 m, the Peugeot 405 Turbo 16 Grand Raid's, its chapter citing
   Ultimatecarpage. The study measured the picture 71.7 units wide, so a unit across is 24.5 mm, 1.86 times a unit along
@@ -473,7 +473,7 @@ K decided (2026-11-11):
 
 - **Its two roads' heights.** The original draws each road at its own heights, each road CPU its own layer, and this
   game's one road layer draws one road's: the course takes the second road's heights, and the first's through SPECIAL
-  STAGE 2's parting in height, where the two share their plan, the first lies above and the original holds the car on
+  STAGE 2's parting in height, where the two share their plan, the first lies below and the original holds the car on
   it. Where the two share their plan and part in height, the other road is not drawn; where they lie apart, both are
   drawn at the course's heights. Where the original's road lines leave a side transparent and show beneath it ground
   more than 1 m below the course, or its background, the ground on that side is transparent (a Strip's `"transparent"`
@@ -481,8 +481,8 @@ K decided (2026-11-11):
   foot is below the ground ([Rules of the originals](original-road-data.md#rules-of-the-originals)) are seen before its
   sky's rows below the horizon: a cliff's faces, and the other road's standing objects at its own heights (a negative
   `groundOffset`). Its lying objects there are not placed, as no picture folds below the ground, and where it lies
-  above, as through the five other partings in height the original holds the car through, none of its objects is, as
-  that road is not drawn. No construct is added: the format and the engine draw all of it.
+  above, as through SPECIAL STAGE 2's parting, none of its objects is, as that road is not drawn. No construct is added:
+  the format and the engine draw all of it.
 - **Its lanes** are its town paving's wherever its road goes ([two roads](original-road-data.md#two-roads)): its
   desert's road, as wide at every depth, paints no lane line.
 - **Its tables' check** is record by record: each record is laid from the table's own heading and position where it
