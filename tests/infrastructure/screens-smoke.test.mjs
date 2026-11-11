@@ -203,9 +203,9 @@ test('the front end screens render from the delivered content', async () => {
   send('CONFIRM', 'RIGHT', 'CONFIRM');
   await capture('rules');
   send('CONFIRM');
-  await capture('select-original');
-  send('CONFIRM');
   await capture('select-course');
+  send('CONFIRM');
+  await capture('free-play-vehicle');
   send('BACK', 'BACK', 'BACK', 'RIGHT', 'CONFIRM');
   await capture('settings');
   send('LEFT', 'CONFIRM');
