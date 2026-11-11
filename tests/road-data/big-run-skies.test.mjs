@@ -2,14 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { rgb555Of } from '../../tools/road-data/jaleco/palette.ts';
 import { tilePen } from '../../tools/road-data/jaleco/ms1-tiles.ts';
-import {
-  bigRunScenes,
-  bigRunSky,
-  PLANE_TURN,
-  scenePicture,
-  SKY_MIDDLE,
-  skyRamp,
-} from '../../tools/road-data/big-run/big-run-backgrounds.ts';
+import { boardScenes, boardSky, scenePicture, SKY_MIDDLE, skyRamp } from '../../tools/road-data/jaleco/ms1-skies.ts';
+import { BIG_RUN_SKIES } from '../../tools/road-data/big-run/big-run-backgrounds.ts';
+
+const PLANE_TURN = BIG_RUN_SKIES.turn;
+const bigRunScenes = (main, plane, stage) => boardScenes(main, BIG_RUN_SKIES, plane, stage);
 import { TRANSPARENT } from '../../tools/road-data/shared/sky-baking.ts';
 
 test('a palette word is each channel’s four high bits then its low bit, put in RGB555’s places', () => {
@@ -77,7 +74,7 @@ test("a scene's picture is its columns side by side, its bottom row its offset b
   const tiles = new Uint8Array(32 * 8);
   tiles[4 * 32] = 0x3f; // tile 1's top-left pixel pen 3, the next pen 15 (not drawn)
   const [scene] = bigRunScenes(main, 1, 0);
-  const picture = scenePicture(main, tiles, scene);
+  const picture = scenePicture(main, BIG_RUN_SKIES, tiles, scene);
   assert.equal(picture.width, 32);
   assert.equal(picture.pixels.length, 32 * 15 * 16);
   // Row 14's first pixel row, column 0: pen 3 in entry 0, then pen 15 transparent.
@@ -89,7 +86,10 @@ test("a scene's picture is its columns side by side, its bottom row its offset b
   assert.equal(picture.turn, PLANE_TURN[1]);
   // A tile taking an entry the scene loads none of is refused.
   const none = program({ entries: 0 });
-  assert.throws(() => scenePicture(none, tiles, bigRunScenes(none, 1, 0)[0]), /entry 0 it loads none of/);
+  assert.throws(
+    () => scenePicture(none, BIG_RUN_SKIES, tiles, bigRunScenes(none, 1, 0)[0]),
+    /entry 0 it loads none of/,
+  );
 });
 
 test("the sky's ramp is the road layer's rows, a line's band one pen of its entry; the back plane faces", () => {
@@ -104,14 +104,22 @@ test("the sky's ramp is the road layer's rows, a line's band one pen of its entr
   // Row 0: line 0, scroll 0 (pen 0); row 1: line 1, scroll 256 (pen 5); entry 25.
   put(0x5000, [0, 0, 25, 1, 256, 25]);
   for (let k = 2; k < 224; k++) put(0x5000 + 6 * k, [0, 0, 25]);
-  const ramp = skyRamp(road, palette);
+  const ramp = skyRamp(road, BIG_RUN_SKIES, palette);
   assert.equal(ramp.rows.length, 224);
   assert.deepEqual([ramp.rows[0], ramp.rows[1]], [(0 << 10) | (0 << 5) | 30, (0 << 10) | (30 << 5) | 0]);
   assert.equal(ramp.below, ramp.rows[0]);
   put(0x5000, [4, 0, 25]);
-  assert.throws(() => skyRamp(road, palette), /no single color/);
+  assert.throws(() => skyRamp(road, BIG_RUN_SKIES, palette), /no single color/);
   put(0x5000, [0, 0, 25]);
-  const sky = bigRunSky(main, [new Uint8Array(1024), new Uint8Array(1024)], road, palette, undefined, undefined);
+  const sky = boardSky(
+    main,
+    BIG_RUN_SKIES,
+    [new Uint8Array(1024), new Uint8Array(1024)],
+    road,
+    palette,
+    undefined,
+    undefined,
+  );
   assert.equal(sky.facing, 0);
   assert.equal(sky.layers[1].overlap, SKY_MIDDLE - (SKY_MIDDLE * PLANE_TURN[0]) / PLANE_TURN[1]);
 });

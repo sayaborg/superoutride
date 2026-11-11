@@ -35,7 +35,8 @@ the main's and the road CPUs' programs are plain.
 ## Its skies
 
 BIG RUN's sky is its two tile planes over its road layer's sky rows ([research notes](research/big-run.md#the-sky)), each
-plane showing a scene of pictures that changes along the road (`big-run-backgrounds`).
+plane showing a scene of pictures that changes along the road: the JALECO board's skies (`jaleco/ms1-skies`), read where
+BIG RUN's programs hold them (`big-run-backgrounds`).
 
 - **The ramp.** Above the horizon each line of a road layer is one of the road ROM's lines 0 to 3, each four bands of 256
   pixels of one pen each (pens 4 × line to 4 × line + 3), scrolled to one band and colored by one entry of its road
@@ -56,7 +57,7 @@ plane showing a scene of pictures that changes along the road (`big-run-backgrou
   4,320 and 2,880 pixels, 2.8125 pictures each, so each plane is laid round from its seam
   ([Sky baking](original-road-data.md#sky-baking)). Plane 0 faces the sky. Each plane is loaded with its scroll 8 (M
   0x8EDE, 0x930C), its pixel 136 at the screen's middle column (`SKY_MIDDLE`), and the front's overlap is the one at which
-  both face it; the seam lies half a turn of the back from it (`SKY_SEAM`).
+  both face it; the seam lies half a turn of the back from it (`skySeam`).
 - **Their rows.** A plane's row offset is its scene's +8 plus the road's rows above its last line, which the road CPU
   gives (`$f6022`, M 0x8E88), so that a picture's bottom row lies its scene's offset below the horizon less the screen's
   240 rows, whatever the road's rows: 32 to 138 rows below it. Along a scene the program moves a plane up and down by its

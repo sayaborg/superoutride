@@ -32,7 +32,8 @@ import { lanesOverTwoRoads, type DrivenLanes } from '../shared/two-roads.js';
 import { bigRunBoards, boardName } from './big-run-boards.js';
 import { bigRunObjects, ownCarUnits, spritePalette, type BigRunObject } from './big-run-objects.js';
 import { spritePen } from '../jaleco/zoom-sprites.js';
-import { bigRunScenes, bigRunSky, PLANE_TURN, SKY_MIDDLE, STAGES, type BigRunScene } from './big-run-backgrounds.js';
+import { BIG_RUN_SKIES, STAGES } from './big-run-backgrounds.js';
+import { boardScenes, boardSky, SKY_MIDDLE, type BoardScene } from '../jaleco/ms1-skies.js';
 import { bigRunProfile, steepestRecordGrade } from './big-run-heights.js';
 import { bigRunPlan } from './big-run-plan.js';
 import {
@@ -492,8 +493,8 @@ export function bigRunCourses(set: RomSet) {
     };
     // Its skies: each plane's scene in force and the ramp's set, changing where a scene starts or the ramp's change
     // begins (over its fade at the own car's top speed).
-    const scenes = ([0, 1] as const).map((plane) => bigRunScenes(main, plane, stage));
-    const sceneAt = (plane: 0 | 1, p: number): BigRunScene | undefined =>
+    const scenes = ([0, 1] as const).map((plane) => boardScenes(main, BIG_RUN_SKIES, plane, stage));
+    const sceneAt = (plane: 0 | 1, p: number): BoardScene | undefined =>
       [...scenes[plane]!].reverse().find((sc) => sc.start <= p);
     const skyRecord = skyChangeAt(main, stage);
     const [first, last] = SKY_ENTRIES;
@@ -531,7 +532,11 @@ export function bigRunCourses(set: RomSet) {
         outputs.file(
           `images/${k.image}.json`,
           JSON.stringify(
-            bakeSky(k.image, bigRunSky(main, tiles, programOf(2), palette, k.back, k.front), PIXEL_ASPECT),
+            bakeSky(
+              k.image,
+              boardSky(main, BIG_RUN_SKIES, tiles, programOf(2), palette, k.back, k.front),
+              PIXEL_ASPECT,
+            ),
           ),
         );
       }
@@ -539,7 +544,7 @@ export function bigRunCourses(set: RomSet) {
     const headingAt = (p: number) => ((path.pose(station(p)).heading - path.pose(back).heading) * 180) / Math.PI;
     const yawOf = (k: (typeof skyKnots)[number], s: number) => {
       const loaded = k.back ? headingAt(k.back.start) : 0;
-      const origin = skyYawOrigin(SKY_MIDDLE + (PLANE_TURN[0] / 360) * loaded, PLANE_TURN[0]);
+      const origin = skyYawOrigin(SKY_MIDDLE + (BIG_RUN_SKIES.turn[0] / 360) * loaded, BIG_RUN_SKIES.turn[0]);
       return micrometre(sectionYawOrigin(origin, ((path.pose(s).heading - path.pose(back).heading) * 180) / Math.PI));
     };
     // A Section's strips: each road's picture drawn, road 1's beneath road 2's, each run striped by its colors.
