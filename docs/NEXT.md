@@ -71,7 +71,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-BR](#stage-br--big-run-from-the-roms)'s raising, BR-7 next; later [Stage CS](#stage-cs--cisco-heat-from-the-roms);
+BR](#stage-br--big-run-from-the-roms)'s raising, BR-8 next; later [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -521,12 +521,17 @@ Defaults for K to confirm before the stage closes, each its PR's:
   where its lateral can be taken across P.
 - **Its skies** (BR-6c). A sky's change laid over its fade's 48 ticks at 200 km/h; a sky's yaw its back plane facing its
   middle column where its scene loads, the front plane's overlap as when both load together (BR-5).
-- **Its own car's width** (BR-6c). Measured again with its zoom sprites' reader in BR-7; the courses keep 71.7 units.
+- **Its own car's width** (BR-7). Measured again from its frame and zoom tables: 85.0 units, where the study had 71.7
+  (its zoom taken twice), so a unit across is 20.7 mm; K adjusts it at the end.
+- **Its objects' places** (BR-7). An object's lateral is its picture's left edge, as the board's sprite is placed by its
+  left edge; its lateral and height in units across; its pen 0, a shadow or a color, transparent.
+- **Its objects' hits** (BR-7). An object in the program's list of things the car meets (flags' bits 9 and 10) has a
+  body as wide as its picture's colored columns; how the program meets them is not read.
+- **Objects not placed** (BR-7). Those of kinds other than 0, which the program moves or picks, and those of a sprite
+  of its shadow alone; the conversion reports how many each course leaves.
 
 The PRs, in order:
 
-- **BR-7** BIG RUN's objects, its boards whose foot is below the ground (a cliff's drop, the other road's objects where
-  it lies below) among them.
 - **BR-8** The stage closes, its scale across left for K to adjust at the end: this section goes, Stage CS taking what
   it needs of it, what is left goes to [Courses of the originals](#courses-of-the-originals), and BIG RUN's class goes
   into [the product](product.md#arcade-tribute).

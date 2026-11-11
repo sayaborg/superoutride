@@ -7,8 +7,7 @@ its [research notes](research/big-run.md)'s.
 BIG RUN's courses are raised from MAME's `bigrun` (Big Run (11th Rallye version, Europe?), JALECO, 1989), its parent
 set (K, 2026-11-05). Its hardware and ROM list were read from MAME's drivers `src/mame/jaleco/cischeat.cpp`,
 `jaleco_road.cpp`, `jaleco_zoomspr.cpp` and `ms1_tmap.cpp` at MAME commit `179cfab56339b66c056e42d128dfe4e132cf2616`.
-Its six courses are raised without their objects, which come with Stage BR's next PR
-([NEXT](NEXT.md#stage-br--big-run-from-the-roms)).
+Its six courses are raised with their objects.
 
 ## Its ROM set
 
@@ -160,6 +159,15 @@ Its six courses (`big-run-course`) are its stages, `big-run-starting-run`, `big-
   the ground beside the road, by their colors (`groundMaterial`), water only in a river; under a clear run and between
   the roads `SAND`, and the lanes keep the held road's surface's where a picture gives them none.
 - **Its limits** lie 512 units, a line's half, beyond the outermost road's centre on each side.
+- **Its objects** of kind 0 stand where their records put them, each a board of its descriptor's sprite in its stage's
+  sprites' palette ([its objects](#its-objects)): its lateral its picture's left edge from its road's centre, its height
+  its board's base over that road, both in units across. On a road not drawn they stand at that road's height below the
+  course's, and where it lies above none does; past the road not taken's end none does. A hit (flags' bits 9 and 10,
+  which the program puts in its list of things the car meets) has a body as wide as its picture's colored columns.
+  Objects of the other kinds, which the program moves or picks, are not placed.
+- **Its scale across** is its own car's straight picture's (K, 2026-11-09): its frame 0, 64 colored columns, drawn at
+  the zoom its distance gives (M 0x12200, the table at 0x13B000: 102,000 ÷ (d + 600)) over the road's pixels a unit
+  there, 600 ÷ (d + 600), is 85.0 units at every distance, so a unit across is 1.76 m ÷ 85.0, 20.7 mm.
 - **Its skies** are its planes' scenes in force with the sky's entries' first set, and their last from where its stage's
   sky changes, laid where a scene starts and over 1.6 s at 200 km/h where the sky changes; a sky's yaw is its back
   plane facing its middle column where its scene loads, turning 8 pixels a degree.
@@ -178,5 +186,9 @@ zoomed sprites (`jaleco/zoom-sprites`; [research notes](research/big-run.md#its-
 - **A sprite's tiles** are 16 × 16 pixels at 4 bits, a tile's left 8 columns, 4 bytes a row, before its right 8 (MAME's
   description untangles them so), the left pixel of a byte its high nibble; pen 15 is not drawn and pen 0 is a shadow
   where the attribute's bit 12 asks for one. A zoom of 128 draws a tile at its size.
+- **Their size.** An object's zoom at distance d (M 0xAB28, the table at 0x11DE00) is 153,000 ÷ (d + 600), times its
+  descriptor's scale over 128 (M 0xB25A to 0xB27E), so a sprite's pixel at scale 128 spans 1.99 units across at every
+  distance, the road's pixels a unit there 600 ÷ (d + 600); its lateral (+8) and height (+A) are scaled as the road's
+  units (M 0xB0F2 to 0xB1A4, the table at 0x122E00).
 - **Their colors** are the sprites' palette as the stage loads it: its first 24 entries at boot (M 0x179C), then its
   stage's list from entry 25 (M 0xB884: an entry's words' offset, signed, into the table at M 0xB894 each).

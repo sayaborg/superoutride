@@ -117,3 +117,31 @@ export function spritePalette(main: Uint8Array, stage: number): readonly (readon
   }
   return out;
 }
+
+/**
+ * The own car's straight picture's width, units across (K, 2026-11-09: its scale across): its frame 0 (the frames' table
+ * at M 0x122C4, a pointer a frame; a frame's size at +4 and first tile at +6) drawn at the zoom its distance gives (M
+ * 0x12200: the table at 0x13B000, a word a position, its low byte the zoom), its colored columns' pixels at that zoom
+ * over the road's pixels a unit at that distance, 600 ÷ (d + 600): the same at every distance.
+ */
+export function ownCarUnits(main: Uint8Array, pen: (tile: number, x: number, y: number) => number) {
+  const [zh, zl] = instruction(main, 0x12200, [0x43f9, null, null], "the car's zoom (lea)");
+  const [disp] = instruction(main, 0x122c4, [0x43fa, null], "the car's frames (lea pc)");
+  const frame = long(main, 0x122c6 + ((disp << 16) >> 16));
+  const size = word(main, frame + 4);
+  const tile = word(main, frame + 6);
+  const [across, down] = [(size & 15) + 1, ((size >> 4) & 15) + 1];
+  let [from, to] = [Infinity, -Infinity];
+  for (let ty = 0; ty < down; ty++)
+    for (let tx = 0; tx < across; tx++)
+      for (let y = 0; y < 16; y++)
+        for (let x = 0; x < 16; x++) {
+          const p = pen(tile + ty * across + tx, x, y);
+          if (p !== 15 && p !== 0) [from, to] = [Math.min(from, tx * 16 + x), Math.max(to, tx * 16 + x + 1)];
+        }
+  const zoom = main[zh * 0x10000 + zl + 2 * EYE + 1]!;
+  return ((to - from) * zoom) / 128 / (EYE / (EYE + EYE));
+}
+
+/** Its eye's distance behind the plane a unit is a pixel at, positions, at which the zooms are taken. */
+const EYE = 600;

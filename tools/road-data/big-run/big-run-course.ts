@@ -12,6 +12,7 @@ import type {
 } from '../../../src/course/course-document.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
+import { instruction } from '../cpu/program-words.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
 import { CoursePath } from '../shared/course-path.js';
@@ -25,9 +26,12 @@ import type { Bend, Kink } from '../shared/road-profile.js';
 import type { Material } from '../shared/road-surface.js';
 import type { RomSet } from '../shared/rom-set.js';
 import { lensFactor } from '../shared/screen-pieces.js';
-import { micrometre, simplified, stripElement } from '../shared/section-writing.js';
+import { micrometre, simplified, spriteElement, stripElement } from '../shared/section-writing.js';
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
 import { lanesOverTwoRoads, type DrivenLanes } from '../shared/two-roads.js';
+import { bigRunBoards, boardName } from './big-run-boards.js';
+import { bigRunObjects, ownCarUnits, spritePalette, type BigRunObject } from './big-run-objects.js';
+import { spritePen } from '../jaleco/zoom-sprites.js';
 import { bigRunScenes, bigRunSky, PLANE_TURN, SKY_MIDDLE, STAGES, type BigRunScene } from './big-run-backgrounds.js';
 import { bigRunProfile, steepestRecordGrade } from './big-run-heights.js';
 import { bigRunPlan } from './big-run-plan.js';
@@ -48,6 +52,7 @@ import {
 import {
   assembleBigRunMain,
   assembleBigRunRoadCpu,
+  assembleBigRunSprites,
   BIG_RUN_ROAD_ROMS,
   BIG_RUN_TILE_ROMS,
   concatenated,
@@ -79,12 +84,10 @@ const NAMES = Object.freeze([
 const idOf = (name: string) => `big-run-${name.toLowerCase().replace(/ /g, '-')}`;
 
 /**
- * Its scale across (K, 2026-11-09): its own car's straight picture, drawn where its road is a unit a pixel, is as wide
- * as a Peugeot 405 Turbo 16 Grand Raid, 1.76 m (Ultimatecarpage), `CAR_UNITS` units.
+ * Its scale across (K, 2026-11-09): its own car's straight picture (`ownCarUnits`) is as wide as a Peugeot 405 Turbo 16
+ * Grand Raid, 1.76 m (Ultimatecarpage).
  */
 const CAR_METRES = 1.76;
-export const CAR_UNITS = 71.7;
-const ACROSS = CAR_METRES / CAR_UNITS;
 
 /** Its screen: 224 rows shown at 4:3 of 256 columns, a pixel 7/6 as wide as high. */
 const SCREEN_ROWS = 224;
@@ -154,6 +157,25 @@ function periodic<T>(
   return out;
 }
 
+/**
+ * A sprite's pixel at its descriptor's scale 128, units across: the objects' zoom at distance d (M 0xAB28: the table at
+ * 0x11DE00, a word a position, its low byte the zoom, 128 a tile's own size) over the road's pixels a unit there,
+ * 600 ÷ (d + 600) ([its camera](../../../docs/big-run-road-data.md#its-camera)), at the distance 600 ahead.
+ */
+function spritePixelUnits(main: Uint8Array) {
+  const [high, low] = instruction(main, 0xab28, [0x43f9, null, null], "the objects' zoom (lea)");
+  const d = EYE;
+  const zoom = main[high * 0x10000 + low + 2 * d + 1]!;
+  return zoom / 128 / (EYE / (d + EYE));
+}
+/** An object's flags: mirrored (bit 8, M 0xB186), and a hit (bits 9 and 10, M 0xB52A to 0xB540). */
+const MIRRORED = 0x100;
+const HIT = 0x600;
+/** A screen pixel's height over its width: 256 × 224 shown at 4:3. */
+const SCREEN_PIXEL_HEIGHT = 6 / 7;
+/** Its eye's distance behind the plane a unit is a pixel at, positions. */
+const EYE = 600;
+
 /** BIG RUN's courses from its ROM set. */
 export function bigRunCourses(set: RomSet) {
   const main = assembleBigRunMain(set);
@@ -188,6 +210,46 @@ export function bigRunCourses(set: RomSet) {
   const steepest = Math.max(...stages.flatMap((s) => s.roads.map((t) => steepestRecordGrade(t.profile, s.goal))));
   const f = lensFactor(focalRows(cpus[0]), SCREEN_ROWS, steepest);
   const skies = new Set<string>();
+  const sprites = assembleBigRunSprites(set);
+  const carUnits = ownCarUnits(main, (tile, x, y) => spritePen(sprites, tile, x, y));
+  const ACROSS = CAR_METRES / carUnits;
+  // A sprite's pixel at scale 128, metres: its zoom at a distance over the road's pixels a unit there (M 0x11DE00).
+  const unitMetres = spritePixelUnits(main) * ACROSS;
+  // Its objects' boards: one a descriptor and mirroring over every stage, a palette each set of its colors a stage's
+  // sprites' palette gives the entry its objects take.
+  const paletteNames = new Map<string, Map<string, string>>();
+  const usesOf = new Map<
+    string,
+    { descriptor: number; mirrored: boolean; palettes: { name: string; colors: readonly number[] }[] }
+  >();
+  const paletteOf = (stage: number, o: BigRunObject) =>
+    paletteNames.get(boardName(o.descriptor, (o.flags & MIRRORED) !== 0))!.get(`${stage} ${o.color}`)!;
+  for (const { stage, end } of stages) {
+    const colors = spritePalette(main, stage);
+    for (const o of bigRunObjects(main, stage)) {
+      if (o.kind !== 0 || o.position >= end) continue;
+      const entry = colors[o.color];
+      if (!entry)
+        throw contractUnmet(`${NAMES[stage]}'s objects take sprite colors ${o.color} its stage loads none of`);
+      const mirrored = (o.flags & MIRRORED) !== 0;
+      const key = boardName(o.descriptor, mirrored);
+      const use = usesOf.get(key) ?? { descriptor: o.descriptor, mirrored, palettes: [] };
+      usesOf.set(key, use);
+      const names = paletteNames.get(key) ?? new Map<string, string>();
+      paletteNames.set(key, names);
+      if (names.has(`${stage} ${o.color}`)) continue;
+      const same = use.palettes.find((p) => p.colors.join() === entry.join());
+      const name =
+        same?.name ??
+        `p${String(o.color).padStart(3, '0')}${use.palettes.some((p) => p.name.startsWith(`p${String(o.color).padStart(3, '0')}`)) ? `-${stage}` : ''}`;
+      if (!same) use.palettes.push({ name, colors: entry });
+      names.set(`${stage} ${o.color}`, name);
+    }
+  }
+  const boards = new Map(
+    bigRunBoards(main, sprites, [...usesOf.values()], unitMetres, SCREEN_PIXEL_HEIGHT).map((b) => [b.name, b]),
+  );
+  for (const b of boards.values()) outputs.file(b.image.path, b.image.bytes);
   const courses = stages.map(({ stage, goal, end, roads: [road1, road2] }) => {
     const name = NAMES[stage]!;
     const id = idOf(name);
@@ -311,6 +373,7 @@ export function bigRunCourses(set: RomSet) {
       else pieces.push(piece);
     }
     const path = new CoursePath(pieces);
+    const laidLength = path.length;
     // Its heights, f times its 3D road's, in metres.
     const bends: Bend[] = heights.profile.bends.map((b) => ({
       from: station(b.from),
@@ -348,6 +411,41 @@ export function bigRunCourses(set: RomSet) {
     };
     // A road's palette, its layer's (road 1 the first road CPU's), by its stage and sky's set.
     const palettes = [stagePalettes(main, stage), stagePalettes(main, stage, LAST_SKY_SET)] as const;
+    // Its objects: those of kind 0, a picture standing where it is put, up to its end; the others, which the program
+    // moves or picks, are not placed (counted).
+    const objects = bigRunObjects(main, stage).filter((o) => o.position < end);
+    const plain = objects.filter((o) => o.kind === 0);
+    // Each object's place: its road's centre, its lateral its picture's left edge, its height over its road; on a road
+    // not drawn, at that road's height below the course's, and none where it lies above or past the road not taken.
+    const placeOf = (o: BigRunObject) => {
+      const p = o.position;
+      const centre = o.road === 2 ? 0 : shown1.at(p);
+      let lift = o.height * ACROSS;
+      if (o.road === 1 && p >= leavesAt && p >= notTakenEnd) return null;
+      if (!drawn(o.road, p)) {
+        const own = otherHeights[o.road - 1]!.height(p) - heights.profile.height(p);
+        if (own > 0) return null;
+        lift += own * f * metres;
+      }
+      const board = boards.get(boardName(o.descriptor, (o.flags & MIRRORED) !== 0));
+      if (!board) return null;
+      const palette = paletteOf(stage, o);
+      const hit = (o.flags & HIT) === HIT;
+      return {
+        s: station(p),
+        image: board.name,
+        palette,
+        lateral: (centre + o.lateral) * ACROSS,
+        groundOffset: lift,
+        body: hit
+          ? [{ across: (board.colored[0] + board.colored[1]) / 2, width: board.colored[1] - board.colored[0] }]
+          : null,
+      };
+    };
+    const placed = plain.flatMap((o) => {
+      const at = placeOf(o);
+      return at ? [at] : [];
+    });
     const stripeOf = [stripes(programOf(1), 1), stripes(programOf(2), 2)] as const;
     // A road's picture at `p` across: its painted runs and each run's colors over a stripe's period, its material.
     const runsOf = (road: BigRunRoad, p: number) => {
@@ -641,6 +739,19 @@ export function bigRunCourses(set: RomSet) {
               knots: road1Knots.map(([s, lateral]) => ({ at: positionAt(s), lateral })),
             },
           ],
+          sprites: placed
+            .filter((t) => t.s >= span.from && (t.s < span.to || (span.to >= laidLength - 1e-6 && t.s <= span.to)))
+            .sort((a, b) => a.s - b.s || a.lateral - b.lateral)
+            .map((t) =>
+              spriteElement({
+                image: t.image,
+                palette: t.palette,
+                at: positionAt(t.s),
+                lateral: t.lateral,
+                groundOffset: t.groundOffset,
+                body: t.body,
+              }),
+            ),
           environments: [
             environment(inForce, span.from),
             ...skyKnots.filter((k) => k.s > span.from + 1e-6 && k.s < span.to - 1e-6).map((k) => environment(k, k.s)),
@@ -665,6 +776,12 @@ export function bigRunCourses(set: RomSet) {
       },
       heights: { departure: round1(heights.departure) },
       held: held.map((h) => [h.road, h.from, h.to]),
+      // Its objects: placed, their hits, and those not placed (other kinds, above the course, past the road not taken).
+      objects: {
+        placed: placed.length,
+        hits: placed.filter((t) => t.body).length,
+        notPlaced: objects.length - placed.length,
+      },
       skies: skyKnots.map((k) => ({ at: round1(k.s), image: k.image, transition: round1(k.transition) })),
     };
   });
@@ -672,6 +789,7 @@ export function bigRunCourses(set: RomSet) {
     outputs,
     report: {
       positionMetres: Number(metres.toPrecision(6)),
+      carUnits: round1(carUnits),
       acrossMetres: Number(ACROSS.toPrecision(6)),
       factor: round3(f),
       skies: skies.size,
