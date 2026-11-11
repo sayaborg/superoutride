@@ -71,7 +71,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-BR](#stage-br--big-run-from-the-roms)'s raising, BR-4 next; later [Stage CS](#stage-cs--cisco-heat-from-the-roms);
+BR](#stage-br--big-run-from-the-roms)'s raising, BR-5 next; later [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -469,13 +469,31 @@ K's decisions (2026-11-09):
   river crossings, each set named in its chapter.
 - **Its order.** It is raised beside Stage RM now that Stage TA has closed, and CISCO HEAT after it.
 
+K decided (2026-11-11):
+
+- **Its two roads' heights.** The original draws each road at its own heights, each road CPU its own layer, and this
+  game's one road layer draws one road's: the course takes the second road's heights, and the first's through SPECIAL
+  STAGE 2's parting in height, where the two share their plan, the first lies above and the original holds the car on
+  it. Where the two share their plan and part in height, the other road is not drawn; where they lie apart, both are
+  drawn at the course's heights. Where the original's road lines leave a side transparent and show beneath it ground
+  more than 1 m below the course, or its background, the ground on that side is transparent (a Strip's `"transparent"`
+  color); if its data does not tell where, where the other road lies more than 1 m below. Through it the boards whose
+  foot is below the ground ([Rules of the originals](original-road-data.md#rules-of-the-originals)) are seen before its
+  sky's rows below the horizon: a cliff's faces, and the other road's standing objects at its own heights (a negative
+  `groundOffset`). Its lying objects there are not placed, as no picture folds below the ground, and where it lies
+  above, as through the five other partings in height the original holds the car through, none of its objects is, as
+  that road is not drawn. No construct is added: the format and the engine draw all of it.
+- **Its lanes** are its town paving's wherever its road goes ([two roads](original-road-data.md#two-roads)): its
+  desert's road, as wide at every depth, paints no lane line.
+
 The PRs, in order:
 
-- **BR-4** A plan from a table's arcs, a shared rule: its reader and section, a heading's jump laid as a turn.
 - **BR-5** BIG RUN's skies, with the JALECO board's layer as they need it.
 - **BR-6** BIG RUN's six courses without objects: its readers and conversion, its chapter and research note (its Camera
-  (eye height) section among them), its register entry, and its own car's width measured again.
-- **BR-7** BIG RUN's objects, its boards whose foot is below the ground (a cliff's drop) among them.
+  (eye height) section among them), its register entry, its own car's width measured again, and its ground transparent
+  where K's decision of 2026-11-11 makes it.
+- **BR-7** BIG RUN's objects, its boards whose foot is below the ground (a cliff's drop, the other road's objects where
+  it lies below) among them.
 - **BR-8** The stage closes, its scale across left for K to adjust at the end: this section goes, Stage CS taking what
   it needs of it, what is left goes to [Courses of the originals](#courses-of-the-originals), and BIG RUN's class goes
   into [the product](product.md#arcade-tribute).
@@ -496,8 +514,9 @@ K's decisions (2026-11-09):
   road not taken. In STAGE 5 they change their order across eight times, its first road on one side of its second where
   they run side by side and on the other where they part widest, as BIG RUN's and its other stages' never do; [the lanes
   over two roads](original-road-data.md#two-roads) take either order.
-- **Its heading's jumps** between straights (4° to 20°) are laid as turns by BR-4's rule, and where its second road
-  jumps back onto its first at the end of their parting, a Section is cut.
+- **Its heading's jumps** between straights (4° to 20°) are laid as turns by [the plan from a table's
+  arcs](original-road-data.md#plan-from-a-tables-arcs), and where its second road jumps back onto its first at the end
+  of their parting, a Section is cut.
 - **Its heights** are no 3D road times f: its grades pass −90° and its stages fall by up to a fifth of their length,
   which its camera, tilting with the road, never shows. They are read back from its screen as [Profile from the
   original's screen](original-road-data.md#profile-from-the-originals-screen) reads a screen alone, the rule extended to

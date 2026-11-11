@@ -18,9 +18,10 @@ holds and links the section here that states its rule; this is their one map.
   - _reading_: zips and ROM sets (`zip`, `rom-set`), how a conversion fails (`conversion-errors`), and a road position's
     length (`road-position`);
   - _the plan_: a heading table's plan (`heading-plan`: its runs and the turns between them), a curve table's
-    (`curve-plan`: its arcs and its runs), the plan laid in the world (`course-path`: `CoursePath`), and [a lap on its
-    model](#a-lap-on-its-model): K's models (`course-models`, the folder `course-sources/`), the lap laid, measured and
-    solved (`model-lap`, by `least-squares`) and the answers kept (the file `model-laps.json`);
+    (`curve-plan`: its arcs and its runs), a table of arcs' (`arc-plan`: its records and the turns of its jumps), the
+    plan laid in the world (`course-path`: `CoursePath`), and [a lap on its model](#a-lap-on-its-model): K's models
+    (`course-models`, the folder `course-sources/`), the lap laid, measured and solved (`model-lap`, by `least-squares`)
+    and the answers kept (the file `model-laps.json`);
   - _the profile_: the profile and a Section's profile knots (`road-profile`), a rise table's profile (`rise-profile`), a jump's or a dip's mound and its slopes' colors (`jump-mound`), where a road passes
     over itself (`overpasses`: its cells, what stands on another passage, and where a plan crosses itself), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
@@ -454,6 +455,29 @@ interval, the scale 2π over a turn's pixels times the interval's length (`skyTu
 that layer's picture goes round once, not its tile layer's, so that the road turns as the sky does, its sign, which way
 a positive value turns, its conversion's. No arc is tighter than its lanes' least radius (`leastLaneRadius`); a plan
 that would be stops its conversion.
+
+### Plan from a table's arcs
+
+A table of straights and arcs, a record each where the road starts one, its radius and side, and, where the table holds
+them, its heading and position in the plane where it starts (BIG RUN's and CISCO HEAT's road CPUs'), becomes the plan
+its records draw (`arcPlan`, `arc-plan`) (K, 2026-11-09):
+
+- **Records.** Each record is a straight or an arc to the next record's start, the last's to the road's end; an arc's
+  angle is its length over its radius, to its side; the table's degrees, being rounded, are not read. Straights one
+  after another are one.
+- **Check.** Where the table holds headings and positions, the plan is laid from its first record's, and where each
+  record starts the plan's heading and position are taken against the table's: the most each departs is reported, as a
+  heading table's fidelity is ([plan from a heading table](#plan-from-a-heading-table)), and a departure beyond the
+  limits its original's chapter states stops the conversion. After a turn (below) a position is taken from where that
+  turn ends, and each turn's shift, how far it moves the plan from the table's positions after it, is reported too.
+- **A heading's jump.** A record whose heading departs from the one the records before it reach by more than the limit
+  is a jump. Between two straights it is laid as a turn of the jump's angle, as [a heading table's
+  turn](#plan-from-a-heading-table) is: over the fewest whole positions alike either side of the record's start at
+  which its radius keeps the least radius its lanes on the inside keep (`leastLaneRadius`), taken from the straights
+  either side, so that the distance along the road is the table's and the heading after it the next record's.
+- **Stops.** The conversion stops where a jump has an arc either side, a turn takes more than a straight holds, two
+  turns overlap, a turn reaches the table's start or end, or an arc turns tighter than its lanes' least radius, as a
+  curve table's does.
 
 ### A lap on its model
 
@@ -1464,9 +1488,9 @@ Besides what its conversion writes, a raised original holds these in the reposit
 ### 5. Plan, profile, cross-section
 
 - The plan becomes straights and arcs by the [plan from a heading table](#plan-from-a-heading-table), by the [plan from
-  a curve table](#plan-from-a-curve-table), or from the table's own arcs where it holds them; each original's document
-  records how far its plan lies off its path, or, for a course with a model, laid as [a lap on its
-  model](#a-lap-on-its-model), how near its model it lies.
+  a curve table](#plan-from-a-curve-table), or by the [plan from a table's arcs](#plan-from-a-tables-arcs) where it
+  holds them; each original's document records how far its plan lies off its path, or, for a course with a model, laid
+  as [a lap on its model](#a-lap-on-its-model), how near its model it lies.
 - Lanes lie on the material and keep their number across a Section's Links; SUPER HANG-ON, ENDURO RACER and POLE POSITION II lay two lanes, a and b, either side of the original's centre line, and an original's painted lanes are
   Strips over them.
 - Heights by the [grades' rule](#profile-from-the-originals-screen): a 3D road in the ROMs times its factor, or its
