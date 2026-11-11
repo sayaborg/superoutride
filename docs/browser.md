@@ -149,15 +149,14 @@ delivered course.
 A card is 28×21 tiles (224×168 pixels) at 1:1. At rest the card in focus stands at x 48 (column 6) and y 32 (row 4),
 four rows clear above and below it over the path's row, which balances it in the frame (K, 2026-11-11), its
 neighbours 29 tiles (232 pixels) away on either side, the tile between and everything outside the cards showing the
-world behind them; cards cast no shadow (K, 2026-11-08). SELECT CLASS and SELECT COURSE show page cards (below).
-Until the other rows' cards are designed each shows, over a bright 1-pixel edge and a dark ground, its name in the
-ornate large font's SUNSET style, in two lines when it is longer than 26 characters, and one line in WHITE (K,
-2026-11-09):
+world behind them; cards cast no shadow (K, 2026-11-08). SELECT CLASS, SELECT COURSE and SELECT VEHICLE show page
+cards (below). Until the other rows' cards are designed each shows, over a bright 1-pixel edge and a dark ground, its
+name in the ornate large font's SUNSET style, in two lines when it is longer than 26 characters, and one line in WHITE
+(K, 2026-11-09):
 
 | Row            | Name                        | Line                                                              |
 | -------------- | --------------------------- | ----------------------------------------------------------------- |
 | MAIN MENU      | SERIES, FREE PLAY, SETTINGS | none                                                              |
-| SELECT VEHICLE | manufacturer and model      | the color's display name                                          |
 | RULES          | RULES, a list card          | RIVALS, POOL, TRAFFIC and LAPS with their values                  |
 | SETTINGS       | SETTINGS, a list card       | each setting with its value (none for CONTROLS and CLEAR RECORDS) |
 | CONTROLS       | CONTROLS                    | none                                                              |
@@ -169,13 +168,15 @@ entry's label and value in YELLOW with WHITE `◀` and `▶` at those columns. U
 either end, LEFT and RIGHT change its value (RIGHT the next or more), CONFIRM does the entry's action or else the
 card's, and BACK the row's; the chosen entry, not the card, rests in focus, and its path names it.
 
-A page card is read before it is chosen: a class on SELECT CLASS, a course on SELECT COURSE (K's prototype of the cards,
-2026-11-09; K, 2026-11-11: the card UI as before; [card face](../src/shell/card-face.ts)). Its boxes each have a
-1-pixel edge on the left and top and a 2-pixel edge on the right and bottom around their ground:
+A page card is read before it is chosen: a class on SELECT CLASS, a course on SELECT COURSE, a vehicle on SELECT
+VEHICLE (K's prototype of the cards, 2026-11-09; K, 2026-11-11: the card UI as before; [card
+face](../src/shell/card-face.ts)). Its boxes each have a 1-pixel edge on the left and top and a 2-pixel edge on the
+right and bottom around their ground: the title band on rows 0–2, the picture on columns 0–15 of rows 3–11, the facts
+on columns 16–27 beside it, and the words on rows 12–20. The title stands from column 1 on rows 1–2 in the ornate large
+font's SUNSET style or, longer than its 26 columns, in two lines of the ornate small font's, broken as a card's name. A
+class's and a course's page ([course page](../src/shell/course-page.ts)):
 
-- **The title band,** rows 0–2: the title from column 1 on rows 1–2 in the ornate large font's SUNSET style or,
-  longer than its 26 columns, in two lines of the ornate small font's, broken as a card's name.
-- **The picture,** columns 0–15 of rows 3–11 on a deep ground: the course's map from the
+- **The picture,** on a deep ground: the course's map from the
   [course index](content-and-gameplay.md#course-index), drawn as the PRE-RACE card draws it, its arrowhead outlined in
   the deep ground.
 - **The facts,** columns 16–27 beside it: the rules in WHITE, one a row from row 4, 10 columns from column 17. A
@@ -183,9 +184,21 @@ A page card is read before it is chosen: a class on SELECT CLASS, a course on SE
   than the checkpoint gates on its route), its field (`<n> CARS`, `BIKES` when every entry is a bike), and `TRAFFIC`
   and `TIME LIMIT` where it has them; one is written in the singular (`1 LAP`). A course's: its length, and `CIRCUIT`
   with the laps it admits (`1-<n> LAPS`) or its stages. A class's record is to follow them (GD-6).
-- **The words,** rows 12–20: 26 columns from column 1, seven lines from row 13, broken at spaces: a class's course's
-  description in WHITE, under the course's name in YELLOW where the class has a title of its own; a course's
-  description.
+- **The words,** 26 columns from column 1, seven lines from row 13, broken at spaces: a class's course's description
+  in WHITE, under the course's name in YELLOW where the class has a title of its own; a course's description.
+
+A vehicle's page ([vehicle card](../src/shell/vehicle-card.ts)), titled by its manufacturer and model:
+
+- **The picture,** on a deep ground: the vehicle in the color shown, its yaw image 40 of 64 (seen from ahead and its
+  right), at the one scale, from the player depth down by 1 % at a time, at which every yaw image fits 121×65 pixels.
+- **The facts,** on a deep ground: the engine's power (RED) and torque (YELLOW) over 20 % to 110 % of its redline,
+  each scaled to its maximum, from the larger of idle and 20 % of redline to the fuel cut's entry, over DARK grid lines
+  every 10 % of redline and every quarter of the height, lighter axes and the redline dashed RED.
+- **The words,** from column 1: `ENGINE`, `POWER` and `TORQUE` with their speeds, and `REDLINE`, their values from
+  column 9, the POWER and TORQUE labels in their curves' colors as the graph's legend; the mass, gears and drive
+  (`RWD`, `FWD`, `AWD`); the model year and type in DARK, the type left out where the title holds it; and `COLOR` with
+  the color's name in YELLOW, between WHITE `▲` and `▼` where UP and DOWN change it. The listing's limits keep every
+  line within the 26 columns.
 
 Words taller than their seven lines rise while their card rests in focus, within those lines: held at their top for 90
 fixed steps, a pixel every 10 steps until their last line shows, held there for 180, then at their top again

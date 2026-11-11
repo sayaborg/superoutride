@@ -22,7 +22,7 @@ import { CARD, createCardFaces } from '../../src/shell/card-face.js';
 import { openPlayerRecord } from '../../src/shell/player-record.js';
 
 const content = await readDeliveredContent();
-const { vehicles } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
+const { vehicles, driving } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 const pictures = await loadScreenPictures(content);
 const music = await loadMusic(content, TEXT_COLUMNS);
 const series = await loadSeriesCatalog(content, vehicles, pictures, music);
@@ -45,6 +45,7 @@ function selection({ dev = true, frontEnd = delivered } = {}) {
       series,
       frontEnd,
       vehicles,
+      driving,
       freePlay,
       music,
       player: openPlayerRecord(null),

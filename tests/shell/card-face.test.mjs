@@ -14,11 +14,16 @@ import {
   wrappedLines,
 } from '../../src/shell/card-face.js';
 import { classPage, coursePage } from '../../src/shell/course-page.js';
+import { vehicleCard } from '../../src/shell/vehicle-card.js';
+import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
+import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
+import { spriteSetColors } from '../../src/vehicle/vehicle-sprite-set.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 
 const content = await readDeliveredContent();
 const tiles = await loadTextTiles(content);
 const courses = await loadCourseIndex(content);
+const { vehicles, driving } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 const BEHIND = 0x1234;
 
 test('words break at spaces into lines of their columns, a longer word where its line ends', () => {
@@ -98,7 +103,7 @@ test('a page holds the longest title, rules and words the readers admit, and its
         assert.ok(inWords(x, y), `(${x}, ${y}) changed outside the words`);
         moved++;
       }
-    assert.ok(moved > 0, `${page.rules.join(' ')}: the words rise`);
+    assert.ok(moved > 0, `${page.title}: the words rise`);
   }
 });
 
@@ -116,4 +121,27 @@ test("every delivered course's page fits its card, and its words rise only when 
       course.id,
     );
   }
+});
+
+test("every delivered vehicle's card fits its card in each of its colors, and only its color line tells the colors apart", () => {
+  const faces = createCardFaces(tiles);
+  const fuelCut = driving.compiledDriving.powertrain.fuelCutEnterRedlineRatio;
+  for (const vehicle of vehicles)
+    for (const changes of [true, false]) {
+      const shown = spriteSetColors(vehicle.spriteSet).map((color) => {
+        const page = vehicleCard(vehicle, { color, changes }, fuelCut);
+        return draw(faces, { name: page.title, line: '', dim: false, page }, 0);
+      });
+      // Two colors' cards differ in the picture and on the color line (row 19) alone.
+      const [first, second] = shown;
+      for (let y = 0; y < first.height; y++)
+        for (let x = 0; x < first.width; x++) {
+          const i = y * first.width + x;
+          if (first.pixels[i] === second.pixels[i]) continue;
+          const [cx, cy] = [x - CARD.x, y - CARD.y];
+          const inPicture = cx < 16 * 8 && cy >= 3 * 8 && cy < 12 * 8,
+            onColorLine = cy >= 19 * 8 && cy < 20 * 8;
+          assert.ok(inPicture || onColorLine, `${vehicle.compiledVehicle.id}: (${cx}, ${cy}) differs between colors`);
+        }
+    }
 });

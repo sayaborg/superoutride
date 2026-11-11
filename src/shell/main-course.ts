@@ -314,6 +314,7 @@ async function startPage(): Promise<void> {
         series,
         frontEnd,
         vehicles,
+        driving,
         freePlay,
         music,
         player,
