@@ -2,18 +2,20 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadTextTiles } from '../../src/content/text-tiles-catalog.js';
-import { COURSE_INDEX_MAP, loadCourseIndex } from '../../src/content/course-index.js';
-import { COURSE_DOCUMENT_LIMITS, COURSE_TEXT_LIMITS } from '../../src/course/course-limits.js';
-import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
+import { COURSE_INDEX_FIGURES, COURSE_INDEX_MAP, loadCourseIndex } from '../../src/content/course-index.js';
+import { COURSE_FIGURES } from '../../src/course/course-figures.js';
+import { COURSE_TEXT_LIMITS } from '../../src/course/course-limits.js';
 import {
   CARD,
   createCardFaces,
-  PAGE_TEXT,
+  FACE_TURN,
   WORDS_SCROLL,
   wordsScroll,
   wrappedLines,
 } from '../../src/shell/card-face.js';
-import { classPage, coursePage } from '../../src/shell/course-page.js';
+import { CARD_STYLES } from '../../src/shell/card-styles.js';
+import { coursePage } from '../../src/shell/course-page.js';
+import { drawSmallPrint, smallPrintDraws } from '../../src/shell/small-print.js';
 import { vehicleCard } from '../../src/shell/vehicle-card.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
@@ -49,125 +51,135 @@ function draw(faces, face, steps) {
   frame.clear(BEHIND);
   faces.draw(frame, face, CARD.x, CARD.y, steps);
   for (let y = 0; y < frame.height; y++)
-    for (let x = 0; x < frame.width; x++)
-      if (x < CARD.x || x >= CARD.x + CARD.columns * 8 || y < CARD.y || y >= CARD.y + CARD.rows * 8)
-        assert.equal(frame.pixels[y * frame.width + x], BEHIND, `(${x}, ${y}) lies outside the card`);
+    for (let x = 0; x < frame.width; x++) {
+      const within = x >= CARD.x && x < CARD.x + CARD.columns * 8 && y >= CARD.y && y < CARD.y + CARD.rows * 8;
+      assert.equal(frame.pixels[y * frame.width + x] === BEHIND, !within, `(${x}, ${y}) of the frame`);
+    }
   return frame;
 }
-// Whether the pixel (x, y) of the frame lies within the words' lines of a card at the card's place.
-const inWords = (x, y) => {
-  const { column, row, columns, rows } = PAGE_TEXT.words;
-  const [left, top] = [CARD.x + column * 8, CARD.y + row * 8];
-  return x >= left && x < left + columns * 8 && y >= top && y < top + rows * 8;
-};
+const same = (a, b) => a.pixels.every((pixel, i) => pixel === b.pixels[i]);
+const faceOf = (page) => ({ name: page.title, line: '', dim: false, page });
+// The steps at which a page's face `face` has stood for `since` steps.
+const at = (face, since) => face * FACE_TURN.steps + since;
 
-test('a page holds the longest title, rules and words the readers admit, and its words rise within their lines', () => {
-  const faces = createCardFaces(tiles);
+test('the small print draws capitals, digits and its marks, and nothing else', () => {
+  assert.ok(smallPrintDraws("LENGTH 2.045KM L4/R5: 3.8% (MAX) +4'-1, A&B!?"));
+  assert.ok(!smallPrintDraws('km'));
+  const surface = new SoftwareSurface(16, 8);
+  drawSmallPrint(surface, 0, 0, 'I1', 0x7fff);
+  assert.equal(surface.pixels.filter((pixel) => pixel === 0x7fff).length, 9 + 8);
+  assert.throws(() => drawSmallPrint(surface, 0, 0, 'k', 0x7fff), RangeError);
+});
+
+test('in every style the plain cards and every face of the longest course the index admits stay within the card', () => {
   const [first] = courses;
-  // The longest course the index admits: its name and description, laps, length and stages.
+  // The longest course the index admits: its name and description, length, stages and figures.
+  const { heightMeters, grade, corners, straightMeters } = COURSE_INDEX_FIGURES;
   const longest = Object.freeze({
     ...first,
     name: 'W'.repeat(COURSE_TEXT_LIMITS.nameCodeUnits),
     description: 'WW '
       .repeat(COURSE_TEXT_LIMITS.descriptionCodeUnits)
       .slice(0, COURSE_TEXT_LIMITS.descriptionCodeUnits),
-    maxLaps: RUN_RULE_LIMITS.laps,
     map: Object.freeze({
       ...first.map,
-      lengthMeters: COURSE_DOCUMENT_LIMITS.lengthMeters,
+      lengthMeters: 999999.9,
       checkpoints: Array(COURSE_INDEX_MAP.checkpoints).fill(first.map.start.point),
     }),
+    figures: Object.freeze({
+      profile: first.figures.profile.map((_, i) => (i % 2 ? heightMeters : -heightMeters)),
+      climbMeters: heightMeters,
+      steepestGrade: grade,
+      corners: { left: corners, right: corners },
+      longestStraightMeters: straightMeters,
+      tightestRadiusMeters: COURSE_FIGURES.bendRadiusMeters,
+    }),
   });
-  // A class with the most of every rule, under a title of its own.
-  const runClass = {
-    title: 'X'.repeat(COURSE_TEXT_LIMITS.nameCodeUnits),
-    laps: RUN_RULE_LIMITS.laps,
-    entries: Array(RUN_RULE_LIMITS.competitors).fill(null),
-    traffic: {},
-    timeMargin: 1.35,
-  };
-  for (const page of [
-    coursePage({ ...longest, type: 'CIRCUIT' }),
-    coursePage({ ...longest, type: 'LINEAR', maxLaps: 1 }),
-    classPage(runClass, { ...longest, type: 'CIRCUIT' }, true),
-    classPage(runClass, { ...longest, type: 'BRANCH', maxLaps: 1 }, false),
-  ]) {
-    const face = { name: page.title, line: '', dim: false, page };
-    const still = draw(faces, face, 0),
-      risen = draw(faces, face, WORDS_SCROLL.hold + 8 * WORDS_SCROLL.pixel);
-    let moved = 0;
-    for (let y = 0; y < still.height; y++)
-      for (let x = 0; x < still.width; x++) {
-        const i = y * still.width + x;
-        if (still.pixels[i] === risen.pixels[i]) continue;
-        assert.ok(inWords(x, y), `(${x}, ${y}) changed outside the words`);
-        moved++;
+  // Words taller than their box rise; a style with room for them all holds them still.
+  const rising = new Set();
+  for (const style of CARD_STYLES) {
+    const faces = createCardFaces(tiles, () => style);
+    draw(faces, { name: 'W'.repeat(2 * (CARD.columns - 2)), line: 'W'.repeat(CARD.columns), dim: false }, 0);
+    const items = Array.from({ length: 13 }, (_, i) => ({ label: 'W'.repeat(16), value: 'W'.repeat(7), selected: !i }));
+    draw(faces, { name: 'SETTINGS', line: '', dim: true, items }, 0);
+    for (const type of ['CIRCUIT', 'LINEAR', 'BRANCH']) {
+      const page = coursePage({ ...longest, type }, style);
+      for (let face = 0; face < page.faces; face++) {
+        const still = draw(faces, faceOf(page), at(face, FACE_TURN.thin)),
+          risen = draw(faces, faceOf(page), at(face, WORDS_SCROLL.hold + 4 * WORDS_SCROLL.pixel));
+        if (!same(still, risen)) rising.add(style.id);
       }
-    assert.ok(moved > 0, `${page.title}: the words rise`);
-  }
-});
-
-test("every delivered course's page fits its card, and its words rise only when taller than their lines", () => {
-  const faces = createCardFaces(tiles);
-  for (const course of courses) {
-    const page = coursePage(course);
-    const face = { name: page.title, line: '', dim: false, page };
-    const still = draw(faces, face, 0),
-      later = draw(faces, face, WORDS_SCROLL.hold + 8 * WORDS_SCROLL.pixel);
-    const fits = wrappedLines(course.description, PAGE_TEXT.words.columns).length <= PAGE_TEXT.words.rows;
-    assert.equal(
-      still.pixels.every((pixel, i) => pixel === later.pixels[i]),
-      fits,
-      course.id,
-    );
-  }
-});
-
-test("every delivered vehicle's card fits its card in each of its colors, and only its color line tells the colors apart", () => {
-  const faces = createCardFaces(tiles);
-  for (const vehicle of vehicles)
-    for (const changes of [true, false]) {
-      const shown = spriteSetColors(vehicle.spriteSet).map((color) => {
-        const page = vehicleCard(vehicle, { color, changes }, driving);
-        return draw(faces, { name: page.title, line: '', dim: false, page }, 0);
-      });
-      // Two colors' cards differ in the picture and on the color line (row 19) alone.
-      const [first, second] = shown;
-      for (let y = 0; y < first.height; y++)
-        for (let x = 0; x < first.width; x++) {
-          const i = y * first.width + x;
-          if (first.pixels[i] === second.pixels[i]) continue;
-          const [cx, cy] = [x - CARD.x, y - CARD.y];
-          const inPicture = cx < 16 * 8 && cy >= 3 * 8 && cy < 12 * 8,
-            onColorLine = cy >= 19 * 8 && cy < 20 * 8;
-          assert.ok(inPicture || onColorLine, `${vehicle.compiledVehicle.id}: (${cx}, ${cy}) differs between colors`);
-        }
     }
+  }
+  assert.ok(rising.has('program') && rising.has('pit-board'));
 });
 
-test("a vehicle's card at rest in focus turns its picture and revs its engine, within the picture and the graph", () => {
-  const faces = createCardFaces(tiles);
-  const vehicle = vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
-  const page = vehicleCard(vehicle, { color: spriteSetColors(vehicle.spriteSet)[0], changes: true }, driving);
-  const face = { name: page.title, line: '', dim: false, page };
-  const still = draw(faces, face, 0);
-  // Which of the picture and the graph differ from the still card after `steps`; nothing else may.
-  const moved = (steps) => {
-    const shown = draw(faces, face, steps),
-      found = new Set();
-    for (let y = 0; y < still.height; y++)
-      for (let x = 0; x < still.width; x++) {
-        const i = y * still.width + x;
-        if (still.pixels[i] === shown.pixels[i]) continue;
-        const [cx, cy] = [x - CARD.x, y - CARD.y];
-        assert.ok(cy >= 3 * 8 && cy < 12 * 8, `(${cx}, ${cy}) moved outside the picture and the graph`);
-        found.add(cx < 16 * 8 ? 'picture' : 'graph');
+test("in every style every delivered course's card says the course alone and fits, on every face", () => {
+  for (const style of CARD_STYLES) {
+    const faces = createCardFaces(tiles, () => style);
+    for (const course of courses) {
+      const page = coursePage(course, style);
+      assert.equal(page.title, course.name);
+      for (let face = 0; face < page.faces; face++) draw(faces, faceOf(page), at(face, FACE_TURN.thin));
+    }
+  }
+});
+
+test("in every style every delivered vehicle's card fits in each of its colors, changeable or not", () => {
+  for (const style of CARD_STYLES) {
+    const faces = createCardFaces(tiles, () => style);
+    for (const vehicle of vehicles)
+      for (const changes of [true, false]) {
+        const [first, second] = spriteSetColors(vehicle.spriteSet).map((color) => {
+          const page = vehicleCard(vehicle, { color, changes }, driving, style);
+          for (let face = 1; face < page.faces; face++) draw(faces, faceOf(page), at(face, FACE_TURN.thin));
+          return draw(faces, faceOf(page), 0);
+        });
+        const names = Object.values(vehicle.listing.visuals.colorNames);
+        if (new Set(names).size === names.length) assert.ok(!same(first, second), vehicle.compiledVehicle.id);
       }
-    return [...found].sort();
+  }
+});
+
+test('a page with several faces turns them by line thinning, each row the face before or the face that comes', () => {
+  const style = CARD_STYLES.find((candidate) => candidate.id === 'data');
+  const faces = createCardFaces(tiles, () => style);
+  const page = coursePage(courses[0], style);
+  assert.ok(page.faces > 1);
+  const before = draw(faces, faceOf(page), FACE_TURN.steps - 1),
+    after = draw(faces, faceOf(page), at(1, FACE_TURN.thin));
+  assert.ok(!same(before, after));
+  const thinning = draw(faces, faceOf(page), at(1, FACE_TURN.thin / 2 - 1));
+  let [old, next] = [0, 0];
+  for (let y = CARD.y; y < CARD.y + CARD.rows * 8; y++) {
+    const row = (frame) => frame.pixels.subarray(y * 320, (y + 1) * 320).join();
+    if (row(before) === row(after)) continue;
+    assert.ok([row(before), row(after)].includes(row(thinning)), `row ${y} is one face's`);
+    if (row(thinning) === row(after)) next++;
+    else old++;
+  }
+  assert.ok(old > 0 && next > 0);
+  // After the last face the first comes again; a dimmed card shows its first face, still.
+  assert.ok(same(draw(faces, faceOf(page), at(page.faces, FACE_TURN.thin)), draw(faces, faceOf(page), FACE_TURN.thin)));
+});
+
+test("a vehicle's card at rest in focus turns its picture and revs its engine", () => {
+  const style = CARD_STYLES[0];
+  const faces = createCardFaces(tiles, () => style);
+  const vehicle = vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
+  const page = vehicleCard(vehicle, { color: spriteSetColors(vehicle.spriteSet)[0], changes: true }, driving, style);
+  assert.equal(page.faces, 1);
+  const still = draw(faces, faceOf(page), 0);
+  const moved = (steps) => {
+    const shown = draw(faces, faceOf(page), steps);
+    let count = 0;
+    for (let i = 0; i < still.pixels.length; i++) if (still.pixels[i] !== shown.pixels[i]) count++;
+    return count;
   };
   // Full throttle from 1.5 s: past a turn's sixteenth the picture has turned, and the engine stands on the graph.
-  assert.deepEqual(moved(120), ['graph', 'picture']);
+  const turned = moved(120);
   // Five whole turns of the picture later it stands as at rest again, while the free revving, repeating its second
-  // turn of 6 s, stands 2 s into it at full throttle once more.
-  assert.deepEqual(moved(5 * 64 * 6), ['graph']);
+  // turn of 6 s, stands 2 s into it at full throttle once more: the engine's line and marks alone.
+  const revving = moved(5 * 64 * 6);
+  assert.ok(revving > 0 && revving < turned);
 });

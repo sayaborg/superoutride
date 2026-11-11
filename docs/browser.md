@@ -150,9 +150,8 @@ A card is 28×21 tiles (224×168 pixels) at 1:1. At rest the card in focus stand
 four rows clear above and below it over the path's row, which balances it in the frame (K, 2026-11-11), its
 neighbours 29 tiles (232 pixels) away on either side, the tile between and everything outside the cards showing the
 world behind them; cards cast no shadow (K, 2026-11-08). SELECT CLASS, SELECT COURSE and SELECT VEHICLE show page
-cards (below). Until the other rows' cards are designed each shows, over a bright 1-pixel edge and a dark ground, its
-name in the ornate large font's SUNSET style, in two lines when it is longer than 26 characters, and one line in WHITE
-(K, 2026-11-09):
+cards (below). Every other row's card shows, on its style's ground ([card styles](#card-styles)), its name in the
+ornate large font, in two lines when it is longer than 26 characters, and one line in WHITE (K, 2026-11-09):
 
 | Row            | Name                        | Line                                                              |
 | -------------- | --------------------------- | ----------------------------------------------------------------- |
@@ -168,48 +167,74 @@ entry's label and value in YELLOW with WHITE `◀` and `▶` at those columns. U
 either end, LEFT and RIGHT change its value (RIGHT the next or more), CONFIRM does the entry's action or else the
 card's, and BACK the row's; the chosen entry, not the card, rests in focus, and its path names it.
 
-A page card is read before it is chosen: a class on SELECT CLASS, a course on SELECT COURSE, a vehicle on SELECT
-VEHICLE (K's prototype of the cards, 2026-11-09; K, 2026-11-11: the card UI as before; [card
-face](../src/shell/card-face.ts)). Its boxes each have a 1-pixel edge on the left and top and a 2-pixel edge on the
-right and bottom around their ground: the title band on rows 0–2, the picture on columns 0–15 of rows 3–11, the facts
-on columns 16–27 beside it, and the words on rows 12–20. The title stands from column 1 on rows 1–2 in the ornate large
-font's SUNSET style or, longer than its 26 columns, in two lines of the ornate small font's, broken as a card's name. A
-class's and a course's page ([course page](../src/shell/course-page.ts)):
+A page card is read before it is chosen: a course on SELECT CLASS and SELECT COURSE, a vehicle on SELECT VEHICLE (K,
+2026-11-11: the card UI as before; [card face](../src/shell/card-face.ts)). It is packed with what it is about and
+draws no box around its parts (K, 2026-11-12), and it says its subject alone: a course's card and a vehicle's card are
+the same card in every series and in FREE PLAY, with nothing of a series' rules, its laps, field, traffic, clock or
+vehicles (K, 2026-11-12). A page gives its style its parts ([card styles](../src/shell/card-styles.ts)): a title and a
+tag, up to eight facts and up to eight more, each a label, a value with its unit and a note, a line for a choice, a
+picture, a chart and words; the style lays them out and leaves room for the picture and the chart, each on a flat
+ground.
 
-- **The picture,** on a deep ground: the course's map from the
-  [course index](content-and-gameplay.md#course-index), drawn as the PRE-RACE card draws it, its arrowhead outlined in
-  the deep ground.
-- **The facts,** columns 16–27 beside it: the rules in WHITE, one a row from row 4, 10 columns from column 17. A
-  class's: its course's length (`<km>KM`, to the metre), its laps on a circuit or else its course's stages (one more
-  than the checkpoint gates on its route), its field (`<n> CARS`, `BIKES` when every entry is a bike), and `TRAFFIC`
-  and `TIME LIMIT` where it has them; one is written in the singular (`1 LAP`). A course's: its length, and `CIRCUIT`
-  with the laps it admits (`1-<n> LAPS`) or its stages. A class's record is to follow them (GD-6).
-- **The words,** 26 columns from column 1, seven lines from row 13, broken at spaces: a class's course's description
-  in WHITE, under the course's name in YELLOW where the class has a title of its own; a course's description.
+A course's page ([course page](../src/shell/course-page.ts)), from the [course
+index](content-and-gameplay.md#course-index):
 
-A vehicle's page ([vehicle card](../src/shell/vehicle-card.ts)), titled by its manufacturer and model:
+- **The title and tag:** its name, and `CIRCUIT` or `POINT TO POINT`.
+- **The facts:** `LENGTH` (`<km>KM`, to the metre), `CLIMB` (its highest point over its lowest), `GRADE` (the steepest,
+  `MAX`), `CORNERS` (with those to the left and right, `L<n> R<n>`), `STRAIGHT` (the longest), `RADIUS` (the tightest,
+  `MIN`), `HIGHEST` (over its start) and, on a circuit, `LOWEST` (under its start) or else `STAGES` (one more than the
+  checkpoint gates on its route). Heights are whole metres from 100 m and to a tenth below.
+- **The picture:** its map, drawn as the PRE-RACE card draws it, its arrowhead outlined in the ground.
+- **The chart,** a strip under the name `PROFILE`: the road's height from its start to its end, filled to the strip's
+  foot under a WHITE line; a climb of 40 m or more stands as tall as the strip, and a smaller one in proportion.
+- **The words:** its description in WHITE, broken at spaces.
 
-- **The picture,** on a deep ground: the vehicle in the color shown, its yaw image 40 of 64 (seen from ahead and its
-  right), at the one scale, from the player depth down by 1 % at a time, at which every yaw image fits 121×65 pixels.
-- **The facts,** on a deep ground: the engine's power (RED) and torque (YELLOW) over 20 % to 110 % of its redline,
-  each scaled to its maximum, from the larger of idle and 20 % of redline to the fuel cut's entry, over DARK grid lines
-  every 10 % of redline and every quarter of the height, lighter axes and the redline dashed RED.
-- **The words,** from column 1: `ENGINE`, `POWER` and `TORQUE` with their speeds, and `REDLINE`, their values from
-  column 9, the POWER and TORQUE labels in their curves' colors as the graph's legend; the mass, gears and drive
-  (`RWD`, `FWD`, `AWD`); the model year and type in DARK, the type left out where the title holds it; and `COLOR` with
-  the color's name in YELLOW, between WHITE `▲` and `▼` where UP and DOWN change it. The listing's limits keep every
-  line within the 26 columns.
+A vehicle's page ([vehicle card](../src/shell/vehicle-card.ts)):
+
+- **The title and tag:** its manufacturer and model, and its period.
+- **The facts** (`ENGINE`): `ENGINE` with its displacement, `POWER` and `TORQUE` with their engine speeds, their labels
+  in their curves' colors as the chart's legend on a dark ground, `REDLINE`, `MASS`, `P/W` (power to mass), `GEARS`
+  with the final drive, and `DRIVE` (`RWD`, `FWD`, or `AWD` with its front and rear shares).
+- **More** (`BODY`): `YEAR`, `TYPE`, `LENGTH`, `WIDTH`, `HEIGHT`, `W/BASE`, `WEIGHT` (the shares on the front and rear
+  wheels) and `TOP` (the road speed at redline in top gear).
+- **The choice:** `COLOR` with the color's name in YELLOW, between WHITE `▲` and `▼` where UP and DOWN change it.
+- **The picture:** the vehicle in the color shown, its yaw image 40 of 64 (seen from ahead and its right), at the one
+  scale, from the player depth down by 1 % at a time, at which every yaw image fits the room less 2 pixels all round.
+- **The chart,** a block: the engine's power (RED) and torque (YELLOW) over 20 % to 110 % of its redline, each scaled
+  to its maximum, from the larger of idle and 20 % of redline to the fuel cut's entry, over DARK grid lines every 10 %
+  of redline and every quarter of the height, lighter axes and the redline dashed RED.
 
 While a vehicle's card rests in focus, its picture turns from the still one, a yaw image every 6 fixed steps (a turn in
 6.4 s), and its engine revs as the catalog's ENGINE page revved it: its model, as a run builds it, held and revved from
 idle by the free-revving throttle (idle for 1.5 s, full for 1 s, closed for 1.5 s and full to 6 s, again and again;
 the second 6 s repeat), its speed a WHITE upright line on the graph with a 3×3 mark on each curve in the curve's color.
-It makes no sound (K's prototype; for K, whether it should).
+It makes no sound yet (K, 2026-11-12: it is to).
 
-Words taller than their seven lines rise while their card rests in focus, within those lines: held at their top for 90
-fixed steps, a pixel every 10 steps until their last line shows, held there for 180, then at their top again
-(provisional, for K); every other card shows their top. A board would write the lines' tiles anew at each pixel, as
-the CPU would a 4×8 font's. Nothing on a card leaves its box: a line that would is an error.
+Words taller than their box rise while their card rests in focus, within it: held at their top for 90 fixed steps, a
+pixel every 10 steps until their last line shows, held there for 180, then at their top again (K, 2026-11-12: for
+now); every other card shows their top. A board would write the lines' tiles anew at each pixel. A page of several
+faces shows each for 360 fixed steps while it rests in focus and turns to the next by line thinning over 16
+([Image assets](image-assets.md#background-transitions)); any other card shows its first. Nothing on a card leaves
+it: text that would is an error.
+
+### Card styles
+
+While the cards' design is tried (K, 2026-11-12: several designs, built and switched in the game), the cards have
+three styles ([card styles](../src/shell/card-styles.ts)), PROGRAM first. SETTINGS' CARD DESIGN steps through them, as
+the C key does on any row; the choice lasts for the page and no record keeps it. The one K chooses stays, and the
+others, the setting and the key go.
+
+| Style     | Plain cards                                     | Page cards                                                                                                                                                                                                                                                                              |
+| --------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PROGRAM   | A navy ground, three racing stripes             | The tag on three stripes under the SUNSET title; the picture and chart on fields a shade lighter; the facts in ranged columns, labels in the small print; a course's words on the lowest six lines; a vehicle's more facts under its facts and its choice on the last row. One face.    |
+| PIT BOARD | A black ground under a red band, two stripes    | The title in the ornate WHITE style and the tag on the red band; the facts in black on a signal-yellow board, without the legend's colors; the rest as PROGRAM. One face.                                                                                                               |
+| DATA      | A dark ground over a row of cells in two shades | The picture as large as the card allows; the facts on a board of 4×2 cells in two shades, a label and its unit in the small print over each value; faces that turn, named on tabs ranged right of the tag: the facts, the more facts, and `ABOUT` with the words over a course's chart. |
+
+A fact stands on one line, its label in the small print and its value and unit in the normal font with its note in
+the small print, or in a cell; a value too long for its room is written in the small print instead. The small print
+([small print](../src/shell/small-print.ts)) is 3×5 glyphs in a 4×8 cell, two to a tile's width: capitals, digits and
+`. , - / : ' % + ( ) & ! ?` (K, 2026-11-12: a 4×8 font, drawn here). It is painted as pixels for now and becomes a
+text-tile font with the chosen design.
 
 Every row but TITLE shows its path on the frame's last row (K, 2026-11-11), as a folder's: from SUPER OUTRIDE, the
 names chosen down to the row and the card in focus (a list card's chosen entry), each in full and joined by `>` (`SUPER
@@ -285,8 +310,8 @@ SETTINGS' entries are MASTER, MUSIC and EFFECTS with their volumes, which LEFT a
 0–100 (to the adjacent multiple of 5, stopping at the ends), CAR CAMERA and BIKE CAMERA (FACING or MOVING; [camera
 yaw](architecture.md#camera-and-fixed-metric)) for runs with a vehicle of that form, CAR STEERING and BIKE STEERING
 (FRONT or CENTER), CAR STEERING USE and BIKE STEERING USE (100%, 95% and 90%; [steering
-rule](vehicle-physics.md#actuators-and-steering)) and SLOW DOWN (ON or OFF; [SLOW DOWN](#slow-down)), the choices
-wrapping, then CONTROLS and CLEAR RECORDS. RIGHT is the next choice or more, LEFT the one before or less; CONFIRM on a
+rule](vehicle-physics.md#actuators-and-steering)), SLOW DOWN (ON or OFF; [SLOW DOWN](#slow-down)) and CARD DESIGN
+([card styles](#card-styles)), the choices wrapping, then CONTROLS and CLEAR RECORDS. RIGHT is the next choice or more, LEFT the one before or less; CONFIRM on a
 value does nothing. CONTROLS' card is to show the keyboard, touch and gamepad controls once its contents are designed.
 CLEAR RECORDS? offers NO (first) and YES: YES empties the records, saves the player record with its settings unchanged
 and returns to SETTINGS, as NO and BACK do. The player record is the one owner of every volume. Each change, from

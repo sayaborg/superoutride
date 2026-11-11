@@ -19,6 +19,7 @@ import { drawPlaneRow } from '../../src/view/scaled-plane.js';
 import { createSelectionFlow, SERIES_FADE_SECONDS } from '../../src/shell/selection-flow.js';
 import { CARD_STEPS, SERIES_SCALE, ZOOM_CENTRE } from '../../src/shell/card-rows.js';
 import { CARD, createCardFaces } from '../../src/shell/card-face.js';
+import { CARD_STYLES } from '../../src/shell/card-styles.js';
 import { openPlayerRecord } from '../../src/shell/player-record.js';
 
 const content = await readDeliveredContent();
@@ -51,11 +52,12 @@ function selection({ dev = true, frontEnd = delivered } = {}) {
       player: openPlayerRecord(null),
       dev,
       logo: pictures.get('title-logo'),
+      cardStyle: { current: () => CARD_STYLES[0], step: () => {} },
     },
     {
       frame: createLogicalFrame(),
       text: createTextLayer(tiles),
-      faces: createCardFaces(tiles),
+      faces: createCardFaces(tiles, () => CARD_STYLES[0]),
       present: () => {},
       show: () => log.shown++,
       activate: () => {},
@@ -144,11 +146,11 @@ test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK 
   send('RIGHT');
   send('CONFIRM');
   assert.deepEqual(names(), ['SETTINGS']);
-  assert.equal(items().length, 12);
+  assert.equal(items().length, 13);
   assert.deepEqual(items().slice(-2), ['CONTROLS', 'CLEAR RECORDS']);
   // A value's CONFIRM does nothing.
   assert.equal(send('CONFIRM'), null);
-  for (let i = 0; i < 10; i++) assert.equal(send('DOWN'), 'move');
+  for (let i = 0; i < 11; i++) assert.equal(send('DOWN'), 'move');
   send('CONFIRM');
   assert.deepEqual(names(), ['CONTROLS']);
   send('BACK');
@@ -178,7 +180,7 @@ test('LEFT and RIGHT wrap a row of three or more and shake one of one or two; UP
   // SETTINGS' CLEAR RECORDS?: two cards, which do not wrap.
   send('LEFT');
   send('CONFIRM');
-  for (let i = 0; i < 11; i++) send('DOWN');
+  for (let i = 0; i < 12; i++) send('DOWN');
   send('CONFIRM');
   assert.equal(send('LEFT'), null);
   assert.equal(screen.index, 0);
@@ -203,6 +205,8 @@ test('LEFT and RIGHT wrap a row of three or more and shake one of one or two; UP
   assert.equal(screen.index, 0);
   // In a list card UP and DOWN choose an entry, stopping at its ends, and LEFT and RIGHT change its value.
   send('BACK');
+  assert.equal(send('UP'), 'move');
+  assert.equal(items()[screen.item], 'CARD DESIGN');
   assert.equal(send('UP'), 'move');
   assert.equal(items()[screen.item], 'SLOW DOWN');
   const item = () => screen.row.cards[0].items[screen.item];

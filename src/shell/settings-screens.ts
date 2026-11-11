@@ -1,4 +1,5 @@
 import type { Card } from './card-rows.js';
+import type { CardStyle } from './card-styles.js';
 import {
   NO_RECORDS,
   STEERING_UTILIZATIONS,
@@ -56,8 +57,9 @@ function stepVolume(value: number, by: -1 | 1): number {
  * SETTINGS' cards, one a setting, each showing its value, which UP (the next, or more) and DOWN change and the player
  * record keeps: MASTER, MUSIC and EFFECTS volumes in steps of five, stopping at 0 and 100 and applied at once through
  * `setVolume`; CAR CAMERA and BIKE CAMERA (FACING or MOVING); CAR STEERING and BIKE STEERING (FRONT or CENTER); CAR
- * STEERING USE and BIKE STEERING USE (100%, 95% or 90%); SLOW DOWN (ON or OFF), the choices wrapping; then CONTROLS and
- * CLEAR RECORDS, whose CONFIRM opens their own rows. CONFIRM on a value does nothing. While the MUSIC card is in focus,
+ * STEERING USE and BIKE STEERING USE (100%, 95% or 90%); SLOW DOWN (ON or OFF), the choices wrapping; CARD DESIGN, the
+ * cards' style while their design is tried (K, 2026-11-12), which lasts for the page and no record keeps; then CONTROLS
+ * and CLEAR RECORDS, whose CONFIRM opens their own rows. CONFIRM on a value does nothing. While the MUSIC card is in focus,
  * `audition` plays a track.
  */
 export function settingCards(
@@ -68,6 +70,7 @@ export function settingCards(
     audition(): () => void;
   },
   open: { controls(): void; clearRecords(): void },
+  cardStyle: { current(): CardStyle; step(by: -1 | 1): void },
 ): readonly Card[] {
   // A value card: its name, its value read as drawn, and what UP and DOWN set; whether the value changed.
   const value = (name: string, shown: () => string, set: (by: -1 | 1) => void, extra: Partial<Card> = {}): Card => ({
@@ -121,6 +124,7 @@ export function settingCards(
       () => (player.settings.slowDown ? 'ON' : 'OFF'),
       () => player.updateSettings({ slowDown: !player.settings.slowDown }),
     ),
+    value('CARD DESIGN', () => cardStyle.current().name, cardStyle.step),
     { name: 'CONTROLS', confirm: () => (open.controls(), 'confirm' as const) },
     { name: 'CLEAR RECORDS', confirm: () => (open.clearRecords(), 'confirm' as const) },
   ]);

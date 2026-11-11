@@ -18,6 +18,7 @@ import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { createSelectionFlow } from '../../src/shell/selection-flow.js';
 import { CARD_STEPS } from '../../src/shell/card-rows.js';
 import { createCardFaces } from '../../src/shell/card-face.js';
+import { CARD_STYLES } from '../../src/shell/card-styles.js';
 import { openPlayerRecord } from '../../src/shell/player-record.js';
 import { createPreRaceScreen, preRaceCardOf } from '../../src/shell/prerace-screen.js';
 import { createRunScreen, createRunScreenState } from '../../src/shell/run-screen.js';
@@ -57,11 +58,12 @@ test('the front end screens render from the delivered content', async () => {
       player,
       dev: true,
       logo: pictures.get('title-logo'),
+      cardStyle: { current: () => CARD_STYLES[0], step: () => {} },
     },
     {
       frame,
       text,
-      faces: createCardFaces(tiles),
+      faces: createCardFaces(tiles, () => CARD_STYLES[0]),
       present: () => {},
       show: (next) => (host ? host.show(next) : (screen = next)),
       activate: () => {},
@@ -206,7 +208,8 @@ test('the front end screens render from the delivered content', async () => {
   await capture('free-play-vehicle');
   send('BACK', 'BACK', 'BACK', 'RIGHT', 'CONFIRM');
   await capture('settings');
-  send('LEFT', 'CONFIRM');
+  // CLEAR RECORDS is the list's thirteenth entry.
+  send(...Array(12).fill('DOWN'), 'CONFIRM');
   await capture('clear-records');
 });
 

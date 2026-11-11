@@ -18,6 +18,7 @@ import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js'
 import { createTextLayer, TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { CARD, cardNameLines, createCardFaces } from '../../src/shell/card-face.js';
+import { CARD_STYLES } from '../../src/shell/card-styles.js';
 import { coursePage } from '../../src/shell/course-page.js';
 import { createPreRaceScreen, preRaceCardOf } from '../../src/shell/prerace-screen.js';
 import { writeHud } from '../../src/shell/run-hud.js';
@@ -131,8 +132,8 @@ test('a course name as long as the course texts admit fits every screen that sho
     assert.ok(lines.length <= 2 && lines.every((line) => line.length <= CARD.columns - 2), shown);
     assert.equal(lines.join(lines.length > 1 && !shown.includes(' ') ? '' : ' '), shown);
   }
-  const faces = createCardFaces(tiles);
-  faces.draw(frame, { name, line: '', dim: false, page: coursePage(courses[0]) }, CARD.x, CARD.y);
+  const faces = createCardFaces(tiles, () => CARD_STYLES[0]);
+  faces.draw(frame, { name, line: '', dim: false, page: coursePage(courses[0], CARD_STYLES[0]) }, CARD.x, CARD.y);
 
   // The PRE-RACE card: the name on its own row, clear of the map's box (x 8–136, y 136–232).
   const [classSeries] = series.series;

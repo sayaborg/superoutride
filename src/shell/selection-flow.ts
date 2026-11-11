@@ -19,7 +19,8 @@ import { clearRecordCards, settingCards } from './settings-screens.js';
 import type { CardFaces } from './card-face.js';
 import { createCardRows, PATH_ROOT, type Card, type CardRow, type MainWorld, type RowChange } from './card-rows.js';
 import type { CardPage } from './card-face.js';
-import { classPage, coursePage } from './course-page.js';
+import type { CardStyle } from './card-styles.js';
+import { coursePage } from './course-page.js';
 import { vehicleCard } from './vehicle-card.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 
@@ -45,6 +46,8 @@ export interface SelectionCatalog {
   readonly dev: boolean;
   /** The title logo, which stands for the main picture until it is made. */
   readonly logo: TilePicture;
+  /** The cards' style while their design is tried (K, 2026-11-12): the one shown, and SETTINGS' step to the next. */
+  readonly cardStyle: { current(): CardStyle; step(by: -1 | 1): void };
 }
 
 /** Where the selection draws and what its rows lead to. */
@@ -188,21 +191,16 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       },
     });
   const vehicleOf = (id: string) => vehicles.find((v) => v.compiledVehicle.id === id)!;
-  // The class, course and vehicle cards' pages, each made once: a vehicle's for each of its colors.
-  const pages = new Map<SeriesClass | string, CardPage>();
-  const pageOf = (key: SeriesClass | string, make: () => CardPage) => {
-    let page = pages.get(key);
-    if (!page) pages.set(key, (page = make()));
+  // The course and vehicle cards' pages, each made once in each card style: a vehicle's for each of its colors.
+  const pages = new Map<string, CardPage>();
+  const pageOf = (key: string, make: (style: CardStyle) => CardPage) => {
+    const style = catalog.cardStyle.current(),
+      styled = `${style.id}/${key}`;
+    let page = pages.get(styled);
+    if (!page) pages.set(styled, (page = make(style)));
     return page;
   };
-  const classPageOf = (c: SeriesClass) =>
-    pageOf(c, () =>
-      classPage(
-        c,
-        courseOf(c.course),
-        c.entries.every((e) => vehicleOf(e.vehicle).listing.form === 'bike'),
-      ),
-    );
+  const coursePageOf = (id: string) => pageOf(`course/${id}`, (style) => coursePage(courseOf(id), style));
   const classRow = (): CardRow => {
     const chosen = seriesChoice!;
     return row({
@@ -212,7 +210,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       initial: at(chosen.classes, (c) => c.id === (classChoice?.id ?? latest('class'))),
       cards: chosen.classes.map((c): Card => ({
         name: c.title,
-        page: () => classPageOf(c),
+        page: () => coursePageOf(c.course),
         confirm: () => {
           // Another class offers its own vehicles.
           if (c !== classChoice) vehicleId = null;
@@ -281,7 +279,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       initial: at(offered, (id) => id === (courseId ?? latest('course'))),
       cards: offered.map((id): Card => ({
         name: courseOf(id).name,
-        page: () => pageOf(id, () => coursePage(courseOf(id))),
+        page: () => coursePageOf(id),
         confirm: () => {
           courseId = id;
           remember('course', id);
@@ -313,8 +311,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
           name: `${manufacturer} ${model}`.toUpperCase(),
           page: () => {
             const color = colorOf(v);
-            return pageOf(`${v.compiledVehicle.id}/${color}/${changes}`, () =>
-              vehicleCard(v, { color, changes }, catalog.driving),
+            return pageOf(`vehicle/${v.compiledVehicle.id}/${color}/${changes}`, (style) =>
+              vehicleCard(v, { color, changes }, catalog.driving, style),
             );
           },
           change: (by) => {
@@ -376,6 +374,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         controls: () => go(controlsRow(), 'thin'),
         clearRecords: () => go(clearRow(), 'thin'),
       },
+      catalog.cardStyle,
     );
     return row({
       kind: 'cards',
@@ -386,7 +385,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       back: () => (go(menuRow(), 'thin'), 'back'),
     });
   };
-  const settingsAt = (name: string) => settingsRow(10 + Number(name === 'CLEAR RECORDS'));
+  const settingsAt = (name: string) => settingsRow(11 + Number(name === 'CLEAR RECORDS'));
   const controlsRow = (): CardRow =>
     row({
       kind: 'cards',

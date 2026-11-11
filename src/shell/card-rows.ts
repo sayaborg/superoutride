@@ -27,8 +27,10 @@ const PRESS_START_ROW = 28;
 const BLINK = Object.freeze({ on: 32, off: 16 });
 /** The title logo's top, standing for the main picture until it is made. */
 const LOGO_Y = 16;
-/** The path's row, the frame's last, and its root: the game, the top of every path. */
+/** The path's row, the frame's last, a plain band, and its root: the game, the top of every path. */
 const PATH_ROW = 29;
+/** The band's dark RGB555 color (2, 2, 4). */
+const PATH_GROUND = (2 << 10) | (2 << 5) | 4;
 export const PATH_ROOT = 'SUPER OUTRIDE';
 /** The path's separator and the mark that stands for its part cut on the left. */
 const PATH = Object.freeze({ separator: '>', cut: '..' });
@@ -315,7 +317,7 @@ export function createCardRows(
     const levels = shown?.row.path;
     if (!shown || !levels) return;
     target.pixels.fill(
-      CARD.ground,
+      PATH_GROUND,
       PATH_ROW * TEXT_TILE_SIZE * target.width,
       (PATH_ROW + 1) * TEXT_TILE_SIZE * target.width,
     );

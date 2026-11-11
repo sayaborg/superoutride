@@ -26,6 +26,7 @@ import { createRunScreen, createRunScreenState } from './run-screen.js';
 import { createLoadFailedScreen } from './loading-screen.js';
 import { createSelectionFlow } from './selection-flow.js';
 import { createCardFaces } from './card-face.js';
+import { CARD_STYLES } from './card-styles.js';
 import { loadFrontEndSelection } from '../content/front-end-selection.js';
 import { assembleRun, createDemoCourses, type Run, type RunPage } from './run-assembly.js';
 import { readUrlRunRequest, type RunRequest } from './run-request.js';
@@ -307,6 +308,17 @@ async function startPage(): Promise<void> {
       return { run, finished: () => state.finished };
     });
     window.addEventListener('pagehide', () => attractDemo.dispose());
+    // The cards' style while their design is tried (K, 2026-11-12): SETTINGS' CARD DESIGN and the C key step it.
+    let shownStyle = 0;
+    const cardStyle = {
+      current: () => CARD_STYLES[shownStyle]!,
+      step: (by: -1 | 1) => {
+        shownStyle = (shownStyle + by + CARD_STYLES.length) % CARD_STYLES.length;
+      },
+    };
+    window.addEventListener('keydown', (event) => {
+      if (event.code === 'KeyC' && !event.repeat) cardStyle.step(1);
+    });
     // The rows request runs that start at once; LOAD FAILED's BACK returns to the row that requested one.
     const flow = createSelectionFlow(
       {
@@ -320,11 +332,12 @@ async function startPage(): Promise<void> {
         player,
         dev,
         logo: screenPictures.get(TITLE_LOGO.id)!,
+        cardStyle,
       },
       {
         frame: shell.framebuffer,
         text: textLayer,
-        faces: createCardFaces(textTiles),
+        faces: createCardFaces(textTiles, cardStyle.current),
         present,
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),

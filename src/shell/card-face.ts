@@ -4,15 +4,18 @@ import {
   TEXT_FONTS,
   TEXT_PALETTES,
   TEXT_TILE_SIZE,
+  type OrnateStyle,
   type TextFont,
   type TextTiles,
 } from '../image/text-tiles.js';
+import { lineThinningRanks, newLineCount } from '../view/line-thinning.js';
 import { SoftwareSurface } from '../view/software-surface.js';
+import { drawSmallPrint, SMALL_PRINT } from './small-print.js';
 
 /**
  * A card: 28×21 tiles (224×168 pixels) shown at 1:1, the one in focus standing at x 48 (column 6) and y 32 (row 4) at
  * rest, four rows clear above it and below it over the path's row (K, 2026-11-09 and 2026-11-11), its neighbours one
- * card and one clear tile away. Its ground is a dark RGB555 color, provisional until the cards are designed.
+ * card and one clear tile away.
  */
 export const CARD = Object.freeze({
   columns: 28,
@@ -20,7 +23,6 @@ export const CARD = Object.freeze({
   x: 48,
   y: 32,
   pitch: 29 * TEXT_TILE_SIZE,
-  ground: (2 << 10) | (2 << 5) | 4,
 });
 const WIDTH = CARD.columns * TEXT_TILE_SIZE,
   HEIGHT = CARD.rows * TEXT_TILE_SIZE;
@@ -30,36 +32,66 @@ const NAME_COLUMNS = CARD.columns - 2;
 const NAME_ROWS = Object.freeze({ one: [8], two: [6, 9] });
 const LINE_ROW = 13;
 
-/** What a page paints on: its card's pixels, and boxes of tiles and text that never leave them. */
+/** A rectangle of a card's pixels. */
+export interface PixelBox {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** What a card is painted on: its 224×168 pixels, which nothing it writes leaves (a `RangeError`). */
 export interface PageCanvas {
-  /** The card's 224×168 pixels. */
   readonly surface: SoftwareSurface;
   /** A text palette's main color. */
   mainColor(palette: number): number;
-  /** A box of tiles: a 1-pixel edge on its left and top and a 2-pixel edge on its right and bottom around `ground`. */
-  box(box: TileBox, ground: number): void;
-  /** `line` from tile (`column`, `row`) in the normal font, WHITE by default; leaving the card is a `RangeError`. */
+  /** Fill `box`, clipped to the card, with `color`. */
+  fill(box: PixelBox, color: number): void;
+  /** `line` from tile (`column`, `row`) in the normal font with its shadow, WHITE by default. */
   write(column: number, row: number, line: string, palette?: number): void;
+  /** `line` from the pixel (`x`, `y`) in the normal font in `color` alone, without its shadow. */
+  ink(x: number, y: number, line: string, color: number): void;
+  /** `line` from the pixel (`x`, `y`) in the small print ([small print](./small-print.ts)) in `color`. */
+  small(x: number, y: number, line: string, color: number): void;
+  /**
+   * A title from the pixel (`x`, `y`): in the large ornate font when it fits `columns`, else in two lines of the small
+   * one (`cardNameLines`), each 16 pixels tall in all; SUNSET by default.
+   */
+  title(x: number, y: number, columns: number, text: string, style?: OrnateStyle): void;
+}
+
+/** A page's words: their lines' box, a multiple of a tile each way, on a flat `ground`; a YELLOW heading or none. */
+export interface PageWords {
+  readonly box: PixelBox;
+  readonly ground: number;
+  readonly heading: string | null;
+  readonly description: string;
 }
 
 /**
- * A page card's page (K's prototype of the cards, 2026-11-09; K, 2026-11-11: the card UI as before): its title on the
- * band, the boxes it paints itself, its words, and what moves on it while it rests in focus.
+ * A page card's page (K, 2026-11-11: the card UI as before; 2026-11-12: packed with what it is about, no boxes drawn
+ * around its parts): one face or several that turn at rest in focus, each painted whole by the page, with its words and
+ * what moves on it.
  */
 export interface CardPage {
   readonly title: string;
-  /** Paint the picture's and the facts' boxes, and the words' box when it has no words. */
-  paint(canvas: PageCanvas): void;
-  /** Its words in the words' box, a YELLOW heading (or none) over a WHITE description; null when it paints that box. */
-  readonly words: { readonly heading: string | null; readonly description: string } | null;
-  /** Draw what moves on it, `steps` after it came to rest in focus, over its face standing at (`x`, `y`) in `target`. */
-  live?(target: SoftwareSurface, x: number, y: number, steps: number): void;
+  /** How many faces it has, at least one. */
+  readonly faces: number;
+  /** Paint face `face` on the card; its words, which the card writes and raises, or null. */
+  paint(canvas: PageCanvas, face: number): PageWords | null;
+  /** Draw what moves on `face`, `steps` after the card came to rest in focus, over it standing at (`x`, `y`). */
+  live?(target: SoftwareSurface, x: number, y: number, steps: number, face: number): void;
+}
+
+/** How the plain cards look: an ID, and a painter of a name or list card's ground that gives the name's ornate style. */
+export interface PlainCardStyle {
+  readonly id: string;
+  plain(canvas: PageCanvas, kind: 'name' | 'list'): OrnateStyle;
 }
 
 /**
- * What a card shows: its name and one line, and whether it is dimmed, until its row's cards are designed (K,
- * 2026-11-09); a list card's name and its entries, each a label and a value, one of them selected (K, 2026-11-11); or a
- * page.
+ * What a card shows: its name and one line, and whether it is dimmed; a list card's name and its entries, each a label
+ * and a value, one of them selected (K, 2026-11-11); or a page.
  */
 export interface CardFace {
   readonly name: string;
@@ -110,43 +142,6 @@ export function wrappedLines(text: string, columns: number): readonly string[] {
   return Object.freeze(lines);
 }
 
-/** An inclusive span of a card's tiles: its first column and row and its last. */
-export type TileBox = readonly [first: number, top: number, last: number, bottom: number];
-/**
- * A page card's boxes (K's prototype of the cards, 2026-11-09, on 28×21 tiles): the title band, the picture and the
- * facts beside it, and the words.
- */
-export const PAGE = Object.freeze({
-  band: [0, 0, 27, 2] as TileBox,
-  picture: [0, 3, 15, 11] as TileBox,
-  facts: [16, 3, 27, 11] as TileBox,
-  words: [0, 12, 27, 20] as TileBox,
-});
-/**
- * Where a page writes, in tiles: the title from column 1 on rows 1–2; the facts 10 columns from column 17 on rows 4–10;
- * the words 26 columns from column 1 on rows 13–19, seven lines.
- */
-export const PAGE_TEXT = Object.freeze({
-  title: Object.freeze({ column: 1, row: 1, columns: CARD.columns - 2 }),
-  facts: Object.freeze({ column: 17, row: 4, columns: 10, rows: 7 }),
-  words: Object.freeze({ column: 1, row: 13, columns: CARD.columns - 2, rows: 7 }),
-});
-/** The pixels of a box's ground, within its edge: the box's tiles less a pixel on the left and top and two right and below. */
-export function boxGround([first, top, last, bottom]: TileBox) {
-  return Object.freeze({
-    x: first * TEXT_TILE_SIZE + 1,
-    y: top * TEXT_TILE_SIZE + 1,
-    width: (last - first + 1) * TEXT_TILE_SIZE - 3,
-    height: (bottom - top + 1) * TEXT_TILE_SIZE - 3,
-  });
-}
-/** A page's colors, RGB555, from K's prototype: a box's ground and edge, and the deep ground behind a picture. */
-export const PAGE_COLORS = Object.freeze({
-  ground: (1 << 10) | (2 << 5) | 6,
-  edge: (17 << 10) | (19 << 5) | 27,
-  deep: (1 << 10) | (2 << 5) | 4,
-});
-
 /**
  * The words' scroll while their card rests in focus, in fixed steps (provisional, for K): held at their top for `hold`,
  * rising a pixel every `pixel` until their last line shows, held there for `end`, then at their top again.
@@ -161,185 +156,257 @@ export function wordsScroll(overflow: number, steps: number): number {
 }
 
 /**
- * The card faces, each painted once into its own 224×168 pixels from the text tiles. A name card: a bright 1-pixel edge
- * over a dark ground, the name in the large ornate font's SUNSET style and the line in the normal font's WHITE, both
- * centred; a list card's name and entries ([browser](../../docs/browser.md#card-rows)). A page card: the title band, the
- * title in the large ornate font's SUNSET style or, longer than the band, in two lines of the small one; the boxes the
- * page paints; and its words, painted once as one strip that shows its top seven lines. A dimmed card is painted at half
- * brightness, as by palettes at half brightness. Nothing is written beyond its card: text that would be is a
- * `RangeError`. `draw` copies a face to any position, clipped to the target; after `steps` at rest in focus, a page
- * whose words are taller than their box shows them risen by `wordsScroll`, and what moves on it is drawn over it.
+ * A page's faces at rest in focus: each shows for `steps` fixed steps (6 s, as the catalog's pages did), and the next
+ * comes over `thin` steps by line thinning, the only transition of this game (K, 2026-11-08), over the card's rows
+ * ([line thinning](../view/line-thinning.ts)).
  */
-export function createCardFaces(tiles: TextTiles) {
+export const FACE_TURN = Object.freeze({ steps: 360, thin: 16 });
+// The card's rows' ranks in line thinning's order.
+const THIN_RANK = lineThinningRanks(HEIGHT);
+
+/**
+ * The card faces, each painted once into its own 224×168 pixels from the text tiles and the small print, in `style`'s
+ * look as it is when the card is first drawn in it. A name card: the name in the large ornate font and the line in the
+ * normal font's WHITE, both centred; a list card's name and entries ([browser](../../docs/browser.md#card-rows)). A page
+ * card: what its page paints, and its words, painted once as one strip that shows its top lines. A dimmed card is
+ * painted at half brightness, as by palettes at half brightness. Nothing is written beyond its card: text that would be
+ * is a `RangeError`. `draw` copies a face to any position, clipped to the target; after `steps` at rest in focus a page
+ * shows the face `FACE_TURN` gives, its words risen by `wordsScroll` when taller than their box, and what moves on it.
+ */
+export function createCardFaces(tiles: TextTiles, style: () => PlainCardStyle) {
   const faces = new Map<string, Uint16Array>();
-  const pages = new WeakMap<CardPage, { plain: PageFace; dimmed?: PageFace }>();
-  // Write `line` in `font` from tile (`column`, `row`) of the `width`-pixel-wide `pixels`, entirely within them.
+  const pages = new WeakMap<CardPage, (PageFace | undefined)[]>();
+  const dimmed = new WeakMap<CardPage, Uint16Array>();
+  // Write `line` in `font` from the pixel (`x`, `y`) of the `width`-pixel-wide `pixels`, entirely within them.
   const paintText = (
     pixels: Uint16Array,
     width: number,
-    column: number,
-    row: number,
+    x: number,
+    y: number,
     line: string,
     font: TextFont,
     palette: number,
   ) => {
     const rows = TEXT_FONTS[font].rows;
-    if (column < 0 || row < 0 || (column + line.length) * TEXT_TILE_SIZE > width)
-      throw new RangeError(`${JSON.stringify(line)} leaves its card at column ${column}`);
-    if ((row + rows) * TEXT_TILE_SIZE * width > pixels.length)
-      throw new RangeError(`${JSON.stringify(line)} leaves its card at row ${row}`);
+    if (x < 0 || y < 0 || x + line.length * TEXT_TILE_SIZE > width)
+      throw new RangeError(`${JSON.stringify(line)} leaves its card at x ${x}`);
+    if ((y + rows * TEXT_TILE_SIZE) * width > pixels.length)
+      throw new RangeError(`${JSON.stringify(line)} leaves its card at y ${y}`);
     for (let r = 0; r < rows; r++)
       tiles
         .encode(line, font, r)
         .forEach((pattern, i) =>
-          tiles.paint(pixels, ((row + r) * width + column + i) * TEXT_TILE_SIZE, width, pattern, palette + r),
+          tiles.paint(pixels, (y + r * TEXT_TILE_SIZE) * width + x + i * TEXT_TILE_SIZE, width, pattern, palette + r),
         );
   };
-  const write = (
-    pixels: Uint16Array,
-    column: number,
-    row: number,
-    line: string,
-    font: 'normal' | 'ornateLarge',
-    palette = font === 'normal' ? TEXT_PALETTES.WHITE : ornatePalette('ornateLarge', 'SUNSET'),
-  ) => paintText(pixels, WIDTH, column, row, line, font, palette);
+  const white = tiles.mainColor(TEXT_PALETTES.WHITE);
+  // A line in the normal font's main color alone: painted WHITE on a clear ground, its main-color pixels kept.
+  const inkPixels = (line: string) => {
+    const width = line.length * TEXT_TILE_SIZE,
+      pixels = new Uint16Array(width * TEXT_TILE_SIZE).fill(CLEAR);
+    paintText(pixels, width, 0, 0, line, 'normal', TEXT_PALETTES.WHITE);
+    return { width, pixels };
+  };
+  const canvasOf = (pixels: Uint16Array): PageCanvas => {
+    const surface = new SoftwareSurface(WIDTH, HEIGHT, pixels);
+    const within = (x: number, y: number, width: number, line: string, height = TEXT_TILE_SIZE) => {
+      if (x < 0 || y < 0 || x + width > WIDTH || y + height > HEIGHT)
+        throw new RangeError(`${JSON.stringify(line)} leaves its card at (${x}, ${y})`);
+    };
+    return {
+      surface,
+      mainColor: (palette) => tiles.mainColor(palette),
+      fill: ({ x, y, width, height }, color) => {
+        for (let row = Math.max(0, y); row < Math.min(HEIGHT, y + height); row++)
+          surface.fillSpan(row, x, x + width - 1, color);
+      },
+      write: (column, row, line, palette = TEXT_PALETTES.WHITE) =>
+        paintText(pixels, WIDTH, column * TEXT_TILE_SIZE, row * TEXT_TILE_SIZE, line, 'normal', palette),
+      ink: (x, y, line, color) => {
+        within(x, y, line.length * TEXT_TILE_SIZE, line);
+        const inked = inkPixels(line);
+        for (let row = 0; row < TEXT_TILE_SIZE; row++)
+          for (let k = 0; k < inked.width; k++)
+            if (inked.pixels[row * inked.width + k] === white) pixels[(y + row) * WIDTH + x + k] = color;
+      },
+      small: (x, y, line, color) => {
+        within(x, y, line.length * SMALL_PRINT.width, line, SMALL_PRINT.rows);
+        drawSmallPrint(surface, x, y, line, color);
+      },
+      title: (x, y, columns, text, ornate = 'SUNSET') => {
+        if (text.length <= columns)
+          paintText(pixels, WIDTH, x, y, text, 'ornateLarge', ornatePalette('ornateLarge', ornate));
+        else
+          cardNameLines(text).forEach((line, i) =>
+            paintText(
+              pixels,
+              WIDTH,
+              x,
+              y + i * TEXT_TILE_SIZE,
+              line,
+              'ornateSmall',
+              ornatePalette('ornateSmall', ornate),
+            ),
+          );
+      },
+    };
+  };
   const centred = (line: string) => Math.floor((CARD.columns - line.length) / 2);
   const paint = (face: CardFace) => {
-    const pixels = new Uint16Array(WIDTH * HEIGHT).fill(CARD.ground);
-    const edge = tiles.mainColor(TEXT_PALETTES.WHITE);
-    for (let x = 0; x < WIDTH; x++) pixels[x] = pixels[(HEIGHT - 1) * WIDTH + x] = edge;
-    for (let y = 0; y < HEIGHT; y++) pixels[y * WIDTH] = pixels[y * WIDTH + WIDTH - 1] = edge;
+    const pixels = new Uint16Array(WIDTH * HEIGHT),
+      canvas = canvasOf(pixels);
+    const ornate = style().plain(canvas, face.items ? 'list' : 'name');
+    const name = (line: string, row: number) =>
+      paintText(
+        pixels,
+        WIDTH,
+        centred(line) * TEXT_TILE_SIZE,
+        row * TEXT_TILE_SIZE,
+        line,
+        'ornateLarge',
+        ornatePalette('ornateLarge', ornate),
+      );
     if (face.items) {
-      write(pixels, centred(face.name), LIST.nameRow, face.name, 'ornateLarge');
+      name(face.name, LIST.nameRow);
       const [left, right] = LIST.marks;
       face.items.forEach((item, i) => {
         const row = LIST.first + i,
           shade = item.selected ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.DARK;
-        write(pixels, LIST.label, row, item.label, 'normal', shade);
+        canvas.write(LIST.label, row, item.label, shade);
         const at = left + 1 + Math.floor((right - left - 1 - item.value.length) / 2);
-        write(pixels, at, row, item.value, 'normal', item.selected ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE);
+        canvas.write(at, row, item.value, item.selected ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE);
         if (item.selected && item.value) {
-          write(pixels, left, row, '◀', 'normal');
-          write(pixels, right, row, '▶', 'normal');
+          canvas.write(left, row, '◀');
+          canvas.write(right, row, '▶');
         }
       });
     } else {
       const lines = cardNameLines(face.name);
-      lines.forEach((line, i) =>
-        write(pixels, centred(line), (lines.length === 1 ? NAME_ROWS.one : NAME_ROWS.two)[i]!, line, 'ornateLarge'),
-      );
-      if (face.line) write(pixels, centred(face.line), LINE_ROW, face.line, 'normal');
+      lines.forEach((line, i) => name(line, (lines.length === 1 ? NAME_ROWS.one : NAME_ROWS.two)[i]!));
+      if (face.line) canvas.write(centred(face.line), LINE_ROW, face.line);
     }
     if (face.dim) halveRgb555Pixels(pixels);
     return pixels;
   };
 
-  // A page's box: its edge around its ground.
-  const box = (pixels: Uint16Array, [first, top, last, bottom]: TileBox, ground: number) => {
-    const [x0, y0] = [first * TEXT_TILE_SIZE, top * TEXT_TILE_SIZE],
-      [x1, y1] = [(last + 1) * TEXT_TILE_SIZE, (bottom + 1) * TEXT_TILE_SIZE];
-    for (let y = y0; y < y1; y++)
-      for (let x = x0; x < x1; x++)
-        pixels[y * WIDTH + x] = y === y0 || y >= y1 - 2 || x === x0 || x >= x1 - 2 ? PAGE_COLORS.edge : ground;
-  };
-  const paintPage = (page: CardPage): PageFace => {
+  const paintPage = (page: CardPage, face: number): PageFace => {
     const pixels = new Uint16Array(WIDTH * HEIGHT);
-    const { title, words } = PAGE_TEXT;
-    box(pixels, PAGE.band, PAGE_COLORS.ground);
-    // The title in the large ornate font; longer than the band, in two lines of the small one.
-    if (page.title.length <= title.columns) write(pixels, title.column, title.row, page.title, 'ornateLarge');
-    else
-      cardNameLines(page.title).forEach((line, i) =>
-        paintText(
-          pixels,
-          WIDTH,
-          title.column,
-          title.row + i,
-          line,
-          'ornateSmall',
-          ornatePalette('ornateSmall', 'SUNSET'),
-        ),
-      );
-    page.paint({
-      surface: new SoftwareSurface(WIDTH, HEIGHT, pixels),
-      mainColor: (palette) => tiles.mainColor(palette),
-      box: (at, ground) => box(pixels, at, ground),
-      write: (column, row, line, palette = TEXT_PALETTES.WHITE) =>
-        paintText(pixels, WIDTH, column, row, line, 'normal', palette),
-    });
-    if (!page.words) return { pixels, strip: new Uint16Array(0), overflow: 0 };
-    box(pixels, PAGE.words, PAGE_COLORS.ground);
+    const words = page.paint(canvasOf(pixels), face);
+    if (!words) return { pixels, words: null, strip: new Uint16Array(0), overflow: 0 };
+    const { box, ground, heading, description } = words;
+    if (box.width % TEXT_TILE_SIZE || box.height % TEXT_TILE_SIZE || box.x < 0 || box.y < 0)
+      throw new RangeError("A page's words stand in whole tiles");
+    if (box.x + box.width > WIDTH || box.y + box.height > HEIGHT) throw new RangeError("A page's words leave its card");
     // The words, every line of them, on a strip of their own.
-    const { heading, description } = page.words;
+    const columns = box.width / TEXT_TILE_SIZE;
     const lines = [
-      ...(heading === null ? [] : wrappedLines(heading, words.columns).map((line) => [line, true] as const)),
-      ...wrappedLines(description, words.columns).map((line) => [line, false] as const),
+      ...(heading === null ? [] : wrappedLines(heading, columns).map((line) => [line, true] as const)),
+      ...wrappedLines(description, columns).map((line) => [line, false] as const),
     ];
-    const width = words.columns * TEXT_TILE_SIZE,
-      shown = words.rows * TEXT_TILE_SIZE;
-    const strip = new Uint16Array(width * Math.max(shown, lines.length * TEXT_TILE_SIZE)).fill(PAGE_COLORS.ground);
+    const strip = new Uint16Array(box.width * Math.max(box.height, lines.length * TEXT_TILE_SIZE)).fill(ground);
     lines.forEach(([line, yellow], i) =>
-      paintText(strip, width, 0, i, line, 'normal', yellow ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE),
+      paintText(
+        strip,
+        box.width,
+        0,
+        i * TEXT_TILE_SIZE,
+        line,
+        'normal',
+        yellow ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE,
+      ),
     );
-    copy(
-      pixels,
-      WIDTH,
-      HEIGHT,
-      strip.subarray(0, width * shown),
-      width,
-      words.column * TEXT_TILE_SIZE,
-      words.row * TEXT_TILE_SIZE,
-    );
-    return { pixels, strip, overflow: strip.length / width - shown };
+    copy(pixels, WIDTH, HEIGHT, strip.subarray(0, box.width * box.height), box.width, box.x, box.y);
+    return { pixels, words, strip, overflow: strip.length / box.width - box.height };
   };
-  const pageFace = (page: CardPage, dim: boolean): PageFace => {
+  const pageFace = (page: CardPage, face: number): PageFace => {
     let painted = pages.get(page);
-    if (!painted) pages.set(page, (painted = { plain: paintPage(page) }));
-    if (!dim) return painted.plain;
-    if (!painted.dimmed) {
-      const pixels = painted.plain.pixels.slice();
-      halveRgb555Pixels(pixels);
-      painted.dimmed = { pixels, strip: painted.plain.strip, overflow: 0 };
-    }
-    return painted.dimmed;
+    if (!painted) pages.set(page, (painted = []));
+    return (painted[face] ??= paintPage(page, face));
   };
+  // A page's face `face` as it is `steps` after it came, with what moves on it after `rest` steps at rest, at (x, y).
+  const drawPage = (
+    target: SoftwareSurface,
+    page: CardPage,
+    face: number,
+    x: number,
+    y: number,
+    steps: number,
+    rest: number,
+  ) => {
+    const { pixels, words, strip, overflow } = pageFace(page, face);
+    copy(target.pixels, target.width, target.height, pixels, WIDTH, x, y);
+    const risen = wordsScroll(overflow, steps);
+    if (words && risen > 0) {
+      const { box } = words;
+      copy(
+        target.pixels,
+        target.width,
+        target.height,
+        strip.subarray(risen * box.width, (risen + box.height) * box.width),
+        box.width,
+        x + box.x,
+        y + box.y,
+      );
+    }
+    if (rest > 0) page.live?.(target, x, y, rest, face);
+  };
+  const scratch = [new SoftwareSurface(WIDTH, HEIGHT), new SoftwareSurface(WIDTH, HEIGHT)] as const;
   return Object.freeze({
     /**
-     * Copy `face` with its top-left corner at (`x`, `y`), clipped to `target`; a page's words risen, and what moves on
-     * it drawn, as they are after `steps` at rest in focus.
+     * Copy `face` with its top-left corner at (`x`, `y`), clipped to `target`; a page as it is after `steps` at rest in
+     * focus.
      */
     draw(target: SoftwareSurface, face: CardFace, x: number, y: number, steps = 0) {
-      if (face.page) {
-        const { pixels, strip, overflow } = pageFace(face.page, face.dim);
+      const { page } = face;
+      if (page && face.dim) {
+        let pixels = dimmed.get(page);
+        if (!pixels) {
+          pixels = pageFace(page, 0).pixels.slice();
+          halveRgb555Pixels(pixels);
+          dimmed.set(page, pixels);
+        }
         copy(target.pixels, target.width, target.height, pixels, WIDTH, x, y);
-        const risen = wordsScroll(overflow, steps),
-          { words } = PAGE_TEXT,
-          width = words.columns * TEXT_TILE_SIZE;
-        if (risen > 0)
-          copy(
-            target.pixels,
-            target.width,
-            target.height,
-            strip.subarray(risen * width, (risen + words.rows * TEXT_TILE_SIZE) * width),
-            width,
-            x + words.column * TEXT_TILE_SIZE,
-            y + words.row * TEXT_TILE_SIZE,
-          );
-        if (steps > 0 && !face.dim) face.page.live?.(target, x, y, steps);
-        return;
+      } else if (page) {
+        const turn = Math.floor(steps / FACE_TURN.steps),
+          since = steps % FACE_TURN.steps,
+          shown = turn % page.faces;
+        if (page.faces === 1) drawPage(target, page, 0, x, y, steps, steps);
+        else if (turn === 0 || since >= FACE_TURN.thin) drawPage(target, page, shown, x, y, since, steps);
+        else {
+          // The face before, as it was when it went, and the one that comes, mixed by rows.
+          const [before, after] = scratch;
+          drawPage(before, page, (turn - 1) % page.faces, 0, 0, FACE_TURN.steps - 1, steps);
+          drawPage(after, page, shown, 0, 0, since, steps);
+          const rows = newLineCount(HEIGHT, (since + 1) / FACE_TURN.thin);
+          for (let row = 0; row < HEIGHT; row++)
+            copy(
+              target.pixels,
+              target.width,
+              target.height,
+              (THIN_RANK[row]! < rows ? after : before).pixels.subarray(row * WIDTH, (row + 1) * WIDTH),
+              WIDTH,
+              x,
+              y + row,
+            );
+        }
+      } else {
+        const key = JSON.stringify([style().id, face.name, face.line, face.dim, face.items ?? null]);
+        let pixels = faces.get(key);
+        if (!pixels) faces.set(key, (pixels = paint(face)));
+        copy(target.pixels, target.width, target.height, pixels, WIDTH, x, y);
       }
-      const key = JSON.stringify([face.name, face.line, face.dim, face.items ?? null]);
-      let pixels = faces.get(key);
-      if (!pixels) faces.set(key, (pixels = paint(face)));
-      copy(target.pixels, target.width, target.height, pixels, WIDTH, x, y);
     },
   });
 }
 export type CardFaces = ReturnType<typeof createCardFaces>;
 
-/** A page painted: its face, its words' strip and how much taller the strip is than the words' box, in pixels. */
+/** Where no ink fell: bit 15, which no RGB555 color sets. */
+const CLEAR = 0x8000;
+
+/** A page's face painted: its pixels, its words, their strip and how much taller it is than their box, in pixels. */
 interface PageFace {
   readonly pixels: Uint16Array;
+  readonly words: PageWords | null;
   readonly strip: Uint16Array;
   readonly overflow: number;
 }

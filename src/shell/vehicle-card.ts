@@ -1,4 +1,4 @@
-import { TEXT_MARKS, TEXT_PALETTES } from '../image/text-tiles.js';
+import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -13,10 +13,9 @@ import {
 import { PLAYER_DEPTH_PIXELS_PER_METER } from '../view/display-scale.js';
 import { drawScaledSprite, scaledSpriteBounds } from '../view/sprite.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
-import { boxGround, PAGE, PAGE_COLORS, type CardPage, type PageCanvas } from './card-face.js';
+import type { CardPage, PageCanvas, PixelBox } from './card-face.js';
+import type { CardStyle, PageFact, PageParts } from './card-styles.js';
 
-/** The vehicle's pictures' box in the picture's box, in pixels: 2 clear of its edges. */
-const PICTURE_BOX = Object.freeze({ x: 3, y: 27, width: 121, height: 65 });
 /** A picture too large for its box shrinks from the player depth by this factor until every yaw image fits. */
 const PICTURE_SCALE_STEP = 0.99;
 /** The still card's picture: the yaw image 40 of a turn's 64, the vehicle seen from ahead and its right. */
@@ -39,24 +38,14 @@ const FREE_REV = Object.freeze({
 /** The engine speed's marks on the curves: squares this many pixels about each crossing. */
 const MARK_REACH = 1;
 /**
- * The graph in the facts' box, in pixels: 20 % to 110 % of redline across x `left`–`right` and 0 to each curve's
- * maximum up y `bottom`–`top`, with grid lines every 10 % of redline and every quarter of the height.
+ * The graph in its box: 20 % to 110 % of redline across it and 0 to each curve's maximum up it, `clear` pixels clear of
+ * the box's edges, with grid lines every 10 % of redline and every quarter of the height.
  */
-const GRAPH = Object.freeze({
-  left: 131,
-  right: 218,
-  top: 29,
-  bottom: 89,
-  first: 0.2,
-  last: 1.1,
-  grid: 0.1,
-  levels: 4,
-});
+const GRAPH = Object.freeze({ clear: 3, first: 0.2, last: 1.1, grid: 0.1, levels: 4 });
+/** The pictures stand this many pixels clear of their box's edges. */
+const PICTURE_CLEAR = 2;
 /** A lighter grey than DARK, for the graph's axes (RGB555 22, 22, 22). */
 const GREY = 22 | (22 << 5) | (22 << 10);
-/** The specifications in the words' box: labels from column `label`, values from column `value`, rows from `row`. */
-const SPECS = Object.freeze({ label: 1, value: 9, row: 13 });
-
 const integer = (value: number) => Math.round(value).toString();
 /** Power or torque: an integer from 10 up, one decimal below. */
 const quantity = (value: number) => (Math.round(value * 10) >= 100 ? integer(value) : value.toFixed(1));
@@ -77,7 +66,7 @@ function enginePeaks(vehicle: CompiledVehicleDefinition) {
  * The pictures' one scale, the largest from the player depth down at which every yaw image, each standing at the same
  * anchor, fits the pictures' box, and the anchor that centres them in it.
  */
-function pictureFit(images: VehicleSpriteImages) {
+function pictureFit(images: VehicleSpriteImages, box: PixelBox) {
   const assets = Array.from(
     { length: images.yawVariants },
     (_, i) => selectVehicleSprite(images, (i * Math.PI * 2) / images.yawVariants).asset,
@@ -89,29 +78,37 @@ function pictureFit(images: VehicleSpriteImages) {
       [left, top] = [Math.min(left, bounds.left), Math.min(top, bounds.top)];
       [right, bottom] = [Math.max(right, bounds.right), Math.max(bottom, bounds.bottom)];
     }
-    if (right - left <= PICTURE_BOX.width && bottom - top <= PICTURE_BOX.height)
+    if (right - left <= box.width - 2 * PICTURE_CLEAR && bottom - top <= box.height - 2 * PICTURE_CLEAR)
       return {
         scale,
-        x: PICTURE_BOX.x + PICTURE_BOX.width / 2 - (left + right) / 2,
-        y: PICTURE_BOX.y + PICTURE_BOX.height / 2 - (top + bottom) / 2,
+        x: box.x + box.width / 2 - (left + right) / 2,
+        y: box.y + box.height / 2 - (top + bottom) / 2,
       };
   }
 }
 
 /**
- * The graph of `vehicle`'s engine: x and y in the facts' box by engine speed and share of a curve's maximum, and the
+ * The graph of `vehicle`'s engine in `box`: its edges, x and y by engine speed and share of a curve's maximum, and the
  * power and torque curves' shares, each of its maximum, by engine speed.
  */
-function graphOf(vehicle: CompiledVehicleDefinition) {
+function graphOf(vehicle: CompiledVehicleDefinition, box: PixelBox) {
   const powertrain = vehicle.compiledVehicle.powertrain,
     redline = powertrain.redlineRpm,
     peaks = enginePeaks(vehicle),
-    perRedline = (GRAPH.right - GRAPH.left) / (GRAPH.last - GRAPH.first);
+    left = box.x + GRAPH.clear,
+    right = box.x + box.width - 1 - GRAPH.clear,
+    top = box.y + GRAPH.clear,
+    bottom = box.y + box.height - 1 - GRAPH.clear,
+    perRedline = (right - left) / (GRAPH.last - GRAPH.first);
   return Object.freeze({
     redline,
-    xOf: (rpm: number) => GRAPH.left + (rpm / redline - GRAPH.first) * perRedline,
-    rpmOf: (x: number) => (GRAPH.first + (x - GRAPH.left) / perRedline) * redline,
-    yOf: (share: number) => GRAPH.bottom - Math.round(Math.min(1, share) * (GRAPH.bottom - GRAPH.top)),
+    left,
+    right,
+    top,
+    bottom,
+    xOf: (rpm: number) => left + (rpm / redline - GRAPH.first) * perRedline,
+    rpmOf: (x: number) => (GRAPH.first + (x - left) / perRedline) * redline,
+    yOf: (share: number) => bottom - Math.round(Math.min(1, share) * (bottom - top)),
     power: (rpm: number) => (sampleEngineTorque(powertrain, rpm) * rpm * 2 * Math.PI) / 60 / (peaks.power * 1000),
     torque: (rpm: number) => sampleEngineTorque(powertrain, rpm) / peaks.torque,
   });
@@ -122,23 +119,27 @@ function graphOf(vehicle: CompiledVehicleDefinition) {
  * scaled so its maximum touches the top, a pixel wide and joined vertically between columns, from the larger of idle
  * and 20 % of redline to the fuel cut's entry.
  */
-function drawGraph(canvas: PageCanvas, vehicle: CompiledVehicleDefinition, fuelCutEnterRedlineRatio: number) {
+function drawGraph(
+  canvas: PageCanvas,
+  vehicle: CompiledVehicleDefinition,
+  graph: ReturnType<typeof graphOf>,
+  fuelCutEnterRedlineRatio: number,
+) {
   const { surface } = canvas,
-    graph = graphOf(vehicle),
     powertrain = vehicle.compiledVehicle.powertrain;
   const grid = canvas.mainColor(TEXT_PALETTES.DARK);
-  for (let k = 1; k <= GRAPH.levels; k++) surface.fillSpan(graph.yOf(k / GRAPH.levels), GRAPH.left, GRAPH.right, grid);
+  for (let k = 1; k <= GRAPH.levels; k++) surface.fillSpan(graph.yOf(k / GRAPH.levels), graph.left, graph.right, grid);
   for (let share = GRAPH.first + GRAPH.grid; share < GRAPH.last + 1e-9; share += GRAPH.grid) {
     const x = Math.round(graph.xOf(share * graph.redline));
-    for (let y = GRAPH.top; y < GRAPH.bottom; y++) surface.setPixel(x, y, grid);
+    for (let y = graph.top; y < graph.bottom; y++) surface.setPixel(x, y, grid);
   }
-  surface.fillSpan(GRAPH.bottom, GRAPH.left, GRAPH.right, GREY);
-  for (let y = GRAPH.top; y <= GRAPH.bottom; y++) surface.setPixel(GRAPH.left, y, GREY);
+  surface.fillSpan(graph.bottom, graph.left, graph.right, GREY);
+  for (let y = graph.top; y <= graph.bottom; y++) surface.setPixel(graph.left, y, GREY);
   const red = canvas.mainColor(TEXT_PALETTES.RED),
     yellow = canvas.mainColor(TEXT_PALETTES.YELLOW);
-  for (let y = GRAPH.top; y < GRAPH.bottom; y += 2) surface.setPixel(Math.round(graph.xOf(graph.redline)), y, red);
+  for (let y = graph.top; y < graph.bottom; y += 2) surface.setPixel(Math.round(graph.xOf(graph.redline)), y, red);
   const first = Math.ceil(graph.xOf(Math.max(powertrain.idleRpm, GRAPH.first * graph.redline))),
-    last = Math.min(GRAPH.right, Math.floor(graph.xOf(fuelCutRpm(graph.redline, fuelCutEnterRedlineRatio))));
+    last = Math.min(graph.right, Math.floor(graph.xOf(fuelCutRpm(graph.redline, fuelCutEnterRedlineRatio))));
   const curve = (share: (rpm: number) => number, color: number) => {
     let previous: number | null = null;
     for (let x = first; x <= last; x++) {
@@ -175,99 +176,155 @@ export interface VehicleCardColor {
   readonly changes: boolean;
 }
 
+/** Each gear's road speed at redline (km/h), at the rolling radius of the wheels taking more than half the drive. */
+function gearSpeeds(vehicle: CompiledVehicleDefinition) {
+  const v = vehicle.compiledVehicle,
+    p = v.powertrain;
+  const radius = (v.frontDriveTorqueFraction > 0.5 ? v.frontStation : v.rearStation).rollingRadius;
+  const metersPerSecond = (p.redlineRpm / 60) * 2 * Math.PI * radius;
+  return p.gearRatios.map((gear) => (metersPerSecond * 3.6) / (gear * p.finalDriveRatio));
+}
+
+/** What a vehicle's card says of it: the vehicle alone, the same in every series and in FREE PLAY (K, 2026-11-12). */
+function vehicleParts(vehicle: CompiledVehicleDefinition, shown: VehicleCardColor): PageParts {
+  const { metadata, visuals } = vehicle.listing;
+  const v = vehicle.compiledVehicle,
+    p = v.powertrain,
+    peaks = enginePeaks(vehicle),
+    front = Math.round(v.frontDriveTorqueFraction * 100),
+    wheelbase = v.frontAxle + v.rearAxle,
+    load = Math.round((v.rearAxle / wheelbase) * 100);
+  const millimeters = (meters: number) => integer(meters * 1000);
+  const type = metadata.identifier?.officialLabel.toUpperCase() ?? '';
+  const facts: PageFact[] = [
+    { label: 'ENGINE', value: metadata.engine.toUpperCase(), note: `${integer(p.displacementCc)}CC` },
+    {
+      label: 'POWER',
+      value: quantity(peaks.power),
+      unit: 'kW',
+      note: `/${integer(peaks.powerRpm)}`,
+      ink: TEXT_PALETTES.RED,
+    },
+    {
+      label: 'TORQUE',
+      value: quantity(peaks.torque),
+      unit: 'Nm',
+      note: `/${integer(peaks.torqueRpm)}`,
+      ink: TEXT_PALETTES.YELLOW,
+    },
+    { label: 'REDLINE', value: integer(p.redlineRpm), unit: 'rpm' },
+    { label: 'MASS', value: integer(v.mass), unit: 'kg' },
+    { label: 'P/W', value: integer((peaks.power * 1000) / v.mass), unit: 'kW/t' },
+    { label: 'GEARS', value: String(p.gearRatios.length), note: `FINAL ${p.finalDriveRatio.toFixed(2)}` },
+    front === 0 || front === 100
+      ? { label: 'DRIVE', value: front === 0 ? 'RWD' : 'FWD' }
+      : { label: 'DRIVE', value: 'AWD', note: `${front}/${100 - front}` },
+  ];
+  const more: PageFact[] = [
+    { label: 'YEAR', value: metadata.physicsAnchor.modelYear.toUpperCase() },
+    { label: 'TYPE', value: type || '-' },
+    { label: 'LENGTH', value: millimeters(v.overallLength), unit: 'mm' },
+    { label: 'WIDTH', value: millimeters(v.overallWidth), unit: 'mm' },
+    { label: 'HEIGHT', value: millimeters(v.overallHeight), unit: 'mm' },
+    { label: 'W/BASE', value: millimeters(wheelbase), unit: 'mm' },
+    { label: 'WEIGHT', value: `${load}/${100 - load}`, note: 'F/R' },
+    { label: 'TOP', value: integer(gearSpeeds(vehicle).at(-1)!), unit: 'km/h' },
+  ];
+  return Object.freeze({
+    title: `${metadata.manufacturer} ${metadata.model}`.toUpperCase(),
+    tag: metadata.period.toUpperCase(),
+    factsName: 'ENGINE',
+    facts,
+    moreName: 'BODY',
+    more,
+    choice: Object.freeze({
+      label: 'COLOR',
+      value: visuals.colorNames[shown.color] ?? shown.color,
+      changes: shown.changes,
+    }),
+    chart: 'block',
+    chartName: 'POWER / TORQUE',
+    words: null,
+  });
+}
+
 /**
- * A vehicle's card (SELECT VEHICLE; K's prototype of the cards, 2026-11-09): its manufacturer and model; its picture in
- * its color, still at the yaw image 40 of 64; its engine's power (RED) and torque (YELLOW) over 20 % to 110 % of its
- * redline; and its specifications: the engine, its power and torque with their speeds and its redline (the POWER and
- * TORQUE labels in their curves' colors, the graph's legend), its mass, gears and drive, its model year and type, and
+ * A vehicle's card (SELECT VEHICLE; K, 2026-11-12: the same card wherever it appears) in `style`: its manufacturer and
+ * model and its period; its picture in its color, still at the yaw image 40 of 64; its engine's power (RED) and torque
+ * (YELLOW) over 20 % to 110 % of its redline; its engine, power and torque with their speeds (their labels in their
+ * curves' colors, the graph's legend), redline, mass, power to mass, gears with the final drive, and drive; its model
+ * year, type, length, width, height, wheelbase, weight on the front and rear wheels and speed at redline in top gear; and
  * its color, between `▲` and `▼` when UP and DOWN change it.
  */
 export function vehicleCard(
   vehicle: CompiledVehicleDefinition,
   shown: VehicleCardColor,
   driving: CompiledDrivingDefinition,
+  style: CardStyle,
 ): CardPage {
-  const { metadata, visuals } = vehicle.listing;
-  const title = `${metadata.manufacturer} ${metadata.model}`.toUpperCase();
-  const v = vehicle.compiledVehicle,
-    p = v.powertrain,
-    peaks = enginePeaks(vehicle);
-  const drive = v.frontDriveTorqueFraction === 0 ? 'RWD' : v.frontDriveTorqueFraction === 1 ? 'FWD' : 'AWD';
-  const type = metadata.identifier?.officialLabel.toUpperCase() ?? '';
-  const name = visuals.colorNames[shown.color] ?? shown.color;
-  const specs: readonly (readonly [string, number, string])[] = [
-    ['ENGINE', TEXT_PALETTES.DARK, `${metadata.engine} ${integer(p.displacementCc)}cc`],
-    ['POWER', TEXT_PALETTES.RED, `${quantity(peaks.power)}kW/${integer(peaks.powerRpm)}`],
-    ['TORQUE', TEXT_PALETTES.YELLOW, `${quantity(peaks.torque)}Nm/${integer(peaks.torqueRpm)}`],
-    ['REDLINE', TEXT_PALETTES.DARK, `${integer(p.redlineRpm)}rpm`],
-  ];
-  // The pictures in the shown color and their fit and the free revving, each made when first needed; the graph, and the
-  // colors of the engine speed's line and marks, once painted.
-  let picture: { images: VehicleSpriteImages; fit: ReturnType<typeof pictureFit> } | null = null,
-    revs: Float64Array | null = null,
-    graph: ReturnType<typeof graphOf> | null = null,
-    inks: { line: number; power: number; torque: number } | null = null;
-  const pictured = () => {
-    if (!picture) {
-      const images = createVehiclePaletteVariant(vehicle.spriteSet, shown.color);
-      picture = { images, fit: pictureFit(images) };
-    }
-    return picture;
-  };
-  const drawPicture = (target: SoftwareSurface, x: number, y: number, turn: number) => {
-    const { images, fit } = pictured();
-    drawScaledSprite(target, selectVehicleSprite(images, turn * 2 * Math.PI).asset, x + fit.x, y + fit.y, fit.scale);
-  };
+  const parts = vehicleParts(vehicle, shown);
   const fuelCutEnterRedlineRatio = driving.compiledDriving.powertrain.fuelCutEnterRedlineRatio;
+  // The pictures in the shown color and the free revving, each made when first needed; and each painted face's
+  // picture, with its fit and ground, and graph.
+  let images: VehicleSpriteImages | null = null,
+    revs: Float64Array | null = null;
+  const painted: ({
+    picture: { box: PixelBox; ground: number; fit: ReturnType<typeof pictureFit> } | null;
+    graph: ReturnType<typeof graphOf> | null;
+  } | null)[] = [];
+  let inks: { line: number; power: number; torque: number } | null = null;
+  const pictures = () => (images ??= createVehiclePaletteVariant(vehicle.spriteSet, shown.color));
+  const drawPicture = (
+    target: SoftwareSurface,
+    x: number,
+    y: number,
+    turn: number,
+    fit: ReturnType<typeof pictureFit>,
+  ) =>
+    drawScaledSprite(
+      target,
+      selectVehicleSprite(pictures(), turn * 2 * Math.PI).asset,
+      x + fit.x,
+      y + fit.y,
+      fit.scale,
+    );
   return Object.freeze({
-    title,
-    paint(canvas: PageCanvas) {
-      canvas.box(PAGE.picture, PAGE_COLORS.deep);
-      drawPicture(canvas.surface, 0, 0, REST_TURN);
-      canvas.box(PAGE.facts, PAGE_COLORS.deep);
-      drawGraph(canvas, vehicle, fuelCutEnterRedlineRatio);
-      graph = graphOf(vehicle);
+    title: parts.title,
+    faces: style.faces(parts),
+    paint(canvas: PageCanvas, face: number) {
+      const { picture, chart, words } = style.page(canvas, parts, face);
+      const fit = picture && pictureFit(pictures(), picture.box),
+        graph = chart && graphOf(vehicle, chart.box);
+      if (picture && fit) drawPicture(canvas.surface, 0, 0, REST_TURN, fit);
+      if (graph) drawGraph(canvas, vehicle, graph, fuelCutEnterRedlineRatio);
+      painted[face] = { picture: picture && fit && { ...picture, fit }, graph };
       inks = {
         line: canvas.mainColor(TEXT_PALETTES.WHITE),
         power: canvas.mainColor(TEXT_PALETTES.RED),
         torque: canvas.mainColor(TEXT_PALETTES.YELLOW),
       };
-      canvas.box(PAGE.words, PAGE_COLORS.ground);
-      specs.forEach(([label, palette, value], i) => {
-        canvas.write(SPECS.label, SPECS.row + i, label, palette);
-        canvas.write(SPECS.value, SPECS.row + i, value);
-      });
-      canvas.write(SPECS.label, SPECS.row + 4, `${integer(v.mass)}kg  ${p.gearRatios.length}-SPEED  ${drive}`);
-      const year = metadata.physicsAnchor.modelYear.toUpperCase();
-      canvas.write(
-        SPECS.label,
-        SPECS.row + 5,
-        type && !title.includes(type) ? `${year}  ${type}` : year,
-        TEXT_PALETTES.DARK,
-      );
-      canvas.write(SPECS.label, SPECS.row + 6, 'COLOR', TEXT_PALETTES.DARK);
-      if (shown.changes) {
-        canvas.write(SPECS.value, SPECS.row + 6, TEXT_MARKS.up);
-        canvas.write(SPECS.value + 2, SPECS.row + 6, name, TEXT_PALETTES.YELLOW);
-        canvas.write(SPECS.value + 3 + name.length, SPECS.row + 6, TEXT_MARKS.down);
-      } else canvas.write(SPECS.value, SPECS.row + 6, name, TEXT_PALETTES.YELLOW);
+      return words;
     },
-    words: null,
     // At rest in focus, over the painted face, the picture turns from the still one and the engine revs: its speed a
     // WHITE upright line on the graph with a mark on each curve in the curve's color.
-    live(target: SoftwareSurface, x: number, y: number, steps: number) {
-      if (!graph || !inks) throw new Error('A vehicle card moves only once painted');
-      const ground = boxGround(PAGE.picture),
-        { images } = pictured();
-      for (let row = ground.y; row < ground.y + ground.height; row++)
-        target.fillSpan(y + row, x + ground.x, x + ground.x + ground.width - 1, PAGE_COLORS.deep);
-      const image = Math.round(REST_TURN * images.yawVariants) + Math.floor(steps / YAW_IMAGE_STEPS);
-      drawPicture(target, x, y, (image % images.yawVariants) / images.yawVariants);
+    live(target: SoftwareSurface, x: number, y: number, steps: number, face: number) {
+      const shownFace = painted[face];
+      if (!shownFace || !inks) throw new Error('A vehicle card moves only once painted');
+      const { picture, graph } = shownFace;
+      if (picture) {
+        const { box, ground, fit } = picture,
+          count = pictures().yawVariants;
+        for (let row = box.y; row < box.y + box.height; row++)
+          target.fillSpan(y + row, x + box.x, x + box.x + box.width - 1, ground);
+        const image = Math.round(REST_TURN * count) + Math.floor(steps / YAW_IMAGE_STEPS);
+        drawPicture(target, x, y, (image % count) / count, fit);
+      }
+      if (!graph) return;
       revs ??= freeRevs(vehicle, driving);
       const rpm = revs[steps < FREE_REV.steps ? steps : FREE_REV.steps + (steps % FREE_REV.steps)]!,
         at = Math.round(graph.xOf(rpm));
-      if (rpm < GRAPH.first * graph.redline || at > GRAPH.right) return;
-      for (let row = GRAPH.top; row <= GRAPH.bottom; row++) target.setPixel(x + at, y + row, inks.line);
+      if (rpm < GRAPH.first * graph.redline || at > graph.right) return;
+      for (let row = graph.top; row <= graph.bottom; row++) target.setPixel(x + at, y + row, inks.line);
       for (const [share, color] of [
         [graph.power, inks.power],
         [graph.torque, inks.torque],
