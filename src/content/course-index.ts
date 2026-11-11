@@ -12,6 +12,7 @@ import {
 } from '../core/admission.js';
 import { RUN_RULE_LIMITS } from '../course/run-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
+import { COURSE_FIGURES, createCourseFigures, type CourseFigures } from '../course/course-figures.js';
 import { createCourseMap, type CourseMap, type MapPoint } from '../course/course-map.js';
 import { courseGridCapacity } from '../course/compiler/course-rules.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
@@ -37,10 +38,12 @@ export interface CourseIndexEntry {
   readonly raceTracks: readonly string[];
   /** Its map, as the course's compilation draws it, for the cards and the PRE-RACE card before it loads. */
   readonly map: CourseMap;
+  /** What its road measures along the map's route, for the cards. */
+  readonly figures: CourseFigures;
 }
 export type CourseIndex = readonly CourseIndexEntry[];
 
-export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 8 } as const);
+export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 9 } as const);
 /** The course index's manifest ID. */
 export const COURSE_INDEX_ID = 'courses';
 const COURSE_TYPES: readonly CompiledCourse['type'][] = ['CIRCUIT', 'LINEAR', 'BRANCH'];
@@ -135,8 +138,86 @@ function readCourseMap(value: unknown, at: string): CourseMap {
 }
 
 /**
+ * A delivered course's figures: heights and the climb to a tenth of a metre, the steepest grade to a thousandth, the
+ * longest straight and the tightest radius in whole metres; and the most the index admits, which the cards have room
+ * to write: heights within `heightMeters` of the start, a grade of `grade`, `corners` to either hand and a straight of
+ * `straightMeters`.
+ */
+export const COURSE_INDEX_FIGURES = Object.freeze({
+  heightDecimals: 1,
+  gradeDecimals: 3,
+  heightMeters: 9999,
+  grade: 9.999,
+  corners: 999,
+  straightMeters: 999999,
+});
+
+/** A course's figures as the index delivers them ([course index](../../docs/content-and-gameplay.md#course-index)). */
+function courseFiguresDocument(figures: CourseFigures) {
+  const height = (meters: number) => fixed(meters, COURSE_INDEX_FIGURES.heightDecimals);
+  return {
+    profile: figures.profile.map(height),
+    climbMeters: height(figures.climbMeters),
+    steepestGrade: fixed(figures.steepestGrade, COURSE_INDEX_FIGURES.gradeDecimals),
+    corners: [figures.corners.left, figures.corners.right],
+    longestStraightMeters: Math.round(figures.longestStraightMeters),
+    tightestRadiusMeters: figures.tightestRadiusMeters === null ? null : Math.round(figures.tightestRadiusMeters),
+  };
+}
+
+/**
+ * Admit delivered figures: a profile of `COURSE_FIGURES.profileIntervals` + 1 heights, a climb, a grade, two whole
+ * corner counts, a longest straight, and a tightest radius of a bend or null, each within `COURSE_INDEX_FIGURES`.
+ */
+function readCourseFigures(value: unknown, at: string): CourseFigures {
+  const figures = readRecord(value, at, [
+    'profile',
+    'climbMeters',
+    'steepestGrade',
+    'corners',
+    'longestStraightMeters',
+    'tightestRadiusMeters',
+  ]);
+  const [left, right] = readArray(
+    figures.corners,
+    `${at}/corners`,
+    (n, p) => readNumber(n, p, { min: 0, max: COURSE_INDEX_FIGURES.corners, integer: true }),
+    { length: 2 },
+  );
+  return Object.freeze({
+    profile: readArray(
+      figures.profile,
+      `${at}/profile`,
+      (n, p) => readNumber(n, p, { min: -COURSE_INDEX_FIGURES.heightMeters, max: COURSE_INDEX_FIGURES.heightMeters }),
+      { length: COURSE_FIGURES.profileIntervals + 1 },
+    ),
+    climbMeters: readNumber(figures.climbMeters, `${at}/climbMeters`, {
+      min: 0,
+      max: COURSE_INDEX_FIGURES.heightMeters,
+    }),
+    steepestGrade: readNumber(figures.steepestGrade, `${at}/steepestGrade`, {
+      min: 0,
+      max: COURSE_INDEX_FIGURES.grade,
+    }),
+    corners: Object.freeze({ left: left!, right: right! }),
+    longestStraightMeters: readNumber(figures.longestStraightMeters, `${at}/longestStraightMeters`, {
+      min: 0,
+      max: COURSE_INDEX_FIGURES.straightMeters,
+    }),
+    tightestRadiusMeters:
+      figures.tightestRadiusMeters === null
+        ? null
+        : readNumber(figures.tightestRadiusMeters, `${at}/tightestRadiusMeters`, {
+            min: 0,
+            exclusiveMin: true,
+            max: COURSE_FIGURES.bendRadiusMeters,
+          }),
+  });
+}
+
+/**
  * The delivered index of the compiled courses, in the order given (the course texts': K, 2026-11-11), each with its
- * course text, race tracks and map.
+ * course text, race tracks, map and figures.
  */
 export function courseIndexDocument(
   courses: readonly CompiledCourse[],
@@ -155,6 +236,7 @@ export function courseIndexDocument(
       buildSha256: course.identity.buildSha256,
       raceTracks: raceTracks.get(course.id)!,
       map: courseMapDocument(createCourseMap(course)),
+      figures: courseFiguresDocument(createCourseFigures(course)),
     })),
   };
 }
@@ -184,6 +266,7 @@ export function readCourseIndex(
         'buildSha256',
         'raceTracks',
         'map',
+        'figures',
       ]);
       const id = readString(entry.id, `${at}/id`);
       requireAdmission(delivered.includes(id), 'invalid_value', `${at}/id`, `Course ${id} is not delivered`);
@@ -215,7 +298,8 @@ export function readCourseIndex(
         readArray(entry.raceTracks, `${at}/raceTracks`, (track, t) => readString(track, t)),
       );
       const map = readCourseMap(entry.map, `${at}/map`);
-      return Object.freeze({ id, name, description, type, maxLaps, gridSlots, buildSha256, raceTracks, map });
+      const figures = readCourseFigures(entry.figures, `${at}/figures`);
+      return Object.freeze({ id, name, description, type, maxLaps, gridSlots, buildSha256, raceTracks, map, figures });
     });
     requireAdmission(
       courses.length === delivered.length,
