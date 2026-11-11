@@ -16,6 +16,17 @@ The main 68000's program is two pairs of 256 KiB ROMs, its even and odd bytes fr
 read, as no road needs it ([No decryption](original-road-data.md#rules-of-the-originals)); the main's and the road CPUs'
 programs are plain.
 
+## Its course tables
+
+Each stage's two roads are held by the road CPUs as BIG RUN's are, road N by the Nth road CPU, which draws it (the
+board's tables, `jaleco/road-tables`, where `cisco-heat-road` says CISCO HEAT's lie): road 1 from the table the first
+road CPU reads at R1 0x1652, road 2 from the second's at R2 0x1642, 16 bytes a stage of four pointers. A plan record is
+28 bytes and a profile record 24, a turn of a heading or a grade 65,536 units, and a plan's position is one road
+position along and across. The main program holds the car on a road where its lists of the roads' records say (M
+0x220E: four lists a stage, road 1's the third, read as the player's +0x58, road 2's the fourth, +0x5C; 20 bytes a
+record, its end at +4 and its flags at +8), a record whose flags' bit 1 is set holding the car on its road from the end
+of the record before to its own end; each list's first record ends at 0, before the road.
+
 ## Its skies
 
 CISCO HEAT's sky is the board's: its two tile planes over its road layer's sky rows, each plane showing a scene of

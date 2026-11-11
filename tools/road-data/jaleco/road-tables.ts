@@ -154,12 +154,14 @@ const HELD_FLAG = 2;
  * The stretches the main program holds the car on a road over in stage `stage`, from its table at `table` of each stage's
  * lists of the roads' records (16 bytes a stage, road 1's at +8 and road 2's at +12, each record `bytes` long, its end at
  * +4 and its flags at +8): a record whose flags' bit 1 is set holds the car on its road from the end of the record before
- * to its own end, joined where they follow one another.
+ * to its own end, joined where they follow one another; a list's first record ending at 0 lies before the road
+ * (CISCO HEAT's), and the list ends at a record ending no later than the one before.
  */
 export function heldStretches(main: Uint8Array, table: number, bytes: number, stage: number): readonly HeldStretch[] {
   const out: HeldStretch[] = [];
   for (const road of [1, 2] as const) {
     let [at, from] = [long(main, table + 16 * stage + (road === 1 ? 8 : 12)), 0];
+    if (long(main, at + 4) === 0) at += bytes;
     for (;;) {
       const end = long(main, at + 4);
       if (end <= from) break;

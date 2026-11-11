@@ -42,3 +42,15 @@ RUN](big-run.md)).
   at shared 0x500 (`$f0228`, M 0xA1EE: the first road CPU's, the second's in STAGE 4).
 - **Open.** The steps along a scene, which a sky does not lay; the speed's other tops, by the player's +2C and +C8
   (0x676DB5, 0x5BFFFF and 0x9C9249, M 0x317A to 0x321C), lower than the one taken.
+
+## Its roads
+
+- **Its tables read as BIG RUN's.** Laid by the shared plan within BIG RUN's limits (0.03°, 14 positions a record), road
+  2 lays in STAGES 1 to 4 (its heading within 0.014°, its position within 13.6 positions). Road 1 in STAGE 4 departs by
+  6,025 positions where it leaves road 2 again, and in STAGE 5 both roads' headings jump beside an arc (road 1 at
+  78,497, road 2 at 351,908), where the shared rule lays a jump only between straights.
+- **Its 3D road.** Read as BIG RUN's (its grade's sine a position, a vertical arc's grade changing evenly to the next
+  record's), its heights depart from its records' by thousands of positions: its vertical records are not read yet.
+- **Held stretches.** As the study found, and past each goal, both roads, stretches its last records hold (not
+  courses').
+- **Open.** The speedometer's factor (1.75 km/h a unit) and each stage's goal are not found in the program yet.
