@@ -7,7 +7,7 @@ its [research notes](research/big-run.md)'s.
 BIG RUN's courses are raised from MAME's `bigrun` (Big Run (11th Rallye version, Europe?), JALECO, 1989), its parent
 set (K, 2026-11-05). Its hardware and ROM list were read from MAME's drivers `src/mame/jaleco/cischeat.cpp`,
 `jaleco_road.cpp`, `jaleco_zoomspr.cpp` and `ms1_tmap.cpp` at MAME commit `179cfab56339b66c056e42d128dfe4e132cf2616`.
-Its skies and its course tables are read so far; its courses come with Stage BR's next PRs
+Its skies, its course tables and its road across are read so far; its courses come with Stage BR's next PRs
 ([NEXT](NEXT.md#stage-br--big-run-from-the-roms)).
 
 ## Its ROM set
@@ -39,10 +39,11 @@ BIG RUN's sky is its two tile planes over its road layer's sky rows ([research n
 plane showing a scene of pictures that changes along the road (`big-run-backgrounds`).
 
 - **The ramp.** Above the horizon each line of a road layer is one of the road ROM's lines 0 to 3, each four bands of 256
-  pixels of one pen each (pens 4 × line to 4 × line + 3), scrolled to one band and colored by one entry of the road
-  layers' palette (M 0x176A): one color a row. The second road CPU takes each row up from the horizon from its table of
-  them (R2 0xEB8, a line, a scroll and an entry a row, 224 rows): one row, then a pen two rows each, entry 25 to 30. The
-  color below the horizon is its first row's.
+  pixels of one pen each (pens 4 × line to 4 × line + 3), scrolled to one band and colored by one entry of its road
+  layer's palette: one color a row. The second road CPU takes each row up from the horizon from its table of them (R2
+  0xEB8, a line, a scroll and an entry a row, 224 rows): one row, then a pen two rows each, entry 25 to 30. The colors
+  are the sky's entries as the stage loads them ([its road across](#its-road-across)). The color below the horizon is
+  its first row's.
 - **The scenes.** Each plane's scenes, stage by stage, are its table's records (plane 0's from M 0x9274, 40 bytes a
   record; plane 1's from M 0x8E20, 38 bytes): a record's start along the road, its picture's tile columns (a ring from
   +4 to +16, +A bytes a column, +C + 1 tile words each), the plane's tile row they go to (+E), its row offset (+8) and its
@@ -102,3 +103,28 @@ position, the sine of its grade's angle, as the table's heights rise; a vertical
 record's, a straight's at once where it ends. Laid on from the first record, it departs from the table's heights by up
 to 25.8 positions where a record starts. Its steepest grade among the records starting before a goal is the tangent of
 25° (STARTING RUN's and SPECIAL STAGE 2's), so its factor f is 0.25 ÷ 0.466, 0.537, as K decided (2026-11-09).
+
+## Its road across
+
+A row of a road layer draws one line of the road ROMs, picked by the plan record its road CPU is in and colored by an
+entry of its layer's palette (`big-run-road-picture`, [research notes](research/big-run.md#its-road-across)).
+
+- **A record's picture.** Its kind (+0x16) picks a picture of 184 lines, the farthest first, from its road CPU's table
+  of line kinds (a word a kind's even byte offset, R1 0x193E, R2 0x1964); a row takes the line its depth gives, and the
+  nearest row the picture's last, 187 on from the table's word. Kind 4 is one line all the way, by its variant
+  (+0x18): 2 the line of pen 0, 6 the clear line, any other the town's line of pen 5 or the desert's of pen 7.
+- **A line across.** At the nearest row a pixel is a unit: the line's centre lies at its pixel edge 512 and each pen's
+  run across it reaches as many units from it. The run at the centre is the road's surface, as is every run of its pen;
+  the runs between the outermost of them are lines on it; from them out to the runs that reach the line's ends, edges;
+  those two runs the ground beside the road, or clear (pen 15), where the other layer or the planes show.
+- **The town's paving** (lines 4 to 187): its nearest line's surface 318 units across, two lane lines 7 units wide whose
+  middles lie 52.5 units either side of its centre, edges of 28 units and ground beyond. Its town is STARTING RUN's rows
+  before 86,386 positions (R1 0x95E, R2 0x94E).
+- **Its colors.** A row's entry is its kind's and variant's by its stripe, the stripe its position's of a period of 510
+  positions (R1 0xD2C, R2 0xD00: eight stripes, 165, 45, 30 and 15 positions twice): a town's row its variant's four
+  entries on (4 × variant + stripe); a desert's 31 on by its variant, and the next where its stripe's bit 2 is set; a
+  river's (kind 2) its line's other half, in entry 40 where its variant is 0 and in 32 else.
+- **Its palettes.** Each road layer's palette is the road layers' (M 0x176A), its entries 1 to 24 STARTING RUN's, which
+  it loads for each layer and no later stage replaces (M 0xB8FA, 0xB91C), entry 31 its stage's (M 0xB93E, 0xB8DE) and
+  the sky's entries 25 to 30 its stage's first set of 16 (M 0xB97E), which fade to its last as a position passes its
+  stage's (M 0xBC66 to 0xBCD6): STARTING RUN's from dawn to day after 20,000 and SPECIAL STAGE 2's to dusk after 360,000.

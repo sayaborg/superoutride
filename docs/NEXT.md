@@ -506,6 +506,8 @@ Defaults for K to confirm before the stage closes, each its PR's:
 - **A 3D road's grade** (BR-6a). A record's grade is the sine of its angle, as the table's heights rise along its
   positions, a vertical arc's changing evenly to the next record's; the steepest is taken among the records starting
   before each goal, 25°, so f is 0.537 as K decided, while SPECIAL STAGE 1's last record bends on to 30° past its goal.
+- **The town's entries in every stage** (BR-6b). Entries 1 to 24 of each road layer's palette are STARTING RUN's in
+  every stage, as a game plays its stages in turn from it and no later stage loads them again.
 - **The eight partings in height** (BR-6). Waiting for K; provisionally as K decided on 2026-11-11.
 
 The PRs, in order:

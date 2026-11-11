@@ -59,10 +59,6 @@ function program({ start = 1000, y = -32, entries = 1 } = {}) {
   long(0x20026, 0xffffffff);
   put(0x30000, [0x0001, 0x0001]); // tile 1, entry 0, in both columns
   put(0x31000 + 2 * 3, [0xf000]); // entry 0's pen 3: red 30, green 0, blue 0
-  // The road layers' palette at 0x118880 (lea at 0x176a): entry 25's pens 0 and 5.
-  put(0x176a, [0x41f9, 0x0011, 0x8880]);
-  put(0x118880 + 32 * 25, [0x00f0]);
-  put(0x118880 + 32 * 25 + 2 * 5, [0x0f00]);
   return main;
 }
 
@@ -98,20 +94,24 @@ test("a scene's picture is its columns side by side, its bottom row its offset b
 
 test("the sky's ramp is the road layer's rows, a line's band one pen of its entry; the back plane faces", () => {
   const main = program();
+  // A road layer's palette: entry 25's pens 0 and 5.
+  const palette = Array.from({ length: 64 }, () => new Array(16).fill(0));
+  palette[25][0] = rgb555Of(0x00f0);
+  palette[25][5] = rgb555Of(0x0f00);
   const road = new Uint8Array(0x10000);
   const put = (at, words) => words.forEach((w, i) => ((road[at + 2 * i] = w >> 8), (road[at + 2 * i + 1] = w & 0xff)));
   put(0xeb8, [0x43f9, 0x0000, 0x5000]);
   // Row 0: line 0, scroll 0 (pen 0); row 1: line 1, scroll 256 (pen 5); entry 25.
   put(0x5000, [0, 0, 25, 1, 256, 25]);
   for (let k = 2; k < 224; k++) put(0x5000 + 6 * k, [0, 0, 25]);
-  const ramp = skyRamp(main, road);
+  const ramp = skyRamp(road, palette);
   assert.equal(ramp.rows.length, 224);
   assert.deepEqual([ramp.rows[0], ramp.rows[1]], [(0 << 10) | (0 << 5) | 30, (0 << 10) | (30 << 5) | 0]);
   assert.equal(ramp.below, ramp.rows[0]);
   put(0x5000, [4, 0, 25]);
-  assert.throws(() => skyRamp(main, road), /no single color/);
+  assert.throws(() => skyRamp(road, palette), /no single color/);
   put(0x5000, [0, 0, 25]);
-  const sky = bigRunSky(main, [new Uint8Array(1024), new Uint8Array(1024)], road, undefined, undefined);
+  const sky = bigRunSky(main, [new Uint8Array(1024), new Uint8Array(1024)], road, palette, undefined, undefined);
   assert.equal(sky.facing, 0);
   assert.equal(sky.layers[1].overlap, SKY_MIDDLE - (SKY_MIDDLE * PLANE_TURN[0]) / PLANE_TURN[1]);
 });

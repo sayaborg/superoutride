@@ -56,3 +56,16 @@ routine sufficed; MAME's driver (commit 179cfab5) for the hardware alone.
   83,198: 1,025 down over 3,000). SPECIAL STAGE 1's last records fall from 0° at 364,936 to −30° at 370,172 and on to
   −150°, past its goal; VICTORY RUN's road 1 in the first road CPU's program holds no end after 275,264 (its copy in the
   second's does).
+
+## Its road across
+
+- A row's line (R1 0xCA8 to 0xCF4 for the nearest row, 0x14FC to 0x159A for the others) and its color (R1 0xCFA to
+  0xD72, 0x15A4 on): a river's row (kind 2) is scrolled to a fixed half of its line (0x100 or 0x200) whatever the
+  lateral, so the screen is one pen across.
+- A row's priority (its attribute's bits 8 to 10) is set from flags of its records and of the other road (R1 0x15D6 to
+  0x1614 and on) and is not read: where the two layers overlap, a conversion takes an order of them.
+- The road layers' palettes: the second layer's town entries mirror the first's pens (pen k of one the other's 11 − k).
+- The sky's fade: an object (from M 0x985C) takes its stage's record at M 0xBA20 (a position and the sets' address) and,
+  once the position `$f2a26` reaches it, copies the next 64 bytes of the sets each call over two of the entries 25 to 30
+  in turn (M 0xBC66 to 0xBCD6), 48 calls through the 16 sets. SPECIAL STAGES 3 and VICTORY RUN's positions, 500,000,
+  are never reached; SPECIAL STAGES 1 and 4's sets are alike.

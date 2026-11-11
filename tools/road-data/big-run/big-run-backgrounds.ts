@@ -122,47 +122,45 @@ export function scenePicture(main: Uint8Array, tiles: Uint8Array, scene: BigRunS
   return { width, pixels, bottom: height - scene.y - BELOW, turn: PLANE_TURN[scene.plane] };
 }
 
-/** The road layer's palette words as the program loads them (M 0x176A), both road layers' alike. */
-const roadPalette = (main: Uint8Array) => {
-  const [high, low] = instruction(main, 0x176a, [0x41f9, null, null], "the road layers' palette (lea)");
-  return high * 0x10000 + low;
-};
-
 /** The road layer's rows above the horizon, from the second road CPU's table of them (R2 0xEB8): a line, scroll, entry. */
 const SKY_ROWS = 224;
 const LINE_BANDS = 4;
 const BAND = 256;
 
 /**
- * The sky's ramp: each row up from the horizon the road layer's color there, its line (0 to 3) four bands of 256 pixels,
- * each one pen of its entry (the line's bands its pens 4 × line to 4 × line + 3), its scroll choosing the band; the color
- * below the horizon its first row's.
+ * The sky's ramp in a road layer's palette `palette` (its entries' pens, RGB555, as a stage loads them): each row up
+ * from the horizon the road layer's color there, its line (0 to 3) four bands of 256 pixels, each one pen of its entry
+ * (the line's bands its pens 4 × line to 4 × line + 3), its scroll choosing the band; the color below the horizon its
+ * first row's.
  */
-export function skyRamp(main: Uint8Array, road: Uint8Array): SkyBands['ramp'] {
+export function skyRamp(road: Uint8Array, palette: readonly (readonly number[])[]): SkyBands['ramp'] {
   const [high, low] = instruction(road, 0xeb8, [0x43f9, null, null], "the sky's rows (lea)");
   const at = high * 0x10000 + low;
-  const palette = roadPalette(main);
   const rows = Array.from({ length: SKY_ROWS }, (_, k) => {
     const [line, scroll, entry] = [word(road, at + 6 * k), word(road, at + 6 * k + 2), word(road, at + 6 * k + 4)];
     if (line >= LINE_BANDS || scroll % BAND !== 0) throw romDiffers(`The sky's row ${k} draws no single color`);
-    return paletteEntry(main, palette, entry & 0x3f)[LINE_BANDS * line + scroll / BAND]!;
+    const color = palette[entry & 0x3f]?.[LINE_BANDS * line + scroll / BAND];
+    if (color === undefined) throw romDiffers(`The sky's row ${k} takes a pen its palette lacks`);
+    return color;
   });
   return { rows, below: rows[0]! };
 }
 
 /**
  * The sky of the back plane's scene `back` and the front plane's `front` (either absent where its plane shows none), over
- * the ramp: the back plane facing, the front's pixel f over the back's f × (the back's turn ÷ the front's) + the overlap
- * at which both face `SKY_MIDDLE`, as the program loads them; each laid round from the back plane's `SKY_SEAM`.
+ * the ramp in the road layer's palette `palette`: the back plane facing, the front's pixel f over the back's f × (the
+ * back's turn ÷ the front's) + the overlap at which both face `SKY_MIDDLE`, as the program loads them; each laid round
+ * from the back plane's `SKY_SEAM`.
  */
 export function bigRunSky(
   main: Uint8Array,
   tiles: readonly [Uint8Array, Uint8Array],
   road: Uint8Array,
+  palette: readonly (readonly number[])[],
   back: BigRunScene | undefined,
   front: BigRunScene | undefined,
 ): SkyBands {
-  const ramp = skyRamp(main, road);
+  const ramp = skyRamp(road, palette);
   const none = (plane: Plane): SkyBand => ({
     width: 1,
     pixels: new Int32Array([TRANSPARENT]),
