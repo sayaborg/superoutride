@@ -485,6 +485,10 @@ K decided (2026-11-11):
   that road is not drawn. No construct is added: the format and the engine draw all of it.
 - **Its lanes** are its town paving's wherever its road goes ([two roads](original-road-data.md#two-roads)): its
   desert's road, as wide at every depth, paints no lane line.
+- **Its tables' check** is record by record: each record is laid from the table's own heading and position where it
+  starts and taken against the next record's, within 0.03° and 14 units, and a jump is a record's heading departing by
+  more than that from the heading its record before reaches. Laid on from the first record's, its plan departs further
+  from the table's points, by what its records' small departures add up to, which its chapter reports.
 
 Defaults for K to confirm before the stage closes, each its PR's:
 
@@ -493,6 +497,12 @@ Defaults for K to confirm before the stage closes, each its PR's:
 - **A scene's steps up and down** (BR-5). Not laid: a sky lays a picture at one height, its scene's own row offset
   ([its skies](big-run-road-data.md#its-skies)), while the program moves the plane along 21 of the 26 scenes it shows
   by their tables of steps, 2 to 80 rows each.
+- **A second road from its own table** (BR-4b). Where the two tables hold one point and one arc, the two roads are one.
+  Where they part, the second is laid by its own arcs from P's point where they part, and where the tables' points meet
+  again its miss of P there is spread straight along P over the parting, so that it meets P where they do; one that
+  never meets P again keeps its own arcs. Where the two start apart, the second is laid from its own first point, taken
+  from P's, its miss where they first meet spread the same way. So the two are one, part and meet where the original's
+  tables have them, whatever their records' small departures add up to.
 
 The PRs, in order:
 

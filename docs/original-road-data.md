@@ -18,10 +18,10 @@ holds and links the section here that states its rule; this is their one map.
   - _reading_: zips and ROM sets (`zip`, `rom-set`), how a conversion fails (`conversion-errors`), and a road position's
     length (`road-position`);
   - _the plan_: a heading table's plan (`heading-plan`: its runs and the turns between them), a curve table's
-    (`curve-plan`: its arcs and its runs), a table of arcs' (`arc-plan`: its records and the turns of its jumps), the
-    plan laid in the world (`course-path`: `CoursePath`), and [a lap on its model](#a-lap-on-its-model): K's models
-    (`course-models`, the folder `course-sources/`), the lap laid, measured and solved (`model-lap`, by `least-squares`)
-    and the answers kept (the file `model-laps.json`);
+    (`curve-plan`: its arcs and its runs), a table of arcs' (`arc-plan`: its records, the turns of its jumps and a
+    second road beside it), the plan laid in the world (`course-path`: `CoursePath`), and [a lap on its
+    model](#a-lap-on-its-model): K's models (`course-models`, the folder `course-sources/`), the lap laid, measured and
+    solved (`model-lap`, by `least-squares`) and the answers kept (the file `model-laps.json`);
   - _the profile_: the profile and a Section's profile knots (`road-profile`), a rise table's profile (`rise-profile`), a jump's or a dip's mound and its slopes' colors (`jump-mound`), where a road passes
     over itself (`overpasses`: its cells, what stands on another passage, and where a plan crosses itself), and the [grades' rule](#profile-from-the-originals-screen): a piece's frames
     (`screen-frames`), its measure (`screen-measure`) and solve (`screen-solve`, by `box-minimiser`), and the
@@ -465,16 +465,27 @@ its records draw (`arcPlan`, `arc-plan`) (K, 2026-11-09):
 - **Records.** Each record is a straight or an arc to the next record's start, the last's to the road's end; an arc's
   angle is its length over its radius, to its side; the table's degrees, being rounded, are not read. Straights one
   after another are one.
-- **Check.** Where the table holds headings and positions, the plan is laid from its first record's, and where each
-  record starts the plan's heading and position are taken against the table's: the most each departs is reported, as a
-  heading table's fidelity is ([plan from a heading table](#plan-from-a-heading-table)), and a departure beyond the
-  limits its original's chapter states stops the conversion. After a turn (below) a position is taken from where that
-  turn ends, and each turn's shift, how far it moves the plan from the table's positions after it, is reported too.
-- **A heading's jump.** A record whose heading departs from the one the records before it reach by more than the limit
-  is a jump. Between two straights it is laid as a turn of the jump's angle, as [a heading table's
+- **Check.** Where the table holds headings and positions, it is taken record by record (K, 2026-11-11): each record is
+  laid from the table's own heading and position where it starts, to the next record's start, and taken against the
+  next record's heading and position. The most each departs is reported, as a heading table's fidelity is ([plan from
+  a heading table](#plan-from-a-heading-table)), and a departure beyond the limits its original's chapter states stops
+  the conversion.
+- **The plan laid on.** The plan is laid on from the first record's heading and position, and where each record starts
+  how far it departs from the table's heading and position is reported, with no limit: its records' small departures
+  add up along it. After a turn (below) a position is taken from where that turn ends, and each turn's shift, how far
+  it moves the plan from the table's positions after it, is reported too.
+- **A heading's jump.** A record whose heading departs by more than the limit from the one its record before reaches,
+  laid from its own, is a jump. Between two straights it is laid as a turn of the jump's angle, as [a heading table's
   turn](#plan-from-a-heading-table) is: over the fewest whole positions alike either side of the record's start at
   which its radius keeps the least radius its lanes on the inside keep (`leastLaneRadius`), taken from the straights
   either side, so that the distance along the road is the table's and the heading after it the next record's.
+- **A second road** from its own table beside P's (`secondRoad`; BIG RUN's and CISCO HEAT's two roads, each a road
+  CPU's): where the two tables hold one record, its start, arc, heading, position and end, the two roads are one. Where
+  they part, the second is laid by its own arcs from P's point and heading where they part, and where the tables are
+  one again its miss of P there is spread straight along the road over the parting, so that it meets P where they do;
+  one that never meets P again keeps its own arcs. Where the two start apart, the second is laid from its own first
+  point and heading, in the tables' plane as P is, its miss where they first meet spread the same way. Its lateral at
+  a station of P is taken across P, and is refused where it heads more than 60° from P (a road that leaves).
 - **Stops.** The conversion stops where a jump has an arc either side, a turn takes more than a straight holds, two
   turns overlap, a turn reaches the table's start or end, or an arc turns tighter than its lanes' least radius, as a
   curve table's does.
