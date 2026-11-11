@@ -52,7 +52,8 @@ RUN](big-run.md)).
 - **Its 3D road.** Read as BIG RUN's (its grade's sine a position, a vertical arc's grade changing evenly to the next
   record's), its heights depart from its records' by thousands of positions: each vertical arc's angle changes evenly
   along it (a record of radius 10,000 from −36° to level over 6,283 positions, 10,000 × 0.628), where BIG RUN's model
-  changes its grade's sine evenly, near alike only at small grades; its heights need its arcs as they are.
+  changes its grade's sine evenly, near alike only at small grades; its heights need its arcs as they are, which keep
+  within 1.5 positions of its records' heights record by record (`arcRoad`).
 - **Held stretches.** As the study found, and past each goal, both roads, stretches its last records hold (not
   courses').
 - **Open.** The speedometer's factor (1.75 km/h a unit) and each stage's goal are not found in the program yet.

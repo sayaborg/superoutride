@@ -27,6 +27,17 @@ position along and across. The main program holds the car on a road where its li
 record, its end at +4 and its flags at +8), a record whose flags' bit 1 is set holding the car on its road from the end
 of the record before to its own end; each list's first record ends at 0, before the road.
 
+## Its 3D road
+
+A road's profile records (+0 its flag, the top bit rising; +2 its radius; +6 its height; +0xE its angle) are arcs as
+they are (`arcRoad`, `jaleco/road-heights`): a straight at its record's angle, a vertical arc's angle changing evenly
+along it by its length over its radius, each record from its own angle, so that where one starts at another angle than
+the one before ends at, the road kinks there (by up to 44°). Its angles pass 90° (STAGES 1, 2 and 5). Laid so from each
+stage's first record, its heights keep within 1.5 positions of the table's at each record but at one record of STAGE 2
+(606,891, 58 positions), and within 5 to 30 positions of them laid on (170 in STAGE 2). BIG RUN's profile, its grade's
+sine changing evenly along an arc, departs from these by thousands of positions; its heights are what its screen shows
+([Stage CS](NEXT.md#stage-cs--cisco-heat-from-the-roms)), read from this road.
+
 ## Its road across
 
 Each line of a road layer is a line of the road ROMs, BIG RUN's format (`jaleco/road-lines`). A plan record's picture
