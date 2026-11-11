@@ -627,12 +627,14 @@ length, within ±25 % (K's limit): one rule for every original (K, 2026-10-26).
   that tilts with the road, as SUPER HANG-ON's and this game's do, does not tell a long uniform grade on the screen, so
   its screen read again within the limit would change the large form.
 - **A screen alone** (OUTRUN's and TURBO OUTRUN's height tables, ENDURO RACER's slope words, FINAL LAP 2's slope
-  tables) is read back piece by
+  tables, CISCO HEAT's height tables) is read back piece by
   piece: each piece the road whose screen lies nearest the original's, both ways, its grades within the limit (the form
   bending to it), with the fewest PVIs that match within half a row of the nearest. OUTRUN and TURBO OUTRUN bend their
   512 lines on the screen, which no camera does, so they are read through this game's camera (a lens ratio of 1);
   ENDURO RACER draws through a level camera (its horizon does not move), and is read through it at this game's focal
-  length; so does FINAL LAP 2, whose slope spaces its lines as a level camera sees a grade ahead.
+  length; so does FINAL LAP 2, whose slope spaces its lines as a level camera sees a grade ahead. CISCO HEAT draws
+  through a camera that tilts with the road, pitched by its grade under the car, and is read through one that tilts
+  alike at this game's focal length: its screen shows how the road bends ahead of the car, not a long uniform grade.
 
 The rule's constants are [Shared constants](#shared-constants)' (`GRADE_LIMIT`, `PVI_ROWS`, `HILL_ROWS`,
 `CELL_METRES`, `DISTANCE_STEP_ROWS`, `ROW_STEPS`, `LOOK_PLACES`). It reads through this game's camera, 6 m behind and 2 m
@@ -671,15 +673,19 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
 - **Screens.** The tool draws the originals' screens: OUTRUN's and TURBO OUTRUN's every line's row (`rowsOf`) at its
   distance (`readLineDistances`) by [Hills](#hills), ENDURO RACER's words and rows (`enduro-racer-screen`) by [ENDURO RACER's
   screen](enduro-racer-road-data.md#enduro-racers-screen), its road's top and bottom rows read from the programs.
-- **Cameras.** The road read is seen by the reading camera on rows:
-  - _This game's_ (OUTRUN, TURBO OUTRUN), the product camera at rest (`CAMERA_DEFINITION`): the player where the original's car is, the camera 6 m behind
-    it and 2 m above, pitched θ = −atan g with the grade g under it. The road D m ahead at height h lies on row
-    120 − 240 sin θ − (240 / D)(h − y_c) cos θ of its 240, y_c = h₀ + (2 + 6 sin θ) / cos θ with h₀ the height under
-    it; its level road on 120 + 480 / D; both × 224/240 on the original's rows.
+- **Cameras.** The road read is seen on rows by a reading camera (`ReadingCamera`): its focal length F in rows of this
+  game's 240, its pinhole e m above the road and b m behind the player, the player where the original's car is, and
+  level or tilting as the original's camera is, pitched θ = −atan g with the grade g under the player where it tilts
+  (θ = 0 level). The road D m ahead at height h lies on row 120 − F sin θ − (F / D)(h − y_c) cos θ of its 240,
+  y_c = h₀ + (e + b sin θ) / cos θ with h₀ the height under the player; its level road on 120 + F e / D; both × the
+  original's rows ÷ 240 on the original's rows. Each original's:
+  - _This game's_ (OUTRUN, TURBO OUTRUN), the product camera at rest (`CAMERA_DEFINITION`): tilting, F 240, 2 m above
+    and 6 m behind.
   - _ENDURO RACER's_ at this game's focal length: level, where its level road's pinhole lies, a line on its row by its
     height above the road at the bike ([ENDURO RACER's screen](enduro-racer-road-data.md#enduro-racers-screen)).
   - _FINAL LAP 2's_ at this game's focal length: level, at its pinhole, a line on its row by its height above the road
     at the position ([its heights](final-lap-2-road-data.md#its-heights)).
+  - _CISCO HEAT's_ at this game's focal length: tilting, where its pinhole lies, as its chapter gives it.
 - **Measure** (`screenMeasure`). Each frame, on the original's rows, each screen against its own level road, both ways:
   - _Row steps:_ the measure makes its choices (which whole row a line takes and whether it is seen, whether a frame
     shows a hill) on the original's exact values: its rows, whole steps of 1/8192 row (`ROW_STEPS`), and its lines'

@@ -586,10 +586,18 @@ K decided (2026-11-12):
 The stage starts by reading how its screen draws its two roads where their order changes, which one's paint shows over
 the other's, and its courses' PR measures its own car's width again.
 
+Defaults for K to confirm before the stage closes, each its PR's:
+
+- **The rule's words** (CS-1). [Profile from the original's
+  screen](original-road-data.md#profile-from-the-originals-screen)'s cameras are one reading camera, its focal length,
+  pinhole and behind, level or tilting with the grade under the player as the original's is, each original's camera one
+  of it; CISCO HEAT's tilts, at this game's focal length where its pinhole lies. No other original's reading changes.
+- **Its camera's pitch** (CS-1). Its road CPUs pitch the camera by the held road's angle under the car, and its main
+  program adds a pitch where a record of its first road's list gives one, gone within 16 frames
+  ([research](research/cisco-heat.md#its-camera)); its screen is read at the road's angle alone.
+
 The PRs, in order:
 
-- **CS-1** The grades read back from the screen of a camera that tilts with the road, a shared rule; every other
-  original's outputs stay as they are, as `--check` shows.
 - **CS-2** CISCO HEAT's skies.
 - **CS-3** CISCO HEAT's five courses without objects.
 - **CS-4** CISCO HEAT's objects.
