@@ -7,8 +7,6 @@ import {
   type TextFont,
   type TextTiles,
 } from '../image/text-tiles.js';
-import type { CourseMap } from '../course/course-map.js';
-import { courseMapColors, drawCourseMap } from '../view/course-map.js';
 import { SoftwareSurface } from '../view/software-surface.js';
 
 /**
@@ -32,19 +30,28 @@ const NAME_COLUMNS = CARD.columns - 2;
 const NAME_ROWS = Object.freeze({ one: [8], two: [6, 9] });
 const LINE_ROW = 13;
 
+/** What a page paints on: its card's pixels, and boxes of tiles and text that never leave them. */
+export interface PageCanvas {
+  /** The card's 224×168 pixels. */
+  readonly surface: SoftwareSurface;
+  /** A text palette's main color. */
+  mainColor(palette: number): number;
+  /** A box of tiles: a 1-pixel edge on its left and top and a 2-pixel edge on its right and bottom around `ground`. */
+  box(box: TileBox, ground: number): void;
+  /** `line` from tile (`column`, `row`) in the normal font, WHITE by default; leaving the card is a `RangeError`. */
+  write(column: number, row: number, line: string, palette?: number): void;
+}
+
 /**
- * A CLASS or COURSE card's page (K's prototype of the cards, 2026-11-09; K, 2026-11-11: the card UI as before): its
- * title, its course's map, its rules and its words, a heading over a description.
+ * A page card's page (K's prototype of the cards, 2026-11-09; K, 2026-11-11: the card UI as before): its title on the
+ * band, the boxes it paints itself, and its words.
  */
-export interface CoursePage {
-  /** The class's title, or the course's name. */
+export interface CardPage {
   readonly title: string;
-  readonly map: CourseMap;
-  /** From the top of the facts' box, one a row, each at most `PAGE_TEXT.facts.columns` long. */
-  readonly rules: readonly string[];
-  /** A YELLOW line before the description, the course's name under a class's own title; else null. */
-  readonly heading: string | null;
-  readonly description: string;
+  /** Paint the picture's and the facts' boxes, and the words' box when it has no words. */
+  paint(canvas: PageCanvas): void;
+  /** Its words in the words' box, a YELLOW heading (or none) over a WHITE description; null when it paints that box. */
+  readonly words: { readonly heading: string | null; readonly description: string } | null;
 }
 
 /**
@@ -58,7 +65,7 @@ export interface CardFace {
   readonly dim: boolean;
   readonly items?: readonly { readonly label: string; readonly value: string; readonly selected: boolean }[];
   /** A page card's page, drawn in place of its name and line. */
-  readonly page?: CoursePage;
+  readonly page?: CardPage;
 }
 
 /**
@@ -102,10 +109,10 @@ export function wrappedLines(text: string, columns: number): readonly string[] {
 }
 
 /** An inclusive span of a card's tiles: its first column and row and its last. */
-type TileBox = readonly [first: number, top: number, last: number, bottom: number];
+export type TileBox = readonly [first: number, top: number, last: number, bottom: number];
 /**
- * A page card's boxes (K's prototype of the cards, 2026-11-09, on 28×21 tiles): the title band, the picture with its
- * course's map and the facts beside it, and the words.
+ * A page card's boxes (K's prototype of the cards, 2026-11-09, on 28×21 tiles): the title band, the picture and the
+ * facts beside it, and the words.
  */
 export const PAGE = Object.freeze({
   band: [0, 0, 27, 2] as TileBox,
@@ -122,10 +129,8 @@ export const PAGE_TEXT = Object.freeze({
   facts: Object.freeze({ column: 17, row: 4, columns: 10, rows: 7 }),
   words: Object.freeze({ column: 1, row: 13, columns: CARD.columns - 2, rows: 7 }),
 });
-/** The map's box in the picture, in pixels: 4 clear of the picture's edges, which the map's arrowhead never reaches. */
-const MAP_BOX = Object.freeze({ x: 5, y: 29, width: 117, height: 61 });
-/** A page's colors, RGB555, from K's prototype: a box's ground and edge, and the deep ground behind its picture. */
-const PANEL = Object.freeze({
+/** A page's colors, RGB555, from K's prototype: a box's ground and edge, and the deep ground behind a picture. */
+export const PAGE_COLORS = Object.freeze({
   ground: (1 << 10) | (2 << 5) | 6,
   edge: (17 << 10) | (19 << 5) | 27,
   deep: (1 << 10) | (2 << 5) | 4,
@@ -147,16 +152,16 @@ export function wordsScroll(overflow: number, steps: number): number {
 /**
  * The card faces, each painted once into its own 224×168 pixels from the text tiles. A name card: a bright 1-pixel edge
  * over a dark ground, the name in the large ornate font's SUNSET style and the line in the normal font's WHITE, both
- * centred; a list card's name and entries ([browser](../../docs/browser.md#card-rows)). A page card's boxes, each a
- * 1-pixel edge on its left and top and a 2-pixel edge on its right and bottom around its ground: the title band, the
- * course's map on the picture's deep ground, the rules, and the words, painted once as one strip that shows its top
- * seven lines. A dimmed card is painted at half brightness, as by palettes at half brightness. Nothing is written beyond
- * its box: text that would be is a `RangeError`. `draw` copies a face to any position, clipped to the target, and a page
- * whose words are taller than their box shows them risen by `wordsScroll` after `steps` at rest in focus.
+ * centred; a list card's name and entries ([browser](../../docs/browser.md#card-rows)). A page card: the title band, the
+ * title in the large ornate font's SUNSET style or, longer than the band, in two lines of the small one; the boxes the
+ * page paints; and its words, painted once as one strip that shows its top seven lines. A dimmed card is painted at half
+ * brightness, as by palettes at half brightness. Nothing is written beyond its card: text that would be is a
+ * `RangeError`. `draw` copies a face to any position, clipped to the target, and a page whose words are taller than
+ * their box shows them risen by `wordsScroll` after `steps` at rest in focus.
  */
 export function createCardFaces(tiles: TextTiles) {
   const faces = new Map<string, Uint16Array>();
-  const pages = new WeakMap<CoursePage, { plain: PageFace; dimmed?: PageFace }>();
+  const pages = new WeakMap<CardPage, { plain: PageFace; dimmed?: PageFace }>();
   // Write `line` in `font` from tile (`column`, `row`) of the `width`-pixel-wide `pixels`, entirely within them.
   const paintText = (
     pixels: Uint16Array,
@@ -224,13 +229,12 @@ export function createCardFaces(tiles: TextTiles) {
       [x1, y1] = [(last + 1) * TEXT_TILE_SIZE, (bottom + 1) * TEXT_TILE_SIZE];
     for (let y = y0; y < y1; y++)
       for (let x = x0; x < x1; x++)
-        pixels[y * WIDTH + x] = y === y0 || y >= y1 - 2 || x === x0 || x >= x1 - 2 ? PANEL.edge : ground;
+        pixels[y * WIDTH + x] = y === y0 || y >= y1 - 2 || x === x0 || x >= x1 - 2 ? PAGE_COLORS.edge : ground;
   };
-  const mapColors = courseMapColors(tiles, PANEL.deep);
-  const paintPage = (page: CoursePage): PageFace => {
+  const paintPage = (page: CardPage): PageFace => {
     const pixels = new Uint16Array(WIDTH * HEIGHT);
-    const { title, facts, words } = PAGE_TEXT;
-    box(pixels, PAGE.band, PANEL.ground);
+    const { title, words } = PAGE_TEXT;
+    box(pixels, PAGE.band, PAGE_COLORS.ground);
     // The title in the large ornate font; longer than the band, in two lines of the small one.
     if (page.title.length <= title.columns) write(pixels, title.column, title.row, page.title, 'ornateLarge');
     else
@@ -245,25 +249,26 @@ export function createCardFaces(tiles: TextTiles) {
           ornatePalette('ornateSmall', 'SUNSET'),
         ),
       );
-    box(pixels, PAGE.picture, PANEL.deep);
-    drawCourseMap(new SoftwareSurface(WIDTH, HEIGHT, pixels), page.map, MAP_BOX, mapColors);
-    box(pixels, PAGE.facts, PANEL.ground);
-    if (page.rules.length > facts.rows) throw new RangeError(`A page holds at most ${facts.rows} rules`);
-    page.rules.forEach((rule, i) => {
-      if (rule.length > facts.columns) throw new RangeError(`${JSON.stringify(rule)} is wider than the facts' box`);
-      write(pixels, facts.column, facts.row + i, rule, 'normal');
+    page.paint({
+      surface: new SoftwareSurface(WIDTH, HEIGHT, pixels),
+      mainColor: (palette) => tiles.mainColor(palette),
+      box: (at, ground) => box(pixels, at, ground),
+      write: (column, row, line, palette = TEXT_PALETTES.WHITE) =>
+        paintText(pixels, WIDTH, column, row, line, 'normal', palette),
     });
-    box(pixels, PAGE.words, PANEL.ground);
+    if (!page.words) return { pixels, strip: new Uint16Array(0), overflow: 0 };
+    box(pixels, PAGE.words, PAGE_COLORS.ground);
     // The words, every line of them, on a strip of their own.
+    const { heading, description } = page.words;
     const lines = [
-      ...(page.heading === null ? [] : wrappedLines(page.heading, words.columns).map((line) => [line, true] as const)),
-      ...wrappedLines(page.description, words.columns).map((line) => [line, false] as const),
+      ...(heading === null ? [] : wrappedLines(heading, words.columns).map((line) => [line, true] as const)),
+      ...wrappedLines(description, words.columns).map((line) => [line, false] as const),
     ];
     const width = words.columns * TEXT_TILE_SIZE,
       shown = words.rows * TEXT_TILE_SIZE;
-    const strip = new Uint16Array(width * Math.max(shown, lines.length * TEXT_TILE_SIZE)).fill(PANEL.ground);
-    lines.forEach(([line, heading], i) =>
-      paintText(strip, width, 0, i, line, 'normal', heading ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE),
+    const strip = new Uint16Array(width * Math.max(shown, lines.length * TEXT_TILE_SIZE)).fill(PAGE_COLORS.ground);
+    lines.forEach(([line, yellow], i) =>
+      paintText(strip, width, 0, i, line, 'normal', yellow ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE),
     );
     copy(
       pixels,
@@ -276,7 +281,7 @@ export function createCardFaces(tiles: TextTiles) {
     );
     return { pixels, strip, overflow: strip.length / width - shown };
   };
-  const pageFace = (page: CoursePage, dim: boolean): PageFace => {
+  const pageFace = (page: CardPage, dim: boolean): PageFace => {
     let painted = pages.get(page);
     if (!painted) pages.set(page, (painted = { plain: paintPage(page) }));
     if (!dim) return painted.plain;

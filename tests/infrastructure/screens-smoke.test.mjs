@@ -32,7 +32,7 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 // reference mockups are drawn, for inspection by eye; no test compares their pixels.
 test('the front end screens render from the delivered content', async () => {
   const content = await readDeliveredContent();
-  const { vehicles } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
+  const { vehicles, driving } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
   const pictures = await loadScreenPictures(content);
   const frame = createLogicalFrame();
   const tiles = await loadTextTiles(content);
@@ -51,6 +51,7 @@ test('the front end screens render from the delivered content', async () => {
       series,
       frontEnd,
       vehicles,
+      driving,
       freePlay: await loadFreePlayRules(content),
       music,
       player,

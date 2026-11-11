@@ -18,8 +18,10 @@ import type { Screen } from './screen-host.js';
 import { clearRecordCards, settingCards } from './settings-screens.js';
 import type { CardFaces } from './card-face.js';
 import { createCardRows, PATH_ROOT, type Card, type CardRow, type MainWorld, type RowChange } from './card-rows.js';
-import type { CoursePage } from './card-face.js';
+import type { CardPage } from './card-face.js';
 import { classPage, coursePage } from './course-page.js';
+import { vehicleCard } from './vehicle-card.js';
+import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 
 /** MAIN MENU's cards, in order, by the player record's key for them. */
 const MENU = Object.freeze(['SERIES', 'FREE PLAY', 'SETTINGS'] as const);
@@ -33,6 +35,8 @@ export interface SelectionCatalog {
   readonly series: SeriesCatalog;
   readonly frontEnd: FrontEndSelection;
   readonly vehicles: readonly CompiledVehicleDefinition[];
+  /** The driving definition the vehicles run under: their cards' graphs end at its fuel cut. */
+  readonly driving: CompiledDrivingDefinition;
   readonly freePlay: FreePlayRules;
   /** The delivered tracks; the SETTINGS audition plays the latest, else the first. */
   readonly music: MusicCatalog;
@@ -184,9 +188,9 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       },
     });
   const vehicleOf = (id: string) => vehicles.find((v) => v.compiledVehicle.id === id)!;
-  // The class and course cards' pages, each made once.
-  const pages = new Map<SeriesClass | string, CoursePage>();
-  const pageOf = (key: SeriesClass | string, make: () => CoursePage) => {
+  // The class, course and vehicle cards' pages, each made once: a vehicle's for each of its colors.
+  const pages = new Map<SeriesClass | string, CardPage>();
+  const pageOf = (key: SeriesClass | string, make: () => CardPage) => {
     let page = pages.get(key);
     if (!page) pages.set(key, (page = make()));
     return page;
@@ -208,7 +212,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       initial: at(chosen.classes, (c) => c.id === (classChoice?.id ?? latest('class'))),
       cards: chosen.classes.map((c): Card => ({
         name: c.title,
-        page: classPageOf(c),
+        page: () => classPageOf(c),
         confirm: () => {
           // Another class offers its own vehicles.
           if (c !== classChoice) vehicleId = null;
@@ -277,7 +281,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       initial: at(offered, (id) => id === (courseId ?? latest('course'))),
       cards: offered.map((id): Card => ({
         name: courseOf(id).name,
-        page: pageOf(id, () => coursePage(courseOf(id))),
+        page: () => pageOf(id, () => coursePage(courseOf(id))),
         confirm: () => {
           courseId = id;
           remember('course', id);
@@ -304,9 +308,15 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       initial: at(candidates, (v) => v.compiledVehicle.id === (vehicleId ?? latest('vehicle'))),
       cards: candidates.map((v): Card => {
         const { manufacturer, model } = v.listing.metadata;
+        const changes = !runClass?.fixedColors;
         return {
           name: `${manufacturer} ${model}`.toUpperCase(),
-          line: () => v.listing.visuals.colorNames[colorOf(v)] ?? colorOf(v),
+          page: () => {
+            const color = colorOf(v);
+            return pageOf(`${v.compiledVehicle.id}/${color}/${changes}`, () =>
+              vehicleCard(v, { color, changes }, catalog.driving.compiledDriving.powertrain.fuelCutEnterRedlineRatio),
+            );
+          },
           change: (by) => {
             if (runClass?.fixedColors) return false;
             colors.set(v.compiledVehicle.id, wrap(spriteSetColors(v.spriteSet), colorOf(v), by));

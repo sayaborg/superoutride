@@ -661,8 +661,10 @@ line until the cards are designed. What follows goes to K first:
   2026-11-09). To decide: what a course without laps records (its time to the goal), whether a race whose rivals,
   traffic or clock may end it records as it runs, and how a record is kept (by class with its vehicle, as now) and
   shown (on the class's card). Until then TIME ATTACK runs only from a URL.
-- **The cards' contents** at 28×21 tiles: VEHICLE (what SELECT VEHICLE's pages showed), SERIES (its description),
-  RULES, SETTINGS and CONTROLS. CLASS and COURSE are pages (GD-20); a class's record joins its facts with GD-6. For K:
+- **The cards' contents** at 28×21 tiles: SERIES (its description), RULES, SETTINGS and CONTROLS. CLASS, COURSE
+  (GD-20) and VEHICLE (GD-21a) are pages; a class's record joins its facts with GD-6. A vehicle's card is to turn its
+  picture and rev its engine while it rests in focus (GD-21b), and the SELECT VEHICLE screen no row shows since GD-5
+  (`vehicle-screen.ts` and its pages) is then removed (GD-21c). For K:
   the words' scroll (held 1.5 s, a pixel every 10 steps, held 3 s at the end), and, as K's prototype offered, a
   course without laps drawn as its stages' heights rather than from above.
 - **The main picture:** K's 40×30 picture, whose clear parts show the attract demo; until it comes the title logo

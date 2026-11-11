@@ -5,7 +5,7 @@ import { lineThinningRanks, newLineCount } from '../view/line-thinning.js';
 import { drawPlaneRow, fixedPoint, type PlaneRow } from '../view/scaled-plane.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
-import { CARD, type CardFaces, type CoursePage } from './card-face.js';
+import { CARD, type CardFaces, type CardPage } from './card-face.js';
 import { SCREEN_BACKGROUND, writeCentred } from './menu.js';
 import type { MenuResponse, Screen } from './screen-host.js';
 
@@ -79,8 +79,8 @@ export interface Card {
    * chosen. Each is drawn as its name and its line, the value.
    */
   readonly items?: readonly Card[];
-  /** A page card's page, drawn in place of its name and line; its words rise while it rests in focus. */
-  readonly page?: CoursePage;
+  /** A page card's page, read as the card is drawn, in place of its name and line; its words rise at rest in focus. */
+  page?(): CardPage;
 }
 
 /** A row of cards, TITLE's PRESS START or SELECT SERIES' pictures, standing in the main world or a series' world. */
@@ -300,7 +300,7 @@ export function createCardRows(
               selected: at === index && i === shown.item,
             })),
           }),
-          ...(card.page && { page: card.page }),
+          ...(card.page && { page: card.page() }),
         },
         CARD.x + offset * CARD.pitch + shift,
         CARD.y,
