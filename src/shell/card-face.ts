@@ -44,7 +44,7 @@ export interface PageCanvas {
 
 /**
  * A page card's page (K's prototype of the cards, 2026-11-09; K, 2026-11-11: the card UI as before): its title on the
- * band, the boxes it paints itself, and its words.
+ * band, the boxes it paints itself, its words, and what moves on it while it rests in focus.
  */
 export interface CardPage {
   readonly title: string;
@@ -52,6 +52,8 @@ export interface CardPage {
   paint(canvas: PageCanvas): void;
   /** Its words in the words' box, a YELLOW heading (or none) over a WHITE description; null when it paints that box. */
   readonly words: { readonly heading: string | null; readonly description: string } | null;
+  /** Draw what moves on it, `steps` after it came to rest in focus, over its face standing at (`x`, `y`) in `target`. */
+  live?(target: SoftwareSurface, x: number, y: number, steps: number): void;
 }
 
 /**
@@ -129,6 +131,15 @@ export const PAGE_TEXT = Object.freeze({
   facts: Object.freeze({ column: 17, row: 4, columns: 10, rows: 7 }),
   words: Object.freeze({ column: 1, row: 13, columns: CARD.columns - 2, rows: 7 }),
 });
+/** The pixels of a box's ground, within its edge: the box's tiles less a pixel on the left and top and two right and below. */
+export function boxGround([first, top, last, bottom]: TileBox) {
+  return Object.freeze({
+    x: first * TEXT_TILE_SIZE + 1,
+    y: top * TEXT_TILE_SIZE + 1,
+    width: (last - first + 1) * TEXT_TILE_SIZE - 3,
+    height: (bottom - top + 1) * TEXT_TILE_SIZE - 3,
+  });
+}
 /** A page's colors, RGB555, from K's prototype: a box's ground and edge, and the deep ground behind a picture. */
 export const PAGE_COLORS = Object.freeze({
   ground: (1 << 10) | (2 << 5) | 6,
@@ -156,8 +167,8 @@ export function wordsScroll(overflow: number, steps: number): number {
  * title in the large ornate font's SUNSET style or, longer than the band, in two lines of the small one; the boxes the
  * page paints; and its words, painted once as one strip that shows its top seven lines. A dimmed card is painted at half
  * brightness, as by palettes at half brightness. Nothing is written beyond its card: text that would be is a
- * `RangeError`. `draw` copies a face to any position, clipped to the target, and a page whose words are taller than
- * their box shows them risen by `wordsScroll` after `steps` at rest in focus.
+ * `RangeError`. `draw` copies a face to any position, clipped to the target; after `steps` at rest in focus, a page
+ * whose words are taller than their box shows them risen by `wordsScroll`, and what moves on it is drawn over it.
  */
 export function createCardFaces(tiles: TextTiles) {
   const faces = new Map<string, Uint16Array>();
@@ -294,8 +305,8 @@ export function createCardFaces(tiles: TextTiles) {
   };
   return Object.freeze({
     /**
-     * Copy `face` with its top-left corner at (`x`, `y`), clipped to `target`; a page's words risen as they are after
-     * `steps` at rest in focus.
+     * Copy `face` with its top-left corner at (`x`, `y`), clipped to `target`; a page's words risen, and what moves on
+     * it drawn, as they are after `steps` at rest in focus.
      */
     draw(target: SoftwareSurface, face: CardFace, x: number, y: number, steps = 0) {
       if (face.page) {
@@ -314,6 +325,7 @@ export function createCardFaces(tiles: TextTiles) {
             x + words.column * TEXT_TILE_SIZE,
             y + words.row * TEXT_TILE_SIZE,
           );
+        if (steps > 0 && !face.dim) face.page.live?.(target, x, y, steps);
         return;
       }
       const key = JSON.stringify([face.name, face.line, face.dim, face.items ?? null]);
