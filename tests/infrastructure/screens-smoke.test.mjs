@@ -24,9 +24,6 @@ import { createRunScreen, createRunScreenState } from '../../src/shell/run-scree
 import { COURSE_DOCUMENT_LIMITS, COURSE_TEXT_LIMITS } from '../../src/course/course-limits.js';
 import { SESSION_NAMES } from '../../src/shell/run-request.js';
 import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
-import { createCourseMap } from '../../src/course/course-map.js';
-import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
-import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { createScreenHost, TRANSITION_STEPS } from '../../src/shell/screen-host.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 
@@ -155,7 +152,6 @@ test('the front end screens render from the delivered content', async () => {
     now += SIM_DT * 1000;
     pending.splice(0).forEach((callback) => callback(now));
   }
-  const course = await loadDeliveredCourse(content, 'tsukuba', await loadSurfaceMaterials(content));
   const card = createPreRaceScreen(
     frame,
     text,
@@ -163,13 +159,14 @@ test('the front end screens render from the delivered content', async () => {
     preRaceCardOf(requested, series, courses),
     () => {},
   );
-  card.facts({ map: createCourseMap(course), field: 16, bikes: false, slot: 16, best: undefined });
+  card.facts({ field: 16, bikes: false, slot: 16, best: undefined });
   card.progress(0.6);
   host.show(card.screen);
   assert.equal(host.screen, card.screen);
   screen = card.screen;
   await capture('prerace');
-  const map = createCourseMap(course);
+  // The course index's map: TSUKUBA's lap.
+  const { map } = courses.find((course) => course.id === 'tsukuba');
   assert.ok(Math.abs(map.lengthMeters - 2045) < 100, `TSUKUBA's lap is ${map.lengthMeters} m`);
   assert.ok(map.checkpoints.length > 0);
   host = null;
@@ -228,7 +225,7 @@ test('the PRE-RACE card holds the longest names and facts the readers admit', as
     checkpoints: [],
     lengthMeters: COURSE_DOCUMENT_LIMITS.lengthMeters,
   });
-  const facts = { map, field: RUN_RULE_LIMITS.competitors, bikes: true, slot: RUN_RULE_LIMITS.competitors };
+  const facts = { field: RUN_RULE_LIMITS.competitors, bikes: true, slot: RUN_RULE_LIMITS.competitors };
   const draw = (card) => {
     const shown = createPreRaceScreen(
       frame,
@@ -247,8 +244,16 @@ test('the PRE-RACE card holds the longest names and facts the readers admit', as
     session,
     courseName: 'W'.repeat(COURSE_TEXT_LIMITS.nameCodeUnits),
     laps: RUN_RULE_LIMITS.laps,
+    map,
   });
   // Every delivered course's FREE PLAY card, from the course index alone.
   for (const course of await loadCourseIndex(content))
-    draw({ background: null, title: 'FREE PLAY', session: null, courseName: course.name, laps: RUN_RULE_LIMITS.laps });
+    draw({
+      background: null,
+      title: 'FREE PLAY',
+      session: null,
+      courseName: course.name,
+      laps: RUN_RULE_LIMITS.laps,
+      map: course.map,
+    });
 });

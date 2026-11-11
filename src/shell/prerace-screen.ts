@@ -40,12 +40,14 @@ export interface PreRaceCard {
   readonly courseName: string;
   /** The laps of a circuit's run; null on other courses and for a run without a finish. */
   readonly laps: number | null;
+  /** The course's map, from the course index. */
+  readonly map: CourseMap;
 }
 
 /**
  * The card a request shows: for a class its series image, class title and session, else FREE PLAY on black; its
- * course's display name from the course index, and its laps on a circuit (TIME ATTACK has none there). An unknown class
- * or course is a `RangeError`.
+ * course's display name and map from the course index, and its laps on a circuit (TIME ATTACK has none there). An
+ * unknown class or course is a `RangeError`.
  */
 export function preRaceCardOf(request: RunRequest, series: SeriesCatalog, courses: CourseIndex): PreRaceCard {
   let named = null,
@@ -64,12 +66,12 @@ export function preRaceCardOf(request: RunRequest, series: SeriesCatalog, course
     session: isFreePlay(request) ? null : SESSION_NAMES[request.session],
     courseName: course.name,
     laps: course.type === 'CIRCUIT' ? laps : null,
+    map: course.map,
   });
 }
 
 /** What the card shows once the run's course is compiled and its run prepared. */
 export interface PreRaceFacts {
-  readonly map: CourseMap;
   /** The competitors, the player included, and whether they are all bikes. */
   readonly field: number;
   readonly bikes: boolean;
@@ -80,9 +82,10 @@ export interface PreRaceFacts {
 }
 
 /**
- * The PRE-RACE card, which stands while a run loads: its class and session or FREE PLAY, course, laps, field and start
- * slot, the record READY will show and the course map, with a progress bar of the run's loading. It stays at least `PRE_RACE_SECONDS`
- * (counted in fixed steps) and until the run is loaded; then `ready` is called once.
+ * The PRE-RACE card, which stands while a run loads: its class and session or FREE PLAY, course, its map, length and
+ * laps, and once the run is prepared its field and start slot and the record READY will show, with a progress bar of
+ * the run's loading. It stays at least `PRE_RACE_SECONDS` (counted in fixed steps) and until the run is loaded; then
+ * `ready` is called once.
  */
 export function createPreRaceScreen(
   frame: SoftwareSurface,
@@ -120,15 +123,15 @@ export function createPreRaceScreen(
       classTitleLines(card.title).forEach((line, i) => text.write(COLUMN, 18 + i, line, TEXT_PALETTES.YELLOW));
       if (card.session) text.write(COLUMN, 20, card.session, TEXT_PALETTES.WHITE);
       writeCentred(text, NAME_ROW, card.courseName, TEXT_PALETTES.WHITE);
+      drawCourseMap(frame, card.map, MAP_BOX, {
+        line: WHITE,
+        core: GRAY,
+        start: text.mainColor(TEXT_PALETTES.YELLOW),
+        checkpoint: text.mainColor(TEXT_PALETTES.GREEN),
+      });
+      const length = `${(card.map.lengthMeters / 1000).toFixed(3)}KM`;
+      text.write(COLUMN, 21, card.laps === null ? length : `${length}  ${card.laps} LAPS`, TEXT_PALETTES.WHITE);
       if (facts) {
-        drawCourseMap(frame, facts.map, MAP_BOX, {
-          line: WHITE,
-          core: GRAY,
-          start: text.mainColor(TEXT_PALETTES.YELLOW),
-          checkpoint: text.mainColor(TEXT_PALETTES.GREEN),
-        });
-        const length = `${(facts.map.lengthMeters / 1000).toFixed(3)}KM`;
-        text.write(COLUMN, 21, card.laps === null ? length : `${length}  ${card.laps} LAPS`, TEXT_PALETTES.WHITE);
         text.write(
           COLUMN,
           23,
