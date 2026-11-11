@@ -73,6 +73,12 @@ export interface Card {
   confirm?(): MenuResponse;
   /** The card came to rest in focus; the returned function is called when focus or the row leaves it. */
   focus?(): () => void;
+  /**
+   * A list card's entries (K, 2026-11-11: settings are completed within one card): UP and DOWN choose an entry, LEFT and
+   * RIGHT change its value (`change`), CONFIRM does its action, else the card's; an entry's `focus` runs while it rests
+   * chosen. Each is drawn as its name and its line, the value.
+   */
+  readonly items?: readonly Card[];
 }
 
 /** A row of cards, TITLE's PRESS START or SELECT SERIES' pictures, standing in the main world or a series' world. */
@@ -83,6 +89,8 @@ export interface CardRow {
   readonly cards: readonly Card[];
   /** The card in focus when the row is shown. */
   readonly initial: number;
+  /** A list card's entry chosen when the row is shown; the first by default. */
+  readonly initialItem?: number;
   /** The choices above the row, from `PATH_ROOT`: the path the bottom row shows before the card in focus. */
   readonly path?: readonly string[];
   /** BACK's action and what it did; absent does nothing. */
@@ -106,7 +114,14 @@ export interface MainWorld {
 /** How a row is reached: line thinning, the zoom into or out of a series, or at once. */
 export type RowChange = 'thin' | 'zoom-in' | 'zoom-out' | 'cut';
 
-type View = { readonly row: CardRow; index: number } | null;
+type View = { readonly row: CardRow; index: number; item: number } | null;
+const viewOf = (row: CardRow): View => ({ row, index: row.initial, item: row.initialItem ?? 0 });
+/** What rests in focus in `view`: a list card's chosen entry, else the card. */
+const unitOf = (view: View): Card | undefined => {
+  if (!view) return undefined;
+  const card = view.row.cards[view.index];
+  return card?.items ? card.items[view.item] : card;
+};
 type Motion =
   | { readonly kind: 'slide' | 'shake'; readonly direction: -1 | 1; steps: number }
   | { readonly kind: 'thin'; readonly from: View; steps: number }
@@ -146,7 +161,7 @@ export function createCardRows(
   initial: CardRow,
 ) {
   let world: TilePicture | null = initial.world,
-    view: View = { row: initial, index: initial.initial },
+    view: View = viewOf(initial),
     motions: Motion[] = [],
     pending: MenuCommand | null = null,
     rest = 0,
@@ -155,7 +170,7 @@ export function createCardRows(
     blink = 0;
   const scratch = new Uint16Array(frame.pixels.length);
   const settle = () => {
-    const card = motions.length === 0 && view ? view.row.cards[view.index] : undefined;
+    const card = motions.length === 0 ? unitOf(view) : undefined;
     if (card === focused) return;
     release?.();
     [release, focused] = [card?.focus?.() ?? null, card ?? null];
@@ -182,6 +197,20 @@ export function createCardRows(
     const { row } = view;
     const card = row.cards[view.index];
     if (row.kind === 'title') return command === 'CONFIRM' ? (card?.confirm?.() ?? null) : null;
+    // A list card takes every command: LEFT and RIGHT change the chosen entry, UP and DOWN choose another.
+    if (card?.items) {
+      const item = card.items[view.item]!;
+      if (command === 'LEFT' || command === 'RIGHT') return item.change?.(command === 'LEFT' ? -1 : 1) ? 'move' : null;
+      if (command === 'UP' || command === 'DOWN') {
+        const next = view.item + (command === 'UP' ? -1 : 1);
+        if (next < 0 || next >= card.items.length) return null;
+        view.item = next;
+        return 'move';
+      }
+      if (command === 'CONFIRM') return item.confirm?.() ?? card.confirm?.() ?? null;
+      if (command === 'BACK') return row.back?.() ?? null;
+      return null;
+    }
     if (command === 'LEFT' || command === 'RIGHT') {
       const direction = command === 'LEFT' ? -1 : 1,
         count = row.cards.length;
@@ -258,7 +287,18 @@ export function createCardRows(
       const card = row.cards[at]!;
       faces.draw(
         target,
-        { name: card.name, line: card.line?.() ?? '', dim: card.dim === true },
+        {
+          name: card.name,
+          line: card.line?.() ?? '',
+          dim: card.dim === true,
+          ...(card.items && {
+            items: card.items.map((item, i) => ({
+              label: item.name,
+              value: item.line?.() ?? '',
+              selected: at === index && i === shown.item,
+            })),
+          }),
+        },
         CARD.x + offset * CARD.pitch + shift,
         CARD.y,
       );
@@ -276,7 +316,7 @@ export function createCardRows(
     );
     text.clear();
     let column = 0;
-    for (const piece of pathLine(levels, shown.row.cards[shown.index]?.name ?? '')) {
+    for (const piece of pathLine(levels, unitOf(shown)?.name ?? '')) {
       const palette =
         piece.part === 'focus' ? TEXT_PALETTES.YELLOW : piece.part === 'cut' ? TEXT_PALETTES.DARK : TEXT_PALETTES.WHITE;
       text.write(column, PATH_ROW, piece.text, palette);
@@ -290,6 +330,7 @@ export function createCardRows(
     enter(row: CardRow): void;
     readonly row: CardRow | null;
     readonly index: number;
+    readonly item: number;
     readonly resting: boolean;
   } = {
     live: false,
@@ -301,6 +342,10 @@ export function createCardRows(
     },
     get index() {
       return view?.index ?? 0;
+    },
+    /** A list card's chosen entry. */
+    get item() {
+      return view?.item ?? 0;
     },
     /** Whether no motion runs. */
     get resting() {
@@ -341,7 +386,7 @@ export function createCardRows(
         const t = easeInOut(motion.steps / CARD_STEPS.zoom),
           scale = motion.to === 1 ? SERIES_SCALE + (1 - SERIES_SCALE) * t : 1 - (1 - SERIES_SCALE) * t;
         drawPlaneRow(frame, planeRow(motion.row), motion.index, scale, ZOOM_CENTRE, 0);
-        drawPath(frame, { row: motion.row, index: motion.index });
+        drawPath(frame, { row: motion.row, index: motion.index, item: 0 });
       } else if (motion?.kind === 'thin') {
         const title = (shown: View) => shown?.row.kind === 'title';
         drawWorld(frame, world, title(motion.from));
@@ -366,13 +411,13 @@ export function createCardRows(
     },
     /** Show `row` at once, as the selection is entered from outside: from a run, or the page's start. */
     enter(row: CardRow) {
-      [world, view, motions, pending, rest] = [row.world, { row, index: row.initial }, [], null, 0];
+      [world, view, motions, pending, rest] = [row.world, viewOf(row), [], null, 0];
       unfocus();
       main.enter();
     },
     /** Go on to `row`: by line thinning within a world, by the zoom into or out of a series, or at once. */
     go(row: CardRow, change: RowChange) {
-      const next: View = { row, index: row.initial };
+      const next: View = viewOf(row);
       if (change === 'cut') return begin({ kind: 'set', world: row.world, view: next });
       if (change === 'thin')
         return begin({ kind: 'set', world: row.world, view: next }, { kind: 'thin', from: view, steps: 0 });

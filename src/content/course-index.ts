@@ -42,7 +42,10 @@ export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-
 export const COURSE_INDEX_ID = 'courses';
 const COURSE_TYPES: readonly CompiledCourse['type'][] = ['CIRCUIT', 'LINEAR', 'BRANCH'];
 
-/** The delivered index of the compiled courses, in build order, each with its course text and race tracks. */
+/**
+ * The delivered index of the compiled courses, in the order given (the course texts': K, 2026-11-11), each with its
+ * course text and race tracks.
+ */
 export function courseIndexDocument(
   courses: readonly CompiledCourse[],
   texts: ReadonlyMap<string, CourseText>,

@@ -215,8 +215,8 @@ of the series has the same; each class also has its time margin and whether it f
 TITLE: the main picture over the attract demo; PRESS START
 MAIN MENU: SERIES / FREE PLAY / SETTINGS
   SERIES:    SELECT SERIES, then in the series' world SELECT CLASS → SELECT VEHICLE
-  FREE PLAY: RULES → SELECT ORIGINAL → SELECT COURSE → SELECT VEHICLE
-  SETTINGS:  a card for each setting; CONTROLS and CLEAR RECORDS each open a card of their own
+  FREE PLAY: RULES → SELECT COURSE → SELECT VEHICLE
+  SETTINGS:  one card of the settings; CONTROLS and CLEAR RECORDS each open a card of their own
 → PRE-RACE card (doubles as loading) → READY → RACE → RESULT
 RESULT: RETRY / CHANGE VEHICLE / SELECT / TITLE
 PAUSE:  RESUME / RETRY / QUIT
@@ -263,9 +263,10 @@ series' picture at once.
 TITLE, MAIN MENU, FREE PLAY's rows and SETTINGS have no music. On SELECT SERIES the series in focus plays its title
 track once the row has rested, and the track plays on in that series' world (K, 2026-11-09; §13).
 
-FREE PLAY's RULES row holds RIVALS, POOL, TRAFFIC and LAPS, a card each, chosen before the course and kept as chosen
-(§4). SELECT ORIGINAL groups the courses by the reference game they come from, in the reference games' order, the
-game's own courses last; SELECT COURSE shows a group's courses. SELECT SERIES shows, in the front end's order, the
+FREE PLAY's RULES are one card of RIVALS, POOL, TRAFFIC and LAPS, at the place a series takes on the SERIES side (the
+rules), chosen before the course and kept as chosen (§4). SELECT COURSE shows every course offered, in the reference
+games' order, the game's own courses last: the courses stand as courses, apart from the ARCADE TRIBUTE series, as their
+descriptions do (K, 2026-11-11). SELECT SERIES shows, in the front end's order, the
 series whose picture exists; one without a series document yet shows its picture and denies CONFIRM (K, 2026-11-09).
 The cards' contents are still to be designed ([NEXT](NEXT.md#card-ui)).
 

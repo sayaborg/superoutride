@@ -23,12 +23,22 @@ const NAME_COLUMNS = CARD.columns - 2;
 const NAME_ROWS = Object.freeze({ one: [8], two: [6, 9] });
 const LINE_ROW = 13;
 
-/** What a card shows until the cards are designed (K, 2026-11-09): its name and one line, and whether it is dimmed. */
+/**
+ * What a card shows until the cards are designed (K, 2026-11-09): its name and one line, and whether it is dimmed; or a
+ * list card's name and its entries, each a label and a value, one of them selected (K, 2026-11-11).
+ */
 export interface CardFace {
   readonly name: string;
   readonly line: string;
   readonly dim: boolean;
+  readonly items?: readonly { readonly label: string; readonly value: string; readonly selected: boolean }[];
 }
+
+/**
+ * A list card's layout: the name centred on its top rows, then an entry a row from `first`, the label from
+ * `label`, the value centred between the marks at `marks`, which stand either side of the selected entry's value.
+ */
+export const LIST = Object.freeze({ nameRow: 1, first: 5, label: 1, marks: [18, 26] as const });
 
 /** `name` in lines of at most `NAME_COLUMNS` characters: one, else two broken at the last space that fits, else cut. */
 export function cardNameLines(name: string): readonly string[] {
@@ -47,8 +57,14 @@ export function cardNameLines(name: string): readonly string[] {
  */
 export function createCardFaces(tiles: TextTiles) {
   const faces = new Map<string, Uint16Array>();
-  const write = (pixels: Uint16Array, column: number, row: number, line: string, font: 'normal' | 'ornateLarge') => {
-    const palette = font === 'normal' ? TEXT_PALETTES.WHITE : ornatePalette('ornateLarge', 'SUNSET');
+  const write = (
+    pixels: Uint16Array,
+    column: number,
+    row: number,
+    line: string,
+    font: 'normal' | 'ornateLarge',
+    palette = font === 'normal' ? TEXT_PALETTES.WHITE : ornatePalette('ornateLarge', 'SUNSET'),
+  ) => {
     for (let r = 0; r < TEXT_FONTS[font].rows; r++)
       tiles
         .encode(line, font, r)
@@ -62,18 +78,34 @@ export function createCardFaces(tiles: TextTiles) {
     const edge = tiles.mainColor(TEXT_PALETTES.WHITE);
     for (let x = 0; x < WIDTH; x++) pixels[x] = pixels[(HEIGHT - 1) * WIDTH + x] = edge;
     for (let y = 0; y < HEIGHT; y++) pixels[y * WIDTH] = pixels[y * WIDTH + WIDTH - 1] = edge;
-    const lines = cardNameLines(face.name);
-    lines.forEach((line, i) =>
-      write(pixels, centred(line), (lines.length === 1 ? NAME_ROWS.one : NAME_ROWS.two)[i]!, line, 'ornateLarge'),
-    );
-    if (face.line) write(pixels, centred(face.line), LINE_ROW, face.line, 'normal');
+    if (face.items) {
+      write(pixels, centred(face.name), LIST.nameRow, face.name, 'ornateLarge');
+      const [left, right] = LIST.marks;
+      face.items.forEach((item, i) => {
+        const row = LIST.first + i,
+          shade = item.selected ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.DARK;
+        write(pixels, LIST.label, row, item.label, 'normal', shade);
+        const at = left + 1 + Math.floor((right - left - 1 - item.value.length) / 2);
+        write(pixels, at, row, item.value, 'normal', item.selected ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE);
+        if (item.selected && item.value) {
+          write(pixels, left, row, '◀', 'normal');
+          write(pixels, right, row, '▶', 'normal');
+        }
+      });
+    } else {
+      const lines = cardNameLines(face.name);
+      lines.forEach((line, i) =>
+        write(pixels, centred(line), (lines.length === 1 ? NAME_ROWS.one : NAME_ROWS.two)[i]!, line, 'ornateLarge'),
+      );
+      if (face.line) write(pixels, centred(face.line), LINE_ROW, face.line, 'normal');
+    }
     if (face.dim) halveRgb555Pixels(pixels);
     return pixels;
   };
   return Object.freeze({
     /** Copy `face` with its top-left corner at (`x`, `y`), clipped to `target`. */
     draw(target: SoftwareSurface, face: CardFace, x: number, y: number) {
-      const key = JSON.stringify([face.name, face.line, face.dim]);
+      const key = JSON.stringify([face.name, face.line, face.dim, face.items ?? null]);
       let pixels = faces.get(key);
       if (!pixels) faces.set(key, (pixels = paint(face)));
       const left = Math.max(0, -x),

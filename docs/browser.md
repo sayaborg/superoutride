@@ -131,16 +131,18 @@ the changes outside them. The rows ([selection flow](../src/shell/selection-flow
   dimmed. BACK returns to TITLE.
 - **SERIES:** SELECT SERIES, then in the series' world SELECT CLASS (the series' classes) and SELECT VEHICLE (the
   class's vehicles). Choosing another class clears the chosen vehicle.
-- **FREE PLAY:** RULES (RIVALS, POOL, TRAFFIC and LAPS; CONFIRM on any goes on), SELECT ORIGINAL (the
-  [front end selection's](content-and-gameplay.md#front-end-selection-document) groups holding a course offered),
-  SELECT COURSE (the group's courses) and SELECT VEHICLE (every catalog vehicle), in the main world.
-- **SETTINGS:** a card a setting (below); CONTROLS opens a row of its one card, and CLEAR RECORDS a row of NO and YES.
+- **FREE PLAY:** RULES, one list card of RIVALS, POOL, TRAFFIC and LAPS at the place of a series (its rules), whose
+  CONFIRM on any entry goes on; SELECT COURSE, every course offered in the
+  [course index's](content-and-gameplay.md#course-index) order, as courses apart from any series (K, 2026-11-11); and
+  SELECT VEHICLE (every catalog vehicle), in the main world.
+- **SETTINGS:** one list card of the settings (below); CONTROLS opens a row of its one card, and CLEAR RECORDS a row of
+  NO and YES.
 
 A row is shown even with one card. BACK returns to the row before, CONFIRM on SELECT VEHICLE requests the run
 (`menu-entry`), which shows the PRE-RACE card and then starts. Each row starts from the current choice, else the player
-record's latest choice (keys `menu`, `series`, `class`, `course` and `vehicle`; SELECT ORIGINAL from the latest
-course's group), else its first card; each CONFIRM saves its choice as the latest. The courses FREE PLAY offers are
-those the offered series run, and with `dev=1` every delivered course.
+record's latest choice (keys `menu`, `series`, `class`, `course` and `vehicle`), else its first card; each CONFIRM saves
+its choice as the latest. The courses FREE PLAY offers are those the offered series run, and with `dev=1` every
+delivered course.
 
 A card is 28×21 tiles (224×168 pixels) at 1:1. At rest the card in focus stands at x 48 (column 6) and y 32 (row 4),
 four rows clear above and below it over the path's row, which balances it in the frame (K, 2026-11-11), its
@@ -149,20 +151,25 @@ world behind them; cards cast no shadow (K, 2026-11-08). Until the cards are des
 1-pixel edge and a dark ground, its name in the ornate large font's SUNSET style, in two lines when it is longer than 26
 characters, and one line in WHITE (K, 2026-11-09):
 
-| Row             | Name                        | Line                                                                 |
-| --------------- | --------------------------- | -------------------------------------------------------------------- |
-| MAIN MENU       | SERIES, FREE PLAY, SETTINGS | none                                                                 |
-| SELECT CLASS    | the class's title           | `<n> LAPS  <field> BIKES\|CARS`, BIKES when the whole field is bikes |
-| SELECT VEHICLE  | manufacturer and model      | the color's display name                                             |
-| RULES           | RIVALS, POOL, TRAFFIC, LAPS | the value                                                            |
-| SELECT ORIGINAL | the group's name            | `<n> COURSES` (`1 COURSE`), the courses offered                      |
-| SELECT COURSE   | the course index's name     | `CIRCUIT`, `LINEAR` or `BRANCH`                                      |
-| SETTINGS        | the setting                 | the value (none for CONTROLS and CLEAR RECORDS)                      |
-| CONTROLS        | CONTROLS                    | none                                                                 |
-| CLEAR RECORDS?  | NO, YES                     | `CLEAR RECORDS?`                                                     |
+| Row            | Name                        | Line                                                                 |
+| -------------- | --------------------------- | -------------------------------------------------------------------- |
+| MAIN MENU      | SERIES, FREE PLAY, SETTINGS | none                                                                 |
+| SELECT CLASS   | the class's title           | `<n> LAPS  <field> BIKES\|CARS`, BIKES when the whole field is bikes |
+| SELECT VEHICLE | manufacturer and model      | the color's display name                                             |
+| RULES          | RULES, a list card          | RIVALS, POOL, TRAFFIC and LAPS with their values                     |
+| SELECT COURSE  | the course index's name     | `CIRCUIT`, `LINEAR` or `BRANCH`                                      |
+| SETTINGS       | SETTINGS, a list card       | each setting with its value (none for CONTROLS and CLEAR RECORDS)    |
+| CONTROLS       | CONTROLS                    | none                                                                 |
+| CLEAR RECORDS? | NO, YES                     | `CLEAR RECORDS?`                                                     |
+
+A list card (K, 2026-11-11: settings are completed within one card) writes its name centred on rows 1–2 and an entry
+a row from row 5: the label from column 1 in DARK and the value centred between columns 18 and 26 in WHITE, the chosen
+entry's label and value in YELLOW with WHITE `◀` and `▶` at those columns. UP and DOWN choose the entry, stopping at
+either end, LEFT and RIGHT change its value (RIGHT the next or more), CONFIRM does the entry's action or else the
+card's, and BACK the row's; the chosen entry, not the card, rests in focus, and its path names it.
 
 Every row but TITLE shows its path on the frame's last row (K, 2026-11-11), as a folder's: from SUPER OUTRIDE, the
-names chosen down to the row and the card in focus, each in full and joined by `>` (`SUPER
+names chosen down to the row and the card in focus (a list card's chosen entry), each in full and joined by `>` (`SUPER
 OUTRIDE>SERIES>ARCADE TRIBUTE - OUTRUN>OUTRUN A>FERRARI TESTAROSSA`), in WHITE but the card in focus in YELLOW, over a
 plain band in the cards' ground. A path longer than the row's 40 columns is cut on its left and begins with `..` in
 DARK, the card in focus always whole; a font of 4×8 pixels may hold it all later, two characters to a tile written by
@@ -176,12 +183,12 @@ dimmed.
 
 LEFT and RIGHT choose a card: a row of three or more wraps at both ends; in a row of one or two a move past an end
 shakes the row, which changes nothing and sounds nothing. UP and DOWN change the value of the card in focus (a vehicle's
-color, a rule, a setting) and do nothing on a card without one. Moving sounds `menu-move` (`series-slide` on SELECT
-SERIES), changing a value `menu-move`, going on `menu-confirm` and going back `menu-back`; a command that does nothing
-says nothing. A card may say what happens while it rests in focus (`focus`): the screen calls it when the card comes to
-rest and its returned function once the focus or the row leaves it. SETTINGS uses it for its audition, the one form of
-[playing a track](audio.md#music) from its start, looped: the audition stops when the focus or the row leaves, and a
-track still decoding when it leaves never sounds.
+color) and do nothing on a card without one; a list card takes them all (above). Moving sounds `menu-move`
+(`series-slide` on SELECT SERIES), changing a value `menu-move`, going on `menu-confirm` and going back `menu-back`; a
+command that does nothing says nothing. A card may say what happens while it rests in focus (`focus`): the screen calls
+it when the card comes to rest and its returned function once the focus or the row leaves it. SETTINGS uses it for its
+audition, the one form of [playing a track](audio.md#music) from its start, looped: the audition stops when the focus or
+the row leaves, and a track still decoding when it leaves never sounds.
 
 The rows stand in a world. The main world is the attract demo behind the main picture, and until the main picture is
 made the title logo (36×14 tiles) centred at y 16 over it: TITLE, MAIN MENU, SELECT SERIES, FREE PLAY's rows and
@@ -229,20 +236,20 @@ series in focus plays its title track from its start, looped; a move fades it ou
 MENU. Entering the series' world, and returning to SELECT SERIES on the same series, it plays on; it fades out over the
 black transition into READY, and CHANGE VEHICLE and SELECT from RESULT play it from its start again in the world.
 TITLE, MAIN MENU, FREE PLAY's rows and SETTINGS are silent, but for the SETTINGS audition while the MUSIC card is in
-focus. No run plays a race track: every run request's track is MUSIC OFF (K, 2026-11-08).
+focus. A run from the rows plays its course's first race track ([Course sounds](content-and-gameplay.md#course-sounds)).
 
-SETTINGS' cards are MASTER, MUSIC and EFFECTS with their volumes, which UP and DOWN change in steps of 5 within 0–100
-(to the adjacent multiple of 5, stopping at the ends), CAR CAMERA and BIKE CAMERA (FACING or MOVING;
-[camera yaw](architecture.md#camera-and-fixed-metric)) for runs with a vehicle of that form, CAR STEERING and BIKE
-STEERING (FRONT or CENTER), CAR STEERING USE and BIKE STEERING USE (100%, 95% and 90%;
-[steering rule](vehicle-physics.md#actuators-and-steering)) and SLOW DOWN (ON or OFF; [SLOW DOWN](#slow-down)), the
-choices wrapping, then CONTROLS and CLEAR RECORDS. UP is the next choice or more, DOWN the one before or less; CONFIRM on
-a value does nothing. CONTROLS' card is to show the keyboard, touch and gamepad controls once its contents are designed.
+SETTINGS' entries are MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGHT change in steps of 5 within
+0–100 (to the adjacent multiple of 5, stopping at the ends), CAR CAMERA and BIKE CAMERA (FACING or MOVING; [camera
+yaw](architecture.md#camera-and-fixed-metric)) for runs with a vehicle of that form, CAR STEERING and BIKE STEERING
+(FRONT or CENTER), CAR STEERING USE and BIKE STEERING USE (100%, 95% and 90%; [steering
+rule](vehicle-physics.md#actuators-and-steering)) and SLOW DOWN (ON or OFF; [SLOW DOWN](#slow-down)), the choices
+wrapping, then CONTROLS and CLEAR RECORDS. RIGHT is the next choice or more, LEFT the one before or less; CONFIRM on a
+value does nothing. CONTROLS' card is to show the keyboard, touch and gamepad controls once its contents are designed.
 CLEAR RECORDS? offers NO (first) and YES: YES empties the records, saves the player record with its settings unchanged
 and returns to SETTINGS, as NO and BACK do. The player record is the one owner of every volume. Each change, from
 SETTINGS or the DEV MASTER stepper, goes through the audio lifetime's one path (`setVolume`): the record keeps it, the
-stepper shows MASTER, and every volume applies at once; UP and DOWN on EFFECTS sound `menu-move` at the new volume,
-which is its audition. While the MUSIC card is in focus, the player record's latest track (else the first track) plays
+stepper shows MASTER, and every volume applies at once; LEFT and RIGHT on EFFECTS sound `menu-move` at the new volume,
+which is its audition. While the MUSIC entry rests chosen, the player record's latest track (else the first track) plays
 as an audition, so its volume is set by ear.
 
 SELECT VEHICLE's color is chosen in its card: UP and DOWN step through the vehicle's four colors, wrapping, from the color
@@ -623,13 +630,15 @@ live, a paused or finished run included) driving input is suspended and every co
 hidden nothing does. Commands arrive at the current screen before each fixed step.
 
 In the rows LEFT and RIGHT choose a card and UP and DOWN change a value in it; they never act as each other (K,
-2026-11-09). Each screen says what a command did: moved the focus or changed a value, confirmed something, or went
-back; a command that does nothing (CONFIRM on a card without an action, BACK on TITLE, a value at its end, a shake at a
-row's end) says nothing. A command the rows hold over a motion is answered when it acts, as the screen advances. The
-screen host is the one place that turns that into a sound: `menu-move`, `series-slide`, `menu-confirm`, `menu-entry`
-(the CONFIRM on SELECT VEHICLE that requests the run), `menu-deny` (CONFIRM on a dimmed card or a series without a
-document) or `menu-back` ([Audio](audio.md#sound-effects)). The rows and the carousels answer so, and the run screen
-too: PAUSE that opens the PAUSE menu confirms, and PAUSE or BACK that closes it goes back. The CONFIRM on TITLE that starts the audio is not heard, since the audio is not yet running.
+2026-11-09). In a list card UP and DOWN choose an entry and LEFT and RIGHT change its value (K, 2026-11-11). Each screen
+says what a command did: moved the focus or changed a value, confirmed something, or went back; a command that does
+nothing (CONFIRM on a card without an action, BACK on TITLE, a value at its end, a shake at a row's end) says nothing. A
+command the rows hold over a motion is answered when it acts, as the screen advances. The screen host is the one place
+that turns that into a sound: `menu-move`, `series-slide`, `menu-confirm`, `menu-entry` (the CONFIRM on SELECT VEHICLE
+that requests the run), `menu-deny` (CONFIRM on a dimmed card or a series without a document) or `menu-back`
+([Audio](audio.md#sound-effects)). The rows and the carousels answer so, and the run screen too: PAUSE that opens the
+PAUSE menu confirms, and PAUSE or BACK that closes it goes back. The CONFIRM on TITLE that starts the audio is not
+heard, since the audio is not yet running.
 
 - **Keyboard:** the arrows give the directions, Enter and Z CONFIRM and X BACK; Escape is BACK in a menu and PAUSE while
   driving. Z and X command only on the menu route; while driving they stay the accelerator and the brake.

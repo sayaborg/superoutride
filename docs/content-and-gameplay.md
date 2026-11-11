@@ -1144,13 +1144,13 @@ document has the pools ALL (cars and bikes), CARS and BIKES, the levels LOW (5 v
 
 ## Front end selection document
 
-`content/front-end/selection.json` is the one `superoutride.front-end-selection` version 2 document (manifest kind
+`content/front-end/selection.json` is the one `superoutride.front-end-selection` version 3 document (manifest kind
 `front-end`, ID `selection`): what the selection offers beyond the series documents, in its order (K, 2026-11-09).
 
 ```text
 FrontEndSelection {
-  format: "superoutride.front-end-selection", version: 2,
-  series: [{id, music, title, description}], originals: [{title, courses}]
+  format: "superoutride.front-end-selection", version: 3,
+  series: [{id, music, title, description}]
 }
 ```
 
@@ -1161,14 +1161,9 @@ picture exists; until then it is passed over, and the build reports how many are
 are null for a series with a document, which holds them, and for one without a document yet name what its document
 will hold: a delivered track, its title and its description, as a series document's. SELECT SERIES shows such a
 series' picture and denies its CONFIRM. Every series document but a DEV one is listed, and no DEV one
-is: with `dev=1` the DEV series with a picture follow the list, in document order. `originals` are FREE PLAY's groups
-of courses in order, each a card name in the text tiles' characters, at most a course name's 40, and its courses by ID
-in order; the groups follow the reference games' order, the game's own courses last (`SUPER OUTRIDE`; K, 2026-11-09),
-and their courses the [course texts'](#course-texts). A course is in at most one group, and every
-delivered course is in one: a product course (`<original id>-product`) stands after its original in the original's
-group. A listed course not yet delivered is passed over, and a group with no course offered is not shown. Admission
-checks the document once, against the series, the screen pictures, the tracks and the courses, from the build's file
-or the delivery manifest alike.
+is: with `dev=1` the DEV series with a picture follow the list, in document order. FREE PLAY lists its courses in the
+[course index's](#course-index) order, apart from any series (K, 2026-11-11). Admission checks the document once,
+against the series, the screen pictures and the tracks, from the build's file or the delivery manifest alike.
 
 ## Run and reference timing
 
@@ -2015,7 +2010,8 @@ reports how many there are. Descriptions are kept unwrapped; no screen shows the
 ## Course index
 
 The content build delivers one course index (`superoutride.course-index` version 7) so menus can show courses
-without loading them. It lists every compiled course once, in build order (course file name order), as
+without loading them. It lists every compiled course once, in the [course texts'](#course-texts) order, a product
+course after its original (K, 2026-11-11: FREE PLAY lists the courses in it), as
 `{id, name, description, type, maxLaps, gridSlots, buildSha256, raceTracks}`: the course ID, its
 [course texts'](#course-texts) display name and description, its [course sounds'](#course-sounds) race track IDs, the compiled topology type
 (`CIRCUIT`, `LINEAR` or `BRANCH`), the document's `rules.maxLaps` and the number of grid slots of its start gate

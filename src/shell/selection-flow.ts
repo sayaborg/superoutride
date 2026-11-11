@@ -1,6 +1,6 @@
 import type { CourseIndex, CourseIndexEntry } from '../content/course-index.js';
 import type { CompiledSeries, SeriesCatalog, SeriesClass } from '../content/series-catalog.js';
-import type { CourseGroup, FrontEndSelection, SelectableSeries } from '../content/front-end-selection.js';
+import type { FrontEndSelection, SelectableSeries } from '../content/front-end-selection.js';
 import { RUN_RULE_LIMITS } from '../course/run-rules.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
 import { gridRivalCapacity } from '../race/run-configuration.js';
@@ -64,10 +64,12 @@ export interface SelectionDevices {
 /**
  * The selection from TITLE to a run request ([product](../../docs/product.md#6-flow-and-screens)), its rows of cards on
  * one screen: TITLE, then MAIN MENU's SERIES, FREE PLAY and SETTINGS. SERIES leads through SELECT SERIES into the
- * series' world, SELECT CLASS and SELECT VEHICLE; FREE PLAY through RULES, SELECT ORIGINAL, SELECT COURSE and SELECT
- * VEHICLE, in the main world; SETTINGS to its cards. Every row is shown, even with one card, and BACK returns to the
- * row before. SELECT VEHICLE's CONFIRM requests the run: a class's RACE, or FREE PLAY with its RULES cut to the course.
- * A run plays its course's first race track, if it has one (K, 2026-11-11). Each row starts from the current choice, else the player record's latest, else its first.
+ * series' world, SELECT CLASS and SELECT VEHICLE; FREE PLAY through RULES (one list card, at the series' place),
+ * SELECT COURSE (every offered course, apart from any series) and SELECT VEHICLE, in the main world; SETTINGS to its
+ * one list card. Every row is shown, even with one card, and BACK returns to the row before. SELECT VEHICLE's CONFIRM
+ * requests the run: a class's RACE, or FREE PLAY with its RULES cut to the course. A run plays its course's first race
+ * track, if it has one (K, 2026-11-11). Each row starts from the current choice, else the player record's latest, else
+ * its first.
  */
 export function createSelectionFlow(catalog: SelectionCatalog, devices: SelectionDevices) {
   const { courses, vehicles, player, dev, freePlay, frontEnd } = catalog;
@@ -75,15 +77,12 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   const trafficLevels = [NO_TRAFFIC, ...freePlay.traffic.map((level) => level.id)];
   const selectable = frontEnd.seriesRow(dev);
   const offers = (s: SelectableSeries) => s.series !== null && s.series.classes.length > 0;
-  // FREE PLAY's courses: those the offered series run, and with DEV every course, grouped by original.
-  const offered = new Set(
-    dev
-      ? courses.map((c) => c.id)
-      : catalog.series.series.filter((s) => !s.dev).flatMap((s) => s.classes.map((c) => c.course)),
-  );
-  const groups = frontEnd.groups(offered);
+  // FREE PLAY's courses, in the course index's order: those the offered series run, and with DEV every course. They
+  // stand as courses, apart from any series (K, 2026-11-11).
+  const run = new Set(catalog.series.series.filter((s) => !s.dev).flatMap((s) => s.classes.map((c) => c.course)));
+  const offered = courses.filter((c) => dev || run.has(c.id)).map((c) => c.id);
   const courseOf = (id: string): CourseIndexEntry => courses.find((c) => c.id === id)!;
-  const maxLaps = Math.max(1, ...[...offered].map((id) => courseOf(id).maxLaps));
+  const maxLaps = Math.max(1, ...offered.map((id) => courseOf(id).maxLaps));
 
   const latest = (key: string): string | undefined => player.settings.latestSelections[key];
   const remember = (key: string, value: string) =>
@@ -97,7 +96,6 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     menu: MenuChoice = MENU.find((m) => m === latest('menu')) ?? 'SERIES',
     seriesChoice: CompiledSeries | null = null,
     classChoice: SeriesClass | null = null,
-    group: CourseGroup | null = null,
     courseId: string | null = null,
     vehicleId: string | null = null,
     rivals = latestCount('rivals', 0, RUN_RULE_LIMITS.rivals) ?? 0,
@@ -140,9 +138,9 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       initial: MENU.indexOf(menu),
       cards: MENU.map((choice): Card => ({
         name: choice,
-        dim: choice === 'SERIES' ? !selectable.length : choice === 'FREE PLAY' ? !groups.length : false,
+        dim: choice === 'SERIES' ? !selectable.length : choice === 'FREE PLAY' ? !offered.length : false,
         confirm: () => {
-          if (choice !== menu) [seriesChoice, classChoice, group, courseId, vehicleId] = [null, null, null, null, null];
+          if (choice !== menu) [seriesChoice, classChoice, courseId, vehicleId] = [null, null, null, null];
           menu = choice;
           remember('menu', choice);
           go(choice === 'SERIES' ? seriesRow() : choice === 'FREE PLAY' ? rulesRow() : settingsRow(), 'thin');
@@ -209,7 +207,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     });
   };
 
-  // FREE PLAY: RULES, the originals' groups and their courses, in the main world.
+  // FREE PLAY: RULES, one list card, then the courses, in the main world.
   const rule = (name: string, shown: () => string, set: (by: -1 | 1) => void): Card => ({
     name,
     line: shown,
@@ -218,7 +216,6 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       set(by);
       return shown() !== before;
     },
-    confirm: () => (go(originalRow(), 'thin'), 'confirm'),
   });
   const wrap = <T>(choices: readonly T[], value: T, by: -1 | 1) =>
     choices[(choices.indexOf(value) + by + choices.length) % choices.length]!;
@@ -226,55 +223,44 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     row({
       kind: 'cards',
       world: null,
-      path: [PATH_ROOT, 'FREE PLAY'],
+      path: [PATH_ROOT, 'FREE PLAY', 'RULES'],
       cards: [
-        rule(
-          'RIVALS',
-          () => String(rivals),
-          (by) => remember('rivals', String((rivals = Math.min(RUN_RULE_LIMITS.rivals, Math.max(0, rivals + by))))),
-        ),
-        rule(
-          'POOL',
-          () => pool,
-          (by) => remember('pool', (pool = wrap(pools, pool, by))),
-        ),
-        rule(
-          'TRAFFIC',
-          () => traffic,
-          (by) => remember('traffic', (traffic = wrap(trafficLevels, traffic, by))),
-        ),
-        rule(
-          'LAPS',
-          () => String(laps),
-          (by) => remember('laps', String((laps = Math.min(maxLaps, Math.max(1, laps + by))))),
-        ),
+        {
+          name: 'RULES',
+          items: [
+            rule(
+              'RIVALS',
+              () => String(rivals),
+              (by) => remember('rivals', String((rivals = Math.min(RUN_RULE_LIMITS.rivals, Math.max(0, rivals + by))))),
+            ),
+            rule(
+              'POOL',
+              () => pool,
+              (by) => remember('pool', (pool = wrap(pools, pool, by))),
+            ),
+            rule(
+              'TRAFFIC',
+              () => traffic,
+              (by) => remember('traffic', (traffic = wrap(trafficLevels, traffic, by))),
+            ),
+            rule(
+              'LAPS',
+              () => String(laps),
+              (by) => remember('laps', String((laps = Math.min(maxLaps, Math.max(1, laps + by))))),
+            ),
+          ],
+          confirm: () => (go(courseRow(), 'thin'), 'confirm'),
+        },
       ],
       back: () => (go(menuRow(), 'thin'), 'back'),
-    });
-  const originalRow = (): CardRow =>
-    row({
-      kind: 'cards',
-      world: null,
-      path: [PATH_ROOT, 'FREE PLAY', 'RULES'],
-      initial: at(groups, (g) => g.title === (group ?? frontEnd.groupOf(courseId ?? latest('course') ?? ''))?.title),
-      cards: groups.map((g): Card => ({
-        name: g.title,
-        line: () => (g.courses.length === 1 ? '1 COURSE' : `${g.courses.length} COURSES`),
-        confirm: () => {
-          group = g;
-          go(courseRow(), 'thin');
-          return 'confirm';
-        },
-      })),
-      back: () => (go(rulesRow(), 'thin'), 'back'),
     });
   const courseRow = (): CardRow =>
     row({
       kind: 'cards',
       world: null,
-      path: [PATH_ROOT, 'FREE PLAY', 'RULES', group!.title],
-      initial: at(group!.courses, (id) => id === (courseId ?? latest('course'))),
-      cards: group!.courses.map((id): Card => ({
+      path: [PATH_ROOT, 'FREE PLAY', 'RULES'],
+      initial: at(offered, (id) => id === (courseId ?? latest('course'))),
+      cards: offered.map((id): Card => ({
         name: courseOf(id).name,
         line: () => courseOf(id).type,
         confirm: () => {
@@ -284,7 +270,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
           return 'confirm';
         },
       })),
-      back: () => (go(originalRow(), 'thin'), 'back'),
+      back: () => (go(rulesRow(), 'thin'), 'back'),
     });
 
   // SELECT VEHICLE: a class's vehicles in its series' world, or every vehicle in FREE PLAY; UP and DOWN choose the
@@ -299,7 +285,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       world: runClass ? worldOf(runClass.series) : null,
       path: runClass
         ? [PATH_ROOT, 'SERIES', runClass.series.title, runClass.title]
-        : [PATH_ROOT, 'FREE PLAY', 'RULES', group!.title, courseOf(courseId!).name],
+        : [PATH_ROOT, 'FREE PLAY', 'RULES', courseOf(courseId!).name],
       initial: at(candidates, (v) => v.compiledVehicle.id === (vehicleId ?? latest('vehicle'))),
       cards: candidates.map((v): Card => {
         const { manufacturer, model } = v.listing.metadata;
@@ -352,9 +338,9 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // A run plays its course's first race track, or none.
   const raceTrack = (id: string) => courseOf(id).raceTracks[0] ?? null;
 
-  // SETTINGS: a card a setting; CONTROLS and CLEAR RECORDS open their own rows.
-  const settingsRow = (initial = 0): CardRow => {
-    const cards = settingCards(
+  // SETTINGS: one list card of the settings; CONTROLS and CLEAR RECORDS open their own rows.
+  const settingsRow = (initialItem = 0): CardRow => {
+    const items = settingCards(
       player,
       {
         setVolume: devices.setVolume,
@@ -370,8 +356,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       kind: 'cards',
       world: null,
       path: [PATH_ROOT, 'SETTINGS'],
-      initial,
-      cards,
+      initialItem,
+      cards: [{ name: 'SETTINGS', items }],
       back: () => (go(menuRow(), 'thin'), 'back'),
     });
   };
@@ -424,8 +410,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     }
     menu = 'FREE PLAY';
     courseId = run.courseId;
-    group = groups.find((g) => g.courses.includes(run.courseId)) ?? null;
-    return group !== null;
+    return offered.includes(run.courseId);
   };
   // TITLE and FREE PLAY's rows hold no music.
   const silent = () => devices.music.play(null);

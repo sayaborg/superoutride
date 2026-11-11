@@ -67,5 +67,8 @@ export function courseTextsOf(texts: readonly CourseText[], courseIds: readonly 
     }),
   );
   const named = new Set([...byCourse.values()].map((text) => text.id));
-  return Object.freeze({ byCourse, unraised: texts.filter((text) => !named.has(text.id)).length });
+  // The courses in the texts' order, the reference games' with TSUKUBA last, a product course after its original.
+  const rank = (id: string) => texts.indexOf(byCourse.get(id)!) * 2 + Number(id !== courseTextId(id));
+  const ordered = Object.freeze([...courseIds].sort((a, b) => rank(a) - rank(b)));
+  return Object.freeze({ byCourse, ordered, unraised: texts.filter((text) => !named.has(text.id)).length });
 }

@@ -1,6 +1,5 @@
 import {
   admit,
-  readArray,
   readDocument,
   readIdentified,
   readRecord,
@@ -13,7 +12,7 @@ import type { MusicTrack } from '../audio/music-document.js';
 import type { TilePicture } from '../image/tile-picture.js';
 import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
-import { courseTextId, courseTextString } from './course-texts.js';
+import { courseTextString } from './course-texts.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 import type { MusicCatalog } from './recording-catalog.js';
 import { SERIES_IMAGE, type ScreenPictureCatalog } from './screen-picture-catalog.js';
@@ -25,7 +24,7 @@ export const FRONT_END_SELECTION_ID = 'selection';
 export const FRONT_END_DIRECTORY = 'front-end';
 export const FRONT_END_SELECTION_FORMAT = Object.freeze({
   format: 'superoutride.front-end-selection',
-  version: 2,
+  version: 3,
 } as const);
 
 /** The saved document: the series SELECT SERIES offers and FREE PLAY's groups of courses, each in its order. */
@@ -40,8 +39,6 @@ export interface FrontEndSelectionDocument {
     readonly title: string | null;
     readonly description: string | null;
   }[];
-  /** Each group's card name and its courses' IDs. */
-  readonly originals: readonly { readonly title: string; readonly courses: readonly string[] }[];
 }
 
 /** A series SELECT SERIES shows: its picture, its document (null before it has one), title track, name and description. */
@@ -55,34 +52,23 @@ export interface SelectableSeries {
   readonly description: string;
 }
 
-/** A group of FREE PLAY's courses: its card name and its delivered courses, in the document's order. */
-export interface CourseGroup {
-  readonly title: string;
-  readonly courses: readonly string[];
-}
-
-/** The admitted selection: the series shown, the listed series without a picture yet, and the course groups. */
+/** The admitted selection: the series shown and the listed series without a picture yet. */
 export interface FrontEndSelection {
   /** SELECT SERIES' series with a picture, in the document's order, then the DEV series with one in document order. */
   seriesRow(dev: boolean): readonly SelectableSeries[];
   /** How many listed series have no picture yet and are not shown. */
   readonly unpictured: number;
-  /** The groups holding a course among `offered`, with those courses alone, in the document's order. */
-  groups(offered: ReadonlySet<string>): readonly CourseGroup[];
-  /** The group a course belongs to (a product course its original's), or null. */
-  groupOf(courseId: string): CourseGroup | null;
 }
 
 /**
- * Admit the `superoutride.front-end-selection` version 2 document: series IDs unique, each with its music ID, title and
- * description, or none of them;
- * groups with unique card names in the text tiles' characters and courses unique across every group.
+ * Admit the `superoutride.front-end-selection` version 3 document: series IDs unique, each with its music ID, title and
+ * description, or none of them.
  */
 export function readFrontEndSelection(value: unknown, document = ''): AdmissionResult<FrontEndSelectionDocument> {
   return admit(document, () => {
     const data = readDocument(
       value,
-      ['format', 'version', 'series', 'originals'],
+      ['format', 'version', 'series'],
       FRONT_END_SELECTION_FORMAT.format,
       FRONT_END_SELECTION_FORMAT.version,
     );
@@ -98,38 +84,20 @@ export function readFrontEndSelection(value: unknown, document = ''): AdmissionR
         description: text('description', COURSE_TEXT_LIMITS.descriptionCodeUnits),
       });
     });
-    const titles = new Set<string>(),
-      courses = new Set<string>();
-    const originals = readArray(data.originals, '/originals', (item, at) => {
-      const group = readRecord(item, at, ['title', 'courses']);
-      const title = courseTextString(group.title, `${at}/title`, COURSE_TEXT_LIMITS.nameCodeUnits);
-      requireAdmission(!titles.has(title), 'duplicate_id', `${at}/title`, `Duplicate group ${title}`);
-      titles.add(title);
-      const ids = readArray(group.courses, `${at}/courses`, (course, path) => {
-        const courseId = readString(course, path, id);
-        requireAdmission(!courses.has(courseId), 'duplicate_id', path, `Course ${courseId} is in two groups`);
-        courses.add(courseId);
-        return courseId;
-      });
-      return Object.freeze({ title, courses: Object.freeze(ids) });
-    });
-    return Object.freeze({ series: Object.freeze(series), originals: Object.freeze(originals) });
+    return Object.freeze({ series: Object.freeze(series) });
   });
 }
 
 /**
  * Admit the selection against the content: a listed series shows when the screen picture of its ID exists, which is
  * then 40×30 tiles and opaque; a series with a document takes its title track from it and lists no music, and one
- * without names a delivered track; a DEV series is not listed, and every other series document is. Every delivered
- * course is in one group, a product course (`<original id>-product`) in its original's; a listed course not delivered is
- * passed over.
+ * without names a delivered track; a DEV series is not listed, and every other series document is.
  */
 export function compileFrontEndSelection(
   source: DocumentSource,
   series: SeriesCatalog,
   pictures: ScreenPictureCatalog,
   music: MusicCatalog,
-  courseIds: readonly string[],
 ): AdmissionResult<FrontEndSelection> {
   const read = readFrontEndSelection(source.value, source.path);
   if (!read.ok) return read;
@@ -193,39 +161,11 @@ export function compileFrontEndSelection(
           description: s.description,
         }),
       );
-    const delivered = new Set(courseIds);
-    const groups = document.originals.map((group) =>
-      Object.freeze({ title: group.title, courses: Object.freeze(group.courses.filter((id) => delivered.has(id))) }),
-    );
-    const groupOf = (courseId: string) =>
-      groups.find((group) => group.courses.includes(courseId) || group.courses.includes(courseTextId(courseId))) ??
-      null;
-    for (const id of courseIds)
-      requireAdmission(groupOf(id) !== null, 'unresolved_reference', '/originals', `Course ${id} is in no group`);
-    // A delivered product course stands in its original's group, after it.
-    const placed = groups.map((group) =>
-      Object.freeze({
-        title: group.title,
-        courses: Object.freeze(
-          group.courses.flatMap((id) => [id, ...(delivered.has(`${id}-product`) ? [`${id}-product`] : [])]),
-        ),
-      }),
-    );
     const shown = Object.freeze(listed),
       withDev = Object.freeze([...listed, ...dev]);
     return Object.freeze({
       seriesRow: (devShown: boolean) => (devShown ? withDev : shown),
       unpictured,
-      groups: (offered: ReadonlySet<string>) =>
-        placed
-          .map((group) =>
-            Object.freeze({
-              title: group.title,
-              courses: Object.freeze(group.courses.filter((id) => offered.has(id))),
-            }),
-          )
-          .filter((group) => group.courses.length > 0),
-      groupOf: (courseId: string) => placed.find((group) => group.courses.includes(courseId)) ?? null,
     });
   });
 }
@@ -236,11 +176,10 @@ export function compileFrontEndSelectionSources(
   series: SeriesCatalog,
   pictures: ScreenPictureCatalog,
   music: MusicCatalog,
-  courseIds: readonly string[],
 ): AdmissionResult<FrontEndSelection> {
   const single = admitSingleDocument(sources, FRONT_END_SELECTION_ID, 'front end selection document');
   if (!single.ok) return single;
-  return compileFrontEndSelection(single.value, series, pictures, music, courseIds);
+  return compileFrontEndSelection(single.value, series, pictures, music);
 }
 
 /** Transport verifies the saved bytes before admission; each composition loads the selection once. */
@@ -258,6 +197,5 @@ export async function loadFrontEndSelection(
       value: await content.json('front-end', file.id),
       sha256: file.sha256,
     });
-  const courseIds = content.manifest.files.filter((file) => file.kind === 'course').map((file) => file.id);
-  return requireLoaded(compileFrontEndSelectionSources(sources, series, pictures, music, courseIds));
+  return requireLoaded(compileFrontEndSelectionSources(sources, series, pictures, music));
 }

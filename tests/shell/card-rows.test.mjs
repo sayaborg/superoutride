@@ -82,12 +82,14 @@ function selection({ dev = true, frontEnd = delivered } = {}) {
     return response;
   };
   const names = () => screen.row.cards.map((card) => card.name);
+  // The list card's entries.
+  const items = () => screen.row.cards[screen.index].items.map((item) => item.name);
   flow.title();
-  return { flow, screen, log, send, settle, names };
+  return { flow, screen, log, send, settle, names, items };
 }
 
 test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK returns row by row', () => {
-  const { screen, log, send, names } = selection();
+  const { screen, log, send, names, items } = selection();
   assert.equal(screen.row.kind, 'title');
   assert.equal(send('BACK'), null);
   assert.equal(send('CONFIRM'), 'start');
@@ -118,16 +120,17 @@ test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK 
   assert.equal(screen.row.kind, 'series');
   assert.equal(send('BACK'), 'back');
   assert.deepEqual(names(), ['SERIES', 'FREE PLAY', 'SETTINGS']);
-  // FREE PLAY: RULES, SELECT ORIGINAL, SELECT COURSE and SELECT VEHICLE, in the main world.
+  // FREE PLAY: RULES (one list card), SELECT COURSE (every offered course, in the course index's order) and SELECT
+  // VEHICLE, in the main world.
   send('RIGHT');
   send('CONFIRM');
-  assert.deepEqual(names(), ['RIVALS', 'POOL', 'TRAFFIC', 'LAPS']);
+  assert.deepEqual(names(), ['RULES']);
+  assert.deepEqual(items(), ['RIVALS', 'POOL', 'TRAFFIC', 'LAPS']);
   send('CONFIRM');
   assert.deepEqual(
     names(),
-    delivered.groups(new Set(courses.map((c) => c.id))).map((g) => g.title),
+    courses.map((c) => c.name),
   );
-  send('CONFIRM');
   assert.equal(screen.row.cards[0].name, 'ENDURO RACER');
   send('CONFIRM');
   assert.equal(screen.row.cards.length, vehicles.length);
@@ -135,33 +138,32 @@ test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK 
   send('CONFIRM');
   assert.equal(log.runs.at(-1).request.courseId, 'enduro-racer');
   assert.equal(log.runs.at(-1).request.track, 'enduro-racer-in-game');
-  for (const name of ['SELECT COURSE', 'SELECT ORIGINAL', 'RULES', 'MAIN MENU'])
-    assert.equal(send('BACK'), 'back', name);
-  // SETTINGS: a card a setting; CONTROLS and CLEAR RECORDS open their own rows.
+  for (const name of ['SELECT COURSE', 'RULES', 'MAIN MENU']) assert.equal(send('BACK'), 'back', name);
+  // SETTINGS: one list card; CONTROLS and CLEAR RECORDS open their own rows.
   send('RIGHT');
   send('CONFIRM');
-  assert.equal(names().length, 12);
-  assert.deepEqual(names().slice(-2), ['CONTROLS', 'CLEAR RECORDS']);
-  // A value card's CONFIRM does nothing.
+  assert.deepEqual(names(), ['SETTINGS']);
+  assert.equal(items().length, 12);
+  assert.deepEqual(items().slice(-2), ['CONTROLS', 'CLEAR RECORDS']);
+  // A value's CONFIRM does nothing.
   assert.equal(send('CONFIRM'), null);
-  send('LEFT');
-  send('LEFT');
+  for (let i = 0; i < 10; i++) assert.equal(send('DOWN'), 'move');
   send('CONFIRM');
   assert.deepEqual(names(), ['CONTROLS']);
   send('BACK');
-  assert.equal(screen.row.cards[screen.index].name, 'CONTROLS');
-  send('RIGHT');
+  assert.equal(items()[screen.item], 'CONTROLS');
+  send('DOWN');
   send('CONFIRM');
   assert.deepEqual(names(), ['NO', 'YES']);
   send('CONFIRM');
-  assert.equal(screen.row.cards[screen.index].name, 'CLEAR RECORDS');
+  assert.equal(items()[screen.item], 'CLEAR RECORDS');
   send('BACK');
   assert.equal(send('BACK'), 'back');
   assert.equal(screen.row.kind, 'title');
 });
 
 test('LEFT and RIGHT wrap a row of three or more and shake one of one or two; UP and DOWN change only values', () => {
-  const { screen, send } = selection();
+  const { screen, send, items } = selection();
   send('CONFIRM');
   // Three cards wrap.
   assert.equal(send('LEFT'), 'move');
@@ -175,7 +177,7 @@ test('LEFT and RIGHT wrap a row of three or more and shake one of one or two; UP
   // SETTINGS' CLEAR RECORDS?: two cards, which do not wrap.
   send('LEFT');
   send('CONFIRM');
-  send('LEFT');
+  for (let i = 0; i < 11; i++) send('DOWN');
   send('CONFIRM');
   assert.equal(send('LEFT'), null);
   assert.equal(screen.index, 0);
@@ -193,18 +195,22 @@ test('LEFT and RIGHT wrap a row of three or more and shake one of one or two; UP
   assert.equal(screen.index, 0);
   // The one-card CONTROLS row shakes either way.
   send('BACK');
-  send('LEFT');
+  send('UP');
   send('CONFIRM');
   assert.equal(send('RIGHT'), null);
   assert.equal(send('LEFT'), null);
   assert.equal(screen.index, 0);
-  // A value changes with UP and DOWN.
+  // In a list card UP and DOWN choose an entry, stopping at its ends, and LEFT and RIGHT change its value.
   send('BACK');
-  send('LEFT');
-  assert.equal(screen.row.cards[screen.index].name, 'SLOW DOWN');
-  const before = screen.row.cards[screen.index].line();
-  assert.equal(send('DOWN'), 'move');
-  assert.notEqual(screen.row.cards[screen.index].line(), before);
+  assert.equal(send('UP'), 'move');
+  assert.equal(items()[screen.item], 'SLOW DOWN');
+  const item = () => screen.row.cards[0].items[screen.item];
+  const before = item().line();
+  assert.equal(send('LEFT'), 'move');
+  assert.notEqual(item().line(), before);
+  for (let i = 0; i < 12; i++) send('UP');
+  assert.equal(screen.item, 0);
+  assert.equal(send('UP'), null);
 });
 
 test('line thinning is one implementation, shared by the rows and the background transitions', async () => {
@@ -247,7 +253,14 @@ test('the series plane covers a card at 0.7 and the frame at 1, scaled about one
 test('SELECT SERIES plays the series in focus once it rests; the world keeps it, and only RESULT starts it again', () => {
   // A second series beside the delivered one with a document, without one yet: it shows its picture and denies CONFIRM.
   const entry = delivered.seriesRow(false).find((s) => s.series === club);
-  const later = Object.freeze({ id: 'later', picture: entry.picture, series: null, titleTrack: music[1] });
+  const later = Object.freeze({
+    id: 'later',
+    picture: entry.picture,
+    series: null,
+    titleTrack: music[1],
+    name: 'LATER',
+    description: 'A later series.',
+  });
   const frontEnd = { ...delivered, seriesRow: () => [entry, later] };
   const { flow, screen, log, send, settle } = selection({ frontEnd });
   send('CONFIRM');
@@ -303,44 +316,39 @@ test('SELECT SERIES plays the series in focus once it rests; the world keeps it,
 });
 
 test("FREE PLAY's RULES are kept as chosen and cut to the course when the run is requested", () => {
-  const { screen, log, send, names } = selection();
+  const { screen, log, send } = selection();
   send('CONFIRM');
   send('RIGHT');
   send('CONFIRM');
   // RIVALS stops at 15 and LAPS at the most any offered course allows; POOL and TRAFFIC wrap.
-  for (let i = 0; i < 20; i++) send('UP');
+  for (let i = 0; i < 20; i++) send('RIGHT');
+  send('DOWN');
+  assert.equal(send('LEFT'), 'move');
+  send('DOWN');
   send('RIGHT');
-  assert.equal(send('DOWN'), 'move');
-  send('RIGHT');
-  send('UP');
-  send('RIGHT');
+  send('DOWN');
   const most = Math.max(...courses.map((c) => c.maxLaps));
-  for (let i = 0; i < most + 5; i++) send('UP');
-  const values = () => screen.row.cards.map((card) => card.line());
+  for (let i = 0; i < most + 5; i++) send('RIGHT');
+  const values = () => screen.row.cards[0].items.map((item) => item.line());
   const chosen = values();
   assert.deepEqual(chosen, ['15', 'BIKES', 'LOW', String(most)]);
   // A circuit takes as many laps as it allows and as many rivals as its grid holds; a LINEAR course one lap.
   send('CONFIRM');
-  const groups = names();
-  const pick = (title, id) => {
-    for (let i = 0; screen.row.cards[screen.index].name !== title; i++) assert.ok(i < 50 && send('RIGHT'), title);
-    send('CONFIRM');
+  const pick = (id) => {
     const course = courses.find((c) => c.id === id);
-    for (let i = 0; screen.row.cards[screen.index].name !== course.name; i++) assert.ok(i < 50 && send('RIGHT'), id);
+    for (let i = 0; screen.row.cards[screen.index].name !== course.name; i++) assert.ok(i < 80 && send('RIGHT'), id);
     send('CONFIRM');
     send('CONFIRM');
-    send('BACK');
     send('BACK');
     return log.runs.at(-1).request;
   };
-  assert.ok(groups.includes('POLE POSITION II'));
   const circuit = courses.find((c) => c.id === 'pole-position-ii-fuji');
-  const fuji = pick('POLE POSITION II', 'pole-position-ii-fuji');
+  const fuji = pick('pole-position-ii-fuji');
   assert.deepEqual(
     [fuji.lapCount, fuji.rivalCount, fuji.rivalPool, fuji.traffic],
     [Math.min(most, circuit.maxLaps), Math.min(15, circuit.gridSlots - 1), 'BIKES', 'LOW'],
   );
-  const outrun = pick('OUTRUN', 'outrun-a');
+  const outrun = pick('outrun-a');
   assert.equal(outrun.lapCount, 1);
   // Choosing courses and vehicles changed no rule.
   send('BACK');
@@ -385,7 +393,7 @@ test("RESULT's SELECT and CHANGE VEHICLE rebuild the rows above from the run, an
   flow.select(free);
   assert.equal(screen.row.cards[screen.index].name, courses.find((c) => c.id === 'outrun-short-b').name);
   send('BACK');
-  assert.equal(screen.row.cards[screen.index].name, 'OUTRUN');
+  assert.deepEqual(names(), ['RULES']);
   // Without DEV, an original's course no series runs is not offered: its run leads to TITLE.
   const plain = selection({ dev: false });
   plain.flow.select(free);

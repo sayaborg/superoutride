@@ -456,7 +456,13 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
           deliveredFile(
             'course-index',
             COURSE_INDEX_ID,
-            encodeContentJson(courseIndexDocument(compiledCourses, texts.byCourse, raceTracks)),
+            encodeContentJson(
+              courseIndexDocument(
+                texts.ordered.map((id) => compiledCourses.find((course) => course.id === id)!),
+                texts.byCourse,
+                raceTracks,
+              ),
+            ),
           ),
         ],
       };
@@ -499,7 +505,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   const frontEndFiles = await read(FRONT_END_DIRECTORY);
   const frontEnd = await stage(
     'front-end',
-    [series.key, screenPictures.key, recordings.key, ...courseKeys, ...inputs(frontEndFiles)],
+    [series.key, screenPictures.key, recordings.key, ...inputs(frontEndFiles)],
     async () => {
       const documents = await sources(FRONT_END_DIRECTORY, frontEndFiles);
       const selection = requireLoaded(
@@ -508,7 +514,6 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
           series.value.catalog,
           screenPictures.value.catalog,
           recordings.value.tracks,
-          compiledCourses.map((course) => course.id),
         ),
       );
       return { unpictured: selection.unpictured, files: delivered('front-end', documents) };
