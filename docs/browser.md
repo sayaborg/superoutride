@@ -73,8 +73,9 @@ texts'](content-and-gameplay.md#course-texts)) centred in WHITE.
 Inside x 8–136, y 136–232 it draws the course map the [course index](content-and-gameplay.md#course-index) delivers,
 north up by the course's bearing: the route's centreline (one lap of a circuit, else the route from the entry, each fork
 taking its first exit) 3 pixels wide in white with a 1-pixel gray core, scaled to fit and centred, a 1×9-pixel YELLOW
-bar across the start line (the entry Section's origin) and a 3×3 GREEN dot at each checkpoint gate on that route; the
-map is drawn into the frame, not as text. From column 17 it writes
+bar across the start line (the entry Section's origin), a 3×3 GREEN dot at each checkpoint gate on that route and a
+YELLOW arrowhead outlined in black, 14 pixels along the path from the start, pointing the way the route runs; the map is
+drawn into the frame, not as text. From column 17 it writes
 the class title (YELLOW; `FREE PLAY` in FREE PLAY) on row 18, in full: longer than its 23 columns it breaks at the
 last space that fits onto row 19; a class run's session (WHITE) on row 20,
 `<length>KM  <n> LAPS`
