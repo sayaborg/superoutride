@@ -1,14 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {
-  lineRuns,
-  nearestLine,
-  paintedRuns,
-  roadPictureOf,
-  rowEntry,
-  stagePalettes,
-  stripes,
-} from '../../tools/road-data/big-run/big-run-road-picture.ts';
+import { nearestLine, rowEntry, stagePalettes, stripes } from '../../tools/road-data/big-run/big-run-road-picture.ts';
+import { lineRuns, paintedRuns, roadPictureOf } from '../../tools/road-data/jaleco/road-lines.ts';
 import { rgb555Of } from '../../tools/road-data/jaleco/palette.ts';
 import { lanesOverTwoRoads } from '../../tools/road-data/shared/two-roads.ts';
 

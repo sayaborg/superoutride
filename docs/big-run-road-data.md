@@ -110,7 +110,8 @@ goal is the tangent of 25° (STARTING RUN's and SPECIAL STAGE 2's), so its facto
 ## Its road across
 
 A row of a road layer draws one line of the road ROMs, picked by the plan record its road CPU is in and colored by an
-entry of its layer's palette (`big-run-road-picture`, [research notes](research/big-run.md#its-road-across)).
+entry of its layer's palette (`big-run-road-picture`, its lines the board's, `jaleco/road-lines`; [research
+notes](research/big-run.md#its-road-across)).
 
 - **A record's picture.** Its kind (+0x16) picks a picture of 184 lines, the farthest first, from its road CPU's table
   of line kinds (a word a kind's even byte offset, R1 0x193E, R2 0x1964); a row takes the line its depth gives, and the

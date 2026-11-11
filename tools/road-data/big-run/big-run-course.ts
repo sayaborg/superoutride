@@ -37,10 +37,7 @@ import { boardScenes, boardSky, SKY_MIDDLE, type BoardScene } from '../jaleco/ms
 import { steepestRecordGrade, tableProfile } from '../jaleco/road-heights.js';
 import { twoRoadPlan } from '../jaleco/road-plan.js';
 import {
-  lineRuns,
   nearestLine,
-  paintedRuns,
-  roadPictureOf,
   rowEntry,
   SKY_ENTRIES,
   skyChangeAt,
@@ -50,6 +47,7 @@ import {
   townEnd,
   type LayerPalette,
 } from './big-run-road-picture.js';
+import { lineRuns, paintedRuns, roadPictureOf } from '../jaleco/road-lines.js';
 import {
   assembleBigRunMain,
   assembleBigRunRoadCpu,
