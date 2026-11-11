@@ -24,10 +24,11 @@ const COLUMN = 17;
 const MAP_BOX = Object.freeze({ x: 8, y: 136, width: 129, height: 97 });
 /** The progress bar: columns 17–37 of row 28, 4 pixels high in the row's middle. */
 const BAR = Object.freeze({ column: 17, columns: 21, row: 28, height: 4 });
-/** RGB555 colors of the map's line and core and of the bar's empty part. */
+/** RGB555 colors of the map's line and core, of the bar's empty part and of the arrow's outline. */
 const WHITE = 0x7fff;
 const GRAY = (16 << 10) | (16 << 5) | 16;
 const DARK_GRAY = (6 << 10) | (6 << 5) | 6;
+const BLACK = 0;
 
 /** What the card shows from the run's request, before anything loads. */
 export interface PreRaceCard {
@@ -128,6 +129,8 @@ export function createPreRaceScreen(
         core: GRAY,
         start: text.mainColor(TEXT_PALETTES.YELLOW),
         checkpoint: text.mainColor(TEXT_PALETTES.GREEN),
+        arrow: text.mainColor(TEXT_PALETTES.YELLOW),
+        outline: BLACK,
       });
       const length = `${(card.map.lengthMeters / 1000).toFixed(3)}KM`;
       text.write(COLUMN, 21, card.laps === null ? length : `${length}  ${card.laps} LAPS`, TEXT_PALETTES.WHITE);
