@@ -97,9 +97,8 @@ export interface RunPage {
 export interface RunAssemblyReport {
   /** The share of the run's loading done, 0 to 1. */
   progress(fraction: number): void;
-  /** The course and run are known: the course, the player's start slot and field, and READY's record. */
+  /** The run is known: the player's start slot and field, and READY's record. */
   prepared(facts: {
-    readonly course: CompiledCourse;
     readonly field: number;
     readonly bikes: boolean;
     readonly slot: number;
@@ -353,7 +352,6 @@ async function assembleCourseRun(
     const slot = entries[0]!.slot!;
     const grid = course.gates.bikeGrid?.includes(slot) ? course.gates.bikeGrid : course.gates.grid;
     report.prepared({
-      course,
       field: entries.length,
       bikes: entries.every((e) => e.vehicle.vehicleDefinition.listing.form === 'bike'),
       slot: grid.indexOf(slot) + 1,
