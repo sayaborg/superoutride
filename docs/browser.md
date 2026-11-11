@@ -208,7 +208,9 @@ While a vehicle's card rests in focus, its picture turns from the still one, a y
 6.4 s), and its engine revs as the catalog's ENGINE page revved it: its model, as a run builds it, held and revved from
 idle by the free-revving throttle (idle for 1.5 s, full for 1 s, closed for 1.5 s and full to 6 s, again and again;
 the second 6 s repeat), its speed a WHITE upright line on the graph with a 3×3 mark on each curve in the curve's color.
-It makes no sound yet (K, 2026-11-12: it is to).
+Its engine is heard, as the player's in a run, over the series' music (K, 2026-11-12): the rows' screen drives a
+vehicle while such a card rests in focus (`vehicleDriven`) and gives the audio the engine's observation each fixed
+step.
 
 Words taller than their box rise while their card rests in focus, within it: held at their top for 90 fixed steps, a
 pixel every 10 steps until their last line shows, held there for 180, then at their top again (K, 2026-11-12: for
