@@ -24,7 +24,7 @@ import { createRunScreen, createRunScreenState } from '../../src/shell/run-scree
 import { COURSE_DOCUMENT_LIMITS, COURSE_TEXT_LIMITS } from '../../src/course/course-limits.js';
 import { SESSION_NAMES } from '../../src/shell/run-request.js';
 import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
-import { createCourseMap } from '../../src/view/course-map.js';
+import { createCourseMap } from '../../src/course/course-map.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { createScreenHost, TRANSITION_STEPS } from '../../src/shell/screen-host.js';
