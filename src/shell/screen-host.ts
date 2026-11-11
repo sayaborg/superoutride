@@ -15,7 +15,7 @@ export interface Screen {
   readonly live: boolean;
   /**
    * Whether a vehicle the player does not drive is driven on this screen, so vehicle sound is live: SELECT VEHICLE's
-   * ENGINE page revving the shown vehicle's engine. Absent is false.
+   * card revving the engine of the vehicle in focus. Absent is false.
    */
   readonly vehicleDriven?: boolean;
   /** One fixed step; it may answer a command it held over a motion, whose sound the host plays as a command's. */

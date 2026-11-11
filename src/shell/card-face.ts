@@ -8,6 +8,7 @@ import {
   type TextFont,
   type TextTiles,
 } from '../image/text-tiles.js';
+import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { lineThinningRanks, newLineCount } from '../view/line-thinning.js';
 import { SoftwareSurface } from '../view/software-surface.js';
 import { drawSmallPrint, SMALL_PRINT } from './small-print.js';
@@ -81,6 +82,8 @@ export interface CardPage {
   paint(canvas: PageCanvas, face: number): PageWords | null;
   /** Draw what moves on `face`, `steps` after the card came to rest in focus, over it standing at (`x`, `y`). */
   live?(target: SoftwareSurface, x: number, y: number, steps: number, face: number): void;
+  /** What is heard of it `steps` after the card came to rest in focus: a vehicle's revving engine, as the player's. */
+  sound?(steps: number): CompetitorObservation;
 }
 
 /** How the plain cards look: an ID, and a painter of a name or list card's ground that gives the name's ornate style. */

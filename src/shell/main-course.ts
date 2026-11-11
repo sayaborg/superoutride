@@ -342,6 +342,7 @@ async function startPage(): Promise<void> {
         show: (screen) => host.show(screen),
         activate: () => shell.activate(),
         demo: attractDemo,
+        engine: (engine) => shell.updateAudio(engine, []),
         setVolume: (name, percent) => shell.setVolume(name, percent),
         audition: (track) => {
           const audition = playTrack(shell, track);
