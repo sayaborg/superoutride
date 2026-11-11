@@ -43,6 +43,7 @@ const roadDataLayers = [
   'pole-position-hardware',
   'namco-system-2',
   'taito',
+  'jaleco',
 ];
 
 /** A road data module's layer: its rank, and its directory where it is an original's. */

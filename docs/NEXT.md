@@ -71,7 +71,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-BR](#stage-br--big-run-from-the-roms)'s raising, BR-5 next; later [Stage CS](#stage-cs--cisco-heat-from-the-roms);
+BR](#stage-br--big-run-from-the-roms)'s raising, BR-6 next; later [Stage CS](#stage-cs--cisco-heat-from-the-roms);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -486,9 +486,16 @@ K decided (2026-11-11):
 - **Its lanes** are its town paving's wherever its road goes ([two roads](original-road-data.md#two-roads)): its
   desert's road, as wide at every depth, paints no lane line.
 
+Defaults for K to confirm before the stage closes, each its PR's:
+
+- **The sky's color below the horizon** (BR-5). Its ramp's first row's, the row at the horizon: the road layer draws
+  the road there and gives the sky no color of its own below it, so the horizon's row goes on down.
+- **A scene's steps up and down** (BR-5). Not laid: a sky lays a picture at one height, its scene's own row offset
+  ([its skies](big-run-road-data.md#its-skies)), while the program moves the plane along 21 of the 26 scenes it shows
+  by their tables of steps, 2 to 80 rows each.
+
 The PRs, in order:
 
-- **BR-5** BIG RUN's skies, with the JALECO board's layer as they need it.
 - **BR-6** BIG RUN's six courses without objects: its readers and conversion, its chapter and research note (its Camera
   (eye height) section among them), its register entry, its own car's width measured again, and its ground transparent
   where K's decision of 2026-11-11 makes it.
