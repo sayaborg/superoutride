@@ -1,4 +1,5 @@
 import type { CourseMap, MapPoint } from '../course/course-map.js';
+import { TEXT_PALETTES } from '../image/text-tiles.js';
 import type { SoftwareSurface } from './software-surface.js';
 
 /** The colors a map is drawn in, RGB555. */
@@ -10,6 +11,21 @@ export interface CourseMapColors {
   /** The arrowhead that marks the way the route runs, and its outline. */
   readonly arrow: number;
   readonly outline: number;
+}
+
+/**
+ * The maps' colors: the line white with a gray core, the start bar and the arrowhead in the main color of `text`'s
+ * YELLOW palette, the checkpoints in its GREEN, and the arrowhead's outline `outline`.
+ */
+export function courseMapColors(text: { mainColor(palette: number): number }, outline: number): CourseMapColors {
+  return Object.freeze({
+    line: 0x7fff,
+    core: (16 << 10) | (16 << 5) | 16,
+    start: text.mainColor(TEXT_PALETTES.YELLOW),
+    checkpoint: text.mainColor(TEXT_PALETTES.GREEN),
+    arrow: text.mainColor(TEXT_PALETTES.YELLOW),
+    outline,
+  });
 }
 
 /** Pixels the centreline's 3-pixel line reaches either side of its path. */

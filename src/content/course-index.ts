@@ -47,9 +47,10 @@ const COURSE_TYPES: readonly CompiledCourse['type'][] = ['CIRCUIT', 'LINEAR', 'B
 /**
  * A delivered map's precision: its centreline is cut to the fewest of its samples that keep it within `share` of its
  * extent (the larger of its spans east and north) of them all; its points are written in whole metres, its length to a
- * tenth of a metre and its start direction to `directionDecimals` places.
+ * tenth of a metre and its start direction to `directionDecimals` places. It holds at most `checkpoints` checkpoint
+ * gates, so that the cards write a course's stages in their facts' 10 columns (`999 STAGES`).
  */
-export const COURSE_INDEX_MAP = Object.freeze({ share: 1 / 1000, directionDecimals: 4 });
+export const COURSE_INDEX_MAP = Object.freeze({ share: 1 / 1000, directionDecimals: 4, checkpoints: 998 });
 
 const fixed = (value: number, decimals: number) => Number(value.toFixed(decimals));
 const pair = (point: MapPoint) => [Math.round(point.east), Math.round(point.north)];
@@ -107,7 +108,10 @@ function courseMapDocument(map: CourseMap) {
   };
 }
 
-/** Admit a delivered map: points of two finite numbers, at least two on its centreline, and a unit start direction. */
+/**
+ * Admit a delivered map: points of two finite numbers, at least two on its centreline, at most
+ * `COURSE_INDEX_MAP.checkpoints` checkpoints, a unit start direction and a positive length.
+ */
 function readCourseMap(value: unknown, at: string): CourseMap {
   const point = (item: unknown, path: string): MapPoint => {
     const [east, north] = readArray(item, path, (n, p) => readNumber(n, p), { length: 2 });
@@ -125,7 +129,7 @@ function readCourseMap(value: unknown, at: string): CourseMap {
   return Object.freeze({
     centreline: readArray(map.centreline, `${at}/centreline`, point, { min: 2 }),
     start: Object.freeze({ point: point(start.point, `${at}/start/point`), direction }),
-    checkpoints: readArray(map.checkpoints, `${at}/checkpoints`, point),
+    checkpoints: readArray(map.checkpoints, `${at}/checkpoints`, point, { max: COURSE_INDEX_MAP.checkpoints }),
     lengthMeters: readNumber(map.lengthMeters, `${at}/lengthMeters`, { min: 0, exclusiveMin: true }),
   });
 }
