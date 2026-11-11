@@ -1,21 +1,13 @@
 /**
- * BIG RUN's course tables ([BIG RUN road data](../../../docs/big-run-road-data.md#its-course-tables)): each stage's two
- * roads, each a table of straights and arcs and a 3D road of straights and vertical arcs, held by the road CPU that
- * draws it; each stage's goal, checkpoint and grid, held by the main program; a road position's length; each table
+ * BIG RUN's course tables ([BIG RUN road data](../../../docs/big-run-road-data.md#its-course-tables)): where its road
+ * CPUs hold the board's (`jaleco/road-tables`); each stage's goal, checkpoint and grid, held by the main program; a road position's length; each table
  * found by the instruction that reads it.
  */
 import { instruction, long, sword, word } from '../cpu/program-words.js';
-import { romDiffers } from '../shared/conversion-errors.js';
+import { heldStretches, type HeldStretch, type RoadNumber, type RoadTablesAt } from '../jaleco/road-tables.js';
+import type { ArcPlanLimits } from '../shared/arc-plan.js';
 import { metresAPosition } from '../shared/road-position.js';
 import { STAGES } from './big-run-backgrounds.js';
-
-/** BIG RUN's two roads: road N the Nth road CPU's, which it draws from its stage's tables. */
-export type BigRunRoad = 1 | 2;
-
-/** A turn of a heading or a grade: 16,384. */
-const TURN_UNITS = 0x4000;
-/** Radians a unit of a heading or a grade. */
-export const ANGLE_RADIANS = (2 * Math.PI) / TURN_UNITS;
 
 /** The interval of BIG RUN's tick: its main loop waits for interrupt 4, every second frame (K, 2026-11-08). */
 export const TICK_SECONDS = 1 / 30;
@@ -31,113 +23,19 @@ export function positionMetres(main: Uint8Array): number {
 }
 
 /**
- * A plan record: where it starts (positions), its radius (0 a straight) and side, its heading and its position in the
- * plane where it starts, and its road's picture's kind and variant (+0x16, +0x18).
+ * Where BIG RUN's road CPUs read their tables: a stage's four pointers from a table 16 bytes a stage (R1 0xA1E for road
+ * 1, R2 0xA0E for road 2); a plan record 26 bytes, a profile record 24; a turn of a heading or a grade 16,384.
  */
-export interface BigRunPlanRecord {
-  readonly start: number;
-  readonly radius: number;
-  /** The side its arc turns to on the screen: right where its flag's top bit is set. */
-  readonly side: 'left' | 'right';
-  /** Its heading, units of `TURN_UNITS` a turn, increasing to the right. */
-  readonly heading: number;
-  /** Its position: the table's +0xA along heading 0, and its +6 along a quarter turn to the right. */
-  readonly x: number;
-  readonly y: number;
-  readonly kind: number;
-  readonly variant: number;
-}
+export const BIG_RUN_TABLES: RoadTablesAt = Object.freeze({
+  stages: STAGES,
+  stageTables: Object.freeze([0xa1e, 0xa0e] as const),
+  planBytes: 26,
+  profileBytes: 24,
+  turnUnits: 0x4000,
+});
 
-/**
- * A profile record: where it starts, its vertical radius (0 a straight) and whether its grade rises along it (its flag's
- * top bit), its height and its grade where it starts (units of `TURN_UNITS` a turn, up positive).
- */
-export interface BigRunProfileRecord {
-  readonly start: number;
-  readonly radius: number;
-  readonly rising: boolean;
-  readonly height: number;
-  readonly grade: number;
-}
-
-/** A stage's road: its plan's and its profile's records. */
-export interface BigRunRoadTables {
-  readonly plan: readonly BigRunPlanRecord[];
-  readonly profile: readonly BigRunProfileRecord[];
-}
-
-const PLAN_BYTES = 26;
-const PROFILE_BYTES = 24;
-const STAGE_BYTES = 16;
-const NO_START = 0xffffffff;
-
-/**
- * Each road's tables: its road CPU takes its stage's four pointers (its plan's starts and records, its profile's) from a
- * table 16 bytes a stage (R1 0xA1E for road 1, R2 0xA0E for road 2: lea, asl.w #4, four movea.l).
- */
-function stageTable(program: Uint8Array, road: BigRunRoad) {
-  const at = road === 1 ? 0xa1e : 0xa0e;
-  const [disp] = instruction(
-    program,
-    at,
-    [0x41fa, null, 0xe940, 0xd0c0, 0x2258, 0x2458, 0x2858, 0x2a58],
-    "a road's stage tables (lea, asl.w #4)",
-  );
-  return at + 2 + ((disp << 16) >> 16);
-}
-
-/** A table's starts from `at`, up to `end`: increasing, ending at one no later than the one before or at 0xFFFFFFFF. */
-function starts(program: Uint8Array, at: number, end: number) {
-  const out: number[] = [];
-  for (let a = at; a + 4 <= program.length; a += 4) {
-    const s = long(program, a);
-    if (s === NO_START || (out.length > 0 && s <= out.at(-1)!) || s >= end) break;
-    out.push(s);
-  }
-  if (!out.length || out[0] !== 0) throw romDiffers(`A road table at 0x${at.toString(16)} does not start at 0`);
-  return out;
-}
-
-/**
- * Road `road`'s tables in stage `stage`, from `program`, its road CPU's, their records to the first
- * starting at `end` or later: a plan record's flag (+0), radius (+2), position (+6, +0xA), heading (+0xE), picture
- * (+0x16, +0x18); a profile record's flag (+0), radius (+2), height (+6) and grade (+0xE).
- */
-export function bigRunRoad(program: Uint8Array, road: BigRunRoad, stage: number, end: number): BigRunRoadTables {
-  if (!(stage >= 0 && stage < STAGES)) throw new RangeError(`BIG RUN has no stage ${stage}`);
-  const at = stageTable(program, road) + STAGE_BYTES * stage;
-  const [planStarts, plan, profileStarts, profile] = [0, 4, 8, 12].map((k) => long(program, at + k)) as [
-    number,
-    number,
-    number,
-    number,
-  ];
-  return {
-    plan: starts(program, planStarts, end).map((start, k) => {
-      const r = plan + PLAN_BYTES * k;
-      return {
-        start,
-        radius: word(program, r + 2),
-        side: word(program, r) & 0x8000 ? 'right' : 'left',
-        heading: word(program, r + 0xe),
-        x: long(program, r + 0xa) | 0,
-        y: long(program, r + 6) | 0,
-        kind: word(program, r + 0x16),
-        variant: word(program, r + 0x18),
-      };
-    }),
-    profile: starts(program, profileStarts, end).map((start, k) => {
-      const r = profile + PROFILE_BYTES * k;
-      return {
-        start,
-        radius: word(program, r + 2),
-        rising: (word(program, r) & 0x8000) !== 0,
-        height: long(program, r + 6) | 0,
-        grade: sword(program, r + 0xe),
-      };
-    }),
-  };
-}
+/** How far a record may depart from its table's next heading and position (K, 2026-11-09; record by record, 2026-11-11). */
+export const PLAN_LIMITS: ArcPlanLimits = Object.freeze({ heading: (0.03 * Math.PI) / 180, position: 14 });
 
 /** A stage's goal, positions (M 0x10A2: a long a stage). */
 export function stageGoal(main: Uint8Array, stage: number): number {
@@ -155,7 +53,7 @@ const NO_CHECKPOINT = 999_999;
 /** A car's place on a stage's grid: its lateral (units), the road it starts on and its position. */
 export interface BigRunGridSlot {
   readonly lateral: number;
-  readonly road: BigRunRoad;
+  readonly road: RoadNumber;
   readonly position: number;
 }
 
@@ -185,41 +83,18 @@ function pcTable(main: Uint8Array, at: number, what: string) {
   return at + 2 + ((disp << 16) >> 16);
 }
 
-/** A stretch the main program holds the car on a road over, positions `[from, to)`. */
-export interface BigRunHeld {
-  readonly road: BigRunRoad;
-  readonly from: number;
-  readonly to: number;
-}
-
-/** The main program's copy of a road's profile records: 10 bytes each, its end at +4, its flags at +8. */
+/** The main program's copy of a road's profile records: 10 bytes each. */
 const HELD_BYTES = 10;
-const HELD_FLAG = 2;
 
 /**
  * The stretches the main program holds the car on a road over in stage `stage` (M 0xEDE to 0xF02, 0x4B2E to 0x4BEE):
- * its copies of the roads' profile records (16 bytes a stage, road 1's at +8, read as `$f0154`, and road 2's at +12,
- * `$f0158`), a record whose flags' bit 1 is set holding the car on its road from the end of the record before to its
- * own end, joined where they follow one another.
+ * its copies of the roads' profile records, 16 bytes a stage, road 1's read as `$f0154` and road 2's as `$f0158`
+ * (`heldStretches`).
  */
-export function heldStretches(main: Uint8Array, stage: number): readonly BigRunHeld[] {
+export function bigRunHeld(main: Uint8Array, stage: number): readonly HeldStretch[] {
   const table = pcTable(main, 0xede, "the main's copies of the roads");
   instruction(main, 0xee8, [0xe948], 'a stage of 16 bytes (lsl.w #4)');
   instruction(main, 0xefa, [0x23f0, 0x0008, 0x000f, 0x0154], "road 1's copy ($f0154)");
   instruction(main, 0xf02, [0x23f0, 0x000c, 0x000f, 0x0158], "road 2's copy ($f0158)");
-  const out: BigRunHeld[] = [];
-  for (const road of [1, 2] as const) {
-    let [at, from] = [long(main, table + 16 * stage + (road === 1 ? 8 : 12)), 0];
-    for (;;) {
-      const end = long(main, at + 4);
-      if (end <= from) break;
-      if (word(main, at + 8) & HELD_FLAG) {
-        const last = out.at(-1);
-        if (last && last.road === road && last.to === from) out[out.length - 1] = { ...last, to: end };
-        else out.push({ road, from, to: end });
-      }
-      [at, from] = [at + HELD_BYTES, end];
-    }
-  }
-  return out.sort((a, b) => a.from - b.from);
+  return heldStretches(main, table, HELD_BYTES, stage);
 }

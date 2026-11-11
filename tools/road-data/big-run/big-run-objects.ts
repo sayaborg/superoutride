@@ -7,7 +7,7 @@
 import { instruction, long, sword, word } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
 import { PENS, rgb555Of } from '../jaleco/palette.js';
-import type { BigRunRoad } from './big-run-road.js';
+import type { RoadNumber } from '../jaleco/road-tables.js';
 
 /** A record of an object. */
 export interface BigRunObject {
@@ -17,7 +17,7 @@ export interface BigRunObject {
   /** Its kind: 0 a picture standing where it is put, others moved or picked by the program. */
   readonly kind: number;
   /** Its road (its flags' bit 7: road 1), lateral from that road's centre (units) and height over it. */
-  readonly road: BigRunRoad;
+  readonly road: RoadNumber;
   readonly lateral: number;
   readonly height: number;
   /** Its palette entry (its flags' bits 0 to 5, M 0xB284) and its flags. */

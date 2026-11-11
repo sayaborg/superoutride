@@ -1,16 +1,24 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  ANGLE_RADIANS,
-  bigRunRoad,
-  heldStretches,
+  BIG_RUN_TABLES,
+  PLAN_LIMITS,
+  bigRunHeld,
   positionMetres,
   stageCheckpoint,
   stageGoal,
   stageGrid,
 } from '../../tools/road-data/big-run/big-run-road.ts';
-import { bigRunPlan } from '../../tools/road-data/big-run/big-run-plan.ts';
-import { bigRunProfile } from '../../tools/road-data/big-run/big-run-heights.ts';
+import { roadTables } from '../../tools/road-data/jaleco/road-tables.ts';
+
+const bigRunRoad = (program, road, stage, end) => roadTables(program, BIG_RUN_TABLES, road, stage, end);
+const ANGLE_RADIANS = angleRadians(BIG_RUN_TABLES);
+const bigRunPlan = (road1, road2, end, metres, least) =>
+  twoRoadPlan(BIG_RUN_TABLES, road1, road2, end, metres, least, PLAN_LIMITS);
+const bigRunProfile = (records, end) => tableProfile(BIG_RUN_TABLES, records, end);
+import { twoRoadPlan } from '../../tools/road-data/jaleco/road-plan.ts';
+import { tableProfile } from '../../tools/road-data/jaleco/road-heights.ts';
+import { angleRadians } from '../../tools/road-data/jaleco/road-tables.ts';
 
 const writer = (bytes) => {
   const put = (at, words) =>
@@ -146,7 +154,7 @@ test("the main program holds the car on a road from the end of a flagged record'
     ends.forEach((end, k) => (long(at + 10 * k + 4, end), put(at + 10 * k + 8, [flags[k]])));
   records(0x1000, [100, 200, 300, 400, 0], [1, 3, 3, 1, 0]);
   records(0x2000, [150, 500, 0], [3, 1, 0]);
-  assert.deepEqual(heldStretches(main, 1), [
+  assert.deepEqual(bigRunHeld(main, 1), [
     { road: 2, from: 0, to: 150 },
     { road: 1, from: 100, to: 300 },
   ]);

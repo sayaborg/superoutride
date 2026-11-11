@@ -9,7 +9,7 @@ import { romDiffers } from '../shared/conversion-errors.js';
 import type { Paint, RoadPicture } from '../shared/two-roads.js';
 import { PENS, rgb555Of } from '../jaleco/palette.js';
 import { CLEAR_PEN } from '../jaleco/ms1-tiles.js';
-import type { BigRunRoad } from './big-run-road.js';
+import type { RoadNumber } from '../jaleco/road-tables.js';
 
 /** A road ROM line: 1,024 pixels at 4 bits, the left pixel of a byte its high nibble, its centre at pixel edge 512. */
 export const LINE_PIXELS = 1024;
@@ -23,7 +23,7 @@ const LINES = 2048;
  * addresses): its nearest row's picture (`nearest`), its stripes' table (`stripes`), the position its town ends at
  * (`town`).
  */
-const AT: Readonly<Record<BigRunRoad, { nearest: number; stripes: number; town: number }>> = Object.freeze({
+const AT: Readonly<Record<RoadNumber, { nearest: number; stripes: number; town: number }>> = Object.freeze({
   1: { nearest: 0xca8, stripes: 0xd2c, town: 0x95e },
   2: { nearest: 0xc7c, stripes: 0xd00, town: 0x94e },
 });
@@ -39,7 +39,7 @@ const CLEAR_VARIANT = 6;
  * (2 the line of pen 0, 6 the clear line, any other the town's line of pen 5 or the desert's of pen 7); any other kind
  * its picture's nearest line, 187 on from the line its line-kind table gives it (a word a kind's even byte offset).
  */
-export function nearestLine(program: Uint8Array, road: BigRunRoad, kind: number, variant: number, town: boolean) {
+export function nearestLine(program: Uint8Array, road: RoadNumber, kind: number, variant: number, town: boolean) {
   const at = AT[road].nearest;
   const [base] = instruction(program, at, [0x3a3c, null, 0x302a, 0x0016, 0x0c40, ONE_LINE], "a row's line (move.w)");
   const [black] = instruction(program, at + 0x10, [0x3a3c, null, 0x0c6a, BLACK_VARIANT, 0x0018], 'the black line');
@@ -56,7 +56,7 @@ export function nearestLine(program: Uint8Array, road: BigRunRoad, kind: number,
 }
 
 /** The position a stage's town ends at: STARTING RUN's rows are the town's before it (R1 0x95E, R2 0x94E). */
-export function townEnd(program: Uint8Array, road: BigRunRoad): number {
+export function townEnd(program: Uint8Array, road: RoadNumber): number {
   const [high, low] = instruction(program, AT[road].town, [0x0c83, null, null], "the town's end (cmpi.l)");
   return high * 0x10000 + low;
 }
@@ -91,7 +91,7 @@ export function lineRuns(rom: Uint8Array, line: number): PenRun[] {
 export const STRIPE_PERIOD = 0x1fe;
 
 /** Road `road`'s stripes along the road: each position of a period its row's stripe (1 to 8; R1 0xD2C, R2 0xD00). */
-export function stripes(program: Uint8Array, road: BigRunRoad): readonly number[] {
+export function stripes(program: Uint8Array, road: RoadNumber): readonly number[] {
   const [high, low] = instruction(program, AT[road].stripes, [0x41f9, null, null], "the stripes' table (lea)");
   return Array.from({ length: STRIPE_PERIOD }, (_, k) => word(program, high * 0x10000 + low + 2 * k));
 }

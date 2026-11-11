@@ -66,10 +66,11 @@ BIG RUN's programs hold them (`big-run-backgrounds`).
 
 ## Its course tables
 
-Each stage's two roads are held by the road CPUs, road N by the Nth road CPU, which draws it (`big-run-road`): road 1
-from the table the first road CPU reads at R1 0xA1E, road 2 from the second's at R2 0xA0E, 16 bytes a stage of four
-pointers; each CPU holds a copy of the other's to place it ([research notes](research/big-run.md#its-roads)). The car
-is on road 2 where the main program's `$f047e` is 0, on road 1 where it is 1.
+Each stage's two roads are held by the road CPUs, road N by the Nth road CPU, which draws it (the board's tables,
+`jaleco/road-tables`, where `big-run-road` says BIG RUN's lie): road 1 from the table the first road CPU reads at R1
+0xA1E, road 2 from the second's at R2 0xA0E, 16 bytes a stage of four pointers; each CPU holds a copy of the other's to
+place it ([research notes](research/big-run.md#its-roads)). The car is on road 2 where the main program's `$f047e` is 0,
+on road 1 where it is 1.
 
 - **A plan record** (26 bytes, a table of starts beside it): its flag (+0), whose top bit turns its arc right on the
   screen; its radius (+2, 0 a straight); its position where it starts, +0xA along heading 0 and +6 a quarter turn to
@@ -88,22 +89,23 @@ is on road 2 where the main program's `$f047e` is 0, on road 1 where it is 1.
 
 ## Its plan
 
-Each road's table is laid by [the plan from a table's arcs](original-road-data.md#plan-from-a-tables-arcs)
-(`big-run-plan`), its records taken record by record within 0.03° and 14 positions (K, 2026-11-09 and 2026-11-11): road
-2 as P, and road 1 [from its own table](original-road-data.md#plan-from-a-tables-arcs) beside it. Its headings turning
-right, a record's heading is its negative in the shared rule's plane, and its +6 its negative there. Every stage's
-records keep within 0.026° and 6.3 positions to its goal; laid on from the first record, its plan departs from the
-table's points by up to 0.041° and 72.7 positions (SPECIAL STAGE 4), and road 1 misses P by up to 4.4 positions where
-they meet again (SPECIAL STAGE 2's goal). In VICTORY RUN road 1 parts from P at 162,831 and never meets it again: P
-turns 90° right from 186,655 and road 1 goes straight on. BIG RUN's tables hold no jump.
+Each road's table is laid by [the plan from a table's arcs](original-road-data.md#plan-from-a-tables-arcs) (the board's,
+`jaleco/road-plan`), its records taken record by record within 0.03° and 14 positions (K, 2026-11-09 and 2026-11-11):
+road 2 as P, and road 1 [from its own table](original-road-data.md#plan-from-a-tables-arcs) beside it. Its headings
+turning right, a record's heading is its negative in the shared rule's plane, and its +6 its negative there. Every
+stage's records keep within 0.026° and 6.3 positions to its goal; laid on from the first record, its plan departs from
+the table's points by up to 0.041° and 72.7 positions (SPECIAL STAGE 4), and road 1 misses P by up to 4.4 positions
+where they meet again (SPECIAL STAGE 2's goal). In VICTORY RUN road 1 parts from P at 162,831 and never meets it again:
+P turns 90° right from 186,655 and road 1 goes straight on. BIG RUN's tables hold no jump.
 
 ## Its heights
 
-A road's 3D road becomes a profile along its positions (`big-run-heights`): each record's grade is its height's rise a
-position, the sine of its grade's angle, as the table's heights rise; a vertical arc's grade changes evenly to the next
-record's, a straight's at once where it ends. Laid on from the first record, it departs from the table's heights by up
-to 25.8 positions where a record starts. Its steepest grade among the records starting before a goal is the tangent of
-25° (STARTING RUN's and SPECIAL STAGE 2's), so its factor f is 0.25 ÷ 0.466, 0.537, as K decided (2026-11-09).
+A road's 3D road becomes a profile along its positions (the board's, `jaleco/road-heights`): each record's grade is its
+height's rise a position, the sine of its grade's angle, as the table's heights rise; a vertical arc's grade changes
+evenly to the next record's, a straight's at once where it ends. Laid on from the first record, it departs from the
+table's heights by up to 25.8 positions where a record starts. Its steepest grade among the records starting before a
+goal is the tangent of 25° (STARTING RUN's and SPECIAL STAGE 2's), so its factor f is 0.25 ÷ 0.466, 0.537, as K decided
+(2026-11-09).
 
 ## Its road across
 

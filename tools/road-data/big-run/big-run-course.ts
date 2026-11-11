@@ -34,8 +34,8 @@ import { bigRunObjects, ownCarUnits, spritePalette, type BigRunObject } from './
 import { spritePen } from '../jaleco/zoom-sprites.js';
 import { BIG_RUN_SKIES, STAGES } from './big-run-backgrounds.js';
 import { boardScenes, boardSky, SKY_MIDDLE, type BoardScene } from '../jaleco/ms1-skies.js';
-import { bigRunProfile, steepestRecordGrade } from './big-run-heights.js';
-import { bigRunPlan } from './big-run-plan.js';
+import { steepestRecordGrade, tableProfile } from '../jaleco/road-heights.js';
+import { twoRoadPlan } from '../jaleco/road-plan.js';
 import {
   lineRuns,
   nearestLine,
@@ -59,17 +59,16 @@ import {
   concatenated,
 } from './big-run-rom.js';
 import {
-  bigRunRoad,
-  heldStretches,
+  BIG_RUN_TABLES,
+  PLAN_LIMITS,
+  bigRunHeld,
   positionMetres,
   stageCheckpoint,
   stageGoal,
   stageGrid,
   TICK_SECONDS,
-  type BigRunPlanRecord,
-  type BigRunProfileRecord,
-  type BigRunRoad,
 } from './big-run-road.js';
+import { roadTables, type RoadNumber, type RoadPlanRecord, type RoadProfileRecord } from '../jaleco/road-tables.js';
 
 export const BIG_RUN_CONVERSION_VERSION = 1;
 
@@ -181,7 +180,7 @@ const EYE = 600;
 export function bigRunCourses(set: RomSet) {
   const main = assembleBigRunMain(set);
   const cpus = [assembleBigRunRoadCpu(set, 0), assembleBigRunRoadCpu(set, 1)] as const;
-  const programOf = (road: BigRunRoad) => cpus[road - 1]!;
+  const programOf = (road: RoadNumber) => cpus[road - 1]!;
   const rom = concatenated(set, BIG_RUN_ROAD_ROMS);
   const tiles = [concatenated(set, BIG_RUN_TILE_ROMS[0]!), concatenated(set, BIG_RUN_TILE_ROMS[1]!)] as const;
   const metres = positionMetres(main);
@@ -192,10 +191,10 @@ export function bigRunCourses(set: RomSet) {
   // Each stage's end, past its goal by RUN_OUT or to the first record of either road past it, and its tables to it.
   const stages = Array.from({ length: STAGES }, (_, stage) => {
     const goal = stageGoal(main, stage);
-    const reach = (road: BigRunRoad) => bigRunRoad(programOf(road), road, stage, goal + RUN_OUT);
+    const reach = (road: RoadNumber) => roadTables(programOf(road), BIG_RUN_TABLES, road, stage, goal + RUN_OUT);
     const after = [1, 2]
       .flatMap((r) => {
-        const t = reach(r as BigRunRoad);
+        const t = reach(r as RoadNumber);
         return [...t.plan, ...t.profile].map((p) => p.start);
       })
       .filter((s) => s > goal);
@@ -204,11 +203,16 @@ export function bigRunCourses(set: RomSet) {
       stage,
       goal,
       end,
-      roads: [bigRunRoad(programOf(1), 1, stage, end), bigRunRoad(programOf(2), 2, stage, end)],
+      roads: [
+        roadTables(programOf(1), BIG_RUN_TABLES, 1, stage, end),
+        roadTables(programOf(2), BIG_RUN_TABLES, 2, stage, end),
+      ],
     };
   });
   // Its heights' factor: its lens ratio, or the grades' limit over its steepest grade where that is less (K, 2026-11-09).
-  const steepest = Math.max(...stages.flatMap((s) => s.roads.map((t) => steepestRecordGrade(t.profile, s.goal))));
+  const steepest = Math.max(
+    ...stages.flatMap((s) => s.roads.map((t) => steepestRecordGrade(BIG_RUN_TABLES, t.profile, s.goal))),
+  );
   const f = lensFactor(focalRows(cpus[0]), SCREEN_ROWS, steepest);
   const skies = new Set<string>();
   const sprites = assembleBigRunSprites(set);
@@ -257,7 +261,7 @@ export function bigRunCourses(set: RomSet) {
     const town0 = stage === 0 ? townEnd(programOf(2), 2) : 0;
     const inTown = (p: number) => p < town0;
     // Its plan: road 2 as P, road 1 beside it.
-    const plan = bigRunPlan(road1!.plan, road2!.plan, end, metres, () => 0);
+    const plan = twoRoadPlan(BIG_RUN_TABLES, road1!.plan, road2!.plan, end, metres, () => 0, PLAN_LIMITS);
     const leaving = plan.beside.partings.filter((g) => !g.meets);
     const leavesAt = leaving.length ? leaving[0]!.from : Infinity;
     // Road 1's centre, units across from P: where it parts and meets P again, its own; where it leaves, P's.
@@ -302,18 +306,21 @@ export function bigRunCourses(set: RomSet) {
       ...(notTakenEnd < end ? [[end, 0] as const] : []),
     ]);
     // The road the original holds the car on, where it does; its heights the course's there (K, 2026-11-11).
-    const held = heldStretches(main, stage);
-    const heldOn = (p: number): BigRunRoad => held.find((h) => h.from <= p && p < h.to)?.road ?? 2;
+    const held = bigRunHeld(main, stage);
+    const heldOn = (p: number): RoadNumber => held.find((h) => h.from <= p && p < h.to)?.road ?? 2;
     const onRoad1 = held.filter((h) => h.road === 1);
-    const profileRecords: BigRunProfileRecord[] = [
+    const profileRecords: RoadProfileRecord[] = [
       ...road2!.profile.filter((r) => !onRoad1.some((h) => r.start >= h.from && r.start < h.to)),
       ...road1!.profile.filter((r) => onRoad1.some((h) => r.start >= h.from && r.start < h.to)),
     ].sort((a, b) => a.start - b.start);
     for (const h of onRoad1)
       if (!road1!.profile.some((r) => r.start === h.from) || !road2!.profile.some((r) => r.start === h.to))
         throw contractUnmet(`${name}'s stretch held on road 1 does not start and end at the roads' records`);
-    const heights = bigRunProfile(profileRecords, end);
-    const otherHeights = [bigRunProfile(road1!.profile, end).profile, bigRunProfile(road2!.profile, end).profile];
+    const heights = tableProfile(BIG_RUN_TABLES, profileRecords, end);
+    const otherHeights = [
+      tableProfile(BIG_RUN_TABLES, road1!.profile, end).profile,
+      tableProfile(BIG_RUN_TABLES, road2!.profile, end).profile,
+    ];
     // The grid: the own car's slot (the first) and the others', each on its road (laterals units across).
     const grid = stageGrid(main, stage);
     const slotLateral = (k: number) => {
@@ -386,11 +393,11 @@ export function bigRunCourses(set: RomSet) {
       change: k.change * f,
     }));
     // Where each road's picture changes, and where they part and meet: the Sections' cuts.
-    const pictureAt = (road: BigRunRoad, p: number) => {
+    const pictureAt = (road: RoadNumber, p: number) => {
       const records = (road === 1 ? road1! : road2!).plan;
       return [...records].reverse().find((r) => r.start <= p) ?? records[0]!;
     };
-    const changes = (records: readonly BigRunPlanRecord[]) =>
+    const changes = (records: readonly RoadPlanRecord[]) =>
       records
         .filter((r, i) => i > 0 && (r.kind !== records[i - 1]!.kind || r.variant !== records[i - 1]!.variant))
         .map((r) => r.start);
@@ -404,7 +411,7 @@ export function bigRunCourses(set: RomSet) {
     ].filter((p) => p > 0 && p < end);
     // Whether road `road` is drawn at `p`: the held road always; the other unless they share their plan and lie more than
     // a metre apart in height, or it has left P.
-    const drawn = (road: BigRunRoad, p: number) => {
+    const drawn = (road: RoadNumber, p: number) => {
       if (road === heldOn(p)) return true;
       if (road === 1 && p >= leavesAt) return p < notTakenEnd;
       const apart = Math.abs(otherHeights[0]!.height(p) - otherHeights[1]!.height(p)) * f * metres;
@@ -449,8 +456,8 @@ export function bigRunCourses(set: RomSet) {
     });
     const stripeOf = [stripes(programOf(1), 1), stripes(programOf(2), 2)] as const;
     // A road's picture at `p` across: its painted runs and each run's colors over a stripe's period, its material.
-    const runsOf = (road: BigRunRoad, p: number) => {
-      const r: BigRunPlanRecord = pictureAt(road, p);
+    const runsOf = (road: RoadNumber, p: number) => {
+      const r: RoadPlanRecord = pictureAt(road, p);
       const t = inTown(p);
       const line = nearestLine(programOf(road), road, r.kind, r.variant, t);
       const palette: LayerPalette = palettes[0][road - 1]!;
@@ -628,7 +635,7 @@ export function bigRunCourses(set: RomSet) {
             .sort((a, b) => a - b)
             .map((s) => [s, micrometre(shown1.at(Math.max(0, positionOf(s))) * ACROSS)] as [number, number]),
         );
-        const fromCentre = (road: BigRunRoad, x: number): Lateral =>
+        const fromCentre = (road: RoadNumber, x: number): Lateral =>
           road === 2 ? micrometre(x * ACROSS) : { boundary: 'road-1-centre', offset: micrometre(x * ACROSS) };
         // Its pictures' stretches: cut where either road's picture changes or one is drawn or not.
         const within = [
@@ -642,7 +649,7 @@ export function bigRunCourses(set: RomSet) {
           const at = (Math.max(positionOf(a), 0) + positionOf(b)) / 2;
           // Road 2's clear runs first, road 1's picture over them, then road 2's own: where road 2 is clear the
           // picture beneath it shows, or none.
-          const layer = (road: BigRunRoad, clear: boolean) => {
+          const layer = (road: RoadNumber, clear: boolean) => {
             if (!drawn(road, at)) return [];
             return runsOf(road, at).flatMap(({ run, colors, material }, k, all) => {
               if ((run.pen === null) !== clear) return [];
