@@ -2027,8 +2027,9 @@ screen draws it, and writes points in whole metres, the length to 0.1 m and the 
 (`COURSE_INDEX_MAP`).
 Admission requires exactly the delivered course entries of the manifest, each
 once, the rules for names and descriptions (the course texts'), laps (only `CIRCUIT` has more than one lap) and
-grid slots, and a map of points of two finite numbers, at least two on its centreline, a unit start direction and a
-positive length. Every screen that shows a course's name or map takes it from the index. A run's rivals
+grid slots, and a map of points of two finite numbers, at least two on its centreline, at most 998 checkpoints (so the
+cards write a course's stages in 10 columns), a unit start direction and a positive length. Every screen that shows a
+course's name or map takes it from the index. A run's rivals
 that start from a grid fit it: at most its slots in use less the player's (`gridRivalCapacity`), which run
 resolution checks (FREE PLAY's rivals, drawn after admission, on either grid) and FREE PLAY's request cuts RIVALS to; RACE entries that appear ahead do not stand in the grid and do not count. The first entry is the default
 course.
