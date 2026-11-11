@@ -1,8 +1,9 @@
 {
   "format": "superoutride.series",
-  "version": 15,
+  "version": 16,
   "id": "arcade-tribute-enduro-racer",
   "title": "ARCADE TRIBUTE - ENDURO RACER",
+  "description": "SEGA, 1986. An enduro bike over five stages of dirt, hills and hairpins, with logs, rocks and rival riders in the way. Its big cabinet was a dirt bike whose bars lifted for a wheelie.",
   "image": "arcade-tribute-enduro-racer",
   "music": {
     "title": "arcade-tribute-enduro-racer"

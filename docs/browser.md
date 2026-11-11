@@ -74,7 +74,8 @@ Inside x 8–136, y 136–232 it draws the course map, north up by the course's 
 a circuit, else the route from the entry, each fork taking its first exit) 3 pixels wide in white with a 1-pixel gray
 core, scaled to fit and centred, a 1×9-pixel YELLOW bar across the start line (the entry Section's origin) and a 3×3
 GREEN dot at each checkpoint gate on that route; the map is drawn into the frame, not as text. From column 17 it writes
-the class title (YELLOW; `FREE PLAY` in FREE PLAY) on row 18, a class run's session (WHITE) on row 19,
+the class title (YELLOW; `FREE PLAY` in FREE PLAY) on row 18, in full: longer than its 23 columns it breaks at the
+last space that fits onto row 19; a class run's session (WHITE) on row 20,
 `<length>KM  <n> LAPS`
 on row 21 (the route's length to 0.001 km, laps only on a circuit with a lap count), `<field> CARS|BIKES  START P<slot>`
 on row 23 and `BEST <time>` (GREEN) on row 25, the record READY would show, `--'--"--` when there is none (TIME ATTACK

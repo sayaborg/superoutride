@@ -8,6 +8,7 @@ import type { TextLayer } from '../view/text-layer.js';
 import type { Screen } from './screen-host.js';
 import { SCREEN_BACKGROUND, writeCentred } from './menu.js';
 import { formatMilliseconds, NO_TIME } from './race-time.js';
+import { classTitleLines } from '../content/series-catalog.js';
 import { isFreePlay, SESSION_NAMES, type RunRequest } from './run-request.js';
 import type { SeriesCatalog } from '../content/series-catalog.js';
 import type { CourseIndex } from '../content/course-index.js';
@@ -115,8 +116,8 @@ export function createPreRaceScreen(
           frame.pixels[i] = halveRgb555(halveRgb555(frame.pixels[i]!));
       } else frame.clear(SCREEN_BACKGROUND);
       text.clear();
-      text.write(COLUMN, 18, card.title, TEXT_PALETTES.YELLOW);
-      if (card.session) text.write(COLUMN, 19, card.session, TEXT_PALETTES.WHITE);
+      classTitleLines(card.title).forEach((line, i) => text.write(COLUMN, 18 + i, line, TEXT_PALETTES.YELLOW));
+      if (card.session) text.write(COLUMN, 20, card.session, TEXT_PALETTES.WHITE);
       writeCentred(text, NAME_ROW, card.courseName, TEXT_PALETTES.WHITE);
       if (facts) {
         drawCourseMap(frame, facts.map, MAP_BOX, {

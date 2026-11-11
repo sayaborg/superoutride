@@ -1,8 +1,9 @@
 {
   "format": "superoutride.series",
-  "version": 15,
+  "version": 16,
   "id": "arcade-tribute-turbo-outrun",
   "title": "ARCADE TRIBUTE - TURBO OUTRUN",
+  "description": "SEGA, 1989. Coast to coast across America, from New York to Los Angeles in sixteen stages, against a rival's white sports car and the police, with a turbo and a tune-up between sections.",
   "image": "arcade-tribute-turbo-outrun",
   "music": {
     "title": "arcade-tribute-turbo-outrun"
@@ -11,7 +12,7 @@
   "classes": [
     {
       "id": "section-1",
-      "title": "SECTION 1",
+      "title": "TURBO OUTRUN SECTION 1",
       "course": "turbo-outrun-section-1",
       "laps": 1,
       "vehicles": [
@@ -69,7 +70,7 @@
     },
     {
       "id": "section-2",
-      "title": "SECTION 2",
+      "title": "TURBO OUTRUN SECTION 2",
       "course": "turbo-outrun-section-2",
       "laps": 1,
       "vehicles": [
@@ -127,7 +128,7 @@
     },
     {
       "id": "section-3",
-      "title": "SECTION 3",
+      "title": "TURBO OUTRUN SECTION 3",
       "course": "turbo-outrun-section-3",
       "laps": 1,
       "vehicles": [
@@ -185,7 +186,7 @@
     },
     {
       "id": "section-4",
-      "title": "SECTION 4",
+      "title": "TURBO OUTRUN SECTION 4",
       "course": "turbo-outrun-section-4",
       "laps": 1,
       "vehicles": [

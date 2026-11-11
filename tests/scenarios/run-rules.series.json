@@ -1,8 +1,9 @@
 {
   "format": "superoutride.series",
-  "version": 15,
+  "version": 16,
   "id": "scenario-rules",
   "title": "SCENARIO RULES",
+  "description": "A series of the driving scenarios, not delivered.",
   "image": "tsukuba-clubman",
   "music": {
     "title": "placeholder-two"

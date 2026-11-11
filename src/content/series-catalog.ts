@@ -13,6 +13,7 @@ import {
   type AdmissionResult,
 } from '../core/admission.js';
 import { RUN_RULE_LIMITS, type TrafficSettings } from '../course/run-rules.js';
+import { COURSE_TEXT_LIMITS } from '../course/course-limits.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseStartGrid } from '../course/compiler/course-rules.js';
 import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
@@ -23,17 +24,26 @@ import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 import type { ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
+import { courseTextString } from './course-texts.js';
 import type { TilePicture } from '../image/tile-picture.js';
 import type { MusicTrack } from '../audio/music-document.js';
 import type { MusicCatalog } from './recording-catalog.js';
 import { SERIES_IMAGE, type ScreenPictureCatalog } from './screen-picture-catalog.js';
-import { TEXT_CHARACTERS } from '../image/text-tiles.js';
 
-/** A class title's length at most: the PRE-RACE card writes it from column 17 of the text grid's 40. */
-export const CLASS_TITLE_CODE_UNITS = 23;
+/**
+ * A class title in full: at most a course name's 40 characters, in the lines the PRE-RACE card writes it in from
+ * column 17 of the text grid's 40, one or two of at most 23.
+ */
+export const CLASS_TITLE = Object.freeze({ columns: 23, lines: 2 });
+/** A class title's lines: whole when it fits a line, else broken at the last space that fits. */
+export function classTitleLines(title: string): readonly string[] {
+  if (title.length <= CLASS_TITLE.columns) return [title];
+  const space = title.lastIndexOf(' ', CLASS_TITLE.columns);
+  return space > 0 ? [title.slice(0, space), title.slice(space + 1)] : [title];
+}
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 15;
+export const SERIES_DOCUMENT_VERSION = 16;
 const PLAYER_SLOTS = ['own', 'last', 'first'] as const;
 const TRAFFIC_PATHS = ['lane', 'line'] as const;
 
@@ -43,10 +53,12 @@ const TRAFFIC_PATHS = ['lane', 'line'] as const;
  */
 export interface CompiledSeries {
   readonly id: string;
+  /** The official display name, written in full wherever the series is named. */
   readonly title: string;
-  /** The series image: a 20×15-tile opaque screen picture, named by the document's `image`. */
+  /** Its English description, as a course's, of the series alone (K, 2026-11-11). */
+  readonly description: string;
+  /** The series image: a 40×30-tile opaque screen picture, named by the document's `image`. */
   readonly image: TilePicture;
-  /** Its title track, which plays on its screens, and its race tracks (zero or more) in selection order. */
   /** Its title track; a course's race tracks are its course sounds' (K, 2026-11-11). */
   readonly music: { readonly title: MusicTrack };
   readonly dev: boolean;
@@ -148,6 +160,18 @@ export function compileSeriesCatalog(
   };
 }
 
+function classTitle(value: unknown, path: string): string {
+  const title = courseTextString(value, path, COURSE_TEXT_LIMITS.nameCodeUnits);
+  const lines = classTitleLines(title);
+  requireAdmission(
+    lines.length <= CLASS_TITLE.lines && lines.every((line) => line.length <= CLASS_TITLE.columns),
+    'resource_limit',
+    path,
+    `A class title breaks into at most ${CLASS_TITLE.lines} lines of ${CLASS_TITLE.columns} characters`,
+  );
+  return title;
+}
+
 function readSeries(
   source: DocumentSource,
   courseIds: readonly string[],
@@ -158,7 +182,7 @@ function readSeries(
   const vehicleOf = (id: string) => catalog.find((vehicle) => vehicle.compiledVehicle.id === id);
   const root = readDocument(
     source.value,
-    ['format', 'version', 'id', 'title', 'image', 'music', 'dev', 'classes'],
+    ['format', 'version', 'id', 'title', 'description', 'image', 'music', 'dev', 'classes'],
     SERIES_DOCUMENT_FORMAT,
     SERIES_DOCUMENT_VERSION,
   );
@@ -183,7 +207,8 @@ function readSeries(
 
   const series = {
     id,
-    title: readString(root.title, '/title'),
+    title: courseTextString(root.title, '/title', COURSE_TEXT_LIMITS.nameCodeUnits),
+    description: courseTextString(root.description, '/description', COURSE_TEXT_LIMITS.descriptionCodeUnits),
     image,
     music: Object.freeze({ title: track(tracks.title, '/music/title') }),
     dev: readBoolean(root.dev, '/dev'),
@@ -227,11 +252,7 @@ function readSeries(
       return Object.freeze({
         series: series as CompiledSeries,
         id: readString(entry.id, `${at}/id`),
-        title: readString(entry.title, `${at}/title`, {
-          maxLength: CLASS_TITLE_CODE_UNITS,
-          pattern: TEXT_CHARACTERS,
-          patternMessage: 'Expected printable ASCII text',
-        }),
+        title: classTitle(entry.title, `${at}/title`),
         course,
         laps: readNumber(entry.laps, `${at}/laps`, { min: 1, max: RUN_RULE_LIMITS.laps, integer: true }),
         vehicles,

@@ -1,8 +1,9 @@
 {
   "format": "superoutride.series",
-  "version": 15,
+  "version": 16,
   "id": "arcade-tribute-outrun",
   "title": "ARCADE TRIBUTE - OUTRUN",
+  "description": "SEGA, 1986. A red convertible, a passenger at your side and the open road. Fifteen roads fork toward five goals, the big cabinet sways with every turn, and the radio plays three tunes.",
   "image": "arcade-tribute-outrun",
   "music": {
     "title": "arcade-tribute-outrun"
@@ -11,7 +12,7 @@
   "classes": [
     {
       "id": "a",
-      "title": "A",
+      "title": "OUTRUN A",
       "course": "outrun-a",
       "laps": 1,
       "vehicles": [
@@ -65,7 +66,7 @@
     },
     {
       "id": "b",
-      "title": "B",
+      "title": "OUTRUN B",
       "course": "outrun-b",
       "laps": 1,
       "vehicles": [
@@ -119,7 +120,7 @@
     },
     {
       "id": "c-left",
-      "title": "C LEFT",
+      "title": "OUTRUN C LEFT",
       "course": "outrun-c-left",
       "laps": 1,
       "vehicles": [
@@ -173,7 +174,7 @@
     },
     {
       "id": "c-right",
-      "title": "C RIGHT",
+      "title": "OUTRUN C RIGHT",
       "course": "outrun-c-right",
       "laps": 1,
       "vehicles": [
@@ -227,7 +228,7 @@
     },
     {
       "id": "d",
-      "title": "D",
+      "title": "OUTRUN D",
       "course": "outrun-d",
       "laps": 1,
       "vehicles": [
@@ -281,7 +282,7 @@
     },
     {
       "id": "e",
-      "title": "E",
+      "title": "OUTRUN E",
       "course": "outrun-e",
       "laps": 1,
       "vehicles": [

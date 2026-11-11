@@ -8,7 +8,7 @@ import { loadTextTiles } from '../../src/content/text-tiles-catalog.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadCourseIndex } from '../../src/content/course-index.js';
-import { CLASS_TITLE_CODE_UNITS, loadSeriesCatalog } from '../../src/content/series-catalog.js';
+import { CLASS_TITLE, loadSeriesCatalog } from '../../src/content/series-catalog.js';
 import { loadScreenPictures } from '../../src/content/screen-picture-catalog.js';
 import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadMusic } from '../../src/content/recording-catalog.js';
@@ -243,7 +243,7 @@ test('the PRE-RACE card holds the longest names and facts the readers admit', as
   const session = Object.values(SESSION_NAMES).reduce((a, b) => (b.length > a.length ? b : a));
   draw({
     background: null,
-    title: 'W'.repeat(CLASS_TITLE_CODE_UNITS),
+    title: `${'W'.repeat(CLASS_TITLE.columns)} ${'W'.repeat(CLASS_TITLE.columns)}`.slice(0, 40),
     session,
     courseName: 'W'.repeat(COURSE_TEXT_LIMITS.nameCodeUnits),
     laps: RUN_RULE_LIMITS.laps,

@@ -1,8 +1,9 @@
 {
   "format": "superoutride.series",
-  "version": 15,
+  "version": 16,
   "id": "arcade-tribute-pole-position-ii",
   "title": "ARCADE TRIBUTE - POLE POSITION II",
+  "description": "NAMCO, 1983. The sequel to Pole Position, with four tracks instead of one: Fuji, Test, Suzuka and Seaside. A Formula One car, and a qualifying lap to earn a place on the grid.",
   "image": "arcade-tribute-pole-position-ii",
   "music": {
     "title": "arcade-tribute-pole-position-ii"
@@ -11,7 +12,7 @@
   "classes": [
     {
       "id": "fuji",
-      "title": "FUJI",
+      "title": "POLE POSITION II FUJI",
       "course": "pole-position-ii-fuji",
       "laps": 4,
       "vehicles": [
@@ -101,7 +102,7 @@
     },
     {
       "id": "test",
-      "title": "TEST",
+      "title": "POLE POSITION II TEST",
       "course": "pole-position-ii-test",
       "laps": 4,
       "vehicles": [
@@ -191,7 +192,7 @@
     },
     {
       "id": "suzuka",
-      "title": "SUZUKA",
+      "title": "POLE POSITION II SUZUKA",
       "course": "pole-position-ii-suzuka",
       "laps": 4,
       "vehicles": [
@@ -281,7 +282,7 @@
     },
     {
       "id": "seaside",
-      "title": "SEASIDE",
+      "title": "POLE POSITION II SEASIDE",
       "course": "pole-position-ii-seaside",
       "laps": 4,
       "vehicles": [

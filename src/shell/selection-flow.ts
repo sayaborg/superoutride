@@ -158,7 +158,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       world: null,
       initial: at(selectable, (s) => s.id === (seriesChoice?.id ?? latest('series'))),
       cards: selectable.map((entry): Card => ({
-        name: entry.id,
+        name: entry.name,
         picture: entry.picture,
         dim: entry.series !== null && !offers(entry),
         deny: entry.series === null,

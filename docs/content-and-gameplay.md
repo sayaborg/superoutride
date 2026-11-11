@@ -992,16 +992,17 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 15) is the one owner of its classes, the races it runs. A series
+A series document (`superoutride.series` version 16) is the one owner of its classes, the races it runs. A series
 holds no rule values: every rule is a class's, and classes of one series may repeat the same values. It is saved
 as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 15,
+  "version": 16,
   "id": "example",
   "title": "EXAMPLE",
+  "description": "A series for the example's sake.",
   "image": "tsukuba-clubman",
   "music": { "title": "placeholder-two" },
   "dev": true,
@@ -1033,13 +1034,17 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 }
 ```
 
-`title` is the display name. `image` names its series image, an opaque 40×30-tile
+`title` is the official display name, written in full wherever the series is named, and `description` its English
+description (K, 2026-11-11), as a course's: in the text tiles' characters, at most 40 and 190 characters, of the series
+alone and never of how a mode is played. An ARCADE TRIBUTE series' describes its reference game: its maker and year,
+and what it was. `image` names its series image, an opaque 40×30-tile
 [screen picture](image-assets.md#screen-pictures). `music` names its `title` track, a delivered
 track by ID, which plays on its SELECT SERIES card and in its world; a run's race track is its course's
 ([Course sounds](#course-sounds); K, 2026-11-11). `dev: true` marks a development series: front ends show it only with DEV; it is
 visibility, not a rule. `classes` lists at least one class in selection order. A class is one race: its `id`,
-unique within the series, its display name `title` (at most 23 of the text tiles' characters: the PRE-RACE card
-writes it from column 17 of the 40), a delivered `course`, its `laps` (1 through 99), its RACE vehicle candidates
+unique within the series, its display name `title` in full (at most a course name's 40 of the text tiles'
+characters, which break at the last space that fits into one or two lines of at most 23: the PRE-RACE card writes it
+from column 17 of the 40), a delivered `course`, its `laps` (1 through 99), its RACE vehicle candidates
 `vehicles` (at least one, unique and in the catalog, in selection order), `entries`, `playerSlot`, `rankLimits`,
 `traffic` (null, or traffic settings whose vehicles are catalog vehicles; see [Traffic](#traffic)), `timeMargin`, the
 clock's margin (positive, finite and at most 10), or null for a RACE without a clock (K, 2026-11-10: for a course whose
@@ -1075,7 +1080,8 @@ class's vehicle in its four colors in turn, the player last, and the rivals' pac
 1.02 at the pole to 0.88.
 
 ARCADE TRIBUTE - POLE POSITION II is delivered too (K, 2026-11-09), to try an ARCADE TRIBUTE's play before the card UI
-is updated. It plays its reference game's race without the qualifying lap, which is not made for now: FUJI, TEST,
+is updated. An ARCADE TRIBUTE class is titled with its course's official name (POLE POSITION II FUJI; K, 2026-11-11:
+names are written in full). It plays its reference game's race without the qualifying lap, which is not made for now: FUJI, TEST,
 SUZUKA and SEASIDE, in the reference game's order, 4 laps each (the original's factory setting) with a margin of 1.35,
 without rank limits. Its field is the original's eight: seven LOTUS 79 SPECIAL rivals of one pace ratio, 1, driving the
 racing line, ahead of the player, who starts last in the LOTUS 79 SPECIAL in its entry's color (`fixedColors`). The
@@ -1138,22 +1144,23 @@ document has the pools ALL (cars and bikes), CARS and BIKES, the levels LOW (5 v
 
 ## Front end selection document
 
-`content/front-end/selection.json` is the one `superoutride.front-end-selection` version 1 document (manifest kind
+`content/front-end/selection.json` is the one `superoutride.front-end-selection` version 2 document (manifest kind
 `front-end`, ID `selection`): what the selection offers beyond the series documents, in its order (K, 2026-11-09).
 
 ```text
 FrontEndSelection {
-  format: "superoutride.front-end-selection", version: 1,
-  series: [{id, music}], originals: [{title, courses}]
+  format: "superoutride.front-end-selection", version: 2,
+  series: [{id, music, title, description}], originals: [{title, courses}]
 }
 ```
 
 `series` are SELECT SERIES' series in order, ARCADE TRIBUTE's in the reference games' order and the game's own after
 them (K, 2026-11-09), each by its series ID, which also names its picture: the
 [screen picture](image-assets.md#screen-pictures) of that name, 40×30 tiles and opaque. A series is shown once its
-picture exists; until then it is passed over, and the build reports how many are. `music` is null for a series with a
-document, which takes its title track from it, and names a delivered track for one without a document yet, whose
-picture SELECT SERIES shows and whose CONFIRM it denies. Every series document but a DEV one is listed, and no DEV one
+picture exists; until then it is passed over, and the build reports how many are. `music`, `title` and `description`
+are null for a series with a document, which holds them, and for one without a document yet name what its document
+will hold: a delivered track, its title and its description, as a series document's. SELECT SERIES shows such a
+series' picture and denies its CONFIRM. Every series document but a DEV one is listed, and no DEV one
 is: with `dev=1` the DEV series with a picture follow the list, in document order. `originals` are FREE PLAY's groups
 of courses in order, each a card name in the text tiles' characters, at most a course name's 40, and its courses by ID
 in order; the groups follow the reference games' order, the game's own courses last (`SUPER OUTRIDE`; K, 2026-11-09),

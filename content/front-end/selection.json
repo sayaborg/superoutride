@@ -1,32 +1,206 @@
 {
   "format": "superoutride.front-end-selection",
-  "version": 1,
+  "version": 2,
   "series": [
-    { "id": "arcade-tribute-enduro-racer", "music": null },
-    { "id": "arcade-tribute-super-hang-on", "music": null },
-    { "id": "arcade-tribute-outrun", "music": null },
-    { "id": "arcade-tribute-turbo-outrun", "music": null },
-    { "id": "arcade-tribute-pole-position-ii", "music": null },
-    { "id": "arcade-tribute-final-lap-2", "music": null },
-    { "id": "arcade-tribute-top-speed", "music": "arcade-tribute-top-speed" },
-    { "id": "arcade-tribute-continental-circus", "music": "arcade-tribute-continental-circus" },
-    { "id": "arcade-tribute-chase-hq", "music": "arcade-tribute-chase-hq" },
-    { "id": "arcade-tribute-big-run", "music": "arcade-tribute-big-run" },
-    { "id": "arcade-tribute-cisco-heat", "music": "arcade-tribute-cisco-heat" },
-    { "id": "tsukuba-clubman", "music": null }
+    {
+      "id": "arcade-tribute-enduro-racer",
+      "music": null,
+      "title": null,
+      "description": null
+    },
+    {
+      "id": "arcade-tribute-super-hang-on",
+      "music": null,
+      "title": null,
+      "description": null
+    },
+    {
+      "id": "arcade-tribute-outrun",
+      "music": null,
+      "title": null,
+      "description": null
+    },
+    {
+      "id": "arcade-tribute-turbo-outrun",
+      "music": null,
+      "title": null,
+      "description": null
+    },
+    {
+      "id": "arcade-tribute-pole-position-ii",
+      "music": null,
+      "title": null,
+      "description": null
+    },
+    {
+      "id": "arcade-tribute-final-lap-2",
+      "music": null,
+      "title": null,
+      "description": null
+    },
+    {
+      "id": "arcade-tribute-top-speed",
+      "music": "arcade-tribute-top-speed",
+      "title": "ARCADE TRIBUTE - TOP SPEED",
+      "description": "TAITO, 1987, called Full Throttle in Japan. A red sports car across America in five stages, roads forking halfway through, and a nitro button for bursts past 400 km/h."
+    },
+    {
+      "id": "arcade-tribute-continental-circus",
+      "music": "arcade-tribute-continental-circus",
+      "title": "ARCADE TRIBUTE - CONTINENTAL CIRCUS",
+      "description": "TAITO, 1987. Formula One around eight Grands Prix of the world, seen in true 3D through shutter glasses hung over the cabinet: billed as the world's first 3D racing game."
+    },
+    {
+      "id": "arcade-tribute-chase-hq",
+      "music": "arcade-tribute-chase-hq",
+      "title": "ARCADE TRIBUTE - CHASE H.Q.",
+      "description": "TAITO, 1988. Two undercover cops in a black turbo sports car, a call from headquarters, and sixty seconds to run a criminal down and ram his car to a stop. Five cases in all."
+    },
+    {
+      "id": "arcade-tribute-big-run",
+      "music": "arcade-tribute-big-run",
+      "title": "ARCADE TRIBUTE - BIG RUN",
+      "description": "JALECO, 1989. The Paris-Dakar rally from Tripoli to Dakar, over desert, savanna and swamp, in a car like the 1986 winner, against the clock on every leg."
+    },
+    {
+      "id": "arcade-tribute-cisco-heat",
+      "music": "arcade-tribute-cisco-heat",
+      "title": "ARCADE TRIBUTE - CISCO HEAT",
+      "description": "JALECO, 1990. A police car race through San Francisco: squad cars flying over its hills and around its corners, past the Golden Gate, with taxis, trams and fire engines in the way."
+    },
+    {
+      "id": "tsukuba-clubman",
+      "music": null,
+      "title": null,
+      "description": null
+    }
   ],
   "originals": [
-    { "title": "ENDURO RACER", "courses": ["enduro-racer"] },
-    { "title": "SUPER HANG-ON", "courses": ["super-hang-on-africa", "super-hang-on-asia", "super-hang-on-america", "super-hang-on-europe"] },
-    { "title": "OUTRUN", "courses": ["outrun-a", "outrun-b", "outrun-c-left", "outrun-c-right", "outrun-d", "outrun-e", "outrun-short-a", "outrun-short-b", "outrun-short-c-left", "outrun-short-c-right", "outrun-short-d", "outrun-short-e"] },
-    { "title": "TURBO OUTRUN", "courses": ["turbo-outrun-section-1", "turbo-outrun-section-2", "turbo-outrun-section-3", "turbo-outrun-section-4"] },
-    { "title": "POLE POSITION II", "courses": ["pole-position-ii-fuji", "pole-position-ii-test", "pole-position-ii-suzuka", "pole-position-ii-seaside"] },
-    { "title": "FINAL LAP 2", "courses": ["final-lap-2-japan", "final-lap-2-monaco", "final-lap-2-italy", "final-lap-2-usa"] },
-    { "title": "TOP SPEED", "courses": ["top-speed-a", "top-speed-b", "top-speed-c", "top-speed-d", "top-speed-e", "top-speed-f", "top-speed-g"] },
-    { "title": "CONTINENTAL CIRCUS", "courses": ["continental-circus-brazil", "continental-circus-america", "continental-circus-france", "continental-circus-monaco", "continental-circus-germany", "continental-circus-spain", "continental-circus-mexico", "continental-circus-japan"] },
-    { "title": "CHASE H.Q.", "courses": ["chase-hq-1-left", "chase-hq-1-right", "chase-hq-2-left", "chase-hq-2-right", "chase-hq-3-left", "chase-hq-3-right", "chase-hq-4-left", "chase-hq-4-right", "chase-hq-5-left", "chase-hq-5-right"] },
-    { "title": "BIG RUN", "courses": ["big-run-starting-run", "big-run-special-stage-1", "big-run-special-stage-2", "big-run-special-stage-3", "big-run-special-stage-4", "big-run-victory-run"] },
-    { "title": "CISCO HEAT", "courses": ["cisco-heat-stage-1", "cisco-heat-stage-2", "cisco-heat-stage-3", "cisco-heat-stage-4", "cisco-heat-stage-5"] },
-    { "title": "SUPER OUTRIDE", "courses": ["tsukuba"] }
+    {
+      "title": "ENDURO RACER",
+      "courses": [
+        "enduro-racer"
+      ]
+    },
+    {
+      "title": "SUPER HANG-ON",
+      "courses": [
+        "super-hang-on-africa",
+        "super-hang-on-asia",
+        "super-hang-on-america",
+        "super-hang-on-europe"
+      ]
+    },
+    {
+      "title": "OUTRUN",
+      "courses": [
+        "outrun-a",
+        "outrun-b",
+        "outrun-c-left",
+        "outrun-c-right",
+        "outrun-d",
+        "outrun-e",
+        "outrun-short-a",
+        "outrun-short-b",
+        "outrun-short-c-left",
+        "outrun-short-c-right",
+        "outrun-short-d",
+        "outrun-short-e"
+      ]
+    },
+    {
+      "title": "TURBO OUTRUN",
+      "courses": [
+        "turbo-outrun-section-1",
+        "turbo-outrun-section-2",
+        "turbo-outrun-section-3",
+        "turbo-outrun-section-4"
+      ]
+    },
+    {
+      "title": "POLE POSITION II",
+      "courses": [
+        "pole-position-ii-fuji",
+        "pole-position-ii-test",
+        "pole-position-ii-suzuka",
+        "pole-position-ii-seaside"
+      ]
+    },
+    {
+      "title": "FINAL LAP 2",
+      "courses": [
+        "final-lap-2-japan",
+        "final-lap-2-monaco",
+        "final-lap-2-italy",
+        "final-lap-2-usa"
+      ]
+    },
+    {
+      "title": "TOP SPEED",
+      "courses": [
+        "top-speed-a",
+        "top-speed-b",
+        "top-speed-c",
+        "top-speed-d",
+        "top-speed-e",
+        "top-speed-f",
+        "top-speed-g"
+      ]
+    },
+    {
+      "title": "CONTINENTAL CIRCUS",
+      "courses": [
+        "continental-circus-brazil",
+        "continental-circus-america",
+        "continental-circus-france",
+        "continental-circus-monaco",
+        "continental-circus-germany",
+        "continental-circus-spain",
+        "continental-circus-mexico",
+        "continental-circus-japan"
+      ]
+    },
+    {
+      "title": "CHASE H.Q.",
+      "courses": [
+        "chase-hq-1-left",
+        "chase-hq-1-right",
+        "chase-hq-2-left",
+        "chase-hq-2-right",
+        "chase-hq-3-left",
+        "chase-hq-3-right",
+        "chase-hq-4-left",
+        "chase-hq-4-right",
+        "chase-hq-5-left",
+        "chase-hq-5-right"
+      ]
+    },
+    {
+      "title": "BIG RUN",
+      "courses": [
+        "big-run-starting-run",
+        "big-run-special-stage-1",
+        "big-run-special-stage-2",
+        "big-run-special-stage-3",
+        "big-run-special-stage-4",
+        "big-run-victory-run"
+      ]
+    },
+    {
+      "title": "CISCO HEAT",
+      "courses": [
+        "cisco-heat-stage-1",
+        "cisco-heat-stage-2",
+        "cisco-heat-stage-3",
+        "cisco-heat-stage-4",
+        "cisco-heat-stage-5"
+      ]
+    },
+    {
+      "title": "SUPER OUTRIDE",
+      "courses": [
+        "tsukuba"
+      ]
+    }
   ]
 }

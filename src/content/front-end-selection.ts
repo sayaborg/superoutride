@@ -25,24 +25,34 @@ export const FRONT_END_SELECTION_ID = 'selection';
 export const FRONT_END_DIRECTORY = 'front-end';
 export const FRONT_END_SELECTION_FORMAT = Object.freeze({
   format: 'superoutride.front-end-selection',
-  version: 1,
+  version: 2,
 } as const);
 
 /** The saved document: the series SELECT SERIES offers and FREE PLAY's groups of courses, each in its order. */
 export interface FrontEndSelectionDocument {
-  /** Each series by its ID; `music` is the title track of a series without a document yet, else null. */
-  readonly series: readonly { readonly id: string; readonly music: string | null }[];
+  /**
+   * Each series by its ID. A series without a document yet names what its document will hold, its title track, title
+   * and description; one with a document names none of them (null).
+   */
+  readonly series: readonly {
+    readonly id: string;
+    readonly music: string | null;
+    readonly title: string | null;
+    readonly description: string | null;
+  }[];
   /** Each group's card name and its courses' IDs. */
   readonly originals: readonly { readonly title: string; readonly courses: readonly string[] }[];
 }
 
-/** A series SELECT SERIES shows: its picture, its document (null before it has one) and its title track. */
+/** A series SELECT SERIES shows: its picture, its document (null before it has one), title track, name and description. */
 export interface SelectableSeries {
   readonly id: string;
   /** The screen picture named by the series' ID: 40×30 tiles and opaque. */
   readonly picture: TilePicture;
   readonly series: CompiledSeries | null;
   readonly titleTrack: MusicTrack;
+  readonly name: string;
+  readonly description: string;
 }
 
 /** A group of FREE PLAY's courses: its card name and its delivered courses, in the document's order. */
@@ -64,7 +74,8 @@ export interface FrontEndSelection {
 }
 
 /**
- * Admit the `superoutride.front-end-selection` version 1 document: series IDs unique, each with its music ID or null;
+ * Admit the `superoutride.front-end-selection` version 2 document: series IDs unique, each with its music ID, title and
+ * description, or none of them;
  * groups with unique card names in the text tiles' characters and courses unique across every group.
  */
 export function readFrontEndSelection(value: unknown, document = ''): AdmissionResult<FrontEndSelectionDocument> {
@@ -77,10 +88,14 @@ export function readFrontEndSelection(value: unknown, document = ''): AdmissionR
     );
     const id = { maxLength: COURSE_DOCUMENT_LIMITS.idCodeUnits };
     const series = readIdentified(data.series, '/series', (item, at) => {
-      const entry = readRecord(item, at, ['id', 'music']);
+      const entry = readRecord(item, at, ['id', 'music', 'title', 'description']);
+      const text = (key: 'title' | 'description', limit: number) =>
+        entry[key] === null ? null : courseTextString(entry[key], `${at}/${key}`, limit);
       return Object.freeze({
         id: readString(entry.id, `${at}/id`, id),
         music: entry.music === null ? null : readString(entry.music, `${at}/music`, id),
+        title: text('title', COURSE_TEXT_LIMITS.nameCodeUnits),
+        description: text('description', COURSE_TEXT_LIMITS.descriptionCodeUnits),
       });
     });
     const titles = new Set<string>(),
@@ -126,14 +141,15 @@ export function compileFrontEndSelection(
       const at = `/series/${i}`;
       const compiled = series.series.find((s) => s.id === entry.id) ?? null;
       requireAdmission(!compiled?.dev, 'invalid_value', `${at}/id`, `DEV series ${entry.id} is not listed`);
-      requireAdmission(
-        (compiled === null) !== (entry.music === null),
-        'invalid_value',
-        `${at}/music`,
-        compiled
-          ? `Series ${entry.id} takes its title track from its document`
-          : `Series ${entry.id} has no document yet and names its title track`,
-      );
+      for (const key of ['music', 'title', 'description'] as const)
+        requireAdmission(
+          (compiled === null) !== (entry[key] === null),
+          'invalid_value',
+          `${at}/${key}`,
+          compiled
+            ? `Series ${entry.id} takes its title track, title and description from its document`
+            : `Series ${entry.id} has no document yet and names its title track, title and description`,
+        );
       const titleTrack = compiled?.music.title ?? music.find((track) => track.id === entry.music);
       requireAdmission(titleTrack !== undefined, 'unresolved_reference', `${at}/music`, `Unknown track ${entry.music}`);
       const picture = pictures.get(entry.id);
@@ -147,7 +163,16 @@ export function compileFrontEndSelection(
         `${at}/id`,
         `The picture ${entry.id} is an opaque ${SERIES_IMAGE.columns}×${SERIES_IMAGE.rows}-tile picture`,
       );
-      listed.push(Object.freeze({ id: entry.id, picture, series: compiled, titleTrack }));
+      listed.push(
+        Object.freeze({
+          id: entry.id,
+          picture,
+          series: compiled,
+          titleTrack,
+          name: compiled?.title ?? entry.title!,
+          description: compiled?.description ?? entry.description!,
+        }),
+      );
     });
     for (const compiled of series.series)
       requireAdmission(
@@ -158,7 +183,16 @@ export function compileFrontEndSelection(
       );
     const dev = series.series
       .filter((s) => s.dev && pictures.get(s.id))
-      .map((s) => Object.freeze({ id: s.id, picture: pictures.get(s.id)!, series: s, titleTrack: s.music.title }));
+      .map((s) =>
+        Object.freeze({
+          id: s.id,
+          picture: pictures.get(s.id)!,
+          series: s,
+          titleTrack: s.music.title,
+          name: s.title,
+          description: s.description,
+        }),
+      );
     const delivered = new Set(courseIds);
     const groups = document.originals.map((group) =>
       Object.freeze({ title: group.title, courses: Object.freeze(group.courses.filter((id) => delivered.has(id))) }),

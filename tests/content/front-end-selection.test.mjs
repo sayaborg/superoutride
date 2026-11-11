@@ -6,7 +6,20 @@ import { compileFrontEndSelection, FRONT_END_SELECTION_FORMAT } from '../../src/
 const DOCUMENT = 'content/front-end/selection.json';
 const track = (id) => Object.freeze({ id });
 const music = [track('placeholder-one'), track('placeholder-two')];
-const series = (id, dev = false) => Object.freeze({ id, dev, music: { title: music[0] }, classes: [] });
+const series = (id, dev = false) =>
+  Object.freeze({
+    id,
+    dev,
+    title: id.toUpperCase(),
+    description: `${id} described`,
+    music: { title: music[0] },
+    classes: [],
+  });
+// A listed series' entry: one with a document names nothing, one without names its title track, title and description.
+const listed = (id, music = null) =>
+  music === null
+    ? { id, music, title: null, description: null }
+    : { id, music, title: id.toUpperCase(), description: `${id} described` };
 const picture = (columns = 40, rows = 30, opaque = true) => Object.freeze({ columns, rows, opaque });
 const catalog = (...all) => Object.freeze({ series: all, seriesClass: () => null });
 const document = (seriesEntries, originals) => ({
@@ -64,11 +77,7 @@ test('a listed series shows once its picture exists, and the series and groups a
   // A series with no picture yet is passed over and counted; one with no document yet names its title track.
   const selection = admitted(
     document(
-      [
-        { id: 'club', music: null },
-        { id: 'tribute', music: 'placeholder-two' },
-        { id: 'later', music: 'placeholder-one' },
-      ],
+      [listed('club'), listed('tribute', 'placeholder-two'), listed('later', 'placeholder-one')],
       [
         { title: 'OUTRUN', courses: ['outrun-a', 'outrun-b'] },
         { title: 'OWN', courses: ['tsukuba'] },
@@ -85,10 +94,10 @@ test('a listed series shows once its picture exists, and the series and groups a
     },
   );
   assert.deepEqual(
-    selection.seriesRow(false).map((s) => [s.id, s.series?.id ?? null, s.titleTrack.id]),
+    selection.seriesRow(false).map((s) => [s.id, s.series?.id ?? null, s.titleTrack.id, s.name, s.description]),
     [
-      ['club', 'club', 'placeholder-one'],
-      ['tribute', null, 'placeholder-two'],
+      ['club', 'club', 'placeholder-one', 'CLUB', 'club described'],
+      ['tribute', null, 'placeholder-two', 'TRIBUTE', 'tribute described'],
     ],
   );
   // DEV series follow the list with dev=1.
@@ -111,67 +120,40 @@ test('a listed series shows once its picture exists, and the series and groups a
   // Each failure names what fails.
   const groups = [{ title: 'OWN', courses: ['tsukuba'] }];
   assert.deepEqual(admitted(document([], groups)), { path: '/series', message: 'Series club is not listed' });
-  assert.deepEqual(admitted(document([{ id: 'club', music: 'placeholder-one' }], groups)), {
+  assert.deepEqual(admitted(document([listed('club', 'placeholder-one')], groups)), {
     path: '/series/0/music',
-    message: 'Series club takes its title track from its document',
+    message: 'Series club takes its title track, title and description from its document',
+  });
+  assert.deepEqual(admitted(document([listed('club'), listed('new')], groups)), {
+    path: '/series/1/music',
+    message: 'Series new has no document yet and names its title track, title and description',
+  });
+  assert.deepEqual(admitted(document([listed('club'), listed('new', 'none')], groups)), {
+    path: '/series/1/music',
+    message: 'Unknown track none',
+  });
+  assert.deepEqual(admitted(document([listed('club'), { ...listed('new', 'placeholder-one'), title: null }], groups)), {
+    path: '/series/1/title',
+    message: 'Series new has no document yet and names its title track, title and description',
+  });
+  assert.deepEqual(admitted(document([listed('club')], groups), { pictures: new Map([['club', picture(36, 14)]]) }), {
+    path: '/series/0/id',
+    message: 'The picture club is an opaque 40×30-tile picture',
   });
   assert.deepEqual(
-    admitted(
-      document(
-        [
-          { id: 'club', music: null },
-          { id: 'new', music: null },
-        ],
-        groups,
-      ),
-    ),
-    {
-      path: '/series/1/music',
-      message: 'Series new has no document yet and names its title track',
-    },
-  );
-  assert.deepEqual(
-    admitted(
-      document(
-        [
-          { id: 'club', music: null },
-          { id: 'new', music: 'none' },
-        ],
-        groups,
-      ),
-    ),
-    {
-      path: '/series/1/music',
-      message: 'Unknown track none',
-    },
-  );
-  assert.deepEqual(
-    admitted(document([{ id: 'club', music: null }], groups), { pictures: new Map([['club', picture(36, 14)]]) }),
-    { path: '/series/0/id', message: 'The picture club is an opaque 40×30-tile picture' },
-  );
-  assert.deepEqual(
-    admitted(
-      document(
-        [
-          { id: 'club', music: null },
-          { id: 'lab', music: null },
-        ],
-        groups,
-      ),
-      {
-        all: [series('club'), series('lab', true)],
-      },
-    ),
+    admitted(document([listed('club'), listed('lab')], groups), {
+      all: [series('club'), series('lab', true)],
+    }),
     { path: '/series/1/id', message: 'DEV series lab is not listed' },
   );
-  assert.deepEqual(admitted(document([{ id: 'club', music: null }], groups), { courses: ['tsukuba', 'outrun-a'] }), {
+  assert.deepEqual(admitted(document([listed('club')], groups), { courses: ['tsukuba', 'outrun-a'] }), {
     path: '/originals',
     message: 'Course outrun-a is in no group',
   });
   assert.deepEqual(
     admitted(
       document(
-        [{ id: 'club', music: null }],
+        [listed('club')],
         [
           { title: 'OWN', courses: ['tsukuba'] },
           { title: 'MORE', courses: ['tsukuba'] },

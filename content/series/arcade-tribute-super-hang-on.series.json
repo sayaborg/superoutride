@@ -1,8 +1,9 @@
 {
   "format": "superoutride.series",
-  "version": 15,
+  "version": 16,
   "id": "arcade-tribute-super-hang-on",
   "title": "ARCADE TRIBUTE - SUPER HANG-ON",
+  "description": "SEGA, 1987. The sequel to Hang-On: a 500cc racer across four continents, from Africa's six stages to Europe's eighteen, with a turbo beyond 280 km/h and four tunes to ride to.",
   "image": "arcade-tribute-super-hang-on",
   "music": {
     "title": "arcade-tribute-super-hang-on"
@@ -11,7 +12,7 @@
   "classes": [
     {
       "id": "africa",
-      "title": "AFRICA",
+      "title": "SUPER HANG-ON AFRICA",
       "course": "super-hang-on-africa",
       "laps": 1,
       "vehicles": [
@@ -101,7 +102,7 @@
     },
     {
       "id": "asia",
-      "title": "ASIA",
+      "title": "SUPER HANG-ON ASIA",
       "course": "super-hang-on-asia",
       "laps": 1,
       "vehicles": [
@@ -191,7 +192,7 @@
     },
     {
       "id": "america",
-      "title": "AMERICA",
+      "title": "SUPER HANG-ON AMERICA",
       "course": "super-hang-on-america",
       "laps": 1,
       "vehicles": [
@@ -281,7 +282,7 @@
     },
     {
       "id": "europe",
-      "title": "EUROPE",
+      "title": "SUPER HANG-ON EUROPE",
       "course": "super-hang-on-europe",
       "laps": 1,
       "vehicles": [
