@@ -70,10 +70,11 @@ The PRE-RACE card stands while a run is assembled, doubling as its loading scree
 a class (RACE and TIME ATTACK) it shows the series image with rows 16–29 (y 128–240) at quarter brightness; FREE PLAY
 shows it on black. On row 16, above the map, it writes the course's display name from the course index (the [course
 texts'](content-and-gameplay.md#course-texts)) centred in WHITE.
-Inside x 8–136, y 136–232 it draws the course map, north up by the course's bearing: the route's centreline (one lap of
-a circuit, else the route from the entry, each fork taking its first exit) 3 pixels wide in white with a 1-pixel gray
-core, scaled to fit and centred, a 1×9-pixel YELLOW bar across the start line (the entry Section's origin) and a 3×3
-GREEN dot at each checkpoint gate on that route; the map is drawn into the frame, not as text. From column 17 it writes
+Inside x 8–136, y 136–232 it draws the course map the [course index](content-and-gameplay.md#course-index) delivers,
+north up by the course's bearing: the route's centreline (one lap of a circuit, else the route from the entry, each fork
+taking its first exit) 3 pixels wide in white with a 1-pixel gray core, scaled to fit and centred, a 1×9-pixel YELLOW
+bar across the start line (the entry Section's origin) and a 3×3 GREEN dot at each checkpoint gate on that route; the
+map is drawn into the frame, not as text. From column 17 it writes
 the class title (YELLOW; `FREE PLAY` in FREE PLAY) on row 18, in full: longer than its 23 columns it breaks at the
 last space that fits onto row 19; a class run's session (WHITE) on row 20,
 `<length>KM  <n> LAPS`
@@ -84,7 +85,7 @@ On
 row 28, columns 17–37, a progress bar 4 pixels high in the row's middle fills YELLOW over dark gray as the run loads:
 the course's files to 70 %, its compilation to 80 % (Section by Section), the run to 90 %, the assembled run
 to 100 %. The title, course
-name and laps show at once; the map and the run's lines once the course is compiled and the run prepared. The
+name, map, length and laps show at once; the field, start slot and record once the run is prepared. The
 card stays at least 2.5 s (counted in fixed steps) and until the run is assembled; then the black transition leads to
 READY. After a failed assembly the
 LOAD FAILED screen shows `LOAD FAILED` in red with RETRY, which requests the same run again, and BACK, which returns to
