@@ -30,8 +30,8 @@ import { micrometre, simplified, spriteElement, stripElement } from '../shared/s
 import { bakeSky, sectionYawOrigin, SKY_HORIZON, skyYawOrigin } from '../shared/sky-baking.js';
 import { lanesOverTwoRoads, type DrivenLanes } from '../shared/two-roads.js';
 import { bigRunBoards, boardName } from './big-run-boards.js';
-import { bigRunObjects, ownCarUnits, spritePalette, type BigRunObject } from './big-run-objects.js';
-import { spritePen } from '../jaleco/zoom-sprites.js';
+import { bigRunDescriptor, bigRunObjects, ownCarUnits, spritePalette, type BigRunObject } from './big-run-objects.js';
+import { SPRITE_TILE, spritePen } from '../jaleco/zoom-sprites.js';
 import { BIG_RUN_SKIES, STAGES } from './big-run-backgrounds.js';
 import { boardScenes, boardSky, SKY_MIDDLE, type BoardScene } from '../jaleco/ms1-skies.js';
 import { steepestRecordGrade, tableProfile } from '../jaleco/road-heights.js';
@@ -160,11 +160,12 @@ function periodic<T>(
 /**
  * A sprite's pixel at its descriptor's scale 128, units across: the objects' zoom at distance d (M 0xAB28: the table at
  * 0x11DE00, a word a position, its low byte the zoom, 128 a tile's own size) over the road's pixels a unit there,
- * 600 ÷ (d + 600) ([its camera](../../../docs/big-run-road-data.md#its-camera)), at the distance 600 ahead.
+ * 600 ÷ (d + 600) ([its camera](../../../docs/big-run-road-data.md#its-camera)), at the nearest distance, 0, where the
+ * table's whole numbers round its 153,000 ÷ (d + 600) least.
  */
 function spritePixelUnits(main: Uint8Array) {
   const [high, low] = instruction(main, 0xab28, [0x43f9, null, null], "the objects' zoom (lea)");
-  const d = EYE;
+  const d = 0;
   const zoom = main[high * 0x10000 + low + 2 * d + 1]!;
   return zoom / 128 / (EYE / (d + EYE));
 }
@@ -218,6 +219,13 @@ export function bigRunCourses(set: RomSet) {
   const sprites = assembleBigRunSprites(set);
   const carUnits = ownCarUnits(main, (tile, x, y) => spritePen(sprites, tile, x, y));
   const ACROSS = CAR_METRES / carUnits;
+  // A unit up, metres: a screen pixel's height over its width of a unit across, as the pictures are drawn.
+  const UP = ACROSS * SCREEN_PIXEL_HEIGHT;
+  // A descriptor's sprite's drawn height, units up: its rows of tiles at its scale down (128 its own size).
+  const drawnUnits = (descriptor: number) => {
+    const d = bigRunDescriptor(main, descriptor);
+    return (d.down * SPRITE_TILE * spritePixelUnits(main) * d.yScale) / 128;
+  };
   // A sprite's pixel at scale 128, metres: its zoom at a distance over the road's pixels a unit there (M 0x11DE00).
   const unitMetres = spritePixelUnits(main) * ACROSS;
   // Its objects' boards: one a descriptor and mirroring over every stage, a palette each set of its colors a stage's
@@ -423,12 +431,14 @@ export function bigRunCourses(set: RomSet) {
     // moves or picks, are not placed (counted).
     const objects = bigRunObjects(main, stage).filter((o) => o.position < end);
     const plain = objects.filter((o) => o.kind === 0);
-    // Each object's place: its road's centre, its lateral its picture's left edge, its height over its road; on a road
-    // not drawn, at that road's height below the course's, and none where it lies above or past the road not taken.
+    // Each object's place: its road's centre, its lateral its picture's left edge, its height its picture's top edge
+    // over its road, its sprite drawn down from it (its foot its drawn height below), a unit up a screen pixel's height
+    // over its width of a unit across, as its picture is drawn; on a road not drawn, at that road's height below the
+    // course's, and none where it lies above or past the road not taken.
     const placeOf = (o: BigRunObject) => {
       const p = o.position;
       const centre = o.road === 2 ? 0 : shown1.at(p);
-      let lift = o.height * ACROSS;
+      let lift = (o.height - drawnUnits(o.descriptor)) * UP;
       if (o.road === 1 && p >= leavesAt && p >= notTakenEnd) return null;
       if (!drawn(o.road, p)) {
         const own = otherHeights[o.road - 1]!.height(p) - heights.profile.height(p);

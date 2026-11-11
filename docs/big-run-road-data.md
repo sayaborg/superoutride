@@ -164,11 +164,13 @@ Its six courses (`big-run-course`) are its stages, `big-run-starting-run`, `big-
   the roads `SAND`, and the lanes keep the held road's surface's where a picture gives them none.
 - **Its limits** lie 512 units, a line's half, beyond the outermost road's centre on each side.
 - **Its objects** of kind 0 stand where their records put them, each a board of its descriptor's sprite in its stage's
-  sprites' palette ([its objects](#its-objects)): its lateral its picture's left edge from its road's centre, its height
-  its board's base over that road, both in units across. On a road not drawn they stand at that road's height below the
-  course's, and where it lies above none does; past the road not taken's end none does. A hit (flags' bits 9 and 10,
-  which the program puts in its list of things the car meets) has a body as wide as its picture's colored columns.
-  Objects of the other kinds, which the program moves or picks, are not placed.
+  sprites' palette ([its objects](#its-objects)): its lateral its picture's left edge from its road's centre in units
+  across; its height its picture's top edge over that road, its board's base its drawn height below it ([its
+  objects](#its-objects), Their places), in units up, a unit up a screen pixel's height over its width of a unit across
+  (6/7), as its pictures are drawn. On a road not drawn they stand at that road's height below the course's, and where
+  it lies above none does; past the road not taken's end none does. A hit (flags' bits 9 and 10, which the program puts
+  in its list of things the car meets) has a body as wide as its picture's colored columns. Objects of the other kinds,
+  which the program moves or picks, are not placed.
 - **Its scale across** is its own car's straight picture's (K, 2026-11-09): its frame 0, 64 colored columns, drawn at
   the zoom its distance gives (M 0x12200, the table at 0x13B000: 102,000 ÷ (d + 600)) over the road's pixels a unit
   there, 600 ÷ (d + 600), is 85.0 units at every distance, so a unit across is 1.76 m ÷ 85.0, 20.7 mm.
@@ -191,8 +193,20 @@ zoomed sprites (`jaleco/zoom-sprites`; [research notes](research/big-run.md#its-
   description untangles them so), the left pixel of a byte its high nibble; pen 15 is not drawn and pen 0 is a shadow
   where the attribute's bit 12 asks for one. A zoom of 128 draws a tile at its size.
 - **Their size.** An object's zoom at distance d (M 0xAB28, the table at 0x11DE00) is 153,000 ÷ (d + 600), times its
-  descriptor's scale over 128 (M 0xB25A to 0xB27E), so a sprite's pixel at scale 128 spans 1.99 units across at every
-  distance, the road's pixels a unit there 600 ÷ (d + 600); its lateral (+8) and height (+A) are scaled as the road's
-  units (M 0xB0F2 to 0xB1A4, the table at 0x122E00).
+  descriptor's scale over 128 (M 0xB25A to 0xB27E: its x and y zooms alike), so a sprite's pixel at scale 128 spans
+  1.992 units at every distance (255 ÷ 128 at 0, where the table's whole numbers round least), the road's pixels a unit
+  there 600 ÷ (d + 600); its lateral (+8) and height (+A) are scaled as the road's units (M 0xB0F2 to 0xB1A4, the table
+  at 0x122E00).
+- **Their places.** BIG RUN's sprites are drawn down from their top edge (MAME's description: its zoomed sprites' y
+  their top edge, CISCO HEAT's their bottom edge, x the left edge of both), and the main program puts a sprite's y at
+  240 less the road's row at its distance and (+A plus `$f604a`) times the road's pixels a unit (M 0xB1A4 to 0xB200): so
+  +A is the height of its picture's top edge over its road, its foot its drawn height below, 16 × its tiles down × 1.992
+  units × its scale down ÷ 128. `$f6048` and `$f604a` sway the pictures each frame (M 0xAC48 to 0xB06A) and are not
+  taken into their places. Each course's objects' bottoms lie at a median of −0.29 to 0.17 m from the road; those more
+  than 1 m above it (44, 32, 8, 220, 1,057 and 110, course by course) are the upper parts of objects drawn in pieces, as
+  the original draws them, a tree's crowns over its trunk, a building's upper floors, a cliff's ledge (SPECIAL STAGE 4's
+  trees, 997 of its 1,057 more than 1 m up); those below it the cliffs hanging from a road's edge, the other road's
+  objects at its own heights, and pictures whose foot the original draws below the road's row, as STARTING RUN's
+  spectators (+A 78 units, drawn 159).
 - **Their colors** are the sprites' palette as the stage loads it: its first 24 entries at boot (M 0x179C), then its
   stage's list from entry 25 (M 0xB884: an entry's words' offset, signed, into the table at M 0xB894 each).

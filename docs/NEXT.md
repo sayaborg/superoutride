@@ -526,8 +526,11 @@ Defaults for K to confirm before the stage closes, each its PR's:
   middle column where its scene loads, the front plane's overlap as when both load together (BR-5).
 - **Its own car's width** (BR-7). Measured again from its frame and zoom tables: 85.0 units, where the study had 71.7
   (its zoom taken twice), so a unit across is 20.7 mm; K adjusts it at the end.
-- **Its objects' places** (BR-7). An object's lateral is its picture's left edge, as the board's sprite is placed by its
-  left edge; its lateral and height in units across; its pen 0, a shadow or a color, transparent.
+- **Its objects' places** (BR-7, BR-7c). An object's lateral is its picture's left edge and its height its top edge, as
+  the program draws its sprite down from it, its board's base its drawn height below; its lateral in units across and
+  its height in units up, a unit up 6/7 of a unit across, as its pictures are drawn at the screen's pixel; a sprite's
+  pixel 1.992 units, the zoom at the nearest distance; its sway (`$f6048`, `$f604a`) not taken; its pen 0, a shadow or a
+  color, transparent.
 - **Its objects' hits** (BR-7). An object in the program's list of things the car meets (flags' bits 9 and 10) has a
   body as wide as its picture's colored columns; how the program meets them is not read.
 - **Objects not placed** (BR-7). Those of kinds other than 0, which the program moves or picks, and those of a sprite
