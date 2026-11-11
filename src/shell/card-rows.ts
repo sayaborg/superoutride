@@ -1,4 +1,4 @@
-import { TEXT_PALETTES } from '../image/text-tiles.js';
+import { TEXT_PALETTES, TEXT_TILE_SIZE } from '../image/text-tiles.js';
 import type { TilePicture } from '../image/tile-picture.js';
 import type { MenuCommand } from '../input/menu-input.js';
 import { lineThinningRanks, newLineCount } from '../view/line-thinning.js';
@@ -27,6 +27,34 @@ const PRESS_START_ROW = 28;
 const BLINK = Object.freeze({ on: 32, off: 16 });
 /** The title logo's top, standing for the main picture until it is made. */
 const LOGO_Y = 16;
+/** The path's row, the frame's last, and its root: the game, the top of every path. */
+const PATH_ROW = 29;
+export const PATH_ROOT = 'SUPER OUTRIDE';
+/** The path's separator and the mark that stands for its part cut on the left. */
+const PATH = Object.freeze({ separator: '>', cut: '..' });
+
+/**
+ * The path's line for `levels` (the choices above the row, from the root) and the card in focus, in full, as the text
+ * grid's `columns` hold it: longer, its left is cut and marked. Its parts in order, each with what it is.
+ */
+export function pathLine(
+  levels: readonly string[],
+  focus: string,
+  columns = 40,
+): readonly { readonly text: string; readonly part: 'cut' | 'levels' | 'focus' }[] {
+  const head = levels.map((level) => level + PATH.separator).join('');
+  if (head.length + focus.length <= columns)
+    return [
+      { text: head, part: 'levels' },
+      { text: focus, part: 'focus' },
+    ].filter((piece) => piece.text.length > 0) as { text: string; part: 'levels' | 'focus' }[];
+  const room = columns - PATH.cut.length - focus.length;
+  return [
+    { text: PATH.cut, part: 'cut' },
+    ...(room > 0 ? [{ text: head.slice(head.length - room), part: 'levels' as const }] : []),
+    { text: room >= 0 ? focus : focus.slice(-room), part: 'focus' },
+  ];
+}
 
 /** A card of a row: its face, and what UP/DOWN and CONFIRM do on it. */
 export interface Card {
@@ -55,6 +83,8 @@ export interface CardRow {
   readonly cards: readonly Card[];
   /** The card in focus when the row is shown. */
   readonly initial: number;
+  /** The choices above the row, from `PATH_ROOT`: the path the bottom row shows before the card in focus. */
+  readonly path?: readonly string[];
   /** BACK's action and what it did; absent does nothing. */
   back?(): MenuResponse | null;
   /** The row has rested on the card `index` for `CARD_STEPS.rest`. */
@@ -207,8 +237,8 @@ export function createCardRows(
         writeCentred(text, PRESS_START_ROW, 'PRESS START', TEXT_PALETTES.YELLOW);
       return text.draw(target);
     }
-    if (row.kind === 'series')
-      return drawPlaneRow(
+    if (row.kind === 'series') {
+      drawPlaneRow(
         target,
         planeRow(row),
         index,
@@ -216,6 +246,8 @@ export function createCardRows(
         ZOOM_CENTRE,
         shiftOf(motion, SERIES_PITCH * SERIES_SCALE),
       );
+      return drawPath(target, shown);
+    }
     const shift = shiftOf(motion, CARD.pitch),
       count = row.cards.length;
     for (let offset = -2; offset <= 2; offset++) {
@@ -231,6 +263,26 @@ export function createCardRows(
         CARD.y,
       );
     }
+    drawPath(target, shown);
+  };
+  // The path's row: a plain band across the frame, the path over it, the card in focus last in YELLOW.
+  const drawPath = (target: SoftwareSurface, shown: View) => {
+    const levels = shown?.row.path;
+    if (!shown || !levels) return;
+    target.pixels.fill(
+      CARD.ground,
+      PATH_ROW * TEXT_TILE_SIZE * target.width,
+      (PATH_ROW + 1) * TEXT_TILE_SIZE * target.width,
+    );
+    text.clear();
+    let column = 0;
+    for (const piece of pathLine(levels, shown.row.cards[shown.index]?.name ?? '')) {
+      const palette =
+        piece.part === 'focus' ? TEXT_PALETTES.YELLOW : piece.part === 'cut' ? TEXT_PALETTES.DARK : TEXT_PALETTES.WHITE;
+      text.write(column, PATH_ROW, piece.text, palette);
+      column += piece.text.length;
+    }
+    text.draw(target);
   };
 
   const screen: Screen & {
@@ -289,6 +341,7 @@ export function createCardRows(
         const t = easeInOut(motion.steps / CARD_STEPS.zoom),
           scale = motion.to === 1 ? SERIES_SCALE + (1 - SERIES_SCALE) * t : 1 - (1 - SERIES_SCALE) * t;
         drawPlaneRow(frame, planeRow(motion.row), motion.index, scale, ZOOM_CENTRE, 0);
+        drawPath(frame, { row: motion.row, index: motion.index });
       } else if (motion?.kind === 'thin') {
         const title = (shown: View) => shown?.row.kind === 'title';
         drawWorld(frame, world, title(motion.from));

@@ -17,7 +17,7 @@ import { isFreePlay, latestTrack, recordedColor, type RunRequest } from './run-r
 import type { Screen } from './screen-host.js';
 import { clearRecordCards, settingCards } from './settings-screens.js';
 import type { CardFaces } from './card-face.js';
-import { createCardRows, type Card, type CardRow, type MainWorld, type RowChange } from './card-rows.js';
+import { createCardRows, PATH_ROOT, type Card, type CardRow, type MainWorld, type RowChange } from './card-rows.js';
 
 /** MAIN MENU's cards, in order, by the player record's key for them. */
 const MENU = Object.freeze(['SERIES', 'FREE PLAY', 'SETTINGS'] as const);
@@ -136,6 +136,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     row({
       kind: 'cards',
       world: null,
+      path: [PATH_ROOT],
       initial: MENU.indexOf(menu),
       cards: MENU.map((choice): Card => ({
         name: choice,
@@ -156,6 +157,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     row({
       kind: 'series',
       world: null,
+      path: [PATH_ROOT, 'SERIES'],
       initial: at(selectable, (s) => s.id === (seriesChoice?.id ?? latest('series'))),
       cards: selectable.map((entry): Card => ({
         name: entry.name,
@@ -188,6 +190,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     return row({
       kind: 'cards',
       world: worldOf(chosen),
+      path: [PATH_ROOT, 'SERIES', chosen.title],
       initial: at(chosen.classes, (c) => c.id === (classChoice?.id ?? latest('class'))),
       cards: chosen.classes.map((c): Card => ({
         name: c.title,
@@ -223,6 +226,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     row({
       kind: 'cards',
       world: null,
+      path: [PATH_ROOT, 'FREE PLAY'],
       cards: [
         rule(
           'RIVALS',
@@ -251,6 +255,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     row({
       kind: 'cards',
       world: null,
+      path: [PATH_ROOT, 'FREE PLAY', 'RULES'],
       initial: at(groups, (g) => g.title === (group ?? frontEnd.groupOf(courseId ?? latest('course') ?? ''))?.title),
       cards: groups.map((g): Card => ({
         name: g.title,
@@ -267,6 +272,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     row({
       kind: 'cards',
       world: null,
+      path: [PATH_ROOT, 'FREE PLAY', 'RULES', group!.title],
       initial: at(group!.courses, (id) => id === (courseId ?? latest('course'))),
       cards: group!.courses.map((id): Card => ({
         name: courseOf(id).name,
@@ -291,6 +297,9 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     return row({
       kind: 'cards',
       world: runClass ? worldOf(runClass.series) : null,
+      path: runClass
+        ? [PATH_ROOT, 'SERIES', runClass.series.title, runClass.title]
+        : [PATH_ROOT, 'FREE PLAY', 'RULES', group!.title, courseOf(courseId!).name],
       initial: at(candidates, (v) => v.compiledVehicle.id === (vehicleId ?? latest('vehicle'))),
       cards: candidates.map((v): Card => {
         const { manufacturer, model } = v.listing.metadata;
@@ -357,13 +366,21 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         clearRecords: () => go(clearRow(), 'thin'),
       },
     );
-    return row({ kind: 'cards', world: null, initial, cards, back: () => (go(menuRow(), 'thin'), 'back') });
+    return row({
+      kind: 'cards',
+      world: null,
+      path: [PATH_ROOT, 'SETTINGS'],
+      initial,
+      cards,
+      back: () => (go(menuRow(), 'thin'), 'back'),
+    });
   };
   const settingsAt = (name: string) => settingsRow(10 + Number(name === 'CLEAR RECORDS'));
   const controlsRow = (): CardRow =>
     row({
       kind: 'cards',
       world: null,
+      path: [PATH_ROOT, 'SETTINGS'],
       cards: [{ name: 'CONTROLS' }],
       back: () => (go(settingsAt('CONTROLS'), 'thin'), 'back'),
     });
@@ -371,6 +388,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     row({
       kind: 'cards',
       world: null,
+      path: [PATH_ROOT, 'SETTINGS', 'CLEAR RECORDS'],
       cards: clearRecordCards(player, () => go(settingsAt('CLEAR RECORDS'), 'thin')),
       back: () => (go(settingsAt('CLEAR RECORDS'), 'thin'), 'back'),
     });

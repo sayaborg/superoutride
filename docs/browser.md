@@ -142,8 +142,8 @@ record's latest choice (keys `menu`, `series`, `class`, `course` and `vehicle`; 
 course's group), else its first card; each CONFIRM saves its choice as the latest. The courses FREE PLAY offers are
 those the offered series run, and with `dev=1` every delivered course.
 
-A card is 28×21 tiles (224×168 pixels) at 1:1. At rest the card in focus stands at x 48 (column 6) and y 32 (row 4;
-the frame's centre is y 36, which would put the card's text off the 8×8 grid, a default K is to confirm), its
+A card is 28×21 tiles (224×168 pixels) at 1:1. At rest the card in focus stands at x 48 (column 6) and y 32 (row 4),
+four rows clear above and below it over the path's row, which balances it in the frame (K, 2026-11-11), its
 neighbours 29 tiles (232 pixels) away on either side, the tile between and everything outside the cards showing the
 world behind them; cards cast no shadow (K, 2026-11-08). Until the cards are designed each shows, over a bright
 1-pixel edge and a dark ground, its name in the ornate large font's SUNSET style, in two lines when it is longer than 26
@@ -160,6 +160,13 @@ characters, and one line in WHITE (K, 2026-11-09):
 | SETTINGS        | the setting                 | the value (none for CONTROLS and CLEAR RECORDS)                      |
 | CONTROLS        | CONTROLS                    | none                                                                 |
 | CLEAR RECORDS?  | NO, YES                     | `CLEAR RECORDS?`                                                     |
+
+Every row but TITLE shows its path on the frame's last row (K, 2026-11-11), as a folder's: from SUPER OUTRIDE, the
+names chosen down to the row and the card in focus, each in full and joined by `>` (`SUPER
+OUTRIDE>SERIES>ARCADE TRIBUTE - OUTRUN>OUTRUN A>FERRARI TESTAROSSA`), in WHITE but the card in focus in YELLOW, over a
+plain band in the cards' ground. A path longer than the row's 40 columns is cut on its left and begins with `..` in
+DARK, the card in focus always whole; a font of 4×8 pixels may hold it all later, two characters to a tile written by
+the CPU. A row's path goes with it: it thins in and out with the row and stays through the zoom into a series.
 
 A card that offers nothing is dimmed, painted with its palettes at half brightness, and denies CONFIRM (`menu-deny`).
 SELECT SERIES shows the series pictures of the front end selection, 40×30 tiles, on the one scaled plane at 0.7, the

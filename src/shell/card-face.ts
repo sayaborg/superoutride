@@ -4,9 +4,17 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 
 /**
  * A card: 28×21 tiles (224×168 pixels) shown at 1:1, the one in focus standing at x 48 (column 6) and y 32 (row 4) at
- * rest, its neighbours one card and one clear tile away (K, 2026-11-09; the row, y 32, a default K is to confirm).
+ * rest, four rows clear above it and below it over the path's row (K, 2026-11-09 and 2026-11-11), its neighbours one
+ * card and one clear tile away. Its ground is a dark RGB555 color, provisional until the cards are designed.
  */
-export const CARD = Object.freeze({ columns: 28, rows: 21, x: 48, y: 32, pitch: 29 * TEXT_TILE_SIZE });
+export const CARD = Object.freeze({
+  columns: 28,
+  rows: 21,
+  x: 48,
+  y: 32,
+  pitch: 29 * TEXT_TILE_SIZE,
+  ground: (2 << 10) | (2 << 5) | 4,
+});
 const WIDTH = CARD.columns * TEXT_TILE_SIZE,
   HEIGHT = CARD.rows * TEXT_TILE_SIZE;
 /** The name's columns: the card's less a tile either side; a longer name breaks into two lines. */
@@ -14,8 +22,6 @@ const NAME_COLUMNS = CARD.columns - 2;
 /** The name's top rows, for one line and for two, and the one line's row. */
 const NAME_ROWS = Object.freeze({ one: [8], two: [6, 9] });
 const LINE_ROW = 13;
-/** The card's ground: a dark RGB555 color, provisional until the cards are designed. */
-const GROUND = (2 << 10) | (2 << 5) | 4;
 
 /** What a card shows until the cards are designed (K, 2026-11-09): its name and one line, and whether it is dimmed. */
 export interface CardFace {
@@ -52,7 +58,7 @@ export function createCardFaces(tiles: TextTiles) {
   };
   const centred = (line: string) => Math.floor((CARD.columns - line.length) / 2);
   const paint = (face: CardFace) => {
-    const pixels = new Uint16Array(WIDTH * HEIGHT).fill(GROUND);
+    const pixels = new Uint16Array(WIDTH * HEIGHT).fill(CARD.ground);
     const edge = tiles.mainColor(TEXT_PALETTES.WHITE);
     for (let x = 0; x < WIDTH; x++) pixels[x] = pixels[(HEIGHT - 1) * WIDTH + x] = edge;
     for (let y = 0; y < HEIGHT; y++) pixels[y * WIDTH] = pixels[y * WIDTH + WIDTH - 1] = edge;
