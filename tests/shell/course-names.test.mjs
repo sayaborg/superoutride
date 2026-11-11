@@ -17,7 +17,7 @@ import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { createTextLayer, TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
-import { createCourseMap } from '../../src/view/course-map.js';
+import { createCourseMap } from '../../src/course/course-map.js';
 import { CARD, cardNameLines, createCardFaces } from '../../src/shell/card-face.js';
 import { createPreRaceScreen, preRaceCardOf } from '../../src/shell/prerace-screen.js';
 import { writeHud } from '../../src/shell/run-hud.js';
