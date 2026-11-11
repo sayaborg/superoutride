@@ -20,7 +20,6 @@ import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
 import { createMenuMusic } from './menu-music.js';
 import { attractClasses, createAttractDemo } from './attract-demo.js';
 import { createPreRaceScreen, preRaceCardOf } from './prerace-screen.js';
-import { createCourseMap } from '../course/course-map.js';
 import { createRunVehicle, runVehicleSha256 } from '../content/run-vehicle.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
@@ -260,7 +259,7 @@ async function startPage(): Promise<void> {
         const state = createRunScreenState(() => host.refresh());
         const assembled = await assembleRun(page, next, state, {
           progress: (fraction) => card.progress(fraction),
-          prepared: ({ course, ...facts }) => card.facts({ map: createCourseMap(course), ...facts }),
+          prepared: (facts) => card.facts(facts),
         });
         run = assembled;
         card.loaded();

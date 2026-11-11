@@ -17,7 +17,6 @@ import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
 import { createTextLayer, TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
-import { createCourseMap } from '../../src/course/course-map.js';
 import { CARD, cardNameLines, createCardFaces } from '../../src/shell/card-face.js';
 import { createPreRaceScreen, preRaceCardOf } from '../../src/shell/prerace-screen.js';
 import { writeHud } from '../../src/shell/run-hud.js';
@@ -145,7 +144,7 @@ test('a course name as long as the course texts admit fits every screen that sho
     preRaceCardOf(request, series, courses),
     () => {},
   );
-  card.facts({ map: createCourseMap(course), field: 16, bikes: false, slot: 16, best: null });
+  card.facts({ field: 16, bikes: false, slot: 16, best: null });
   card.screen.render();
   const line = alone(writes, name);
   assert.ok(line.row * 8 + 7 < 136 || line.row * 8 > 232, `the name on row ${line.row} crosses the map`);
