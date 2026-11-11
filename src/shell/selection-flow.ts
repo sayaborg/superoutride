@@ -16,6 +16,7 @@ import type { PlayerRecord, VolumeName } from './player-record.js';
 import { isFreePlay, latestTrack, recordedColor, type RunRequest } from './run-request.js';
 import type { Screen } from './screen-host.js';
 import { clearRecordCards, settingCards } from './settings-screens.js';
+import type { CompetitorObservation } from '../race/competitor-observation.js';
 import type { CardFaces } from './card-face.js';
 import { createCardRows, PATH_ROOT, type Card, type CardRow, type MainWorld, type RowChange } from './card-rows.js';
 import type { CardPage } from './card-face.js';
@@ -61,6 +62,8 @@ export interface SelectionDevices {
   activate(): void;
   /** The attract demo behind the main picture. */
   readonly demo: Omit<MainWorld, 'logo'>;
+  /** Sound the engine a vehicle's card revs, as the player's. */
+  engine(engine: CompetitorObservation): void;
   /** Request the selected run; `back` returns to the row that requested it. */
   run(request: RunRequest, back: () => void): void;
   setVolume(name: VolumeName, percent: number): void;
@@ -410,6 +413,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     devices.faces,
     { ...devices.demo, logo: catalog.logo },
     titleRow(),
+    devices.engine,
   );
   const go = (next: CardRow, change: RowChange) => screen.go(next, change);
   // Enter the selection at `next` from outside: the page's start, or a run.

@@ -666,8 +666,7 @@ line until the cards are designed. What follows goes to K first:
   ([card styles](browser.md#card-styles)): when K has chosen, the others, SETTINGS' CARD DESIGN and the C key go, the
   small print becomes a text-tile font, and the SELECT VEHICLE screen no row shows since GD-5 (`vehicle-screen.ts` and
   its pages) goes with them. To follow in the chosen design: SERIES (its description, researched and rewritten as K
-  asked), each vehicle's description (the same), RULES, SETTINGS and CONTROLS; the vehicle card's engine sound (K: it
-  is to sound); a class's record with GD-6. For K: a series whose classes share a course (TSUKUBA CLUBMAN) shows the
+  asked), each vehicle's description (the same), RULES, SETTINGS and CONTROLS; a class's record with GD-6. For K: a series whose classes share a course (TSUKUBA CLUBMAN) shows the
   same course card for each, told apart by the path's row alone; and, as K's prototype offered, a course without laps
   drawn as its stages' heights rather than from above.
 - **The main picture:** K's 40×30 picture, whose clear parts show the attract demo; until it comes the title logo
