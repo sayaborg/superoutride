@@ -39,7 +39,7 @@ const clubPicture = delivered.seriesRow(true)[clubAt].picture;
 // A selection over the delivered content, its devices recording what the rows asked for. `frontEnd` may add a series
 // without a document beside the delivered one.
 function selection({ dev = true, frontEnd = delivered } = {}) {
-  const log = { music: [], runs: [], shown: 0 };
+  const log = { music: [], runs: [], shown: 0, engines: [] };
   const flow = createSelectionFlow(
     {
       courses,
@@ -62,6 +62,7 @@ function selection({ dev = true, frontEnd = delivered } = {}) {
       show: () => log.shown++,
       activate: () => {},
       demo: { draw: () => false, tick: () => {}, enter: () => {}, leave: () => {} },
+      engine: (engine) => log.engines.push(engine.powertrain.engineRpm),
       run: (request, back) => log.runs.push({ request, back }),
       setVolume: () => {},
       audition: () => () => {},
@@ -109,8 +110,16 @@ test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK 
   );
   assert.equal(screen.row.world, clubPicture);
   assert.equal(screen.wallpaper, screen.row.world);
+  // A course's card is silent; a vehicle's, at rest in focus, revs its engine and is heard.
+  for (let i = 0; i < 100; i++) screen.tick();
+  assert.ok(!screen.vehicleDriven && log.engines.length === 0);
   assert.equal(send('CONFIRM'), 'confirm');
   assert.equal(screen.row.cards.length, club.classes[0].vehicles.length);
+  assert.ok(!screen.vehicleDriven);
+  for (let i = 0; i < 150; i++) screen.tick();
+  assert.ok(screen.vehicleDriven);
+  assert.equal(log.engines.length, 150);
+  assert.ok(log.engines.at(-1) > 2 * log.engines[0], 'full throttle from 1.5 s');
   assert.equal(send('CONFIRM'), 'entry');
   const [{ request }] = log.runs;
   assert.deepEqual(

@@ -68,6 +68,7 @@ test('the front end screens render from the delivered content', async () => {
       show: (next) => (host ? host.show(next) : (screen = next)),
       activate: () => {},
       demo: { draw: () => false, tick: () => {}, enter: () => {}, leave: () => {} },
+      engine: () => {},
       setVolume: () => {},
       audition: () => () => {},
       music: { play: () => {}, fadeOut: () => {} },

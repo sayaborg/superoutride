@@ -1,4 +1,9 @@
 import { TEXT_PALETTES } from '../image/text-tiles.js';
+import {
+  createCompetitorObservation,
+  writeCompetitorPowertrain,
+  type CompetitorObservation,
+} from '../race/competitor-observation.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -154,21 +159,22 @@ function drawGraph(
 }
 
 /**
- * The engine's speed in each fixed step of its free revving: its model, as a run builds it, held and revved by
- * `FREE_REV` from idle for two of its turns; the second repeats from then on.
+ * The engine at the end of each fixed step of its free revving, its controls and powertrain as an observation copies
+ * them: its model, as a run builds it, held and revved by `FREE_REV` from idle for two of its turns; the second repeats
+ * from then on.
  */
-function freeRevs(vehicle: CompiledVehicleDefinition, driving: CompiledDrivingDefinition): Float64Array {
+function freeRevs(vehicle: CompiledVehicleDefinition, driving: CompiledDrivingDefinition) {
   const model = createVehicleModel({ vehicleDefinition: vehicle, drivingDefinition: driving }, SIM_DT);
-  const engine = createHeldVehicle(model),
-    revs = new Float64Array(2 * FREE_REV.steps);
-  for (let step = 0; step < revs.length; step++) {
+  const engine = createHeldVehicle(model);
+  return Array.from({ length: 2 * FREE_REV.steps }, (_, step) => {
     let throttle = 0;
     for (const entry of FREE_REV.throttle) if (entry.step <= step % FREE_REV.steps) throttle = entry.throttle;
     updateHeldVehicle(engine, model, { steering: 0, throttle, brake: 0 });
-    revs[step] = engine.powertrain.engineRpm;
-  }
-  return revs;
+    return Object.freeze({ control: { ...engine.control }, powertrain: { ...engine.powertrain } });
+  });
 }
+/** The free revving's step `steps` after its start: the second turn repeats. */
+const freeRevStep = (steps: number) => (steps < FREE_REV.steps ? steps : FREE_REV.steps + (steps % FREE_REV.steps));
 
 /** How the card shows the vehicle's color: its name, and whether UP and DOWN may change it. */
 export interface VehicleCardColor {
@@ -254,7 +260,8 @@ function vehicleParts(vehicle: CompiledVehicleDefinition, shown: VehicleCardColo
  * (YELLOW) over 20 % to 110 % of its redline; its engine, power and torque with their speeds (their labels in their
  * curves' colors, the graph's legend), redline, mass, power to mass, gears with the final drive, and drive; its model
  * year, type, length, width, height, wheelbase, weight on the front and rear wheels and speed at redline in top gear; and
- * its color, between `▲` and `▼` when UP and DOWN change it.
+ * its color, between `▲` and `▼` when UP and DOWN change it. At rest in focus its picture turns and its engine revs,
+ * and is heard (K, 2026-11-12).
  */
 export function vehicleCard(
   vehicle: CompiledVehicleDefinition,
@@ -267,7 +274,8 @@ export function vehicleCard(
   // The pictures in the shown color and the free revving, each made when first needed; and each painted face's
   // picture, with its fit and ground, and graph.
   let images: VehicleSpriteImages | null = null,
-    revs: Float64Array | null = null;
+    revs: ReturnType<typeof freeRevs> | null = null,
+    heard: CompetitorObservation | null = null;
   const painted: ({
     picture: { box: PixelBox; ground: number; fit: ReturnType<typeof pictureFit> } | null;
     graph: ReturnType<typeof graphOf> | null;
@@ -321,7 +329,7 @@ export function vehicleCard(
       }
       if (!graph) return;
       revs ??= freeRevs(vehicle, driving);
-      const rpm = revs[steps < FREE_REV.steps ? steps : FREE_REV.steps + (steps % FREE_REV.steps)]!,
+      const rpm = revs[freeRevStep(steps)]!.powertrain.engineRpm,
         at = Math.round(graph.xOf(rpm));
       if (rpm < GRAPH.first * graph.redline || at > graph.right) return;
       for (let row = graph.top; row <= graph.bottom; row++) target.setPixel(x + at, y + row, inks.line);
@@ -333,6 +341,13 @@ export function vehicleCard(
         for (let row = mark - MARK_REACH; row <= mark + MARK_REACH; row++)
           target.fillSpan(y + row, x + at - MARK_REACH, x + at + MARK_REACH, color);
       }
+    },
+    // The revving engine's observation, in the player's place, at rest but for its controls and powertrain.
+    sound(steps: number) {
+      revs ??= freeRevs(vehicle, driving);
+      heard ??= createCompetitorObservation('PLAYER', vehicle.compiledVehicle.id, shown.color, vehicle.listing.form);
+      writeCompetitorPowertrain(heard, revs[freeRevStep(steps)]!, (steps + 1) * SIM_DT);
+      return heard;
     },
   });
 }

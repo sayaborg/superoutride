@@ -5,6 +5,7 @@ import { lineThinningRanks, newLineCount } from '../view/line-thinning.js';
 import { drawPlaneRow, fixedPoint, type PlaneRow } from '../view/scaled-plane.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
+import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { CARD, type CardFaces, type CardPage } from './card-face.js';
 import { SCREEN_BACKGROUND, writeCentred } from './menu.js';
 import type { MenuResponse, Screen } from './screen-host.js';
@@ -163,6 +164,7 @@ export function createCardRows(
   faces: CardFaces,
   main: MainWorld,
   initial: CardRow,
+  sound: (engine: CompetitorObservation) => void,
 ) {
   let world: TilePicture | null = initial.world,
     view: View = viewOf(initial),
@@ -173,6 +175,11 @@ export function createCardRows(
     focused: Card | null = null,
     blink = 0;
   const scratch = new Uint16Array(frame.pixels.length);
+  // What is heard of the card in focus at rest: its page's sound.
+  const heard = () => {
+    const page = motions.length === 0 && rest > 0 ? unitOf(view)?.page?.() : undefined;
+    return page?.sound?.bind(page);
+  };
   const settle = () => {
     const card = motions.length === 0 ? unitOf(view) : undefined;
     if (card === focused) return;
@@ -341,6 +348,10 @@ export function createCardRows(
     readonly resting: boolean;
   } = {
     live: false,
+    /** A vehicle's card at rest in focus revs its engine, which is heard. */
+    get vehicleDriven() {
+      return heard() !== undefined;
+    },
     get wallpaper() {
       return motions.length === 0 ? world : null;
     },
@@ -384,6 +395,8 @@ export function createCardRows(
       }
       settle();
       if (view && ++rest === CARD_STEPS.rest) view.row.rested?.(view.index);
+      const engine = heard();
+      if (engine) sound(engine(rest));
       return null;
     },
     render() {
