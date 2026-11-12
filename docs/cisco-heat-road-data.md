@@ -62,7 +62,14 @@ Each line of a road layer is a line of the road ROMs, BIG RUN's format (`jaleco/
 (+0x16, its kind) is picked as its road CPU picks it (`cisco-heat-road-picture`, R1 and R2 0x198C to 0x19A6): its
 nearest line the word its line-kind table gives the kind (R1 0x2848, R2 0x284C), 294 more below kind 0x14, a picture of
 291 lines; from 0x14 on, one line. Its stages take kinds 0 to 14 (lines 294 to 2,040) and 20 to 24 (lines 2,041 to
-2,043). The run at a line's centre is a lane line (pen 8, as at ±142 units), its surface pen 6 about it.
+2,043). A line's runs are painted as BIG RUN's but for its surface (`ciscoHeatPaints`, `widestSurface`): the run at its
+centre is a lane line, so its surface is the pen its runs cover most of it with between its two end runs, pen 6 in its
+pictures of kinds 0 to 8 and 12 and pen 8 in kind 14's, striped with pen 14; BIG RUN's rule, the run at the centre, is
+kept for BIG RUN, 346 of whose 2,048 lines another pen covers more. Its lanes are taken by [the lanes over two
+roads](original-road-data.md#two-roads) from its most common picture, kind 2's nearest line (`ciscoHeatLanePicture`):
+lane lines at 0 and ±142 units, edge lines at ±258 and its kerbs and verges out to ±408, so four lanes of 116, 142, 142
+and 116 units, the ground beyond 408; kinds 0 to 8 draw the same lanes, kind 12's and 14's lines are patterned, and
+kinds 20 to 24 are one line each, blank, all surface or clear.
 
 ## Its camera
 

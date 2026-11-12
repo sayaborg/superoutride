@@ -613,6 +613,9 @@ Defaults for K to confirm before the stage closes, each its PR's:
   alike either side at which the curvature they add up to keeps the lanes' least radius; a jump between straights is
   the case of it the rule laid before. It lays STAGE 5's 20° jump of both roads at 351,908, after an arc of 65,000
   positions; no other original's reading changes.
+- **Its lanes** (CS-3k). Its two roads keep the lanes of its most common picture, kind 2's, wherever they go, as BIG
+  RUN's keep its town's: four lanes of 116, 142, 142 and 116 units, its lines' surface the pen they cover most, as the
+  run at their centre is a lane line ([its road across](cisco-heat-road-data.md#its-road-across)).
 - **Each way's slide** (CS-2). A plane slides by its slide's whole pixels, a pixel more one way than the other (the
   front 15 and 16, the back 7 and 8): their mean.
 - **The steps along a scene** (CS-2). Not laid, as BIG RUN's: a sky lays its scene's own row offset.

@@ -46,14 +46,31 @@ export interface PaintedRun extends PenRun {
   readonly paint: RunPaint;
 }
 
+/** A line's surface's pen, BIG RUN's: the pen of the run at its centre. */
+export const centreSurface = (runs: readonly PenRun[]): number | null => runs.find((r) => r.from <= 0 && r.to > 0)!.pen;
+
 /**
- * A line's runs with their paints: the run at its centre is its surface, and so is every run of that pen; the runs
- * between the outermost of them are lines; from those out to the runs that reach the line's ends, edges; those two
- * runs the ground, or clear. A line of one run is all surface.
+ * A line's surface's pen, CISCO HEAT's: the pen its runs cover most of the line with between its two end runs, the run
+ * at its centre a lane line; the centre's, a line of one or two runs.
  */
-export function paintedRuns(runs: readonly PenRun[]): PaintedRun[] {
-  const centre = runs.find((r) => r.from <= 0 && r.to > 0)!;
-  const surface = centre.pen;
+export function widestSurface(runs: readonly PenRun[]): number | null {
+  const width = new Map<number, number>();
+  for (const r of runs.slice(1, -1)) if (r.pen !== null) width.set(r.pen, (width.get(r.pen) ?? 0) + r.to - r.from);
+  let [pen, most] = [centreSurface(runs), 0];
+  for (const [p, w] of width) if (w > most) [pen, most] = [p, w];
+  return pen;
+}
+
+/**
+ * A line's runs with their paints: its surface's pen (`surface`, the run at its centre's by default) is its surface's
+ * runs; the runs between the outermost of them are lines; from those out to the runs that reach the line's ends,
+ * edges; those two runs the ground, or clear. A line of one run is all surface.
+ */
+export function paintedRuns(
+  runs: readonly PenRun[],
+  surfaceOf: (runs: readonly PenRun[]) => number | null = centreSurface,
+): PaintedRun[] {
+  const surface = surfaceOf(runs);
   const first = runs.findIndex((r) => r.pen === surface);
   const last = runs.length - 1 - [...runs].reverse().findIndex((r) => r.pen === surface);
   return runs.map((r, k) => ({

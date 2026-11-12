@@ -1,11 +1,12 @@
 /**
  * CISCO HEAT's road pictures ([CISCO HEAT road data](../../../docs/cisco-heat-road-data.md#its-road-across)): a plan
- * record's picture, its nearest line of the road ROMs (`jaleco/road-lines`), as its road CPU picks it; the table found
- * by the instruction that reads it.
+ * record's picture, its nearest line of the road ROMs (`jaleco/road-lines`), as its road CPU picks it, and its lines'
+ * paints, their surface the pen they cover most; the table found by the instruction that reads it.
  */
 import { instruction, word } from '../cpu/program-words.js';
 import { romDiffers } from '../shared/conversion-errors.js';
-import { LINES } from '../jaleco/road-lines.js';
+import { LINES, lineRuns, paintedRuns, roadPictureOf, widestSurface, type PaintedRun } from '../jaleco/road-lines.js';
+import type { RoadPicture } from '../shared/two-roads.js';
 
 /** The kinds below which a picture's lines lie past the one-line pictures (R1 and R2 0x199A: cmpi.w #$14). */
 const MANY_LINES = 0x14;
@@ -28,3 +29,14 @@ export function nearestLine(program: Uint8Array, kind: number): number {
   if (!(kind % 2 === 0 && line < LINES)) throw romDiffers(`A plan record's picture ${kind} lies past the road ROMs`);
   return line;
 }
+
+/** A line's painted runs, its surface the pen its runs cover most of it with (`widestSurface`), its centre a lane line. */
+export const ciscoHeatPaints = (rom: Uint8Array, line: number): PaintedRun[] =>
+  paintedRuns(lineRuns(rom, line), widestSurface);
+
+/** The kind of its most common picture, whose lanes its two roads keep wherever they go: four lanes and its kerbs. */
+export const LANES_KIND = 2;
+
+/** The picture its lanes are taken from: `LANES_KIND`'s nearest line in `program`, a road CPU's, painted. */
+export const ciscoHeatLanePicture = (program: Uint8Array, rom: Uint8Array): RoadPicture =>
+  roadPictureOf(ciscoHeatPaints(rom, nearestLine(program, LANES_KIND)));
