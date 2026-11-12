@@ -6,7 +6,7 @@ import {
   ownCarUnits,
   spritePalette,
 } from '../../tools/road-data/big-run/big-run-objects.ts';
-import { bigRunBoards } from '../../tools/road-data/big-run/big-run-boards.ts';
+import { bigRunBoards, boardUses } from '../../tools/road-data/big-run/big-run-boards.ts';
 import { spritePen } from '../../tools/road-data/jaleco/zoom-sprites.ts';
 import { rgb555Of } from '../../tools/road-data/jaleco/palette.ts';
 
@@ -96,19 +96,35 @@ test("the own car's width is its frame's colored columns at its zoom over the ro
   assert.ok(Math.abs(ownCarUnits(main, pen) - (58 * 85) / 128 / 0.5) < 1e-9);
 });
 
-test("a board is its descriptor's sprite in its palette entry, mirrored as its object asks, pens 0 and 15 clear", () => {
-  const main = new Uint8Array(0x140000);
-  const { put } = writer(main);
-  put(0xb07a, [0x43f9, 0x0012, 0x7e00]);
-  put(0x127e00 + 12, [0x8000, 0x8000, 0x00, 0x0002, 0, 0x1de0]);
+test('a board is its sprite in its palette entry, mirrored as its object asks, pens 0 and 15 clear', () => {
   const rom = new Uint8Array(128 * 4);
   // Tile 2: column 3 pen 5 in every row; column 4 pen 0.
   for (let y = 0; y < 16; y++) rom[2 * 128 + 4 * y + 1] = 0x05;
   const palettes = [{ name: 'p040', colors: Array.from({ length: 16 }, (_, p) => p * 100) }];
-  const [board] = bigRunBoards(main, rom, [{ descriptor: 12, mirrored: false, palettes }], 0.05, 1);
+  const sprite = { name: 'bigrun-000c', tile: 2, across: 1, down: 1, xScale: 1, yScale: 1, mirrored: false };
+  const [board] = bigRunBoards(rom, [{ ...sprite, palettes }], 0.05, 1);
   assert.equal(board.name, 'bigrun-000c');
   assert.ok(Math.abs(board.colored[0] - 3 * 0.05) < 1e-9 && Math.abs(board.colored[1] - 4 * 0.05) < 1e-9);
-  const [mirrored] = bigRunBoards(main, rom, [{ descriptor: 12, mirrored: true, palettes }], 0.05, 1);
-  assert.equal(mirrored.name, 'bigrun-000c-mirrored');
+  const [mirrored] = bigRunBoards(rom, [{ ...sprite, name: 'mirrored', mirrored: true, palettes }], 0.05, 1);
   assert.ok(Math.abs(mirrored.colored[0] - 12 * 0.05) < 1e-9);
+  const [half] = bigRunBoards(rom, [{ ...sprite, xScale: 0.5, palettes }], 0.05, 1);
+  assert.ok(Math.abs(half.colored[0] - 3 * 0.025) < 1e-9);
+});
+
+test("boards' uses keep one palette a set of colors, named by its entry and, where colors differ, its stage", () => {
+  const uses = boardUses();
+  const sprite = { name: 'b', tile: 0, across: 1, down: 1, xScale: 1, yScale: 1, mirrored: false };
+  const red = Array.from({ length: 16 }, () => 1);
+  const blue = Array.from({ length: 16 }, () => 2);
+  uses.add(sprite, 0, 40, red);
+  uses.add(sprite, 1, 40, red);
+  uses.add(sprite, 2, 40, blue);
+  uses.add(sprite, 2, 41, red);
+  assert.deepEqual(
+    uses.uses()[0].palettes.map((p) => p.name),
+    ['p040', 'p040-2'],
+  );
+  assert.equal(uses.paletteOf('b', 1, 40), 'p040');
+  assert.equal(uses.paletteOf('b', 2, 40), 'p040-2');
+  assert.equal(uses.paletteOf('b', 2, 41), 'p040');
 });

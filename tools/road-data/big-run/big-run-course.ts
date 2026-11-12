@@ -15,7 +15,7 @@ import { micrometre } from '../shared/section-writing.js';
 import { bakeSky, sectionYawOrigin, skyYawOrigin } from '../shared/sky-baking.js';
 import { lanesOverTwoRoads } from '../shared/two-roads.js';
 import { layBoardCourse, type BoardSkyKnot } from '../jaleco/board-course.js';
-import { bigRunBoards, boardName } from './big-run-boards.js';
+import { bigRunBoards, boardUses } from './big-run-boards.js';
 import { bigRunDescriptor, bigRunObjects, ownCarUnits, spritePalette, type BigRunObject } from './big-run-objects.js';
 import { SPRITE_TILE, spritePen } from '../jaleco/zoom-sprites.js';
 import { BIG_RUN_SKIES, STAGES } from './big-run-backgrounds.js';
@@ -175,13 +175,20 @@ export function bigRunCourses(set: RomSet) {
   const unitMetres = spritePixelUnits(main) * ACROSS;
   // Its objects' boards: one a descriptor and mirroring over every stage, a palette each set of its colors a stage's
   // sprites' palette gives the entry its objects take.
-  const paletteNames = new Map<string, Map<string, string>>();
-  const usesOf = new Map<
-    string,
-    { descriptor: number; mirrored: boolean; palettes: { name: string; colors: readonly number[] }[] }
-  >();
-  const paletteOf = (stage: number, o: BigRunObject) =>
-    paletteNames.get(boardName(o.descriptor, (o.flags & MIRRORED) !== 0))!.get(`${stage} ${o.color}`)!;
+  const boardOf = (o: BigRunObject) => {
+    const d = bigRunDescriptor(main, o.descriptor);
+    const mirrored = (o.flags & MIRRORED) !== 0;
+    return {
+      name: `bigrun-${o.descriptor.toString(16).padStart(4, '0')}${mirrored ? '-mirrored' : ''}`,
+      tile: d.tile,
+      across: d.across,
+      down: d.down,
+      xScale: d.xScale / 128,
+      yScale: d.yScale / 128,
+      mirrored,
+    };
+  };
+  const uses = boardUses();
   for (const { stage, end } of stages) {
     const colors = spritePalette(main, stage);
     for (const o of bigRunObjects(main, stage)) {
@@ -189,24 +196,10 @@ export function bigRunCourses(set: RomSet) {
       const entry = colors[o.color];
       if (!entry)
         throw contractUnmet(`${NAMES[stage]}'s objects take sprite colors ${o.color} its stage loads none of`);
-      const mirrored = (o.flags & MIRRORED) !== 0;
-      const key = boardName(o.descriptor, mirrored);
-      const use = usesOf.get(key) ?? { descriptor: o.descriptor, mirrored, palettes: [] };
-      usesOf.set(key, use);
-      const names = paletteNames.get(key) ?? new Map<string, string>();
-      paletteNames.set(key, names);
-      if (names.has(`${stage} ${o.color}`)) continue;
-      const same = use.palettes.find((p) => p.colors.join() === entry.join());
-      const name =
-        same?.name ??
-        `p${String(o.color).padStart(3, '0')}${use.palettes.some((p) => p.name.startsWith(`p${String(o.color).padStart(3, '0')}`)) ? `-${stage}` : ''}`;
-      if (!same) use.palettes.push({ name, colors: entry });
-      names.set(`${stage} ${o.color}`, name);
+      uses.add(boardOf(o), stage, o.color, entry);
     }
   }
-  const boards = new Map(
-    bigRunBoards(main, sprites, [...usesOf.values()], unitMetres, SCREEN_PIXEL_HEIGHT).map((b) => [b.name, b]),
-  );
+  const boards = new Map(bigRunBoards(sprites, uses.uses(), unitMetres, SCREEN_PIXEL_HEIGHT).map((b) => [b.name, b]));
   for (const b of boards.values()) outputs.file(b.image.path, b.image.bytes);
   const courses = stages.map(({ stage, goal, end, roads: [road1, road2] }) => {
     const name = NAMES[stage]!;
@@ -364,9 +357,9 @@ export function bigRunCourses(set: RomSet) {
             if (own > 0) return null;
             lift += own * f * metres;
           }
-          const board = boards.get(boardName(o.descriptor, (o.flags & MIRRORED) !== 0));
+          const board = boards.get(boardOf(o).name);
           if (!board) return null;
-          const palette = paletteOf(stage, o);
+          const palette = uses.paletteOf(board.name, stage, o.color);
           const hit = (o.flags & HIT) === HIT;
           return {
             s: station(p),
