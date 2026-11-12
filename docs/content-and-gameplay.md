@@ -747,8 +747,7 @@ Shared shape, numeric, reference and position rules keep their own codes (for ex
 `invalid_shape`, `unresolved_reference` and `invalid_position`), with a path into the affected gate.
 Each check chooses its code explicitly; paths do not select codes and exceptions are not recoded.
 A missing gate points to its Section's `gates` collection.
-`invalid_rules` is reserved for position-free race settings. Non-gate fork constraints retain
-`invalid_fork`, addressed to the affected sprites, Strips, Boundaries or lanes.
+`invalid_rules` is reserved for position-free race settings.
 
 Document reading admits `curveLength` in `[0, lengthMeters]`. Compilation checks zero endpoint
 curve lengths and non-overlapping adjacent curves once, reporting `invalid_height` at the causal
@@ -886,8 +885,8 @@ earned it. The race exposes each competitor's progress (route s,
 accepted finish count, status and next race line), finish time and, on a CIRCUIT, the race time its current lap
 began, its latest lap and its best lap (its fastest complete lap); the laps are null until it completes one. A lap runs
 from GO (for a competitor on the grid) or from a FINISH line crossing to the next FINISH line crossing, both at their
-event times; a competitor that appeared ahead completes its first lap at its second FINISH line crossing. The Route,
-whose occurrences carry fork choices; the lap count and course type. One race function gives a competitor's clock:
+event times; a competitor that appeared ahead completes its first lap at its second FINISH line crossing. The Route;
+the lap count and course type. One race function gives a competitor's clock:
 its finish time, else race time. The race also publishes the player's standing, its rank among the competitors
 present by `rankRaceProgress` and their count, which every display reads; the rank limit of the player's next race
 gate (null without one or after finishing); and, when the only present rival takes part in a stage interval holding
@@ -994,7 +993,7 @@ on a circuit) and one appearance. An entry taking part from STAGE 1 has a grid `
 null`; grid entries are in grid order with strictly increasing slots. An entry whose first stage is later has `slot:
 null` and `ahead: {distance, lane}`: a positive distance in metres ahead of the player and its lane number, which every
 Section of the course has, so it is a lane on every route. On every route the distance falls short of the next race gate
-and the next fork lock after the gate opening that stage. Every candidate vehicle of the class has at least one grid
+after the gate opening that stage. Every candidate vehicle of the class has at least one grid
 entry, which the player can take. `playerSlot` is `own` (the player stands in
 its own entry's slot), `last` (in the rearmost of the grid entries' slots, the other grid entries in order in the slots
 in front of it) or `first` (in the frontmost, the others in order in the slots behind it; K, 2026-11-10, for ENDURO
@@ -1152,7 +1151,7 @@ FREE PLAY runs without rivals, use 0, and scenarios and tests fix theirs. The ra
 competitor's mechanics and each rival's driver from its entry's vehicle; the player's composition supplies input only.
 A course need not leave every vehicle room to stop past its FINISH (K, 2026-10-24): the road's end is a course limit
 across the road ([Barrier lines](#barrier-lines)), which holds a vehicle that cannot stop before it.
-A circuit FINISH and an undecided fork are not terminal stopping points.
+A circuit FINISH is not a terminal stopping point.
 
 A run's start begins a standing run. PAUSE/hidden-page time consumes no simulation time. GOAL, GAME OVER or ENDED
 stops judging and the race clock, preserving final rank and precise event time; the vehicles and traffic keep moving
@@ -1256,8 +1255,7 @@ implementation for its own build only, and never saves the result.
 
 ### Racing lines
 
-A course's racing lines are a lateral `l(s)` for each Section and, on a fork Section, one per exit, over the whole
-Section ([`racing-line.ts`](../tools/course/racing-line.ts)). Every vehicle drives the same lines. They depend on the
+A course's racing lines are a lateral `l(s)` for each Section, over the whole Section ([`racing-line.ts`](../tools/course/racing-line.ts)). Every vehicle drives the same lines. They depend on the
 course and on the vehicles that time them, every vehicle a class runs on the course (`racingLineVehicles`). A course no
 class runs is timed by no vehicle (K, 2026-10-23): its lines are the minimum-curvature lines, the only ones solved.
 
@@ -1278,16 +1276,14 @@ class runs is timed by no vehicle (K, 2026-10-23): its lines are the minimum-cur
 - **Bounds.** The lines are solved for a vehicle 2 m wide on every course (K's constant, 2026-10-26): a line keeps
   half of it plus 0.3 m (1.3 m) from the edges of the road it drives and half of it plus 0.5 m (1.5 m) from a fixed
   body standing on that road, its footprint across the road. That road is the one the line's lane belongs to: the lane
-  its Link leaves by (the exit's on a fork Section, the centre lane at a terminal), or the road nearest that lane's
-  centre where the lane has no width. On a fork Section before the lock line a line may use the whole supported road:
-  from the leftmost road's left edge to the rightmost one's right edge, within the supported interval around its road.
+  its Link leaves by (the centre lane at a terminal), or the road nearest that lane's centre where the lane has no
+  width.
   A line runs straight from one station to the next, so a body between two stations bounds both. The bodies there
   leave gaps across the road, between its edges and their footprints; the line keeps to the gap widest less its
   margins, the leftmost of equals. A gap narrower than its two margins bounds the line to its middle; a road the bodies
   close fails the solve. A movable object is knocked aside and bounds no line.
 - **Continuity.** Every seam has one lateral that the lines ending there and the lines beginning there share, in each
-  Link's frame (its cut lane's centre on the next Section's centre lane's centre): at a merge all predecessors share the
-  successor's start, at a fork every exit's line starts from its predecessor's end, and a CIRCUIT closes on itself.
+  Link's frame (its cut lane's centre on the next Section's centre lane's centre), and a CIRCUIT closes on itself.
   Curvature terms span each seam, so the slope carries across it; each Section's plan coordinates are its own frame, so
   a seam's term reads the next Section's points through the Link's rigid motion.
 - **Solve.** The lines of the whole course graph are one sparse problem over the laterals at the schedule stations.
@@ -1313,18 +1309,17 @@ arXiv:2202.07008). It is not used: its optimisation needs a vehicle limits model
 which the vehicle limits (drive by gear, each axle's friction ellipse) are not, so it would be a second model of the
 same limits beside the one every driver plans with. Timing needs no gradient, so the one limits model times the lines.
 
-The saved product (`superoutride.racing-line` version 2) has `courseBuildSha256`, `procedureSha256` (the racing line
+The saved product (`superoutride.racing-line` version 3) has `courseBuildSha256`, `procedureSha256` (the racing line
 procedure's identity, whose record holds the vehicle width and clearances, the length weights and the timing driver), `spacing` (the schedule spacing, 5 m), `lengthWeight` (the `λ` chosen), `vehicles`
 (each timing vehicle in catalog order: its `vehicleId`, `vehicleSha256`, `seconds` on the lines and
 `minimumCurvatureSeconds` on the lines of `λ = 0`, to the millisecond, so the product records what the choice gained)
-and `lines`: for each Section in course order, and each fork exit in exit order, its `section`,
-its `exit` (the Link ID, null on a Section that does not fork) and `laterals`, one at each of the Section's schedule
+and `lines`: for each Section in course order, its `section` and `laterals`, one at each of the Section's schedule
 stations (every 5 m from its start, then its end), rounded to the millimetre. It is delivered as saved
 (`racing-line`, by course ID). Admission (`readRacingLines`) checks the course identity, the spacing and one line of
-the right length for every Section and exit, and the shape of `lengthWeight` and `vehicles`; the build also checks the
+the right length for every Section, and the shape of `lengthWeight` and `vehicles`; the build also checks the
 procedure identity and that `vehicles` are the timing vehicles with their current identities, and a stale or absent
 product fails it as any measured product does. Reference runs drive the lines, so the measurement tool measures a
-course's reference times again whenever it solves its lines again. The admitted lines read a Section's lateral toward an exit at a
+course's reference times again whenever it solves its lines again. The admitted lines read a Section's lateral at a
 native station, interpolated linearly between stations. A run admits its course's lines with its other measured
 products; rivals, reference runs and the player's run driver drive them ([Drivers](#drivers)).
 
@@ -1441,7 +1436,7 @@ No driver lowers its own utilization; a driver past the limit spins, as the play
 
 The driver always treats the end of a Section with no outgoing Link as a zero-speed planning point.
 The Route exposes that terminal station only when its tail is such a Section; loaded tails
-with outgoing Links, including undecided forks and circuit continuations, do not request a stop.
+with an outgoing Link, including circuit continuations, do not request a stop.
 The speed plan is bounded by `sqrt(2*a*d)`, with d reduced by the driver's response distance and a
 2 m terminal clearance (`terminalClearance`, the distance left before a terminal or behind the vehicle ahead). The
 driver holds the brake when its target speed is within the speed deadzone of zero (a stopped vehicle ahead keeps a
@@ -2016,11 +2011,11 @@ without loading them. It lists every compiled course once, in the [course texts'
 course after its original (K, 2026-11-11: FREE PLAY lists the courses in it), as
 `{id, name, description, type, maxLaps, gridSlots, buildSha256, raceTracks, map, figures}`: the course ID, its
 [course texts'](#course-texts) display name and description, its [course sounds'](#course-sounds) race track IDs, the compiled topology type
-(`CIRCUIT`, `LINEAR` or `BRANCH`), the document's `rules.maxLaps` and the number of grid slots of its start gate
+(`CIRCUIT` or `LINEAR`), the document's `rules.maxLaps` and the number of grid slots of its start gate
 that every run can use: the fewer of its grids' slots in use, 1 to 16 (`courseGridCapacity`), the compiled
 course's build identity, against which records are kept, its map and its figures. Every other value comes from
 the course document and its compilation. The map ([course map](../src/course/course-map.ts)) is the route's centreline
-from the entry, one lap on a circuit, each fork taking its first exit, north up by the course's bearing, sampled every
+from the entry, one lap on a circuit, north up by the course's bearing, sampled every
 4 m: `{centreline, start: {point, direction}, checkpoints, lengthMeters}`, points as `[east, north]` in metres from the
 entry Section's origin, the start line's point and the road's unit direction there, the checkpoint gates on the route
 and the route's length. The index cuts the centreline to the fewest of its samples that keep it within a thousandth of

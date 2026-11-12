@@ -110,7 +110,7 @@ export function createRunRecords(player: Pick<PlayerRecord, 'records' | 'updateR
     /**
      * After each running step: the player's crossings among `events`, and `goal`, which reads the goal the run can now
      * reach (null while several remain); it is read only at a crossing of the player's on a course with several goals.
-     * True when a lap of a CIRCUIT just set a record; a LINEAR or BRANCH record shows at RESULT.
+     * True when a lap of a CIRCUIT just set a record; a LINEAR record shows at RESULT.
      */
     step(events: readonly RaceEvent[], playerId: string, goal: () => string | null): boolean {
       let lapRecord = false;

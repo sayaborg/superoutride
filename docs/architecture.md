@@ -85,8 +85,7 @@ the one its Link to the entry gives it (`createCourseRoute`'s `start`). Each
 successor begins at the previous Section's end: its Section chainage begins at zero, its lateral origin
 accumulates the cut offset and its world transform composes the Link transform. Thus a repeated circuit Section
 has a new route interval without changing earlier route coordinates; a circuit adds a few occurrences per lap.
-Only two writers append: the fork decider selects a successor at a fork, and the Route's owner extends through
-unambiguous Links. Consumers receive the read-only Route (`occurrences`, `start`, `end`, `terminal`, `at`).
+Only the Route's owner appends: it extends through each Section's one outgoing Link (`extend`). Consumers receive the read-only Route (`occurrences`, `start`, `end`, `terminal`, `at`).
 
 A seam station belongs to the successor when the successor exists. Until a successor is appended, the tail
 occurrence answers for its end station as an endpoint. When a successor is appended, ownership of the seam station
@@ -123,12 +122,10 @@ create a supporting surface. Contact and recovery rules are owned by
 it for the entire field. The window is a contiguous suffix of the Route with the same read shape (`occurrences`,
 `start`, `end`, `terminal`, and `at`, which is null outside the window). Only the runtime's `refresh` advances the
 window, dropping occurrences behind it, and extends the Route as the forward coverage requires. No actor creates a
-coordinate wrapper. The fork decider alone receives `selectSuccessor` and calls it once per fork; the ordinary
-refresh extends any unambiguous successors. Physical and rendering
+coordinate wrapper. Physical and rendering
 readers, the driver's live domain and residency decisions (observable rivals) read the window; race facts
-(cross sections, fork field) and reference tools read the Route. The scene shows a state-selected sign from its
-own fork occurrence's selected successor on the Route and rebuilds its sprite list when the window or the Route's
-occurrences change.
+(cross sections, the lane field) and reference tools read the Route. The scene rebuilds its sprite list when the
+window or the Route's occurrences change.
 
 One loading coverage record (`resolveLoadingCoverage`) derives the window's forward and rear extents once from four
 inputs: the camera window the scene supplies (its camera distance behind the player's route position, near and far
@@ -151,9 +148,6 @@ The step allowance retains the rear footprint until the next refresh. With the c
 fleet (`cameraDistance` is `D_cam`, 6 m) the record is 4 m per step, 484 m forward
 (`max(6 + 200, 480, 50) + 4`) and 64 m rear (`max(6 + 2.5, 0, 8 + 50 + 2) + 4`), a watched run's 204 m rear
 (`max(6 + 2.5, 200, 8 + 50 + 2) + 4`). `RouteRuntime`'s window and the scenarios' one-step check read it.
-Until its lock decides, a fork's parent Section alone carries the forward coverage: creating the course world
-checks every fork Section reachable from the entry for `lock.s + forwardMeters <= Section end` and rejects a
-violation with a `RangeError` naming the Section.
 Advancing the window never changes existing stations or vehicle poses. A single-successor circuit repeats its
 ordered cycle of Sections for successive laps. Derived projection intervals, height knots, Strip
 intervals and sprite lists rebuild only when the occurrence list changes.
@@ -231,7 +225,7 @@ by topology admission; broadening that admitted topology requires revisiting the
 
 ## Route cross sections
 
-`createRouteCrossSections` maps each occurrence's checkpoints, finish and fork lock to fixed route
+`createRouteCrossSections` maps each occurrence's checkpoints and finish to fixed route
 stations with `routeS`. It reads the Route, and its ordered lists and closed lateral bounds rebuild only
 when the Route appends an occurrence. Bounds come from the coordinate-domain Reader at the line station, with
 successor ownership at a seam. A race line retains the canonical landmark identity for time budgets
@@ -245,7 +239,7 @@ The crossing calculation works entirely in `(s,l)`: forward arrival brackets the
 linear interpolation between the outer step's end points supplies both the within-step fraction and the
 crossing l ([crossing-time contract](content-and-gameplay.md#route-cross-sections-and-progress)). A constant-s line
 is the normal cross section of the authoritative plan. There is no Section-world pose conversion or
-world-segment intersection in progress or fork selection. Gameplay orders and consumes these
+world-segment intersection in progress. Gameplay orders and consumes these
 crossings as specified in [Content and gameplay](content-and-gameplay.md#route-cross-sections-and-progress).
 
 ## Numerical conventions
@@ -498,7 +492,7 @@ ground is the material at the limit itself, the outermost covered span at that s
 edge (`MAXIMUM_VEHICLE_REACH` beyond the limit). Height and normal depend on the station alone, so the ground there has
 the limit's height, normal and material. Each side follows its own limit, and the limits are closed everywhere. The
 material table itself, appearance and sound are unchanged.
-Gate/grid validation and fork compilation consume the same table. Support-interval construction
+Gate/grid validation consumes the same table. Support-interval construction
 is compiler-only; running point reads do not allocate arrays, objects or readers.
 
 ### Strip rendering
@@ -632,8 +626,8 @@ far depths clip it.
 The ground sampler writes the covered pixels of its row at half brightness (`halveRgb555`, the one half-brightness
 operation) as it writes them, for every display method; transparent ground writes nothing and so stays undarkened.
 Overlapping shadows form one set of pixels per row, darkened once. Walls and sprites draw over the ground in Painter
-order, so no shadow darkens a body, a sprite or a wall, and a vehicle's own body draws over its shadow. Within a fork
-Section every road shares the Section's route coordinates, so a shadow lies on the road its vehicle is on.
+order, so no shadow darkens a body, a sprite or a wall, and a vehicle's own body draws over its shadow. Within a Section
+of several roads every road shares the Section's route coordinates, so a shadow lies on the road its vehicle is on.
 
 ### Board shadows
 

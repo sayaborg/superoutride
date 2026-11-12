@@ -300,7 +300,7 @@ async function compiledCourseVerb(file: string) {
       ? ['--images']
       : verb === 'report'
         ? ['--images', '--section', '--out', '--step']
-        : ['--images', '--section', '--s', '--l', '--vehicle', '--out', '--start', '--end', '--step', '--exit'];
+        : ['--images', '--section', '--s', '--l', '--vehicle', '--out', '--start', '--end', '--step'];
   const opts = options(args, flags),
     { course, content } = await loadCourse(file, opts.get('--images'));
   const result: {
@@ -329,18 +329,6 @@ async function compiledCourseVerb(file: string) {
   if (verb === 'compile') {
     result.type = course.type;
     result.entrySection = course.entry.id;
-    result.forks = course.sections.flatMap(({ id, fork }) =>
-      fork
-        ? [
-            {
-              section: id,
-              lock: fork.lock.s,
-              closure: fork.closure.s,
-              exits: fork.exits.map(({ link, ...exit }) => ({ ...exit, link: link.id })),
-            },
-          ]
-        : [],
-    );
     // The report sums each Section's color ground metrics; the maximum is the course maximum.
     const metrics = course.sections.map((s) => s.color.metrics);
     const sum = (key: 'expandedStrips' | 'preblendCells' | 'lateralFields' | 'coefficientBytes' | 'directoryBytes') =>
@@ -377,14 +365,8 @@ async function compiledCourseVerb(file: string) {
       '/vehicle',
       'Unknown vehicle',
     );
-    requireInput(
-      !opts.has('--exit') || section.outgoing.some((link) => link.id === opts.get('--exit')),
-      '/exit',
-      'Exit must name a canonical outgoing Link',
-    );
     const renderer = createCourseFrameRenderer(content, course, section, {
       ...(opts.has('--vehicle') ? { vehicle: opts.get('--vehicle')! } : {}),
-      ...(opts.has('--exit') ? { exit: opts.get('--exit')!, through: Math.max(...stations) } : {}),
     });
     const destination = await outsideOriginals(opts.get('--out') ?? (sequence ? 'frames' : 'frame.png'));
     const frames: RenderFrame[] = [];

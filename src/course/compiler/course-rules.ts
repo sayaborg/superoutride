@@ -132,10 +132,7 @@ export function compileCourseGates(
   });
   const surface = startSection.material;
   const first = intervals.find((i) => i.section === startSection)!;
-  const firstGate = Math.min(
-    first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(startSection),
-    startSection.fork?.lock.s ?? Infinity,
-  );
+  const firstGate = first.checkpoints[0]?.at.s ?? first.finish?.at.s ?? endS(startSection);
   const lines = { boundaries: new Map(startSection.boundaries.map((b) => [b.id, b])), lanes: startSection.lanes };
   // Grid order runs from the front of the grid to its back.
   const compileGrid = (slots: readonly CourseGridSlotDocument[], path: string) => {

@@ -3,7 +3,7 @@ import type { SectionPlanCoordinateReader } from '../geometry/plan-coordinate.js
 import type { ProfileReader, ProfilePolylineReader } from '../geometry/profile.js';
 import type { PlanarPose, PlanarTransform } from '../../core/planar-transform.js';
 import type { CourseAppearance } from '../course-appearance.js';
-import type { CompiledCoursePosition, CompiledPlanSegment } from '../course-geometry.js';
+import type { CompiledPlanSegment } from '../course-geometry.js';
 import type { CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledLane, CompiledLanes } from '../course-lanes.js';
 import type { StripMaterial } from '../strip-material.js';
@@ -35,7 +35,6 @@ export interface CompiledSection {
   readonly appearance: CourseAppearance;
   readonly incoming: readonly CompiledLink[];
   readonly outgoing: readonly CompiledLink[];
-  readonly fork: CompiledFork | null;
 }
 
 /** Derived terminal cross-section. Its chainage is either zero or the Section length. */
@@ -55,16 +54,4 @@ export interface CompiledLink {
   readonly to: CompiledCut;
   /** Maps the `from` Section's frame to the `to` Section's frame, like `worldFromSection`. */
   readonly toFromFrom: PlanarTransform;
-}
-
-/** Static authored parallel-zone controls; no field choice or actor state. */
-export interface CompiledFork {
-  readonly section: CompiledSection;
-  readonly lock: CompiledCoursePosition;
-  readonly closure: CompiledCoursePosition;
-  readonly exits: readonly {
-    readonly link: CompiledLink;
-    readonly left: number;
-    readonly right: number;
-  }[];
 }

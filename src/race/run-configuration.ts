@@ -57,7 +57,7 @@ export interface RunConfiguration extends PlayerChoice {
  * catalog and FREE PLAY's rules, and derive its rules: the one admission and derivation of every request. The vehicle must be a
  * catalog vehicle and the color one of its sprite set. RACE and TIME ATTACK need a class and one of the class's
  * vehicles. RACE takes the class's field, laps and traffic with the checkpoint clock; TIME ATTACK runs alone, without
- * traffic or clock, the class's laps to a finish on a LINEAR or BRANCH course and without a finish on a CIRCUIT.
+ * traffic or clock, the class's laps to a finish on a LINEAR course and without a finish on a CIRCUIT.
  * FREE PLAY takes up to the course's `maxLaps`; its rivals fit the grid, its pool and traffic level are its rules', and its traffic
  * draws from every catalog vehicle at their traffic speed. `initialSpeed` is the start speed (the product's is 0).
  */

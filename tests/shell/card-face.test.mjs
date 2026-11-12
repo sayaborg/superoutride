@@ -102,7 +102,7 @@ test('in every style the plain cards and every face of the longest course the in
     draw(faces, { name: 'W'.repeat(2 * (CARD.columns - 2)), line: 'W'.repeat(CARD.columns), dim: false }, 0);
     const items = Array.from({ length: 13 }, (_, i) => ({ label: 'W'.repeat(16), value: 'W'.repeat(7), selected: !i }));
     draw(faces, { name: 'SETTINGS', line: '', dim: true, items }, 0);
-    for (const type of ['CIRCUIT', 'LINEAR', 'BRANCH']) {
+    for (const type of ['CIRCUIT', 'LINEAR']) {
       const page = coursePage({ ...longest, type }, style);
       for (let face = 0; face < page.faces; face++) {
         const still = draw(faces, faceOf(page), at(face, FACE_TURN.thin)),

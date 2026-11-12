@@ -195,8 +195,6 @@ export function compileCourseAppearance(
           })
         : null;
     return Object.freeze({
-      // No sign is state-selected since courses do not branch; the field goes with the fork runtime (RC-3b).
-      unselectedLink: null,
       instance,
       at: position,
       l,

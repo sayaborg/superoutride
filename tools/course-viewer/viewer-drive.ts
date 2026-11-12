@@ -51,13 +51,7 @@ export function createDrive(course: CompiledCourse) {
   // The Route, extended as the car goes (lap after lap on a circuit).
   const builder = createCourseRoute(course.entry);
   const { route } = builder;
-  const extend = (s: number) => {
-    while (route.end < s) {
-      const outgoing = route.occurrences.at(-1)!.section.outgoing;
-      if (!outgoing.length) break;
-      builder.select(outgoing[0]!);
-    }
-  };
+  const extend = (s: number) => builder.extendThrough(s);
   const forks = createCourseForkField(route);
   const sample = createPlanCoordinateSample();
   // The occurrence at route station s, and its native station.

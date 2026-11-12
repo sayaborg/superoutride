@@ -163,7 +163,7 @@ test('from a start before the line, laps and checkpoints count from the line, as
   // The racing line along P.
   const lines = createRacingLines(
     course,
-    new Map(course.sections.map((s) => [s.id, new Map([[null, racingLineStations(s).map(() => 0)]])])),
+    new Map(course.sections.map((s) => [s.id, racingLineStations(s).map(() => 0)])),
   );
   const run = runCourseReference(course, vehicle, catalog, [], 2, lines, true);
   // Every line after the line, lap by lap; the line crossed from the grid is none.

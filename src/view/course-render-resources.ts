@@ -29,7 +29,6 @@ export function createCourseRenderResources() {
         p.sprites.map((placement) =>
           Object.freeze({
             l: placement.l,
-            unselectedLink: placement.unselectedLink,
             knocked: placement.knocked && {
               airborne: instanceImage(placement.knocked.airborne),
               landed: instanceImage(placement.knocked.landed),

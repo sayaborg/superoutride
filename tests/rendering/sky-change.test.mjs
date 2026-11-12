@@ -74,8 +74,7 @@ async function changingCourse() {
   const compiled = await compileChanging();
   assert.ok(compiled.ok, JSON.stringify(compiled.diagnostics ?? compiled.error ?? Object.keys(compiled)));
   const builder = createCourseRoute(compiled.value.entry);
-  for (let i = 0; i < 8 && builder.route.occurrences.at(-1).section.outgoing.length; i++)
-    builder.select(builder.route.occurrences.at(-1).section.outgoing[0]);
+  for (let i = 0; i < 8 && builder.extend(); i++);
   return builder.route;
 }
 

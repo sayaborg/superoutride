@@ -45,11 +45,10 @@ import { compileCourseSpriteObjects, compileCourseSpritePlacements } from './cou
 import { compileCourseGates } from './course-rules.js';
 import type { SurfaceMaterialCatalog } from '../surface-material.js';
 
-/** A Section compiled but not yet closed: its links, fork and appearance come when every Section is compiled. */
-interface OpenSection extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'fork' | 'appearance'> {
+/** A Section compiled but not yet closed: its links and appearance come when every Section is compiled. */
+interface OpenSection extends Omit<CompiledSection, 'incoming' | 'outgoing' | 'appearance'> {
   readonly incoming: CompiledLink[];
   readonly outgoing: CompiledLink[];
-  fork: CompiledSection['fork'];
   appearance: CompiledSection['appearance'];
 }
 
@@ -187,13 +186,12 @@ async function compileSection(
     barriers,
     ground: compileCourseGround(strips.material, `${path}/strips`),
     objects,
-    // Set by `compileAppearance`, after the fork structure and before anything reads it.
+    // Set by `compileAppearance`, once every Section is compiled and before anything reads it.
     appearance: null as unknown as OpenSection['appearance'],
     incoming: [],
     outgoing: [],
-    fork: null,
   };
-  /** Appearance compiles after the fork structure, which it reads to check its own signs. */
+  /** Appearance compiles once every Section is compiled. */
   const compileAppearance = () => {
     const appearance = compileCourseAppearance(
       section,

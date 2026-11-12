@@ -25,7 +25,6 @@ type CourseDiagnosticCode =
   | 'invalid_appearance'
   | 'invalid_placement'
   | 'invalid_gate'
-  | 'invalid_fork'
   | 'invalid_rules';
 
 /** The shared admission diagnostic, with the course's semantic codes. */

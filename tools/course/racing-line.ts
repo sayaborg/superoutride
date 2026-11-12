@@ -2,9 +2,7 @@ import type { CompiledCourse } from '../../src/course/compiler/compiled-course.j
 import type { CompiledLink, CompiledSection } from '../../src/course/compiler/course-graph.js';
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 import { courseRoadsAt } from '../../src/course/course-lanes.js';
-import { stripSupportedIntervals } from '../../src/course/strip-material.js';
-import { stripSlabAt } from '../../src/course/strip-slabs.js';
-import { racingLineExits, racingLineStations, type RacingLineLaterals } from '../../src/content/racing-line.js';
+import { racingLineStations, type RacingLineLaterals } from '../../src/content/racing-line.js';
 import { wrapAngle } from '../../src/core/math.js';
 import { createPlanCoordinateSample, type PlanCoordinateReader } from '../../src/course/geometry/plan-coordinate.js';
 import { invertPlanarTransform, type PlanarTransform } from '../../src/core/planar-transform.js';
@@ -59,10 +57,10 @@ export const RACING_LINE_PROCEDURE = Object.freeze({
 });
 export type RacingLineProcedure = typeof RACING_LINE_PROCEDURE;
 
-/** One line of the solve: a Section's, or a fork Section's toward one exit, over the whole Section. */
+/** One line of the solve: a Section's, over the whole Section. */
 interface Line {
   readonly section: CompiledSection;
-  /** The Link the line leaves by: its exit at a fork, the Section's one Link otherwise (null at a terminal). */
+  /** The Link the line leaves by: the Section's one Link (null at a terminal). */
   readonly link: CompiledLink | null;
   readonly stations: readonly number[];
   /** The variable of each sample and the offset added to it there (a seam's variable is in its successor's frame). */
@@ -107,8 +105,8 @@ export interface RacingLineSolution {
 }
 
 /**
- * The racing lines of `course`: for each Section a lateral at each schedule station (its 5 m stations and its end), and
- * for a fork Section one per exit. For a length weight λ they minimise `Σ m κ² + λ Σ len`: the summed squared path
+ * The racing lines of `course`: for each Section a lateral at each schedule station (its 5 m stations and its end).
+ * For a length weight λ they minimise `Σ m κ² + λ Σ len`: the summed squared path
  * curvature, measured on the chords between the stations' points as the planned driver reads it and weighted by the
  * chords' mean length, plus λ times the lines' length, the sum of their chords. They are kept within the road each line
  * drives less its margins from the road's edges and the fixed bodies on it, and solved jointly over the course graph as
@@ -131,23 +129,22 @@ export function solveRacingLines(
   // The seam at each Section's start that some Link enters: one variable in that Section's frame.
   const seams = new Map<CompiledSection, number>();
   for (const section of course.sections) if (section.incoming.length) seams.set(section, count++);
-  for (const section of course.sections)
-    for (const exit of racingLineExits(section)) {
-      const link = exit ?? section.outgoing[0] ?? null;
-      const stations = racingLineStations(section);
-      const variables = new Int32Array(stations.length),
-        offsets = new Float64Array(stations.length);
-      const begins = seams.get(section);
-      stations.forEach((_, i) => {
-        if (i === 0 && begins !== undefined) variables[i] = begins;
-        else if (i === stations.length - 1 && link) {
-          // The lateral in the successor's frame is the lateral here less the cut's origin plus the entry's.
-          variables[i] = seams.get(link.to.section)!;
-          offsets[i] = link.from.lateralOrigin - link.to.lateralOrigin;
-        } else variables[i] = count++;
-      });
-      lines.push({ section, link, stations, variables, offsets });
-    }
+  for (const section of course.sections) {
+    const link = section.outgoing[0] ?? null;
+    const stations = racingLineStations(section);
+    const variables = new Int32Array(stations.length),
+      offsets = new Float64Array(stations.length);
+    const begins = seams.get(section);
+    stations.forEach((_, i) => {
+      if (i === 0 && begins !== undefined) variables[i] = begins;
+      else if (i === stations.length - 1 && link) {
+        // The lateral in the successor's frame is the lateral here less the cut's origin plus the entry's.
+        variables[i] = seams.get(link.to.section)!;
+        offsets[i] = link.from.lateralOrigin - link.to.lateralOrigin;
+      } else variables[i] = count++;
+    });
+    lines.push({ section, link, stations, variables, offsets });
+  }
   const lower = new Float64Array(count).fill(-Infinity),
     upper = new Float64Array(count).fill(Infinity);
   // Each sample's bounds narrow its variable's: a seam's from every line meeting there.
@@ -200,15 +197,12 @@ export function solveRacingLines(
   };
   const scale = 1 / procedure.resolution;
   const lateralsOf = (): RacingLineLaterals => {
-    const sections = new Map<string, Map<string | null, readonly number[]>>();
-    for (const line of lines) {
-      const laterals = line.stations.map(
-        (_, i) => Math.round((x[line.variables[i]!]! + line.offsets[i]!) * scale) / scale + 0,
+    const sections = new Map<string, readonly number[]>();
+    for (const line of lines)
+      sections.set(
+        line.section.id,
+        line.stations.map((_, i) => Math.round((x[line.variables[i]!]! + line.offsets[i]!) * scale) / scale + 0),
       );
-      const byExit = sections.get(line.section.id) ?? new Map<string | null, readonly number[]>();
-      byExit.set(line.section.fork ? line.link!.id : null, laterals);
-      sections.set(line.section.id, byExit);
-    }
     return sections;
   };
   const sum = (seconds: readonly number[]) => seconds.reduce((total, value) => total + value, 0);
@@ -289,9 +283,7 @@ function lineBounds(
 
 /**
  * The road `line` drives at station `s`: the road of the lane it leaves by (its Link's, or the centre lane at a
- * terminal), or the road nearest that lane's centre where the lane has no width. On a fork Section before the lock line
- * it is the whole supported road: from the leftmost road's left edge to the rightmost one's right edge, within the
- * supported interval around the line's road.
+ * terminal), or the road nearest that lane's centre where the lane has no width.
  */
 function roadAt(line: Line, s: number): [number, number] {
   const { section, link } = line;
@@ -306,15 +298,7 @@ function roadAt(line: Line, s: number): [number, number] {
         best && Math.abs(middle(best) - centre) <= Math.abs(middle(candidate) - centre) ? best : candidate,
       undefined,
     );
-  let left = road?.left ?? centre,
-    right = road?.right ?? centre;
-  if (section.fork && s < section.fork.lock.s && road) {
-    const supported = stripSupportedIntervals(section.material.slabs[stripSlabAt(section.material.slabs, s)]!, s);
-    const [a, b] = supported.find(([a, b]) => a <= middle(road) && middle(road) <= b) ?? [left, right];
-    left = Math.max(a, Math.min(...roads.map((candidate) => candidate.left)));
-    right = Math.min(b, Math.max(...roads.map((candidate) => candidate.right)));
-  }
-  return [left, right];
+  return [road?.left ?? centre, road?.right ?? centre];
 }
 
 /**

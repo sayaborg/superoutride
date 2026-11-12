@@ -20,10 +20,9 @@ import { createRouteCrossSections, type RouteRaceLine } from '../../src/race/rou
 function expectedRaceLines(course: CompiledCourse, links: readonly CompiledCourse['links'][number][], laps: number) {
   const builder = createCourseRoute(course.entry);
   const lines = createRouteCrossSections(builder.route, course, laps);
-  for (const link of links) builder.select(link);
-  // A circuit repeats its single-successor cycle until the final lap's FINISH is on the Route.
-  while (!lines.race.some((line) => line.finish))
-    builder.select(builder.route.occurrences.at(-1)!.section.outgoing[0]!);
+  for (let i = 0; i < links.length; i++) builder.extend();
+  // A circuit repeats its cycle until the final lap's FINISH is on the Route.
+  while (!lines.race.some((line) => line.finish)) builder.extend();
   const race: readonly RouteRaceLine[] = lines.race;
   return race.slice(0, race.findIndex((line) => line.finish) + 1);
 }

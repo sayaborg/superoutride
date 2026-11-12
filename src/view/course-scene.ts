@@ -1,5 +1,4 @@
 import { createCourseRouteVisualReaders } from './course-route-visual-readers.js';
-import { selectedSuccessor } from '../course/course-route.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { LOGICAL_HEIGHT } from './display-scale.js';
 import { RENDER_NEAR_DEPTH_METERS, RENDER_FAR_DEPTH_METERS } from './camera.js';
@@ -135,11 +134,6 @@ export function createCourseScene(
       if (lastRenderData !== renderData || lastSelection !== selection) {
         worldSprites.length = 0;
         for (const sprite of renderData.worldSprites) worldSprites.push(sprite);
-        // A state-selected sign shows once its own fork occurrence has selected another exit.
-        for (const placement of renderData.conditionalSprites) {
-          const selected = selectedSuccessor(runtime.route, placement.occurrence);
-          if (selected && selected.id !== placement.unselectedLink) worldSprites.push(placement.sprite);
-        }
         staticSpriteCount = worldSprites.length;
         // A movable object's picture stands at its placement, its square's centre.
         standingMovables = renderData.movableSprites.map(({ section, index, sprite, footprint }) => ({

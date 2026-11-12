@@ -33,7 +33,7 @@ test('the sky moves only as the camera turns: across the yaw wrap, Section borde
       const link = builder.route.occurrences.at(-1).section.outgoing[0];
       if (!link) break;
       if (link.to.section === course.entry && ++laps >= (course.type === 'CIRCUIT' ? LAPS : 1)) break;
-      builder.select(link);
+      builder.extend();
     }
     const route = builder.route;
     const coordinates = createCourseRouteReaders(route).coordinates;

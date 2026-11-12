@@ -64,13 +64,13 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
       native.sprites
         .map((entry, index) => ({ ...entry, index }))
         .filter(({ sprite }) => route.at(routeS(occurrence, sprite.sRender)) === occurrence)
-        .map(({ sprite, unselectedLink, knocked, index }) => {
+        .map(({ sprite, knocked, index }) => {
           const place = {
             ...transformPlanarPoint(occurrence.worldFromSection, sprite),
             sRender: routeS(occurrence, sprite.sRender),
           };
           const positioned: CourseSprite = Object.freeze({ ...sprite, ...place });
-          return { occurrence, sprite: positioned, unselectedLink, movable: knocked !== null, index };
+          return { occurrence, sprite: positioned, movable: knocked !== null, index };
         }),
     );
     // Each occurrence's visible walls on the route ruler; the lateral reads the Boundary in its Section and the color
@@ -93,9 +93,7 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
     return Object.freeze({
       ground,
       walls: Object.freeze(walls),
-      worldSprites: Object.freeze(
-        placements.filter((p) => p.unselectedLink === null && !p.movable).map((p) => p.sprite),
-      ),
+      worldSprites: Object.freeze(placements.filter((p) => !p.movable).map((p) => p.sprite)),
       // Movable placements stand until the race knocks them; the scene shows each by its Section and placement index,
       // with its body's square footprint (route station and lateral, and its width) for its shadow.
       movableSprites: Object.freeze(
@@ -114,16 +112,6 @@ export function createCourseRouteVisualReaders(route: RouteWindow) {
               }),
             };
           }),
-      ),
-      // State-selected signs keep their fork occurrence; the scene shows them from that occurrence's choice.
-      conditionalSprites: Object.freeze(
-        placements
-          .filter((p) => p.unselectedLink !== null)
-          .map((p) => ({
-            occurrence: p.occurrence,
-            unselectedLink: p.unselectedLink!,
-            sprite: p.sprite,
-          })),
       ),
       /** A movable placement's flying and landed pictures, by its Section and placement index. */
       knockedPictures(section: CompiledSection, index: number) {

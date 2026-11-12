@@ -128,7 +128,7 @@ export function createCourseForkField(route: CourseRoute, racingLines: RacingLin
     const { occurrence, at } = place(s);
     const section = occurrence.section;
     if (!racingLines) return courseBoundaryAt(section.lanes.center.center, at) - occurrence.lateralOrigin;
-    return racingLines.lateral(section, null, at) - occurrence.lateralOrigin;
+    return racingLines.lateral(section, at) - occurrence.lateralOrigin;
   };
   // The intent's lane at route station `s`: carried across each seam between.
   const laneIn = (intent: DriverIntent, s: number) => {

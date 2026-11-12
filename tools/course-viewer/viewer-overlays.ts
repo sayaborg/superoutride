@@ -359,12 +359,6 @@ export function buildGates(layout: CourseLayout): LineLayer {
       mark(placed, checkpoint.at.s, `CHECKPOINT ${checkpoint.id}`, [0, 200, 255, 255], '#0cf');
     if (interval.finish) mark(placed, interval.finish.at.s, `FINISH ${interval.finish.id}`, WHITE, '#fff');
   }
-  for (const placed of layout.sections) {
-    const fork = placed.section.fork;
-    if (!fork) continue;
-    mark(placed, fork.lock.s, 'LOCK', [255, 0, 255, 255], '#f0f');
-    mark(placed, fork.closure.s, 'CLOSURE', [255, 0, 255, 255], '#f0f');
-  }
   return { lines, labels };
 }
 

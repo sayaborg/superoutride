@@ -8,7 +8,7 @@ import type { CompiledLink, CompiledSection } from './compiler/course-graph.js';
 import type { CompiledCourse } from './compiler/compiled-course.js';
 import { COURSE_DOCUMENT_LIMITS } from './course-limits.js';
 
-/** One selected traversal, shared by all vehicles. Stations never change when the resident window advances. */
+/** One traversal of a Section, shared by all vehicles. Stations never change when the resident window advances. */
 export interface RouteOccurrence {
   readonly ordinal: number;
   readonly section: CompiledSection;
@@ -33,24 +33,24 @@ export interface RouteView {
   readonly occurrences: readonly RouteOccurrence[];
   readonly start: number;
   readonly end: number;
-  /** Null while the tail has successors, including an undecided fork. */
+  /** Null while the tail has a successor. */
   readonly terminal: number | null;
   /** Outside [start, end] returns null. */
   at(s: number): RouteOccurrence | null;
 }
 
 /**
- * The selected, append-only Route: from the entry at 0, or on a circuit starting before its line from the Section
- * returning to the entry, at negative stations before it; it never discards an occurrence.
+ * The append-only Route: from the entry at 0, or on a circuit starting before its line from the Section returning to
+ * the entry, at negative stations before it; it never discards an occurrence.
  */
 export type CourseRoute = RouteView;
 
-/** The Route's only writers: its owner extends it and hands `select` to the fork decider alone. */
+/** The Route's only writer: its owner extends it. */
 export interface CourseRouteBuilder {
   readonly route: CourseRoute;
-  /** Append the successor the fork decider selected. */
-  select(link: CompiledLink): void;
-  /** Continue deterministically through unambiguous Links until the requested station is present. */
+  /** Append the tail Section's successor, through its one outgoing Link; false at a terminal. */
+  extend(): boolean;
+  /** Extend until the requested station is present or the Route ends. */
   extendThrough(s: number): void;
 }
 
@@ -127,8 +127,10 @@ export function createCourseRoute(entry: CompiledSection, start: CompiledSection
       Object.freeze({ ...origin, ordinal: 1, incoming: link }),
     ]);
   }
-  const select = (link: CompiledLink): void => {
+  const extend = (): boolean => {
     const previous = occurrences.at(-1)!;
+    const link = previous.section.outgoing[0];
+    if (!link) return false;
     const start = previous.end;
     const end = start + link.to.section.coordinates.domain.end;
     const worldFromSection = composePlanarTransforms(previous.worldFromSection, invertPlanarTransform(link.toFromFrom));
@@ -150,6 +152,7 @@ export function createCourseRoute(entry: CompiledSection, start: CompiledSection
         sectionFromWorld: invertPlanarTransform(worldFromSection),
       }),
     ]);
+    return true;
   };
   const route: CourseRoute = Object.freeze({
     get occurrences() {
@@ -166,20 +169,16 @@ export function createCourseRoute(entry: CompiledSection, start: CompiledSection
   });
   return Object.freeze({
     route,
-    select,
+    extend,
     extendThrough(s: number) {
-      while (occurrences.at(-1)!.end < s) {
-        const outgoing = occurrences.at(-1)!.section.outgoing;
-        if (outgoing.length !== 1) break;
-        select(outgoing[0]!);
-      }
+      while (occurrences.at(-1)!.end < s && extend());
     },
   });
 }
 
 /**
- * A course's Route from its entry as its map draws it: one lap of a circuit, else to its end, each fork taking its first
- * exit; each occurrence carries its transform to the world.
+ * A course's Route from its entry as its map draws it: one lap of a circuit, else to its end; each occurrence carries
+ * its transform to the world.
  */
 export function firstExitRoute(course: Pick<CompiledCourse, 'entry' | 'type'>): readonly RouteOccurrence[] {
   const builder = createCourseRoute(course.entry);
@@ -187,9 +186,7 @@ export function firstExitRoute(course: Pick<CompiledCourse, 'entry' | 'type'>): 
   for (let i = 0; i <= COURSE_DOCUMENT_LIMITS.sections; i++) {
     const occurrence = builder.route.occurrences[i]!;
     occurrences.push(occurrence);
-    const outgoing = occurrence.section.outgoing;
-    if (outgoing.length === 0) break;
-    builder.select(outgoing[0]!);
+    if (!builder.extend()) break;
     if (course.type === 'CIRCUIT' && builder.route.occurrences[i + 1]!.section === course.entry) break;
   }
   return Object.freeze(occurrences);
@@ -235,14 +232,6 @@ export function createRouteWindow(route: CourseRoute) {
       if (index > first) first = index;
     },
   });
-}
-
-/**
- * The successor the Route selected after this occurrence, or null while it is undecided: the only stored
- * fork choice. The Route starts at ordinal 0 and never discards, so an occurrence's successor is the next entry.
- */
-export function selectedSuccessor(route: CourseRoute, occurrence: RouteOccurrence): CompiledLink | null {
-  return route.occurrences[occurrence.ordinal + 1]?.incoming ?? null;
 }
 
 /** The single route-to-Section conversion used by all route readers. */

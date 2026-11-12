@@ -69,6 +69,6 @@ export function racingLinePath(route: CourseRoute, lines: RacingLines): (s: numb
     const section = occurrence.section,
       domain = section.coordinates.domain;
     const at = Math.min(domain.end, Math.max(domain.start, routeSectionS(occurrence, s)));
-    return lines.lateral(section, null, at) - occurrence.lateralOrigin;
+    return lines.lateral(section, at) - occurrence.lateralOrigin;
   };
 }

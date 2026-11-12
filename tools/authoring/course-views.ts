@@ -35,7 +35,7 @@ export interface CourseReport {
     z: number;
     boundaries: (number | null)[];
   }[];
-  sprites: { s: number; l: number; asset: string; state: string | null }[];
+  sprites: { s: number; l: number; asset: string }[];
   environments: { s: number; name: string }[];
   segments: { index: number; kind: string; start: number; end: number }[];
 }
@@ -87,7 +87,6 @@ export function courseReport(course: CompiledCourse, section: CompiledSection, s
       s: p.at.s,
       l: p.l,
       asset: p.instance.asset.image.name,
-      state: p.unselectedLink,
     })),
     environments: section.appearance.environments.map((e) => ({ s: e.at.s, name: e.name })),
     segments: section.segments.map((p) => ({ index: p.index, kind: p.geometry.kind, start: p.sStart, end: p.sEnd })),
@@ -108,18 +107,13 @@ export interface CourseFrame {
 
 /**
  * The game's frame of a Section through the product scene and renderer: a catalog vehicle (the first unless named)
- * standing at rest at a position, the camera behind it. With `exit`, the route takes that outgoing Link, its window
- * refreshed through `through` metres. One renderer draws any number of positions on its one scene.
+ * standing at rest at a position, the camera behind it. One renderer draws any number of positions on its one scene.
  */
 export function createCourseFrameRenderer(
   content: Pick<CompiledContent, 'definitions'>,
   course: CompiledCourse,
   section: CompiledSection,
-  {
-    vehicle: vehicleId,
-    exit,
-    through = 0,
-  }: { readonly vehicle?: string; readonly exit?: string; readonly through?: number } = {},
+  { vehicle: vehicleId }: { readonly vehicle?: string } = {},
 ) {
   const { definitions } = content;
   const entry = vehicleId
@@ -128,12 +122,6 @@ export function createCourseFrameRenderer(
   if (!entry) throw new RangeError('Unknown vehicle');
   const sprites = createVehicleSprites(entry);
   const scene = createCourseScene(section, course.gates, definitions.vehicles);
-  if (exit !== undefined) {
-    const link = section.outgoing.find((candidate) => candidate.id === exit);
-    if (!link) throw new RangeError('Exit must name a canonical outgoing Link');
-    scene.runtime.selectSuccessor(link);
-    scene.runtime.refresh(0, through);
-  }
   return {
     render(s: number, l: number): CourseFrame {
       if (!(s >= 0 && s <= section.coordinates.domain.end)) throw new RangeError('s is outside the Section');

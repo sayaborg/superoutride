@@ -6,7 +6,7 @@ import type { LoadingCoverage } from './loading-coverage.js';
 /**
  * The shared Route's owner and the resident window's only owner: it extends the append-only Route,
  * advances the window over it and builds the physical readers on the window. Consumers read the
- * Route or the window; only the fork decider receives `selectSuccessor`.
+ * Route or the window.
  */
 export function createRouteRuntime(entry: CompiledSection, start: CompiledSection, coverage: LoadingCoverage) {
   const builder = createCourseRoute(entry, start);
@@ -22,8 +22,6 @@ export function createRouteRuntime(entry: CompiledSection, start: CompiledSectio
   return Object.freeze({
     route,
     window,
-    /** The fork decider's selection authority; no other consumer appends to the Route. */
-    selectSuccessor: builder.select,
     readers,
     coverage,
     refresh,

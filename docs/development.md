@@ -46,7 +46,7 @@ run (the broadside policy places the player once, before READY). In every row, r
 meet a wall or course limit (the race's step observation names each vehicle a wall or course limit pushes); outside the
 course limit and broadside policies, the player neither recovers nor meets one either. Leaving the pavement is not
 checked: a lane change at speed can overshoot its lane a few centimetres off the pavement. Merges, rank limits, ahead
-entries, movable objects and forks have no driving scenario. Each row checks a situation no other row does:
+entries and movable objects have no driving scenario. Each row checks a situation no other row does:
 
 | Row (course)                                       | Policy                                                                             | Passes when                                                                                                                                          |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -68,7 +68,7 @@ the position hold.
 
 To add a scenario, add a policy/outcome record to the course's list, with a finite simulated work limit.
 Compose ordinary inputs in the harness, and require evidence that the intended situation occurred.
-Use authored grid slots, fork intervals, lanes and crossing stations rather than world positions
+Use authored grid slots, lanes and crossing stations rather than world positions
 or fixed ticks to locate course features.
 When course shapes change, adapt these semantic targets and bounds instead of recording a new trace hash.
 Expected results are compared between fresh runs, not committed as golden hashes. A defect regression
@@ -132,7 +132,7 @@ npm run course -- remove-knots content/courses/tsukuba.course.json --tolerance 0
 node --import tsx tools/course/measure.ts request.json --out observations.json
 ```
 
-`compile` reports the compiled course: its identity, type, entry Section, Sections, forks and ground metrics.
+`compile` reports the compiled course: its identity, type, entry Section, Sections and ground metrics.
 `structure` prints the document's form as JSON
 ([Course authoring operations](content-and-gameplay.md#course-authoring-operations)), read alone without compiling
 the content, so a document that does not compile still shows; `--section` keeps one Section.
@@ -570,8 +570,8 @@ the page says "Not exported: …" with the reason. Each picture's files are name
 The browser keeps the edited template and each note.
 
 **Baking** (a section above the comparison) lists the chosen course's bake entries (`findBakeEntries`). In each element
-list (a Section's sprites or a repeat's elements), two or more placements without a body at the same `at`, the same
-`unselectedLink` and laterals from the same line (the centreline, a Boundary or a lane's side) make a group. Groups with
+list (a Section's sprites or a repeat's elements), two or more placements without a body at the same `at` and
+laterals from the same line (the centreline, a Boundary or a lane's side) make a group. Groups with
 the same pictures in the same order at the same offsets from the first piece (within 0.1 mm), their palettes free, are
 one entry with its count of sites. While none is chosen ("— choose pieces to bake —", as when the section opens and
 after a bake), nothing is read and Bake is disabled. Until a chosen entry's pictures are read, Bake is disabled and
@@ -692,7 +692,7 @@ selection's numbers and operations and the plan's add and remove take no edit; C
 "Apply chosen".
 
 The Course module shows a course document as written ([form](content-and-gameplay.md#course-authoring-operations)),
-one Section at a time, with the Sections and their Links (entry, forks, merges) beside it. Four views are seen
+one Section at a time, with the Sections and their Links (entry, merges) beside it. Four views are seen
 together and share one cursor (the Section and a station s) and one selection:
 
 - the plan, north up, with the Strips, Boundaries, lanes, walls, limits, centreline, gates, sprites, objects and
@@ -790,7 +790,7 @@ workbench. It has one address, `course-viewer.html` at the site root, which open
 chosen one, through the game's delivery (`loadDeliveredCourse`); how a course's elements are written (a repeat's
 original and copies) it reads from the authored document the build publishes for the workbench, and it adds nothing to
 the delivery. It lays the course out as the course map does (`firstExitRoute`: from the entry, one lap of a circuit,
-each fork's first exit, each occurrence placed by its transform to the world).
+each occurrence placed by its transform to the world).
 
 Every position, height and direction comes from the functions physics and the game read: the plan (`toWorld`), the
 profile, the occurrences' transforms, the resolved Strips (`readSlab`), the sprites' placement and their repeats'

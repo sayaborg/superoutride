@@ -103,8 +103,8 @@ export interface Film {
 
 /**
  * The course film: a camera travelling the road's centre (`DEMO_FILM.intro`) over a course scene of its own with no
- * vehicle, its window following the camera, each fork taking its first exit, from a station of the entry Section drawn
- * by `random` that leaves it room to travel there. Its one subject is the course; it ends when that has run once on the
+ * vehicle, its window following the camera, from a station of the entry Section drawn by `random` that leaves it room
+ * to travel there. Its one subject is the course; it ends when that has run once on the
  * ticker, or short of a route's end.
  */
 export function createCourseFilm(
@@ -124,9 +124,6 @@ export function createCourseFilm(
     ended = false,
     camera: CameraState;
   const travel = () => {
-    const tail = runtime.route.occurrences.at(-1)!;
-    if (tail.section.outgoing.length > 1 && s + runtime.coverage.forwardMeters > runtime.route.end)
-      runtime.selectSuccessor(tail.section.outgoing[0]!);
     runtime.refresh(s, s);
     camera = routeCamera(scene.world, { s, l: 0, height: DEMO_FILM.intro.height, aim: 0 }, definition);
   };

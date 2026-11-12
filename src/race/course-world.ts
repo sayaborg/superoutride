@@ -22,14 +22,6 @@ export function createCourseWorld(
   if (Math.min(...slots.map((slot) => slot.at.s)) < window.cameraDistance)
     throw new RangeError('Driving requires the rearmost grid position to have camera space behind it');
   const coverage = resolveLoadingCoverage(window, vehicles);
-  // Before its lock, a fork's parent Section alone carries the forward coverage.
-  const reached = new Set([section]);
-  for (const current of reached) {
-    const fork = current.fork;
-    if (fork && fork.lock.s + coverage.forwardMeters > current.coordinates.domain.end)
-      throw new RangeError(`Fork Section ${current.id} must cover its lock plus ${coverage.forwardMeters} m`);
-    for (const link of current.outgoing) reached.add(link.to.section);
-  }
   // A circuit starting in the Section returning to `section`, its entry, runs that Section first.
   const start = gates.start.outgoing.some((link) => link.to.section === section) ? gates.start : section;
   const runtime = createRouteRuntime(section, start, coverage);

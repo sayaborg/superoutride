@@ -240,11 +240,6 @@ export function buildBoards(
         ]
       : [];
     section.appearance.sprites.forEach((sprite, index) => {
-      // A state-selected sign shows by its fork's choice; the map's Route takes each fork's first exit.
-      if (sprite.unselectedLink !== null) {
-        const next = layout.route[placed.occurrence.ordinal + 1];
-        if (!next || next.incoming?.id === sprite.unselectedLink) return;
-      }
       const image = sprite.instance.asset.image;
       const level = image.levels[0]!;
       const leaf = leaves[index] ?? null;

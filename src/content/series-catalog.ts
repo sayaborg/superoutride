@@ -415,8 +415,8 @@ function courseStageCount(course: CompiledCourse, laps: number): number {
 }
 
 /**
- * The least distance, over every route, from the race gate opening STAGE `stage` to the next race gate or fork lock
- * after it: an ahead appearance must fall short of it.
+ * The least distance, over every route, from the race gate opening STAGE `stage` to the next race gate after it: an
+ * ahead appearance must fall short of it.
  */
 function aheadRoom(course: CompiledCourse, laps: number, stage: number): number {
   const gatesOf = new Map(
@@ -429,23 +429,19 @@ function aheadRoom(course: CompiledCourse, laps: number, stage: number): number 
   let room = Infinity;
   for (const links of routes) {
     const builder = createCourseRoute(course.entry);
-    if (links) for (const link of links) builder.select(link);
+    if (links) for (let i = 0; i < links.length; i++) builder.extend();
     else {
       // A circuit repeats its loop once per lap.
       let sections = 1;
       for (let section = course.entry.outgoing[0]!.to.section; section !== course.entry; sections++)
         section = section.outgoing[0]!.to.section;
-      for (let i = 1; i < sections * laps; i++) builder.select(builder.route.occurrences.at(-1)!.section.outgoing[0]!);
+      for (let i = 1; i < sections * laps; i++) builder.extend();
     }
-    const gates: number[] = [],
-      locks: number[] = [];
-    for (const occurrence of builder.route.occurrences) {
+    const gates: number[] = [];
+    for (const occurrence of builder.route.occurrences)
       for (const gate of gatesOf.get(occurrence.section) ?? []) gates.push(occurrence.start + gate.at.s);
-      if (occurrence.section.fork) locks.push(occurrence.start + occurrence.section.fork.lock.s);
-    }
     const opening = gates[stage - 2]!;
-    const next = Math.min(gates[stage - 1] ?? Infinity, ...locks.filter((s) => s > opening));
-    room = Math.min(room, next - opening);
+    room = Math.min(room, (gates[stage - 1] ?? Infinity) - opening);
   }
   return room;
 }

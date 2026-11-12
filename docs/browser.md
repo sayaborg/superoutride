@@ -92,8 +92,8 @@ a class (RACE and TIME ATTACK) it shows the series image with rows 16–29 (y 12
 shows it on black. On row 16, above the map, it writes the course's display name from the course index (the [course
 texts'](content-and-gameplay.md#course-texts)) centred in WHITE.
 Inside x 8–136, y 136–232 it draws the course map the [course index](content-and-gameplay.md#course-index) delivers,
-north up by the course's bearing: the route's centreline (one lap of a circuit, else the route from the entry, each fork
-taking its first exit) 3 pixels wide in white with a 1-pixel gray core, scaled to fit and centred, a 1×9-pixel YELLOW
+north up by the course's bearing: the route's centreline (one lap of a circuit, else the route from the entry)
+3 pixels wide in white with a 1-pixel gray core, scaled to fit and centred, a 1×9-pixel YELLOW
 bar across the start line (the entry Section's origin), a 3×3 GREEN dot at each checkpoint gate on that route and a
 YELLOW arrowhead outlined in black, 14 pixels along the path from the start, pointing the way the route runs; the map is
 drawn into the frame, not as text. From column 17 it writes
@@ -346,9 +346,8 @@ the shown turn and releases its reel; returning resumes with the next class's tu
 is left.
 
 The course film's camera travels the road's centre at 100 km/h, 4 m over it, from a station of the entry Section drawn
-at random that leaves it room to travel, over a course scene of its own with no vehicle, each fork taking its first
-exit; it ends when the course's description has run once on the ticker, or 50 m short of a route's end, and the run
-waits in READY meanwhile. The race film's director reads its shots from one table (K, 2026-11-14; the values are to be
+at random that leaves it room to travel, over a course scene of its own with no vehicle; it ends when the course's
+description has run once on the ticker, or 50 m short of a route's end, and the run waits in READY meanwhile. The race film's director reads its shots from one table (K, 2026-11-14; the values are to be
 confirmed on a device), every row of one shape and none named in the code: a camera stands `ahead` of its base (the
 shown vehicle, the grid's rearmost vehicle, or the line the shown vehicle finishes at), `aside` of the base's line
 toward the road's centre (the road's centre for the rearmost) and `height` over the road, looking along that line
