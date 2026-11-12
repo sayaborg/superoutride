@@ -11,7 +11,17 @@ import { createVehicle, updateVehicle } from '../../src/vehicle/physics/vehicle-
 import { createVehicleModel } from '../../src/vehicle/physics/vehicle-model.js';
 import { createSteeringRule, driverSteering } from '../../src/vehicle/steering-rule.js';
 import { createVehicleLimits } from '../../src/vehicle/vehicle-limits.js';
-import { createPlannedInput, PLANNED_DRIVER, plannedPedals, plannedSteering } from '../../src/race/planned-driver.js';
+import {
+  compilePlannedDriver,
+  createPlannedCornering,
+  createPlannedDriverWorkspace,
+  createPlannedInput,
+  PLANNED_DRIVER,
+  plannedPedals,
+  plannedSpeedAhead,
+  plannedSteering,
+  readRoadAhead,
+} from '../../src/race/planned-driver.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { wrapAngle } from '../../src/core/math.js';
 
@@ -26,8 +36,8 @@ const UTILIZATION = 0.9,
   RADIUS = 100,
   TOLERANCE = 0.05;
 
-function flatWorld() {
-  const plan = compilePlanPath({ x: 0, z: -10000, heading: 0 }, [{ kind: 'straight', length: 20000 }]);
+function flatWorld(shape = { kind: 'straight', length: 20000 }) {
+  const plan = compilePlanPath({ x: 0, z: -10000, heading: 0 }, [shape]);
   const coordinates = createPlanCoordinateReader(plan.segments, plan.length, (_s, out) => {
     out.left = -5000;
     out.right = 5000;
@@ -94,6 +104,22 @@ for (const entry of definitions.vehicles) {
       Math.abs(lateral / plan - 1) <= TOLERANCE,
       `${id}: lateral ${lateral.toFixed(2)} m/s² against the plan's ${plan.toFixed(2)}`,
     );
+  });
+
+  test(`${id}: at utilization 1 the plan corners at the model's lateral limit itself`, () => {
+    // Most of a 100 m circle, read from its start at the model's cornering speed at full utilization.
+    const world = flatWorld({ kind: 'arc', radius: RADIUS, turn: 1.5 * Math.PI });
+    const limit = limits.corneringSpeed(1 / RADIUS, 0, 0, 1, 0, 1);
+    const driver = compilePlannedDriver(model, limits, 1, Infinity, true);
+    const car = createVehicle(model, world, { s: 10, l: 0, initialSpeed: limit });
+    const ws = createPlannedDriverWorkspace();
+    const domain = { start: world.extent.start, end: world.extent.end, terminal: null };
+    readRoadAhead(world, car, 0, ws, domain);
+    const planned = plannedSpeedAhead(driver, ws, createPlannedCornering(), domain, limit, 100);
+    // A vehicle whose drive cannot hold the limit's speed on the circle slows to what it holds.
+    const held = limits.steadySpeed(1 / RADIUS, 0, 0, 1, 0, 1);
+    if (held >= limit) assert.ok(Math.abs(planned / limit - 1) < 1e-3, `${id}: planned ${planned} at ${limit} m/s`);
+    else assert.ok(planned < limit && planned >= held * (1 - 1e-3), `${id}: planned ${planned} at ${held} m/s`);
   });
 
   test(`${id} stops from 30 m/s within the plan's braking distance`, () => {

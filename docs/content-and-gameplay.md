@@ -1446,10 +1446,11 @@ a steady lateral turns with the road and a change of lane adds none. Each also r
 the cell's start (no material: no grip). While the vehicle is more than `offPathMetres` (1 m) off its path, the cells
 within `offPathSeconds` (3 s) of its speed, at least `offPathLeast` (30 m), are planned on the lesser grip of that
 surface and the surface at the path plus its offset, where it actually drives. Its cornering speed is the fastest speed
-whose lateral demand lies within `lateralMargin` (0.95) of the lateral limit at the planned utilization (the driver's
-utilization times its correction) and below the speed cap; the drive and braking limits keep the same margin of each
-axle's lateral. The steering rule's full input reaches the front tire's whole bound (100 %), so the margin, and the
-utilization's share of the limit, is left for closing the path-following error. The load factor `n(v) = cos θ + v²·kv/g` enters every limit. The workspace caches a cell's geometry
+whose lateral demand lies within the lateral limit at the planned utilization (the driver's utilization, read in steps
+of `utilizationResolution`, 0.01) and below the speed cap; the drive and braking limits keep each axle's lateral the
+cell asks for. A driver's utilization is the fraction of its tires' limits it plans to use, with no other factor: at 1
+the plan corners at the limit itself (K, 2026-11-12). The steering rule's full input reaches the front tire's whole
+bound (100 %), so the utilization's remaining share of the limit is left for closing the path-following error. The load factor `n(v) = cos θ + v²·kv/g` enters every limit. The workspace caches a cell's geometry
 by road, path and interval (a path whose content changes is a new path: a change of lane or offset, and every present
 driver's path when a fork's choice is made, since the choice changes the line or lane the path follows beyond the fork), and a plan's cornering speeds cache a cell's cornering speed also by limits, planned utilization, speed cap, curvature and grip, so plans of several utilizations over one workspace's cells keep their own ([SLOW DOWN](browser.md#slow-down)). Each step the plan runs two passes over the cells' end nodes from the vehicle's station:
 
@@ -1474,10 +1475,7 @@ the vehicle's station; neutral while neither tire is loaded. Since the input set
 yaw rate it inverts through is scaled by the front tire's effective load factor, read from its observed load (at least
 `leastFrontLoadFactor`, 0.25).
 
-The capacity correction `c`, one per driven vehicle in [0.85, 1], starts at 1 and multiplies the utilization the plan
-uses: when either axle's tire utilization observation stays at 1, at or past the tire law's peak (within
-`saturation`, 1e-6, of rounding), for longer
-than 0.3 s, `c` drops by 0.02; otherwise it recovers toward 1 at 0.01 per second. The plan reads it in steps of 0.01. It is the only adaptation.
+No driver lowers its own utilization; a driver past the limit spins, as the player does (K, 2026-11-12).
 
 The driver always treats the end of a Section with no outgoing Link as a zero-speed planning point.
 The Route exposes that terminal station only when its tail is such a Section; loaded tails

@@ -15,7 +15,7 @@ import { referenceLine } from './reference-driving-policy.js';
  * plan alone: from rest at the last slot of the grid the vehicle starts from, stepping from each node of the plan to
  * the next at the speeds it allows, as a driver that kept its plan exactly would. On a CIRCUIT it is the second lap
  * (from the first finish line crossing to the second), else the sum over every route of the time to its FINISH. The
- * vehicle's dynamics, steering and capacity correction take no part.
+ * vehicle's dynamics and steering take no part.
  */
 export function plannedLineSeconds(
   course: CompiledCourse,

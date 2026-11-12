@@ -19,7 +19,7 @@ import type { VehicleLimits } from '../vehicle/vehicle-limits.js';
  * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
  */
 export const PLANNED_DRIVER = Object.freeze({
-  version: 3,
+  version: 4,
   /**
    * Every planned driver's one steering rule, a driver's aid and not physics: the centre reference, full steering
    * input reaching the front tire's whole lateral force bound. It is independent of the driver's utilization, which
@@ -32,11 +32,6 @@ export const PLANNED_DRIVER = Object.freeze({
   spacing: 5,
   /** Seconds: the time in which the pedals close a speed error to the plan. */
   speedSeconds: 0.5,
-  /**
-   * The part of the lateral limit at the planned utilization the plan corners at; the steering rule's full input
-   * reaches the front tire's whole bound (100 %), so the rest is left for closing the path-following error.
-   */
-  lateralMargin: 0.95,
   /** Seconds: how far ahead of the vehicle, at its speed, steering reads the path's curvature. */
   curvatureSeconds: 0.2,
   /** rad/s and ratio: the natural frequency and damping of the path-following error. */
@@ -76,19 +71,8 @@ export const PLANNED_DRIVER = Object.freeze({
    * beyond its response distance, and a lane is free behind it to the rear vehicle's speed times this.
    */
   followSeconds: 1.5,
-  /**
-   * The capacity correction: its least value; the drop when either axle's tire utilization stays at 1 for longer than
-   * `saturatedSeconds`; its recovery per second otherwise; and the step it is planned in.
-   */
-  correction: Object.freeze({
-    least: 0.85,
-    drop: 0.02,
-    saturatedSeconds: 0.3,
-    recovery: 0.01,
-    resolution: 0.01,
-    /** A tire utilization within this of 1 is at 1: at and past the peak it is 1 up to rounding. */
-    saturation: 1e-6,
-  }),
+  /** The step in which the plan reads a driver's utilization, so plans of nearby utilizations share their cache. */
+  utilizationResolution: 0.01,
 });
 
 /** Wheel slip protection on both sides, TCS and MSR and ABS, with which every planned driver drives. */
@@ -224,7 +208,7 @@ export function createPlannedCornering() {
 }
 type Cornering = ReturnType<typeof createPlannedCornering>;
 
-/** A driver's plan workspace: its cell cache, its cornering speeds, its passes, its correction and its input, all reused. */
+/** A driver's plan workspace: its cell cache, its cornering speeds, its passes and its input, all reused. */
 export function createPlannedDriverWorkspace() {
   const nodes = () => new Float64Array(CELLS + 1);
   return {
@@ -264,9 +248,6 @@ export function createPlannedDriverWorkspace() {
     forward: nodes(),
     free: nodes(),
     constrained: nodes(),
-    /** The capacity correction and how long either tire has stayed saturated. */
-    correction: 1,
-    saturated: 0,
     a: createPlanCoordinateSample(),
     b: createPlanCoordinateSample(),
     target: createPlanCoordinateSample(),
@@ -383,7 +364,7 @@ function readCells(
 }
 
 /**
- * Write the cornering speeds of the cells read into `ws` for `driver` at `utilization` (its own, corrected), where
+ * Write the cornering speeds of the cells read into `ws` for `driver` at its planned utilization `planned`, where
  * `cornering`'s cache misses.
  */
 function readCornering(driver: PlannedDriver, planned: number, ws: Workspace, cornering: Cornering) {
@@ -405,7 +386,7 @@ function readCornering(driver: PlannedDriver, planned: number, ws: Workspace, co
       ws.verticals[i]!,
       grip,
       ws.rollings[i]!,
-      planned * PLANNED_DRIVER.lateralMargin,
+      planned,
     );
     cornering.squared[i] = Math.min(driver.speedCap, speed) ** 2;
     cornering.keys[i] = cornering.key;
@@ -426,11 +407,10 @@ function cellAcceleration(limits: VehicleLimits, ws: Workspace, i: number, v: nu
   const resistance = limits.drag(v) + VEHICLE_GRAVITY * (Math.sin(ws.grades[i]!) + ws.rollings[i]! * Math.max(0, n));
   if (!(n > 0)) return (drive ? -resistance : resistance) / limits.inertia;
   const cornering = limits.corneringDrag(lateral, n, grip);
-  // The axles keep the lateral margin while they drive or brake, as in a corner.
-  const reserved = lateral / PLANNED_DRIVER.lateralMargin;
+  // The axles keep the lateral the cell asks for while they drive or brake.
   return drive
-    ? (limits.driveLimit(v, u, grip, n, reserved) - resistance - cornering) / limits.inertia
-    : (limits.brakeLimit(u, grip, n, reserved) + resistance + cornering) / limits.inertia;
+    ? (limits.driveLimit(v, u, grip, n, lateral) - resistance - cornering) / limits.inertia
+    : (limits.brakeLimit(u, grip, n, lateral) + resistance + cornering) / limits.inertia;
 }
 
 /**
@@ -543,19 +523,10 @@ function backwardPass(
   return Math.sqrt(allowed);
 }
 
-/** Follow the tires' saturation: the correction drops while either axle's tire stays at its limit, else recovers. */
-function correct(car: VehicleDrivingRead, ws: Workspace, seconds: number) {
-  const { least, drop, saturatedSeconds, recovery, saturation } = PLANNED_DRIVER.correction;
-  if (Math.max(car.tires.front.utilization, car.tires.rear.utilization) >= 1 - saturation) {
-    ws.saturated += seconds;
-    if (ws.saturated > saturatedSeconds) {
-      ws.correction = Math.max(least, ws.correction - drop);
-      ws.saturated = 0;
-    }
-  } else {
-    ws.saturated = 0;
-    ws.correction = Math.min(1, ws.correction + recovery * seconds);
-  }
+/** The utilization `driver`'s plan reads: its own, in steps of `utilizationResolution`. */
+function plannedUtilization(driver: PlannedDriver) {
+  const { utilizationResolution } = PLANNED_DRIVER;
+  return Math.round(driver.utilization / utilizationResolution) * utilizationResolution;
 }
 
 /**
@@ -576,8 +547,7 @@ function plan(
 ) {
   const { limits } = driver;
   readCells(road, s, speed, offset, lane, smooth, ws, domain);
-  const { resolution } = PLANNED_DRIVER.correction;
-  const u = driver.utilization * Math.round(ws.correction / resolution) * resolution;
+  const u = plannedUtilization(driver);
   readCornering(driver, u, ws, ws.cornering);
   forwardPass(limits, ws, ws.cornering, speed, u);
   const { terminalClearance, responseSeconds, followSeconds } = PLANNED_DRIVER;
@@ -599,7 +569,7 @@ function plan(
 
 /**
  * The driver's plan now, at the vehicle's station and speed along `lane`, behind `leader` when one is given: its speed
- * now without and with the vehicle ahead (borrowed from the workspace). It first follows the tires' saturation. A
+ * now without and with the vehicle ahead (borrowed from the workspace). A
  * `smooth` path (the racing line) is planned on its own curvature, any other on the road's at its lateral.
  */
 export function planDriving(
@@ -612,7 +582,6 @@ export function planDriving(
   leader: DriverLeader | null,
   smooth = false,
 ): { readonly free: number; readonly target: number } {
-  correct(car, ws, driver.model.step);
   const { s, l } = car.course;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
   return plan(road, s, speed, driver, lane, ws, domain, leader, l - lateralOf(lane, s), smooth);
@@ -620,7 +589,7 @@ export function planDriving(
 
 /**
  * Read the road ahead of the vehicle along `lane` within `domain` into `ws`, for plans from its station and speed
- * without a vehicle ahead or a capacity correction (`plannedSpeedAhead`), which share these cells.
+ * without a vehicle ahead (`plannedSpeedAhead`), which share these cells.
  */
 export function readRoadAhead(
   road: DriverRoad,
@@ -647,11 +616,12 @@ export function plannedSpeedAhead(
   speed: number,
   distance: number,
 ): number {
-  readCornering(driver, driver.utilization, ws, cornering);
-  forwardPass(driver.limits, ws, cornering, speed, driver.utilization);
+  const u = plannedUtilization(driver);
+  readCornering(driver, u, ws, cornering);
+  forwardPass(driver.limits, ws, cornering, speed, u);
   const { terminalClearance, responseSeconds } = PLANNED_DRIVER;
   const terminal = domain.terminal === null ? Infinity : domain.terminal - terminalClearance - speed * responseSeconds;
-  backwardPass(driver.limits, ws, driver.utilization, ws.free, terminal, 0, Infinity, Infinity);
+  backwardPass(driver.limits, ws, u, ws.free, terminal, 0, Infinity, Infinity);
   const at = ws.stations[0]! + distance;
   for (let j = 1; j <= ws.count; j++)
     if (ws.stations[j]! >= at) {

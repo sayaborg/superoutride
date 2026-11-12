@@ -121,9 +121,9 @@ provisional value, to be judged on devices).
 
 The full driving source document participates in vehicle identity for reference times and time budgets.
 
-A driver's utilization is the fraction of its tires' friction ellipses it plans to use: it scales the lateral and
-longitudinal semi-axes of every axle alike, and the brake torques, so it acts on cornering, braking and acceleration
-alike. It plans speed alone: every planned driver steers by one rule, CENTER at 100 %
+A driver's utilization is the fraction of its tires' friction ellipses it plans to use, with no other factor: it scales
+the lateral and longitudinal semi-axes of every axle alike, and the brake torques, so it acts on cornering, braking and
+acceleration alike; at 1 the plan corners at the limit itself (K, 2026-11-12). It plans speed alone: every planned driver steers by one rule, CENTER at 100 %
 ([Drivers](content-and-gameplay.md#drivers)). Rival pace reads it as before. A vehicle's speed cap
 is its steady speed on a level straight of unit grip without rolling resistance, at full utilization.
 
@@ -141,14 +141,15 @@ Drivers' rules read the following time and the terminal clearance
 planning, following, lane choice and merging, pedals and steering. It rises by one with every change that alters a
 driver's input for the same vehicle state and observations, whether the change is to a value or to that law, and with
 every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
-driver's record, part of the reference run's procedure record, contains it. It is 3: a fork's choice gives every driver a new path function.
+driver's record, part of the reference run's procedure record, contains it. It is 4: the plan corners at the driver's
+utilization of the limit itself, with no margin and no capacity correction.
 
 The planned driver's other values ([`PLANNED_DRIVER`](../src/race/planned-driver.ts) and the path offset rules'
 [`PATH_OFFSET`](../src/race/lane-following.ts)) are author values: chosen by the implementer, neither derived from a
 model nor DEV settings; each one's meaning is written beside it. Among them are the path-following error's natural
 frequency, 1.2 rad/s, and damping ratio, 0.8; the pedals' speed-closing time, 0.5 s, and the stopping response time,
-0.45 s; an offset change's least blend distance, 30 m, and the offset's resolution, 0.25 m; and the capacity
-correction's least value, 0.85, its drop, 0.02, after 0.3 s at saturation, and its recovery, 0.01 per second. Changing
+0.45 s; an offset change's least blend distance, 30 m, and the offset's resolution, 0.25 m; and the step the plan
+reads utilization in, 0.01. Changing
 any of them changes drivers' inputs, so `PLANNED_DRIVER.version` rises with it.
 
 ## Camera settings
