@@ -1,7 +1,7 @@
 # CISCO HEAT research notes
 
 Research behind CISCO HEAT's road data that the specification does not hold: the programs' map, routines and what is
-open. Not a specification: the decisions are [Stage CS](../NEXT.md#stage-cs--cisco-heat-from-the-roms)'s and the rules
+open. Not a specification: the decisions are [CISCO HEAT road data](../cisco-heat-road-data.md)'s and the rules
 [Original road data](../original-road-data.md)'s. M is the main 68000's program, R1 and R2 the first and the second road
 68000's; addresses are each program's. Read statically. Its board and its road CPUs' code are BIG RUN's ([BIG
 RUN](big-run.md)).
@@ -125,4 +125,5 @@ RUN](big-run.md)).
 - **Its pictures.** Line 294: ground pen 0 beyond 408 units, sidewalk 1 to 312, kerbs 2 to 5 and 9 to 13 to 252, then
   pen 6 with lane lines of pen 8 at 0 and ±142 (12 units wide); 585 its left side clear to −312, 876 its right, 1,167
   both; 1,749 a patterned road (pens 7 to 13); 2,040 a striped deck (pens 8 and 14). BIG RUN's paints take the run at
-  the centre as the surface, here a lane line: how CISCO HEAT's lines are painted is open (CS-3).
+  the centre as the surface, here a lane line, so CISCO HEAT's take the pen they cover most
+  ([its road across](../cisco-heat-road-data.md#its-road-across)).

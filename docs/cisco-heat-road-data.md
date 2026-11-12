@@ -4,9 +4,9 @@ How CISCO HEAT's ROMs are read (its ROM set, hardware, tables and conversion). T
 the parts the originals share are [Original road data](original-road-data.md)'s; the programs' map and what is open are
 its [research notes](research/cisco-heat.md)'s.
 
-CISCO HEAT's courses are raised from MAME's `cischeat` (JALECO, 1990) ([Stage
-CS](NEXT.md#stage-cs--cisco-heat-from-the-roms)). Its board is BIG RUN's ([BIG RUN's
-hardware](big-run-road-data.md#big-runs-hardware)), and its road CPUs' code is BIG RUN's at other addresses.
+CISCO HEAT's courses are raised from MAME's `cischeat` (JALECO, 1990), its parent set (K, 2026-11-05). Its board is BIG
+RUN's ([BIG RUN's hardware](big-run-road-data.md#big-runs-hardware)), and its road CPUs' code is BIG RUN's at other
+addresses. MAME calls its pictures imperfect, so how it looks is compared with K's videos or a cabinet's records.
 
 ## Its ROM set
 
@@ -32,7 +32,9 @@ stage where the car's position plus 90 reaches it (M 0x17B44), and its checkpoin
 and 336,000 in STAGES 2 to 5; STAGE 1's, at 800,000, past its goal, none). A road position is 16.2 mm (1.75 / 108 m,
 `positionMetres`): its speedometer shows a unit of the car's speed as 1.75 km/h (M 0x15CBA: the speed held within 0 and
 160 units, four times its whole units the index of its digits at M 0x3B00, 280 km/h at its top), and the unit gains the
-road a position a tick of 1/30 s ([Stage CS](NEXT.md#stage-cs--cisco-heat-from-the-roms)).
+road a position a tick of 1/30 s, BIG RUN's tick ([its course tables](big-run-road-data.md#its-course-tables)), 1.225
+times BIG RUN's position (K, 2026-11-09). Its program scales the gain on an arc by the car's lateral and pushes on a car
+that falls behind; both are its handling, not its course, and change no length.
 
 ## Its plan
 
@@ -43,7 +45,9 @@ plan](big-run-road-data.md#its-plan)): the most a record departs is 0.01° and 1
 positions, each laid as a turn. Five times its first road meets P again by a jump back onto it, its record there P's: in
 STAGE 4 at 143,120, 215,368 and 299,616 (by 20° and 6,025, 3,821 and 5,469 positions), in STAGE 5 at 78,497 (8°, 4,209)
 and 236,980 (1,743 positions), each after it heads 8° to 20° away from P or runs beside it; each parting keeps its own
-arcs and ends at a Section's cut. In STAGE 5 road 1 leaves P at 340,872 and never meets it again.
+arcs and ends at a Section's cut (K, 2026-11-09). In STAGE 5 road 1 leaves P at 340,872 and never meets it again; before
+it, its two roads change their order across eight times, road 1 on one side of P where they run side by side and on the
+other where they part widest, which [the lanes over two roads](original-road-data.md#two-roads) take.
 
 ## Its 3D road
 
@@ -53,8 +57,9 @@ along it by its length over its radius, each record from its own angle, so that 
 the one before ends at, the road kinks there (by up to 44°). Its angles pass 90° (STAGES 1, 2 and 5). Laid so from each
 stage's first record, its heights keep within 1.5 positions of the table's at each record but at one record of STAGE 2
 (606,891, 58 positions), and within 5 to 30 positions of them laid on (170 in STAGE 2). BIG RUN's profile, its grade's
-sine changing evenly along an arc, departs from these by thousands of positions; its heights are what its screen shows
-([Stage CS](NEXT.md#stage-cs--cisco-heat-from-the-roms)), read from this road.
+sine changing evenly along an arc, departs from these by thousands of positions. Its grades pass −90° and its stages
+fall by up to a fifth of their length, which its camera, tilting with the road, never shows, so its heights are what its
+screen shows (K, 2026-11-09), read from this road.
 
 ## Its heights
 
@@ -73,7 +78,10 @@ the car than a pinhole would.
 A stage's road is cut into parts at both ends of each run of at least 200 m of the car, its sight, over which its screen
 shows no hill (no line seen more than a row from its level road's row), so that each such run is a level part and each
 part's grade is 0 at its ends; its two roads' parts are one where their 3D roads are, as in STAGES 1 to 3. So each
-stage's road is 4 to 13 parts, the longest 515 cells of 10 m, solved each on its own.
+stage's road is 4 to 13 parts, the longest 515 cells of 10 m, solved each on its own. Both roads are read by this one
+rule, so that where one lies more than 1 m below the other is taken between two readings alike (K, 2026-11-12). Its 59
+places steeper than −40°, in STAGES 1, 2, 3 and 5, show as crests the road falls away beyond and as climbs ahead, never
+as walls, as its road CPU draws them.
 
 ## Its road across
 
@@ -165,8 +173,7 @@ Its five courses (`cisco-heat-course`, each laid as the board's, `jaleco/board-c
   across. Its heights are road 2's read back from its screen ([its heights](#its-heights)), and road 1's where
   the main program holds the car on road 1, a kink where it changes road by the two grades' difference there. In STAGE 5
   road 1 leaves road 2 at 340,872 and never meets it again, and the main program holds the car on road 1 from 507,330
-  past the goal, so the course follows road 1 from 340,872, where the two are last one ([Stage
-  CS](NEXT.md#stage-cs--cisco-heat-from-the-roms), K, 2026-11-12): road 2 is its other road from there, and from 507,330
+  past the goal, so the course follows road 1 from 340,872, where the two are last one (K, 2026-11-12): road 2 is its other road from there, and from 507,330
   the road not taken, drawn as far as it heads within 60° of road 1. As a rule of the board's: where the original holds
   the car on road 1 after it has left P for good, the course follows it from where it left, and the other road is not
   taken from where the car is held on the course's road.
@@ -175,18 +182,23 @@ Its five courses (`cisco-heat-course`, each laid as the board's, `jaleco/board-c
 - **Its pictures.** Each road's picture across, its nearest line's runs, is laid at its centre as BIG RUN's are, road 2's
   over road 1's; a picture's neighbouring runs of one paint are one, its colors and material its widest run's, so that
   the strips at a station keep within the course format's. Each run's colors are its stripes' over 510 positions in
-  its layer's palette as its stage loads it ([its colours](#its-colours)). Its Sections are cut where its roads part
+  its layer's palette as its stage loads it ([its colours](#its-colours)). As BIG RUN's, the road the course does not
+  take is not drawn where the two share their plan and lie more than 1 m apart in height, and where they lie apart both
+  are drawn at the course's heights (K, 2026-11-12). Its Sections are cut where its roads part
   and meet and a hold changes, and where its pictures change only as often as keeps each Section's strips within the
   format's, its pictures changing within a Section.
 - **Its materials.** Its road `ASPHALT`; a one-line picture's and the ground beside the road by their colors
   (`groundMaterial`); under a clear run, between its roads and beyond its limits the city's `ASPHALT`.
 - **Its limits** lie 512 units, a line's half, beyond the outermost road's centre on each side.
 - **Its grid** is its own car alone at its start on road 2, at the centre of the lane right of its middle (71 units).
-- **Its scale across** is its own car's (K, 2026-11-09), measured again from its picture (`carUnits`): the sedan's
-  rear frame (the first frame the cars take by their angle, M 0xCE52; its frames' table at M 0x5CDC) is 79 colored
-  columns; a car's zoom is its objects' table's word w as (w / 2 & 127) + (w / 8 & 31) (M 0xCDB4), 128 its own size, at
-  92 to 96 positions, where its road shows 0.809 to 0.815 pixels a unit; so it is 97.3 units, 1.969 m, and a unit
-  across is 20.2 mm. The other car's is 63 columns, 77.6 units.
+- **Its scale across** is its own car's (K, 2026-11-09): the sedan, one of the two cars a player chooses from, as wide
+  as the Ford LTD Crown Victoria of 1990, 1.969 m ([Edmunds, its features and
+  specs](https://www.edmunds.com/ford/ltd-crown-victoria/1990/sedan/features-specs/), Dimensions). Its picture is
+  measured (`carUnits`): the sedan's rear frame (the first frame the cars take by their angle, M 0xCE52; its frames'
+  table at M 0x5CDC) is 79 colored columns; a car's zoom is its objects' table's word w as (w / 2 & 127) + (w / 8 & 31)
+  (M 0xCDB4), 128 its own size, at 92 to 96 positions, where its road shows 0.809 to 0.815 pixels a unit; so it is 97.3
+  units, as wide as the same car drawn as a rival near the camera, and a unit across is 20.2 mm, 1.25 times a unit
+  along. The other car, of the Nissan 300ZX's kind, is 63 columns, 77.6 units.
 - **Its skies** are its planes' scenes in force with the sky's entries' first set, and their last from where its fade
   begins, laid over its 96 ticks at 200 km/h; a sky's yaw is its back plane facing its middle column where its scene
   loads, turning at its one rate ([its skies](#its-skies)).
