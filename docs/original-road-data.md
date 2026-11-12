@@ -741,7 +741,9 @@ above with a focal length of 240 rows of 240 (`CAMERA_DEFINITION`), to the dista
 - **The pieces kept.** The pieces lie in the repository (`tools/road-data/shared/screen-pieces.json`), and the courses read
   them: solving them all takes over two hours. `npm run road-data -- screen-pieces` solves them from the ROM zips and
   writes the file: every piece the courses run (the tables OUTRUN's spans and TURBO OUTRUN's stages name, every kind, a
-  held one at its original's top speed, ENDURO RACER's cycle and hills, and FINAL LAP 2's laps); with `--check` it
+  held one at its original's top speed, ENDURO RACER's cycle and hills, and FINAL LAP 2's laps), again as each piece is
+  solved, those not yet solved as kept, so that a solve stopped keeps the pieces it has solved, and it prints each
+  piece as it is solved, its cells and its seconds; with `--check` it
   solves them again and
   fails, naming each piece that differs and its largest height difference along its stretch; with `--sensitivity` it
   solves each piece again from the original's rows moved by ±10⁻⁹ row and names those whose heights move by more than 1

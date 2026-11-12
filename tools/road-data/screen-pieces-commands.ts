@@ -244,29 +244,40 @@ const ENDURO_RACER_ABOUT =
 
 /**
  * Which pieces: every one, or those `--table` (with `--kmh` for a held one), `--cycle`, `--hill`, `--laps` (FINAL LAP 2's
- * four), `--course` and `--stage` (CISCO HEAT's two roads of each stage it lists, by their numbers) name.
+ * four), `--course`, `--stage` (CISCO HEAT's two roads of each stage it lists, by their numbers) and `--piece` (one by
+ * its name) name.
  */
 function chosen(options: ReadonlyMap<string, string>) {
   const table = options.get('--table'),
     hill = options.get('--hill'),
     course = options.get('--course'),
-    stage = options.get('--stage');
+    stage = options.get('--stage'),
+    piece = options.get('--piece');
   const some =
     table !== undefined ||
     hill !== undefined ||
     course !== undefined ||
     stage !== undefined ||
+    piece !== undefined ||
     options.has('--cycle') ||
     options.has('--laps');
+  const named = (name: string) => !some || piece === name;
   return {
-    table: (n: number, kmh?: number) =>
-      !some ||
+    table: (n: number, name: string, kmh?: number) =>
+      named(name) ||
       (table !== undefined && Number(table) === n && (kmh === undefined || options.get('--kmh') === String(kmh))),
-    cycle: !some || options.has('--cycle'),
-    hill: (k: number) => !some || (hill !== undefined && Number(hill) === k),
-    course: (name: string) => !some || options.has('--laps') || course === name,
-    stage: (n: number) => !some || (stage !== undefined && stage.split(',').map(Number).includes(n)),
+    cycle: named('cycle') || options.has('--cycle'),
+    hill: (k: number, name: string) => named(name) || (hill !== undefined && Number(hill) === k),
+    course: (name: string) => named(name) || options.has('--laps') || course === name,
+    stage: (n: number, name: string) =>
+      named(name) || (stage !== undefined && stage.split(',').map(Number).includes(n)),
   };
+}
+
+/** A piece of the file's, by its name: solved where chosen, kept otherwise, when it is taken. */
+interface NextPiece {
+  readonly piece: string;
+  readonly take: () => KeptPiece;
 }
 
 export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
@@ -280,6 +291,7 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       '--laps': 'flag',
       '--course': 'value',
       '--stage': 'value',
+      '--piece': 'value',
       '--sensitivity': 'flag',
       ...zipOptions(OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS, FINAL_LAP_2_ROMS, CISCO_HEAT_ROMS),
     },
@@ -295,6 +307,7 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       const kept = JSON.parse(await readFile(FILE, 'utf8')) as PiecesFile;
       const solved: string[] = [];
       const seconds: Record<string, number> = {};
+      const cells: Record<string, number> = {};
       const differ: { piece: string; metres: number }[] = [];
       const moved: { piece: string; metres: number }[] = [];
       const search = options.has('--sensitivity');
@@ -310,6 +323,7 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
         const began = performance.now();
         const piece: KeptPiece = { ...head, ...solveWritten(frames) };
         seconds[name] = round((performance.now() - began) / 1000, 1);
+        cells[name] = frames.b - frames.a;
         solved.push(name);
         if (JSON.stringify(piece) !== JSON.stringify(old))
           differ.push({ piece: name, metres: old ? round(heightDifference(piece, old), 4) : Infinity });
@@ -319,96 +333,137 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
         }
         return piece;
       };
-      const tasks = outrunTasks(outrun, turbo);
-      const pieces = tasks.map((t) => {
+      const outrunPieces = outrunTasks(outrun, turbo).map((t): NextPiece => {
         const name = `table ${t.table}${t.kmh !== undefined ? ` at ${t.kmh} km/h` : ''}`;
-        if (!which.table(t.table, t.kmh)) return keptPiece('outrun', name);
-        const inputs = tableInputs(t.tables(t.table), t.clock, t.distances, t.kmh);
-        const frames = outrunFrames(t.tables, t.table, t.runAt, t.clock, t.distances);
-        return take({ piece: name, inputs }, frames, kepts.get(`outrun/${name}`));
+        return {
+          piece: name,
+          take: () => {
+            if (!which.table(t.table, name, t.kmh)) return keptPiece('outrun', name);
+            const inputs = tableInputs(t.tables(t.table), t.clock, t.distances, t.kmh);
+            const frames = outrunFrames(t.tables, t.table, t.runAt, t.clock, t.distances);
+            return take({ piece: name, inputs }, frames, kepts.get(`outrun/${name}`));
+          },
+        };
       });
       const metres = enduroRacerPositionMetres(er);
       const inputs = enduroRacerInputs(screen, metres);
-      const cycle = which.cycle
-        ? take(
-            { piece: 'cycle', inputs, cycles: 1 },
-            enduroRacerCycleFrames(screen, metres),
-            kepts.get('enduro-racer/cycle'),
-          )
-        : keptPiece('enduro-racer', 'cycle');
-      const hills = screen.hills.map((_, i) => {
+      const cycle: NextPiece = {
+        piece: 'cycle',
+        take: () =>
+          which.cycle
+            ? take(
+                { piece: 'cycle', inputs, cycles: 1 },
+                enduroRacerCycleFrames(screen, metres),
+                kepts.get('enduro-racer/cycle'),
+              )
+            : keptPiece('enduro-racer', 'cycle'),
+      };
+      const hills = screen.hills.map((_, i): NextPiece => {
         const name = `hill ${i + 1}`;
-        if (!which.hill(i + 1)) return keptPiece('enduro-racer', name);
-        const frames = enduroRacerHillFrames(screen, i + 1, metres, readStages(er).positions);
-        const cycles = ((frames.b - frames.a) * frames.cellPositions) / CYCLE;
-        return take({ piece: name, inputs, cycles }, frames, kepts.get(`enduro-racer/${name}`));
+        return {
+          piece: name,
+          take: () => {
+            if (!which.hill(i + 1, name)) return keptPiece('enduro-racer', name);
+            const frames = enduroRacerHillFrames(screen, i + 1, metres, readStages(er).positions);
+            const cycles = ((frames.b - frames.a) * frames.cellPositions) / CYCLE;
+            return take({ piece: name, inputs, cycles }, frames, kepts.get(`enduro-racer/${name}`));
+          },
+        };
       });
       const projection = readProjection(fl2);
       const fl2Metres = intervalMetres(fl2).unit;
       const slopes = readSlopeTables(fl2);
-      const laps = readNames(fl2).map((name, c) => {
-        if (!which.course(name)) return keptPiece('final-lap-2', name);
-        const lap = finalLap2LapFrames(projection, slopes[c]!, fl2Metres);
-        const head = { piece: name, inputs: finalLap2Inputs(projection, slopes[c]!, fl2Metres), cycles: 1 };
-        return take(head, lap, kepts.get(`final-lap-2/${name}`));
-      });
+      const laps = readNames(fl2).map((name, c): NextPiece => ({
+        piece: name,
+        take: () => {
+          if (!which.course(name)) return keptPiece('final-lap-2', name);
+          const lap = finalLap2LapFrames(projection, slopes[c]!, fl2Metres);
+          const head = { piece: name, inputs: finalLap2Inputs(projection, slopes[c]!, fl2Metres), cycles: 1 };
+          return take(head, lap, kepts.get(`final-lap-2/${name}`));
+        },
+      }));
       const ciscoMain = assembleCiscoHeatMain(cisco);
       const ciscoCpus = [assembleCiscoHeatRoadCpu(cisco, 0), assembleCiscoHeatRoadCpu(cisco, 1)] as const;
       const ciscoScreen = readCiscoHeatScreen(ciscoCpus[0]);
       const ciscoMetres = ciscoHeatPositionMetres(ciscoMain);
-      // A stage's two roads read alike where their 3D roads are one (STAGES 1 to 3): solved once.
+      // A stage's two roads read alike where their 3D roads are one (STAGES 1 to 3): solved once, the other taking it
+      // whether chosen or not.
       const solvedFrom = new Map<string, KeptPiece>();
-      const stageRoads = ciscoHeatStageRoads(ciscoMain, ciscoCpus).map((r) => {
-        if (!which.stage(r.stage + 1)) return keptPiece('cisco-heat', r.piece);
-        const head = { piece: r.piece, inputs: ciscoHeatInputs(ciscoScreen, r.arcs, r.end, ciscoMetres) };
-        const same = solvedFrom.get(head.inputs);
-        if (same) {
-          const piece = { ...same, piece: r.piece };
-          const old = kepts.get(`cisco-heat/${r.piece}`);
-          if (JSON.stringify(piece) !== JSON.stringify(old))
-            differ.push({ piece: r.piece, metres: old ? round(heightDifference(piece, old), 4) : Infinity });
+      const stageRoads = ciscoHeatStageRoads(ciscoMain, ciscoCpus).map((r): NextPiece => ({
+        piece: r.piece,
+        take: () => {
+          const head = { piece: r.piece, inputs: ciscoHeatInputs(ciscoScreen, r.arcs, r.end, ciscoMetres) };
+          const same = solvedFrom.get(head.inputs);
+          if (same) {
+            const piece = { ...same, piece: r.piece };
+            const old = kepts.get(`cisco-heat/${r.piece}`);
+            if (JSON.stringify(piece) !== JSON.stringify(old))
+              differ.push({ piece: r.piece, metres: old ? round(heightDifference(piece, old), 4) : Infinity });
+            return piece;
+          }
+          if (!which.stage(r.stage + 1, r.piece)) return keptPiece('cisco-heat', r.piece);
+          const frames = ciscoHeatRoadFrames(ciscoScreen, r.arcs, r.end, ciscoMetres);
+          const piece = take(head, frames, kepts.get(`cisco-heat/${r.piece}`));
+          solvedFrom.set(head.inputs, piece);
           return piece;
-        }
-        const frames = ciscoHeatRoadFrames(ciscoScreen, r.arcs, r.end, ciscoMetres);
-        const piece = take(head, frames, kepts.get(`cisco-heat/${r.piece}`));
-        solvedFrom.set(head.inputs, piece);
-        return piece;
-      });
+        },
+      }));
       const outrunClock = readClock(outrun);
-      const file: PiecesFile = {
+      const originals = [
+        {
+          original: 'outrun',
+          about: OUTRUN_ABOUT,
+          positionMetres: positionMetres(outrunClock),
+          cellPositions: cellPositionsOf(positionMetres(outrunClock)),
+          pieces: outrunPieces,
+        },
+        {
+          original: 'enduro-racer',
+          about: ENDURO_RACER_ABOUT,
+          positionMetres: metres,
+          cellPositions: cellPositionsOf(metres),
+          pieces: [cycle, ...hills],
+        },
+        {
+          original: 'final-lap-2',
+          about: FINAL_LAP_2_ABOUT,
+          positionMetres: fl2Metres,
+          cellPositions: closedCellPositions(fl2Metres, LAP_UNITS),
+          pieces: laps,
+        },
+        {
+          original: 'cisco-heat',
+          about: CISCO_HEAT_ABOUT,
+          positionMetres: ciscoMetres,
+          cellPositions: cellPositionsOf(ciscoMetres),
+          pieces: stageRoads,
+        },
+      ];
+      // The file as its pieces stand: each one taken so far, the others as kept, those with none kept and an original
+      // with none left out.
+      const taken = new Map<string, KeptPiece>();
+      const fileNow = (): PiecesFile => ({
         about: ABOUT,
         camera: piecesCamera(),
-        originals: [
-          {
-            original: 'outrun',
-            about: OUTRUN_ABOUT,
-            positionMetres: positionMetres(outrunClock),
-            cellPositions: cellPositionsOf(positionMetres(outrunClock)),
-            pieces,
-          },
-          {
-            original: 'enduro-racer',
-            about: ENDURO_RACER_ABOUT,
-            positionMetres: metres,
-            cellPositions: cellPositionsOf(metres),
-            pieces: [cycle, ...hills],
-          },
-          {
-            original: 'final-lap-2',
-            about: FINAL_LAP_2_ABOUT,
-            positionMetres: fl2Metres,
-            cellPositions: closedCellPositions(fl2Metres, LAP_UNITS),
-            pieces: laps,
-          },
-          {
-            original: 'cisco-heat',
-            about: CISCO_HEAT_ABOUT,
-            positionMetres: ciscoMetres,
-            cellPositions: cellPositionsOf(ciscoMetres),
-            pieces: stageRoads,
-          },
-        ],
-      };
+        originals: originals
+          .map(({ pieces, ...o }) => ({
+            ...o,
+            pieces: pieces.flatMap((p) => {
+              const key = `${o.original}/${p.piece}`;
+              return taken.get(key) ?? kepts.get(key) ?? [];
+            }),
+          }))
+          .filter((o) => o.pieces.length > 0),
+      });
+      for (const { original, pieces } of originals)
+        for (const next of pieces) {
+          const count = solved.length;
+          taken.set(`${original}/${next.piece}`, next.take());
+          if (solved.length === count) continue;
+          // Written as each piece is solved, so that a solve stopped keeps the pieces it has solved.
+          if (!check) await atomicWrite(FILE, formatSavedJson(fileNow()));
+          yield { piece: next.piece, cells: cells[next.piece], seconds: seconds[next.piece] };
+        }
       if (check)
         requireInput(
           differ.length === 0,
@@ -416,8 +471,8 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
           `${differ.map((d) => `${d.piece} (${d.metres} m)`).join(', ')} differ from the pieces kept` +
             (search ? `; ${moved.map((d) => `${d.piece} (${d.metres} m)`).join(', ') || 'none'} move` : ''),
         );
-      else await atomicWrite(FILE, formatSavedJson(file));
-      yield { ok: true, checked: check, solved: solved.length, seconds, differ, ...(search ? { moved } : {}) };
+      else await atomicWrite(FILE, formatSavedJson(fileNow()));
+      yield { ok: true, checked: check, solved: solved.length, seconds, cells, differ, ...(search ? { moved } : {}) };
     },
     [OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS, FINAL_LAP_2_ROMS, CISCO_HEAT_ROMS],
   ),
