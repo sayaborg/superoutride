@@ -23,13 +23,6 @@ export function compileEngineSounds(sources: readonly DocumentSource[]): Admissi
 
 /** Transport verifies every payload SHA before admission; each composition loads the catalog once and passes it on. */
 export async function loadEngineSounds(content: ContentDelivery): Promise<EngineSoundCatalog> {
-  const sources: DocumentSource[] = [];
-  for (const file of content.manifest.files.filter((file) => file.kind === 'engine-sound'))
-    sources.push({
-      id: file.id,
-      path: file.path,
-      value: await content.json('engine-sound', file.id),
-      sha256: file.sha256,
-    });
+  const sources = await content.documents('engine-sound');
   return requireLoaded(compileEngineSounds(sources));
 }

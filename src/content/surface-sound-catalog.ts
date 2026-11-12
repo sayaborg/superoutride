@@ -20,13 +20,6 @@ export function compileSurfaceSounds(sources: readonly DocumentSource[]): Admiss
 
 /** Transport verifies the saved bytes before admission; each composition loads the document once. */
 export async function loadSurfaceSounds(content: ContentDelivery): Promise<CompiledSurfaceSounds> {
-  const sources: DocumentSource[] = [];
-  for (const file of content.manifest.files.filter((file) => file.kind === 'surface-sound'))
-    sources.push({
-      id: file.id,
-      path: file.path,
-      value: await content.json('surface-sound', file.id),
-      sha256: file.sha256,
-    });
+  const sources = await content.documents('surface-sound');
   return requireLoaded(compileSurfaceSounds(sources));
 }

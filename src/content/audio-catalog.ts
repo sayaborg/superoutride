@@ -16,8 +16,6 @@ export function compileAudioSettings(sources: readonly DocumentSource[]): Admiss
 
 /** Transport verifies the saved bytes before admission; each composition loads the settings once. */
 export async function loadAudioSettings(content: ContentDelivery): Promise<CompiledAudioSettings> {
-  const sources: DocumentSource[] = [];
-  for (const file of content.manifest.files.filter((file) => file.kind === 'audio'))
-    sources.push({ id: file.id, path: file.path, value: await content.json('audio', file.id), sha256: file.sha256 });
+  const sources = await content.documents('audio');
   return requireLoaded(compileAudioSettings(sources));
 }

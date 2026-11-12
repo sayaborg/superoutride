@@ -556,9 +556,7 @@ export async function loadSeriesCatalog(
   pictures: ScreenPictureCatalog,
   music: MusicCatalog,
 ): Promise<SeriesCatalog> {
-  const sources: DocumentSource[] = [];
-  for (const file of content.manifest.files.filter((file) => file.kind === 'series'))
-    sources.push({ id: file.id, path: file.path, value: await content.json('series', file.id), sha256: file.sha256 });
+  const sources = await content.documents('series');
   const courseIds = content.manifest.files.filter((file) => file.kind === 'course').map((file) => file.id);
   return requireLoaded(compileSeriesCatalog(sources, courseIds, vehicles, pictures, music));
 }

@@ -20,10 +20,8 @@ import type { EngineSoundCatalog } from './engine-sound-catalog.js';
  */
 export async function loadVehicleSpriteSets(content: ContentDelivery): Promise<SpriteAssets> {
   const sets: Record<string, VehicleSpriteSet> = {};
-  for (const file of content.manifest.files.filter((file) => file.kind === 'vehicle-sprite-set')) {
-    const value = await content.json('vehicle-sprite-set', file.id);
-    sets[file.id] = requireLoaded(admit(file.path, () => readVehicleSpriteSetDocument(value, file.id).set));
-  }
+  for (const { id, path, value } of await content.documents('vehicle-sprite-set'))
+    sets[id] = requireLoaded(admit(path, () => readVehicleSpriteSetDocument(value, id).set));
   return Object.freeze({ sets: Object.freeze(sets) });
 }
 
@@ -93,21 +91,10 @@ export async function loadVehicleDefinitions(
   sounds: EngineSoundCatalog,
 ): Promise<VehicleDefinitions> {
   const sprites = await loadVehicleSpriteSets(content);
-  const read = async (kind: 'driving' | 'vehicle' | 'vehicle-listing') => {
-    const sources: DocumentSource[] = [];
-    for (const file of content.manifest.files.filter((file) => file.kind === kind))
-      sources.push({ id: file.id, path: file.path, value: await content.json(kind, file.id), sha256: file.sha256 });
-    return sources;
-  };
-  return requireLoaded(
-    compileVehicleDefinitions(
-      sprites,
-      sounds,
-      await read('driving'),
-      await read('vehicle'),
-      await read('vehicle-listing'),
-    ),
-  );
+  const driving = await content.documents('driving'),
+    vehicles = await content.documents('vehicle'),
+    listings = await content.documents('vehicle-listing');
+  return requireLoaded(compileVehicleDefinitions(sprites, sounds, driving, vehicles, listings));
 }
 export interface VehicleDefinitions {
   readonly vehicles: readonly CompiledVehicleDefinition[];

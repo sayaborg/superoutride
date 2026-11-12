@@ -20,7 +20,7 @@ import {
   spriteLodLayout,
   type SpriteLodAsset,
 } from '../image/sprite.js';
-import type { ContentDelivery } from './content-delivery.js';
+import { inOrder, type ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 
@@ -252,14 +252,13 @@ export function compilePuffs(
  * names once, from their manifest image entries.
  */
 export async function loadPuffs(content: ContentDelivery, materialIds: readonly string[]): Promise<CompiledPuffs> {
-  const sources: DocumentSource[] = [];
-  for (const file of content.manifest.files.filter((file) => file.kind === 'puffs'))
-    sources.push({ id: file.id, path: file.path, value: await content.json('puffs', file.id), sha256: file.sha256 });
+  const sources = await content.documents('puffs');
+  const names = [...new Set(sources.flatMap((source) => puffPictureNames(source.value)))];
+  const values = await inOrder(names.map((name) => content.json('image', name)));
   const pictures = new Map<string, SpriteLodAsset>();
-  for (const name of new Set(sources.flatMap((source) => puffPictureNames(source.value)))) {
-    const value = await content.json('image', name);
+  names.forEach((name, index) => {
     const { path } = content.manifest.files.find((file) => file.kind === 'image' && file.id === name)!;
-    pictures.set(name, requireLoaded(admitPuffPicture(value, path)));
-  }
+    pictures.set(name, requireLoaded(admitPuffPicture(values[index], path)));
+  });
   return requireLoaded(compilePuffs(sources, materialIds, pictures));
 }

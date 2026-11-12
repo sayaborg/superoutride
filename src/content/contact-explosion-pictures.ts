@@ -1,6 +1,6 @@
 import { admit, readArray, readNumber, readRecord, readString, requireAdmission } from '../core/admission.js';
 import { readSpriteLodAsset, type SpriteLodAsset } from '../image/sprite.js';
-import type { ContentDelivery } from './content-delivery.js';
+import { inOrder, type ContentDelivery } from './content-delivery.js';
 import { requireLoaded } from './content-load-error.js';
 
 /**
@@ -147,7 +147,7 @@ export interface ContactExplosion {
 export async function loadContactExplosion(content: ContentDelivery): Promise<ContactExplosion> {
   const value = await content.json('explosion', CONTACT_EXPLOSION_SCRIPT);
   const script = requireLoaded(admit(`explosions/${CONTACT_EXPLOSION_SCRIPT}.json`, () => readExplosionScript(value)));
-  const pictures = await Promise.all(
+  const pictures = await inOrder(
     explosionPictureNames(script).map(async (name) => {
       const picture = await content.json('image', name);
       return [name, requireLoaded(admit(`images/${name}.json`, () => readSpriteLodAsset(picture)))] as const;

@@ -51,13 +51,6 @@ export function compileScreenPictures(sources: readonly DocumentSource[]): Admis
 
 /** The delivered screen pictures, admitted again as other delivered documents are. */
 export async function loadScreenPictures(content: ContentDelivery): Promise<ScreenPictureCatalog> {
-  const sources: DocumentSource[] = [];
-  for (const file of content.manifest.files.filter((file) => file.kind === 'screen-picture'))
-    sources.push({
-      id: file.id,
-      path: file.path,
-      value: await content.json('screen-picture', file.id),
-      sha256: file.sha256,
-    });
+  const sources = await content.documents('screen-picture');
   return requireLoaded(compileScreenPictures(sources));
 }

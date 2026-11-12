@@ -189,13 +189,6 @@ export async function loadFrontEndSelection(
   pictures: ScreenPictureCatalog,
   music: MusicCatalog,
 ): Promise<FrontEndSelection> {
-  const sources: DocumentSource[] = [];
-  for (const file of content.manifest.files.filter((file) => file.kind === 'front-end'))
-    sources.push({
-      id: file.id,
-      path: file.path,
-      value: await content.json('front-end', file.id),
-      sha256: file.sha256,
-    });
+  const sources = await content.documents('front-end');
   return requireLoaded(compileFrontEndSelectionSources(sources, series, pictures, music));
 }

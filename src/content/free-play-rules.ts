@@ -102,13 +102,6 @@ export function compileFreePlayRules(sources: readonly DocumentSource[]): Admiss
 
 /** Transport verifies the saved bytes before admission; each composition loads the rules once. */
 export async function loadFreePlayRules(content: ContentDelivery): Promise<FreePlayRules> {
-  const sources: DocumentSource[] = [];
-  for (const file of content.manifest.files.filter((file) => file.kind === 'free-play'))
-    sources.push({
-      id: file.id,
-      path: file.path,
-      value: await content.json('free-play', file.id),
-      sha256: file.sha256,
-    });
+  const sources = await content.documents('free-play');
   return requireLoaded(compileFreePlayRules(sources));
 }

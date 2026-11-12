@@ -118,8 +118,6 @@ export function compileMusicCatalog(
 
 /** The delivered tracks: their documents admitted again, as other delivered documents are. */
 export async function loadMusic(content: ContentDelivery, titleColumns: number): Promise<MusicCatalog> {
-  const sources: DocumentSource[] = [];
-  for (const file of content.manifest.files.filter((file) => file.kind === 'music'))
-    sources.push({ id: file.id, path: file.path, value: await content.json('music', file.id), sha256: file.sha256 });
+  const sources = await content.documents('music');
   return requireLoaded(compileMusicCatalog(sources, titleColumns));
 }

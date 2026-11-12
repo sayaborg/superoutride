@@ -1256,7 +1256,10 @@ The manifest format ([`content-manifest.ts`](../src/content/content-manifest.ts)
 admission toolkit as document `manifest.json` (format and version first, exact fields, unique kind/id identities and
 paths) and owns the delivered JSON encoding; it knows no transport. Delivery
 ([`content-delivery.ts`](../src/content/content-delivery.ts)) reads the index through it, resolves each logical
-identity to its relative path, and verifies the exact downloaded/read bytes against SHA-256 before JSON decoding. The
+identity to its relative path, and verifies the exact downloaded/read bytes against SHA-256 before JSON decoding. A
+catalog reads every file of its kind in one form, `documents(kind)`: the files are fetched at once, each verified
+against its own digest, then decoded in manifest order, and the catalog admits them in that order; when several fail,
+the first in manifest order is the failure, as if they were read one after another. The
 delivery layout uses only the format. Missing entries
 or digest mismatches stop loading. Loaders report expected content and build errors as one
 `ContentLoadError` whose `diagnostics` keep their structure: the admission diagnostics of the loaded

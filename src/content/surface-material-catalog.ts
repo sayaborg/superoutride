@@ -22,8 +22,6 @@ export function compileSurfaceMaterials(sources: readonly DocumentSource[]): Adm
  * Each composition loads the catalog once and passes it on.
  */
 export async function loadSurfaceMaterials(content: ContentDelivery): Promise<SurfaceMaterialCatalog> {
-  const sources: DocumentSource[] = [];
-  for (const file of content.manifest.files.filter((file) => file.kind === 'material'))
-    sources.push({ id: file.id, path: file.path, value: await content.json('material', file.id), sha256: file.sha256 });
+  const sources = await content.documents('material');
   return requireLoaded(compileSurfaceMaterials(sources));
 }
