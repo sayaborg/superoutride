@@ -70,9 +70,9 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: Stage AD's AD-1 (K, 2026-11-12), then AD-2, [Stage RC](#stage-rc--one-recovery)'s RC-2 and RC-3, and AD-3;
-in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
+Next PR: [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-2, then [Stage
+RC](#stage-rc--one-recovery)'s RC-2 and RC-3, and AD-3; in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and
+beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -435,6 +435,26 @@ delivers nothing until the engine has risen (NSR500 stands about 0.7 s); K judge
 its recovery places on material (`supportedTargetSurface` stops a recovery there now); what AI drivers do before the
 limit at the road's end (the AI review); and what `stuck` leaves out: creeping on faster than 0.15 m/s, and a driver
 braked to rest.
+
+## Stage AD — Three driver roles and lighter driving
+
+K's decisions of 2026-11-12. A driver's utilization is the true fraction of the limit: no planning margin and no
+capacity correction (AD-1). No rival follows a pace schedule: a rival follows the player by utilization, 0.85 level,
+0.70 to 0.98, within 200 m and with a 6 s lag, at its vehicle's whole speed; the standard driver (0.90) drives the
+reference runs, the attract demo and the takeover; the roles are one table of rival, standard and traffic (AD-2). The
+driving is made lighter: a lookahead fitted to the speed, fewer lane-position reads, and a plan redone every sixth step
+(AD-3; its lane-position part after RC-3). The protection solvers are only examined; simpler traffic and unseen rivals
+are not made now.
+
+The auditor's choices (reported to K): the stage's name and PRs; utilization read in steps of 0.01; a rival's
+utilization starting at its level. Provisional numbers K can change in DEV: the lag 6 s, the span 200 m, the replanning
+interval 6 steps.
+
+Order with Stage RC (K, 2026-11-12): RC-1, AD-1, AD-2, RC-2, RC-3, AD-3. AD-2, RC-2 and RC-3 change formats and wait as
+PRs until K lets them into main.
+
+Not decided, for later: whether the protection solvers can be skipped with the same results (AD-3.4's report);
+simpler traffic and unseen rivals (not now, K); small differences between rivals, should their order set too firmly.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
