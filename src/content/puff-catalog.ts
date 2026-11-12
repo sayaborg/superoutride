@@ -254,10 +254,10 @@ export function compilePuffs(
 export async function loadPuffs(content: ContentDelivery, materialIds: readonly string[]): Promise<CompiledPuffs> {
   const sources = await content.documents('puffs');
   const names = [...new Set(sources.flatMap((source) => puffPictureNames(source.value)))];
-  const values = await inOrder(names.map((name) => content.json('image', name)));
+  const values = await inOrder(names.map((name) => content.json('puff-picture', name)));
   const pictures = new Map<string, SpriteLodAsset>();
   names.forEach((name, index) => {
-    const { path } = content.manifest.files.find((file) => file.kind === 'image' && file.id === name)!;
+    const { path } = content.manifest.files.find((file) => file.kind === 'puff-picture' && file.id === name)!;
     pictures.set(name, requireLoaded(admitPuffPicture(values[index], path)));
   });
   return requireLoaded(compilePuffs(sources, materialIds, pictures));

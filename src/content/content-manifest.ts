@@ -34,6 +34,7 @@ const CONTENT_KINDS: readonly ContentKind[] = [
   'series',
   'image',
   'explosion',
+  'explosion-picture',
   'screen-picture',
   'reference-times',
   'schedule',
@@ -50,6 +51,7 @@ const CONTENT_KINDS: readonly ContentKind[] = [
   'free-play',
   'front-end',
   'puffs',
+  'puff-picture',
   'recording',
   'music',
 ];

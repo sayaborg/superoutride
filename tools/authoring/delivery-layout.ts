@@ -25,6 +25,8 @@ function contentPath(kind: ContentKind, id: string, sha256: string): string {
       return `free-play/${id}.json`;
     case 'puffs':
       return `puffs/${id}.json`;
+    case 'puff-picture':
+      return `puff-pictures/${id}.json`;
     case 'recording':
       return `recordings/${id}.m4a`;
     case 'music':
@@ -43,6 +45,8 @@ function contentPath(kind: ContentKind, id: string, sha256: string): string {
       return `crest-trials/${id}.json`;
     case 'explosion':
       return `explosions/${id}.json`;
+    case 'explosion-picture':
+      return `explosion-pictures/${id}.json`;
     case 'series':
       return `series/${id}.series.json`;
     case 'reference-times':

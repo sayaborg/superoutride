@@ -288,7 +288,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
         const document = `content/${imagePath(places, name)}`;
         const value = parseJson(bytes, document);
         pictures.set(name, requireLoaded(admitPuffPicture(value, document)));
-        pictureFiles.push(deliveredFile('image', name, encodeContentJson(value)));
+        pictureFiles.push(deliveredFile('puff-picture', name, encodeContentJson(value)));
       }
       requireLoaded(
         compilePuffs(
@@ -318,7 +318,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
         const document = `content/${imagePath(places, name)}`,
           value = parseJson(bytes, document);
         requireLoaded(admit(document, () => readSpriteLodAsset(value)));
-        return deliveredFile('image', name, encodeContentJson(value));
+        return deliveredFile('explosion-picture', name, encodeContentJson(value));
       }),
     ],
   );

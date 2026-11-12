@@ -149,7 +149,7 @@ export async function loadContactExplosion(content: ContentDelivery): Promise<Co
   const script = requireLoaded(admit(`explosions/${CONTACT_EXPLOSION_SCRIPT}.json`, () => readExplosionScript(value)));
   const pictures = await inOrder(
     explosionPictureNames(script).map(async (name) => {
-      const picture = await content.json('image', name);
+      const picture = await content.json('explosion-picture', name);
       return [name, requireLoaded(admit(`images/${name}.json`, () => readSpriteLodAsset(picture)))] as const;
     }),
   );
