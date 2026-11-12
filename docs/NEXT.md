@@ -508,10 +508,10 @@ Defaults for K to confirm before the stage closes, each its PR's:
   before each goal, 25°, so f is 0.537 as K decided, while SPECIAL STAGE 1's last record bends on to 30° past its goal.
 - **The town's entries in every stage** (BR-6b). Entries 1 to 24 of each road layer's palette are STARTING RUN's in
   every stage, as a game plays its stages in turn from it and no later stage loads them again.
-- **The eight partings in height** (BR-6). As K decided on 2026-11-11, for now: over the five rivers the course crosses
-  on the second road, its clear sides show the sky's rows below the horizon where the original shows the first road's
-  water below. K decides before CISCO HEAT's courses whether the board takes a second road layer, which would draw that
-  water, and CISCO HEAT's two roads where they lie apart, at their own heights.
+- **The eight partings in height** (BR-6). As K decided on 2026-11-11: over the five rivers the course crosses on the
+  second road, its clear sides show the sky's rows below the horizon where the original shows the first road's water
+  below. The board takes no second road layer for now, which would draw that water ([Stage
+  CS](#stage-cs--cisco-heat-from-the-roms), K, 2026-11-12).
 - **A course's end** (BR-6c). Its goal, and on to the first record of either road past it, at most 2,000 positions:
   enough for the finish, short of SPECIAL STAGE 1's fall past its goal.
 - **The two roads' order** (BR-6c). Road 2's picture over road 1's, as MAME draws the second road layer over the first at
@@ -559,7 +559,7 @@ K's decisions (2026-11-09):
   they run side by side and on the other where they part widest, as BIG RUN's and its other stages' never do; [the lanes
   over two roads](original-road-data.md#two-roads) take either order.
 - **Its heading's jumps** between straights (4° to 20°) are laid as turns by [the plan from a table's
-  arcs](original-road-data.md#plan-from-a-tables-arcs), and where its second road jumps back onto its first at the end
+  arcs](original-road-data.md#plan-from-a-tables-arcs), and where its first road jumps back onto its second at the end
   of their parting, a Section is cut.
 - **Its heights** are no 3D road times f: its grades pass −90° and its stages fall by up to a fifth of their length,
   which its camera, tilting with the road, never shows. They are read back from its screen as [Profile from the
@@ -585,6 +585,11 @@ K decided (2026-11-12):
 - **Its skies** turn with the road at one rate, as every course's do: its program shifts its planes only through a
   curve, by its speed and up to a limit, and back on a straight, so its sky is baked as one turning a fixed number of
   pixels a degree, the rate at which its planes shift through its curves at its default speed, its chapter giving how.
+- **One road layer.** The board takes no second road layer for now: its courses are raised on one road layer as BIG
+  RUN's are, its two roads where they lie apart drawn at the course's heights, and its courses' PR reports how far apart
+  in height its two roads lie where they part. A second road layer, which would draw them at their own heights and the
+  water BIG RUN's first road shows below its second over its rivers, would be a stage of its own, its courses and BIG
+  RUN's raised again then.
 
 The stage starts by reading how its screen draws its two roads where their order changes, which one's paint shows over
 the other's, and its courses' PR measures its own car's width again.
