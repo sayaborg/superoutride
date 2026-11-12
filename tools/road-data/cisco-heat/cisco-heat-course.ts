@@ -1,8 +1,7 @@
 /**
  * CISCO HEAT's conversion ([CISCO HEAT road data](../../../docs/cisco-heat-road-data.md#its-conversion)): its five
  * courses, each its stage from its start to the first record past its goal, laid as the board's (`jaleco/board-course`),
- * its heights read back from its screen, its pictures, colors, materials and skies as its programs give them; its
- * objects are not placed yet.
+ * its heights read back from its screen, its pictures, colors, materials, skies and objects as its programs give them.
  */
 import { requireInput } from '../../authoring/authoring-error.js';
 import { round1, round3, OriginalOutputs, type Conversion } from '../shared/conversion.js';
@@ -18,14 +17,24 @@ import { bakeSky, sectionYawOrigin, skyYawOrigin } from '../shared/sky-baking.js
 import { lanesOverTwoRoads } from '../shared/two-roads.js';
 import { layBoardCourse, type BoardCourseRoads, type BoardSkyKnot } from '../jaleco/board-course.js';
 import { boardScenes, boardSky, SKY_MIDDLE, type BoardScene } from '../jaleco/ms1-skies.js';
+import { boardUses, zoomBoards } from '../jaleco/zoom-boards.js';
 import { roadTables, type HeldStretch, type RoadNumber } from '../jaleco/road-tables.js';
 import { ciscoHeatSkies, STAGES } from './cisco-heat-backgrounds.js';
+import {
+  ciscoHeatDescriptor,
+  ciscoHeatObjects,
+  ciscoHeatPlace,
+  ciscoHeatSpritePalette,
+  spritePixelUnits,
+  type CiscoHeatObject,
+} from './cisco-heat-objects.js';
 import { LAST_SKY_SET, rowEntry, skyFade, stagePalettes, STRIPE_PERIOD } from './cisco-heat-road-colours.js';
 import { ciscoHeatLanePicture, ciscoHeatPaints, nearestLine } from './cisco-heat-road-picture.js';
 import {
   assembleCiscoHeatMain,
   assembleCiscoHeatRoadCpu,
   assembleCiscoHeatRoadLines,
+  assembleCiscoHeatSprites,
   CISCO_HEAT_TILE_ROMS,
 } from './cisco-heat-rom.js';
 import {
@@ -44,6 +53,11 @@ import {
   type CiscoHeatStageRoad,
 } from './cisco-heat-screen-frames.js';
 
+/**
+ * The descriptors whose hits span the road across its middle, which would leave the car no way past (the course format
+ * refuses a road its bodies close): drawn, with no body (K's to confirm).
+ */
+const OPEN: ReadonlySet<number> = new Set([0x0ff0, 0x5484, 0x5490]);
 /** The conversion's version: its outputs' format. */
 export const CISCO_HEAT_CONVERSION_VERSION = 1;
 
@@ -141,6 +155,13 @@ function courseHeights(
   return { bends, kinks, apart: (p: number) => Math.abs(roads[0].height(p * metres) - roads[1].height(p * metres)) };
 }
 
+/** Heights' 10, 50 and 90 % points, metres, and how many lie above 1 m. */
+function bottoms(heights: readonly number[]) {
+  const sorted = [...heights].sort((a, b) => a - b);
+  const at = (f: number) => round1(sorted[Math.min(sorted.length - 1, Math.floor(f * sorted.length))] ?? 0);
+  return { percent10: at(0.1), percent50: at(0.5), percent90: at(0.9), above1m: sorted.filter((h) => h > 1).length };
+}
+
 /** CISCO HEAT's courses from its ROM set. */
 export function ciscoHeatCourses(set: RomSet) {
   const main = assembleCiscoHeatMain(set);
@@ -159,6 +180,41 @@ export function ciscoHeatCourses(set: RomSet) {
   const parts = ciscoHeatStageRoads(main, cpus, metres);
   const readRoad = readRoads(parts, metres, (r) => ciscoHeatInputs(screen, r.arcs, r.from, r.to, metres));
   const skies = new Set<string>();
+  // Its objects of kind 0 to each stage's end, each a board of its descriptor's sprite at its record's scale and
+  // mirroring, in its stage's sprites' palette; a sprite's pixel at its own size `pixel` units across, and a unit up a
+  // screen pixel's height over its width of a unit across, as its pictures are drawn.
+  const pixel = spritePixelUnits(main);
+  const UP = ACROSS / PIXEL_ASPECT;
+  const boardOf = (o: CiscoHeatObject) => {
+    const d = ciscoHeatDescriptor(main, o.descriptor);
+    return {
+      name: `ciscoheat-${o.descriptor.toString(16).padStart(4, '0')}-${o.scale * 8}${o.mirrored ? '-mirrored' : ''}`,
+      tile: d.tile,
+      across: d.across,
+      down: d.down,
+      xScale: o.scale,
+      yScale: o.scale,
+      mirrored: o.mirrored,
+    };
+  };
+  const uses = boardUses();
+  const objects = Array.from({ length: STAGES }, (_, stage) => {
+    const end = stageEnd(main, cpus, stage);
+    const colors = ciscoHeatSpritePalette(main, stage);
+    const all = ciscoHeatObjects(main, stage).filter((o) => o.position < end);
+    const plain = all.filter((o) => o.kind === 0);
+    for (const o of plain) {
+      const entry = colors[o.color];
+      if (!entry)
+        throw contractUnmet(`${nameOf(stage)}'s objects take sprite colors ${o.color} its stage loads none of`);
+      uses.add(boardOf(o), stage, o.color, entry);
+    }
+    return { all, plain };
+  });
+  const boards = new Map(
+    zoomBoards(assembleCiscoHeatSprites(set), uses.uses(), pixel * ACROSS, 1 / PIXEL_ASPECT).map((b) => [b.name, b]),
+  );
+  for (const b of boards.values()) outputs.file(b.image.path, b.image.bytes);
   const courses = Array.from({ length: STAGES }, (_, stage) => {
     const [id, name] = [idOf(stage), nameOf(stage)];
     const goal = stageGoal(main, stage);
@@ -198,6 +254,7 @@ export function ciscoHeatCourses(set: RomSet) {
       plan,
       path,
       station,
+      placed,
       skyKnots,
       roads: taken,
       leavesAt,
@@ -281,7 +338,44 @@ export function ciscoHeatCourses(set: RomSet) {
         };
         return { knots, yawOf };
       },
-      sprites: () => [],
+      // Each object's place: its road's centre, its lateral its picture's left edge, its height its picture's bottom
+      // edge over its road; on a road not drawn, at that road's height below the course's, and none where it lies
+      // above or past the road not taken; a hit where its program meets the car with it, within its picture.
+      sprites: ({ station, drawn, shown1, leavesAt, notTakenEnd, roads: on }) =>
+        objects[stage]!.plain.flatMap((o) => {
+          const p = o.position;
+          const road: RoadNumber = on.original(2, p) === o.road ? 2 : 1;
+          if (road === 1 && p >= leavesAt && p >= notTakenEnd) return [];
+          const place = ciscoHeatPlace(main, o, pixel);
+          let lift = place.bottom * UP;
+          if (!drawn(road, p)) {
+            const own = read[o.road - 1]!.height(p * metres) - read[on.course(p) - 1]!.height(p * metres);
+            if (own > 0) return [];
+            lift += own;
+          }
+          const board = boards.get(boardOf(o).name);
+          if (!board) return [];
+          // A hit within its picture's columns, as the course format holds a solid part; none for a descriptor whose
+          // hit would close the road (`OPEN`).
+          const meets = !OPEN.has(o.descriptor) &&
+            place.meets && {
+              from: Math.max(place.meets.from, 0),
+              to: Math.min(place.meets.to, place.width),
+            };
+          return [
+            {
+              s: station(p),
+              image: board.name,
+              palette: uses.paletteOf(board.name, stage, o.color),
+              lateral: ((road === 2 ? 0 : shown1.at(p)) + o.lateral) * ACROSS,
+              groundOffset: lift,
+              body:
+                meets && meets.to > meets.from
+                  ? [{ across: ((meets.from + meets.to) / 2) * ACROSS, width: (meets.to - meets.from) * ACROSS }]
+                  : null,
+            },
+          ];
+        }),
     });
     outputs.course(id, laid.document);
     outputs.crestTrials(id, crestTrials(laid.heights, laid.write));
@@ -317,6 +411,14 @@ export function ciscoHeatCourses(set: RomSet) {
       // Where the course follows road 1 from, and where the other road is the road not taken from.
       follows: taken.switchAt < Infinity ? [1, taken.switchAt] : [2, 0],
       notTaken: leavesAt < Infinity ? leavesAt : null,
+      // Its objects: placed, their hits, those not placed (other kinds, above the course, past the road not taken), and
+      // where their pictures' bottom edges lie over their roads, metres: at 10, 50 and 90 %, and how many above 1 m.
+      objects: {
+        placed: placed.length,
+        hits: placed.filter((t) => t.body).length,
+        notPlaced: objects[stage]!.all.length - placed.length,
+        bottoms: bottoms(objects[stage]!.plain.map((o) => o.height * UP)),
+      },
       skies: skyKnots.map((k) => ({ at: round1(k.s), image: k.image, transition: round1(k.transition) })),
     };
   });

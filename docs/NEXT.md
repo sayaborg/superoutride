@@ -553,19 +553,24 @@ Defaults for K to confirm before the stage closes, each its PR's:
   pictures' changes only as often as keeps their strips within the format's 2,048; no turn of its plan tighter than it
   reaches on its inside there (21 m, or its limit beyond road 1's centre where road 1 lies on that side), the least
   radius it gives the plan from a table's arcs (its rule's `leastLaneRadius`); its scale
-  across its study's 97 units, measured again with its sprites in CS-4 ([its
+  across its study's 97 units, its own car's picture not found in its program to measure again ([its
   conversion](cisco-heat-road-data.md#its-conversion)).
 - **Its objects' places** (CS-4a). An object's lateral is its picture's left edge from its road's centre and its height
   its picture's bottom edge over its road, as its sprites are drawn up from their y; its scale its flags' bits 12 to 14;
   those of its flags' bits 11 (between the two roads) and 15 (moved by the program) read as the others; a hit where its
-  program meets the car with it, between its descriptor's columns +0 and +2, the program's own meeting not read.
+  program meets the car with it, between its descriptor's columns +0 and +2 within its picture's, the program's own
+  meeting not read; descriptor 0x0FF0's hits and STAGE 4's barrier of 0x5484 and 0x5490, which would close
+  the road, not laid.
+- **Its objects** (CS-4). Placed as BIG RUN's: a board a descriptor, scale and mirroring, in its stage's sprites'
+  palette; on a road not drawn at that road's height below the course's, none where it lies above or past the road not
+  taken; those of other kinds, which the program moves or picks, not placed ([its
+  conversion](cisco-heat-road-data.md#its-conversion)).
 - **Each way's slide** (CS-2). A plane slides by its slide's whole pixels, a pixel more one way than the other (the
   front 15 and 16, the back 7 and 8): their mean.
 - **The steps along a scene** (CS-2). Not laid, as BIG RUN's: a sky lays its scene's own row offset.
 
 The PRs, in order:
 
-- **CS-4** CISCO HEAT's objects.
 - **CS-5** The stage closes, its scale across left for K to adjust at the end: this section goes, what is left goes to
   [Courses of the originals](#courses-of-the-originals), and CISCO HEAT's class goes into [the
   product](product.md#arcade-tribute).

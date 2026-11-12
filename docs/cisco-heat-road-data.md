@@ -182,11 +182,22 @@ Its five courses (`cisco-heat-course`, each laid as the board's, `jaleco/board-c
   (`groundMaterial`); under a clear run, between its roads and beyond its limits the city's `ASPHALT`.
 - **Its limits** lie 512 units, a line's half, beyond the outermost road's centre on each side.
 - **Its grid** is its own car alone at its start on road 2, at the centre of the lane right of its middle (71 units).
-- **Its scale across** is its own car's as K's study measured it: 97 units, 1.969 m, so a unit across is 20.3 mm.
+- **Its scale across** is its own car's as K's study measured it: 97 units, 1.969 m, so a unit across is 20.3 mm. Its
+  own car's picture is not found in its program, so it is not measured again.
 - **Its skies** are its planes' scenes in force with the sky's entries' first set, and their last from where its fade
   begins, laid over its 96 ticks at 200 km/h; a sky's yaw is its back plane facing its middle column where its scene
   loads, turning at its one rate ([its skies](#its-skies)).
-- **Its objects** are not placed yet (CS-4).
+- **Its objects** of kind 0 stand where their records put them, each a board of its descriptor's sprite at its record's
+  scale and mirroring, in its stage's sprites' palette ([its objects](#its-objects)): its lateral its picture's left
+  edge from its road's centre in units across; its height its picture's bottom edge over that road, in units up, a
+  unit up a screen pixel's height over its width of a unit across (6/7). On a road not drawn they stand at that road's
+  height below the course's, and where it lies above none does; past the road not taken's end none does. A hit has a
+  body between the columns its program meets the car between ([its objects](#its-objects), Their hits), within its
+  picture's, as the course format holds a solid part: where they reach past its picture (two of STAGE 2's), its body is
+  the part within it. Descriptor 0x0FF0's hits, 9.1 m wide, most across its road's middle (30 over the five stages),
+  and STAGE 4's barrier of 0x5484 and 0x5490 across its road at 3,015 m, are not laid: they would leave the car no way
+  past, which the course format refuses. Objects of the other kinds,
+  which the program moves or picks, are not placed.
 
 ## Its objects
 
