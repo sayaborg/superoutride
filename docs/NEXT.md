@@ -536,7 +536,8 @@ Defaults for K to confirm before the stage closes, each its PR's:
 - **Its screen** (CS-3l). Its road CPU's rows as its program draws them from its tables ([its
   heights](cisco-heat-road-data.md#its-heights)), its nearest row on its screen's last, a frame every 64 positions of
   the car (about a metre), each stage's road read from its start to its end, its goal and on to the first record of
-  either road past it, at most 2,000 positions, as BIG RUN's, level before its start.
+  either road past it, at most 2,000 positions, as BIG RUN's, level before its start; in parts (CS-3n), cut at both ends
+  of each run of at least 200 m, its sight, whose screen shows no hill.
 - **Its lanes** (CS-3k). Its two roads keep the lanes of its most common picture, kind 2's, wherever they go, as BIG
   RUN's keep its town's: four lanes of 116, 142, 142 and 116 units, its lines' surface the pen they cover most, as the
   run at their centre is a lane line ([its road across](cisco-heat-road-data.md#its-road-across)).

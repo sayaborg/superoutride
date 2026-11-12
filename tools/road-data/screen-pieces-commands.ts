@@ -234,9 +234,10 @@ const FINAL_LAP_2_ABOUT =
   "level camera at this game's focal length. A stretch starts at the camera's station when the car is at its table's " +
   'start; the grade is 0 there and at its end, a lap later.';
 const CISCO_HEAT_ABOUT =
-  "CISCO HEAT's stages' roads, each by its stage and road: its road CPU's rows from the stage's start to its end, its " +
-  "goal and on to the first record of either road past it, at most 2,000 positions, read through its camera tilting with the road at this game's focal length. A stretch starts at " +
-  "the camera's station when the car is at the stage's start; the grade is 0 there and at its end.";
+  "CISCO HEAT's stages' roads in parts, each by its stage, road and part: its road CPU's rows over the part, read " +
+  "through its camera tilting with the road at this game's focal length. A road is cut at both ends of each run of at " +
+  "least 200 m of the car whose screen shows no hill; a stretch starts at the camera's station when the car is at its " +
+  "part's start, the grade 0 there and at its end.";
 const ENDURO_RACER_ABOUT =
   "ENDURO RACER's normal path's cycle (256 positions from P & 0xFF = 0) and each hill's stretch of whole cycles (from " +
   "the cycle start at or before the hill's start; its length in cycles), read through its level camera at this game's " +
@@ -389,10 +390,10 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       // A stage's two roads read alike where their 3D roads are one (STAGES 1 to 3): solved once, the other taking it
       // whether chosen or not.
       const solvedFrom = new Map<string, KeptPiece>();
-      const stageRoads = ciscoHeatStageRoads(ciscoMain, ciscoCpus).map((r): NextPiece => ({
+      const stageRoads = ciscoHeatStageRoads(ciscoMain, ciscoCpus, ciscoMetres).map((r): NextPiece => ({
         piece: r.piece,
         take: () => {
-          const head = { piece: r.piece, inputs: ciscoHeatInputs(ciscoScreen, r.arcs, r.end, ciscoMetres) };
+          const head = { piece: r.piece, inputs: ciscoHeatInputs(ciscoScreen, r.arcs, r.from, r.to, ciscoMetres) };
           const same = solvedFrom.get(head.inputs);
           if (same) {
             const piece = { ...same, piece: r.piece };
@@ -402,7 +403,7 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
             return piece;
           }
           if (!which.stage(r.stage + 1, r.piece)) return keptPiece('cisco-heat', r.piece);
-          const frames = ciscoHeatRoadFrames(ciscoScreen, r.arcs, r.end, ciscoMetres);
+          const frames = ciscoHeatRoadFrames(ciscoScreen, r.arcs, r.from, r.to, ciscoMetres);
           const piece = take(head, frames, kepts.get(`cisco-heat/${r.piece}`));
           solvedFrom.set(head.inputs, piece);
           return piece;

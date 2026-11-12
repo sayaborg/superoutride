@@ -7,7 +7,8 @@ import { instruction, word } from '../cpu/program-words.js';
 import { arcRoad, type ArcRoad } from '../jaleco/road-heights.js';
 import { roadTables, type RoadNumber } from '../jaleco/road-tables.js';
 import { cellPositionsOf, cellsBefore, type PieceFrames } from '../shared/screen-frames.js';
-import type { ScreenFrames } from '../shared/screen-measure.js';
+import { FAR, type ScreenFrames } from '../shared/screen-measure.js';
+import { HILL_ROWS } from '../shared/shared-constants.js';
 import { piecesDigest } from '../shared/screen-pieces.js';
 import { STAGES } from './cisco-heat-backgrounds.js';
 import { ciscoHeatCamera, depthPinhole, SCREEN_ROWS } from './cisco-heat-camera.js';
@@ -19,6 +20,8 @@ const NEAREST_ROW = SCREEN_ROWS - 1;
 const UNIT = 0x4000;
 /** A frame each this many positions of the car: about a metre. */
 const FRAME_POSITIONS = 64;
+/** The least run of the car, metres, over which its screen shows no hill, at whose ends a stage's road is cut: its sight. */
+const LEVEL_RUN = FAR;
 
 /** What its road CPUs draw a road's rows by: each row's depth ahead of the car, positions, and its scale. */
 export interface CiscoHeatScreen {
@@ -64,21 +67,46 @@ export function rowsAt(screen: CiscoHeatScreen, road: ArcRoad, p: number): Float
 }
 
 /**
- * What a stage's road's piece is solved from, as its digest: its depths and scales, a position's metres, its end, and
- * the road's height, run and angle at every frame and row.
+ * What a part of a stage's road's piece is solved from, as its digest: its depths and scales, a position's metres, the
+ * car's stretch over it, and the road's height, run and angle every frame from it as far as its rows see.
  */
-export function ciscoHeatInputs(screen: CiscoHeatScreen, road: ArcRoad, end: number, metres: number): string {
+export function ciscoHeatInputs(
+  screen: CiscoHeatScreen,
+  road: ArcRoad,
+  from: number,
+  to: number,
+  metres: number,
+): string {
   const values: string[] = [];
-  for (let p = 0; p <= end + Math.max(...screen.depths); p += FRAME_POSITIONS)
+  for (let p = from; p <= to + Math.max(...screen.depths); p += FRAME_POSITIONS)
     values.push([road.height(p), road.run(p), road.angle(p)].map((v) => v.toFixed(6)).join(' '));
-  return piecesDigest({ depths: screen.depths, scales: screen.scales, metres, end, road: values });
+  return piecesDigest({ depths: screen.depths, scales: screen.scales, metres, from, to, road: values });
 }
 
+/** Its rows' lines on its screen with the car at `p`, near to far: their rows and their rows' indices. */
+function shownAt(screen: CiscoHeatScreen, road: ArcRoad, p: number) {
+  const rows = rowsAt(screen, road, p);
+  const lines = rows.reduce<number[]>((on, r, k) => (r >= 0 && r < SCREEN_ROWS ? [...on, k] : on), []);
+  return { rows: Float64Array.from(lines, (k) => rows[k]!), lines };
+}
+
+/** Whether its screen shows a hill with the car at `p`: a line seen more than `HILL_ROWS` from its level road's row. */
+const showsHill = (screen: CiscoHeatScreen, road: ArcRoad, p: number) => {
+  const { rows, lines } = shownAt(screen, road, p);
+  return lines.some((k, n) => Math.abs(rows[n]! - (NEAREST_ROW - (k + 1))) > HILL_ROWS);
+};
+
 /**
- * A stage's road as a piece, to `end` positions: its frames each `FRAME_POSITIONS` of the car from 0, the read road
- * beginning `cellsBefore` cells before its start, level there, its stretch from its start to `end`.
+ * A part of a stage's road as a piece, the car from `from` to `to` positions: its frames each `FRAME_POSITIONS` of the
+ * car, the read road beginning `cellsBefore` cells before the part, level there, its stretch the part.
  */
-export function ciscoHeatRoadFrames(screen: CiscoHeatScreen, road: ArcRoad, end: number, metres: number): PieceFrames {
+export function ciscoHeatRoadFrames(
+  screen: CiscoHeatScreen,
+  road: ArcRoad,
+  from: number,
+  to: number,
+  metres: number,
+): PieceFrames {
   const cellPositions = cellPositionsOf(metres);
   const cell = cellPositions * metres;
   const before = cellsBefore(cell) * cellPositions;
@@ -87,20 +115,16 @@ export function ciscoHeatRoadFrames(screen: CiscoHeatScreen, road: ArcRoad, end:
   const distances = screen.depths.map((z) => (z + behind) * metres);
   // Its level road: each row where its program draws it with the road level.
   const level = screen.depths.map((_, k) => NEAREST_ROW - (k + 1));
-  const cars = Array.from({ length: Math.floor(end / FRAME_POSITIONS) + 1 }, (_, k) => k * FRAME_POSITIONS);
-  // Each frame's lines on its screen, near to far.
-  const shown = cars.map((p) => {
-    const rows = rowsAt(screen, road, p);
-    return rows.reduce<number[]>((on, r, k) => (r >= 0 && r < SCREEN_ROWS ? [...on, k] : on), []);
-  });
+  const cars = Array.from(
+    { length: Math.floor((to - from) / FRAME_POSITIONS) + 1 },
+    (_, k) => from + k * FRAME_POSITIONS,
+  );
+  const shown = cars.map((p) => shownAt(screen, road, p));
   const frames: ScreenFrames = {
-    cameras: Float64Array.from(cars, (p) => (before + p) * metres - camera.behind),
-    rows: cars.map((p, f) => {
-      const rows = rowsAt(screen, road, p);
-      return Float64Array.from(shown[f]!, (k) => rows[k]!);
-    }),
-    lineDistances: shown.map((ks) => Float64Array.from(ks, (k) => distances[k]!)),
-    levelRows: shown.map((ks) => Float64Array.from(ks, (k) => level[k]!)),
+    cameras: Float64Array.from(cars, (p) => (before + p - from) * metres - camera.behind),
+    rows: shown.map((f) => f.rows),
+    lineDistances: shown.map((f) => Float64Array.from(f.lines, (k) => distances[k]!)),
+    levelRows: shown.map((f) => Float64Array.from(f.lines, (k) => level[k]!)),
     screenRows: SCREEN_ROWS,
   };
   return {
@@ -109,7 +133,7 @@ export function ciscoHeatRoadFrames(screen: CiscoHeatScreen, road: ArcRoad, end:
     cell,
     cellPositions,
     a: before / cellPositions,
-    b: Math.ceil((before + end) / cellPositions),
+    b: Math.ceil((before + to - from) / cellPositions),
   };
 }
 
@@ -129,33 +153,63 @@ export function stageEnd(main: Uint8Array, cpus: readonly [Uint8Array, Uint8Arra
   return Math.min(goal + RUN_OUT, ...after);
 }
 
-/** A stage's road as its piece reads it: its name, its end and its 3D road. */
+/** A part of a stage's road as its piece reads it: its name, the car's stretch over it and its road's 3D road. */
 export interface CiscoHeatStageRoad {
   readonly piece: string;
   readonly stage: number;
   readonly road: RoadNumber;
-  readonly end: number;
+  readonly from: number;
+  readonly to: number;
   readonly arcs: ArcRoad;
 }
 
 /**
- * Each stage's two roads as their pieces read them, `STAGE n road r`: each to its end (`stageEnd`), its 3D road
- * (`arcRoad`) from its road CPU's tables (`cpus`, the first's and the second's) as far as its farthest row sees.
+ * A stage's road's parts to `end`: cut at both ends of each run of frames, at least `LEVEL_RUN` metres of the car, whose
+ * screen shows no hill (`showsHill`), where the road ahead looks level as far as its rows see, so that the run is a
+ * level part of its own and each part's grade is 0 at its ends.
  */
-export function ciscoHeatStageRoads(main: Uint8Array, cpus: readonly [Uint8Array, Uint8Array]): CiscoHeatStageRoad[] {
+export function stageParts(screen: CiscoHeatScreen, road: ArcRoad, end: number, metres: number): number[] {
+  const cuts: number[] = [];
+  let level: number | null = null;
+  for (let p = 0; p <= end; p += FRAME_POSITIONS) {
+    const hill = showsHill(screen, road, p);
+    if (!hill && level === null) level = p;
+    if ((hill || p + FRAME_POSITIONS > end) && level !== null) {
+      const last = hill ? p - FRAME_POSITIONS : p;
+      if ((last - level) * metres >= LEVEL_RUN)
+        cuts.push(...[level, last].filter((c) => c > FRAME_POSITIONS && c < end - FRAME_POSITIONS));
+      level = null;
+    }
+  }
+  return [0, ...cuts, end];
+}
+
+/**
+ * Each stage's two roads' parts as their pieces read them, `STAGE n road r part k`: each road to its stage's end
+ * (`stageEnd`), cut into parts (`stageParts`), its 3D road (`arcRoad`) from its road CPU's tables (`cpus`, the first's
+ * and the second's) as far as its farthest row sees.
+ */
+export function ciscoHeatStageRoads(
+  main: Uint8Array,
+  cpus: readonly [Uint8Array, Uint8Array],
+  metres: number,
+): CiscoHeatStageRoad[] {
   const screen = readCiscoHeatScreen(cpus[0]);
   const sight = Math.max(...screen.depths);
   return Array.from({ length: STAGES }, (_, stage) => {
     const end = stageEnd(main, cpus, stage);
-    return ([1, 2] as const).map((road) => {
+    return ([1, 2] as const).flatMap((road) => {
       const { profile } = roadTables(cpus[road - 1]!, CISCO_HEAT_TABLES, road, stage, end + sight);
-      return {
-        piece: `STAGE ${stage + 1} road ${road}`,
+      const arcs = arcRoad(CISCO_HEAT_TABLES, profile, end + sight);
+      const cuts = stageParts(screen, arcs, end, metres);
+      return cuts.slice(0, -1).map((from, k) => ({
+        piece: `STAGE ${stage + 1} road ${road} part ${k + 1}`,
         stage,
         road,
-        end,
-        arcs: arcRoad(CISCO_HEAT_TABLES, profile, end + sight),
-      };
+        from,
+        to: cuts[k + 1]!,
+        arcs,
+      }));
     });
   }).flat();
 }

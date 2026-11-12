@@ -59,15 +59,21 @@ sine changing evenly along an arc, departs from these by thousands of positions;
 ## Its heights
 
 Its heights are [read back from its screen](original-road-data.md#profile-from-the-originals-screen) (a screen alone)
-through [its camera](#its-camera), each stage's road a piece from its start to its end (`cisco-heat-screen-frames`): its
-screen is its road CPU's rows as its program draws them (R1 0x19F0 to 0x2174), frame by frame every 64 positions of the
-car. A row k + 1 up from the nearest (91 rows, their depths from R1 0x3234) takes the road's point at its depth ahead of
-the car, in the road's vertical plane its run level and its height (R1 0x1FA0, by its records' arcs as `arcRoad` lays
-them), less its point under the car (`$c0044`, `$c0040`, R1 0x1758); its height by the pitch's cosine less its run by
-its sine (R1 0x2120: `$c0052` and `$c0050`, the pitch the road's angle under the car, R1 0x15EA), times the row's scale
-over 16,384 (its table 0xB8 bytes on, R1 0x216A), is how many whole rows above that row it shows. Its level road is each
-row where the road keeps its grade; its nearest row is its screen's last. The scales fall by 165.5 a row, a pinhole's of
-99.0 rows, not its depths' of 92.70, so it draws a rise ahead about 7 % taller near the car than a pinhole would.
+through [its camera](#its-camera), each stage's road from its start to its end in parts, each a piece
+(`cisco-heat-screen-frames`): its screen is its road CPU's rows as its program draws them (R1 0x19F0 to 0x2174), frame
+by frame every 64 positions of the car. A row k + 1 up from the nearest (91 rows, their depths from R1 0x3234) takes the
+road's point at its depth ahead of the car, in the road's vertical plane its run level and its height (R1 0x1FA0, by its
+records' arcs as `arcRoad` lays them), less its point under the car (`$c0044`, `$c0040`, R1 0x1758); its height by the
+pitch's cosine less its run by its sine (R1 0x2120: `$c0052` and `$c0050`, the pitch the road's angle under the car, R1
+0x15EA), times the row's scale over 16,384 (its table 0xB8 bytes on, R1 0x216A), is how many whole rows above that row
+it shows. Its level road is each row where the road keeps its grade; its nearest row is its screen's last. The scales
+fall by 165.5 a row, a pinhole's of 99.0 rows, not its depths' of 92.70, so it draws a rise ahead about 7 % taller near
+the car than a pinhole would.
+
+A stage's road is cut into parts at both ends of each run of at least 200 m of the car, its sight, over which its screen
+shows no hill (no line seen more than a row from its level road's row), so that each such run is a level part and each
+part's grade is 0 at its ends; its two roads' parts are one where their 3D roads are, as in STAGES 1 to 3. So each
+stage's road is 4 to 13 parts, the longest 515 cells of 10 m, solved each on its own.
 
 ## Its road across
 
