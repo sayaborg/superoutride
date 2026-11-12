@@ -142,8 +142,8 @@ nearest row lies 96.95 rows below the horizon (its scale 16,384, a unit a pixel)
 
 ## Its conversion
 
-Its six courses (`big-run-course`) are its stages, `big-run-starting-run`, `big-run-special-stage-1` to `-4` and
-`big-run-victory-run` (K, 2026-11-09):
+Its six courses (`big-run-course`, each laid as the board's, `jaleco/board-course`) are its stages,
+`big-run-starting-run`, `big-run-special-stage-1` to `-4` and `big-run-victory-run` (K, 2026-11-09):
 
 - **Its road.** From its start, laid on back for its grid and the camera, to its goal and on to the first record of
   either road past it, at most 2,000 positions: road 2's plan as P ([its plan](#its-plan)), its heights road 2's 3D
