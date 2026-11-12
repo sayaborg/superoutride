@@ -1,12 +1,12 @@
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledSection } from '../../src/course/compiler/course-graph.js';
-import { firstExitRoute, routeSectionS, type RouteOccurrence } from '../../src/course/course-route.js';
+import { courseMapRoute, routeSectionS, type RouteOccurrence } from '../../src/course/course-route.js';
 import { transformPlanarPoint, type PlanarTransform } from '../../src/core/planar-transform.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
 import { materialOuterEdges } from '../../src/course/course-coordinate-domain.js';
 
 /**
- * The course laid out in the world as its map lays it (`firstExitRoute`): the Route from the entry, one lap of a circuit,
+ * The course laid out in the world as its map lays it (`courseMapRoute`): the Route from the entry, one lap of a circuit,
  * each fork taking its first exit, each occurrence placed by its transform to the world.
  */
 
@@ -39,7 +39,7 @@ export interface CourseLayout {
 }
 
 export function layOutCourse(course: CompiledCourse): CourseLayout {
-  const route = firstExitRoute(course);
+  const route = courseMapRoute(course);
   const sections = route.map((occurrence) =>
     Object.freeze({
       section: occurrence.section,

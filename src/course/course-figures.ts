@@ -1,5 +1,5 @@
 import type { CompiledCourse } from './compiler/compiled-course.js';
-import { firstExitRoute } from './course-route.js';
+import { courseMapRoute } from './course-route.js';
 
 /**
  * How a course's figures are measured: heights at `profileIntervals` + 1 even stations of the route; heights and grades
@@ -34,7 +34,7 @@ export interface CourseFigures {
  * corner or a straight across its line counts once.
  */
 export function createCourseFigures(course: CompiledCourse): CourseFigures {
-  const occurrences = firstExitRoute(course);
+  const occurrences = courseMapRoute(course);
   const length = occurrences.reduce((sum, o) => sum + o.section.coordinates.domain.end, 0);
   // The height at a station of the route, and the grade there.
   const sample = { y: 0, dYdS: 0 };

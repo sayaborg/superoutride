@@ -67,7 +67,7 @@ const roadOf = (section: CompiledSection, lane: CompiledLane, at: number): Cours
  * The lanes and the racing line along the Route, as drivers and recovery read them. `racingLines` are the course's;
  * without them the racing line is the centre lane's centre.
  */
-export function createCourseForkField(route: CourseRoute, racingLines: RacingLines | null = null) {
+export function createCourseLaneField(route: CourseRoute, racingLines: RacingLines | null = null) {
   // The occurrence at route station s (clamped to the Route), and the native station there.
   const place = (s: number) => {
     const occurrence = route.at(Math.min(route.end, Math.max(route.start, s)))!;
@@ -182,7 +182,7 @@ export function createCourseForkField(route: CourseRoute, racingLines: RacingLin
     const section = occurrence.section;
     return { occurrence, at, road: roadOf(section, section.lanes.center, at)! };
   };
-  const forkField = Object.freeze({
+  const laneField = Object.freeze({
     /** The target l for an intent: the centre of its lane there, or the racing line (route lateral). */
     targetL(s: number, intent: DriverIntent) {
       if (intent.lane === LINE) return lineL(s) + (intent.offset?.(s) ?? 0);
@@ -231,7 +231,7 @@ export function createCourseForkField(route: CourseRoute, racingLines: RacingLin
       const lanes = lanesOf(occurrence.section);
       if (lane === LINE) {
         const l = lineL(s) + occurrence.lateralOrigin;
-        const road = forkField.roadLanes(s, vehicle);
+        const road = laneField.roadLanes(s, vehicle);
         const centre = (i: number) => courseBoundaryAt(lanes[i]!.center, at);
         const left = road.filter((i) => centre(i) <= l).at(-1);
         const right = road.find((i) => centre(i) > l);
@@ -286,9 +286,9 @@ export function createCourseForkField(route: CourseRoute, racingLines: RacingLin
     /** The recovery l at route station `s`: the centre of the recovery lane (`recoveryLane`) there, route lateral. */
     recoveryL(s: number, l: number, vehicle = 0) {
       const { occurrence, at } = place(s);
-      const lane = lanesOf(occurrence.section)[forkField.recoveryLane(s, l, vehicle)]!;
+      const lane = lanesOf(occurrence.section)[laneField.recoveryLane(s, l, vehicle)]!;
       return courseBoundaryAt(lane.center, at) - occurrence.lateralOrigin;
     },
   });
-  return forkField;
+  return laneField;
 }

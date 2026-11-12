@@ -2,7 +2,7 @@ import type { VehicleListingDocument } from '../vehicle/definition-document.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { resetDrivingActuatorState } from '../vehicle/physics/driving-actuator.js';
 import { resetVehicleControlObservation } from '../vehicle/physics/vehicle-state.js';
-import { mix } from './rival-exit.js';
+import { mix } from './seed-mix.js';
 
 /**
  * Game timing from contact, POLE POSITION II's explosion's: its frames a second (its screen's, 24.576 MHz / 4 / 384 /

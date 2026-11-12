@@ -180,7 +180,7 @@ export function createCourseRoute(entry: CompiledSection, start: CompiledSection
  * A course's Route from its entry as its map draws it: one lap of a circuit, else to its end; each occurrence carries
  * its transform to the world.
  */
-export function firstExitRoute(course: Pick<CompiledCourse, 'entry' | 'type'>): readonly RouteOccurrence[] {
+export function courseMapRoute(course: Pick<CompiledCourse, 'entry' | 'type'>): readonly RouteOccurrence[] {
   const builder = createCourseRoute(course.entry);
   const occurrences: RouteOccurrence[] = [];
   for (let i = 0; i <= COURSE_DOCUMENT_LIMITS.sections; i++) {

@@ -1,7 +1,7 @@
 import { transformPlanarPoint } from '../core/planar-transform.js';
 import type { Vec2 } from '../core/math.js';
 import type { CompiledCourse } from './compiler/compiled-course.js';
-import { firstExitRoute, type RouteOccurrence } from './course-route.js';
+import { courseMapRoute, type RouteOccurrence } from './course-route.js';
 import { createPlanCoordinateSample } from './geometry/plan-coordinate.js';
 
 /** Metres between the centreline's samples. */
@@ -36,7 +36,7 @@ export function createCourseMap(course: CompiledCourse): CourseMap {
     east: world.x * cos + world.z * sin,
     north: world.z * cos - world.x * sin,
   });
-  const occurrences = firstExitRoute(course);
+  const occurrences = courseMapRoute(course);
   const sample = createPlanCoordinateSample();
   const at = (occurrence: RouteOccurrence, s: number) => {
     occurrence.section.coordinates.toWorld(s, 0, sample);

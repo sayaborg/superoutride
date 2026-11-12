@@ -546,7 +546,7 @@ test('a recovered driver drives on from the lane nearest where it was', async ()
       driving.intent.lane = 0;
       driving.intent.at = rival.actor.vehicle.course.s;
       driving.intent.offset = undefined;
-      rival.body.driving = { ...driving, offset: null, target: (s) => race.forks.targetL(s, driving.intent) };
+      rival.body.driving = { ...driving, offset: null, target: (s) => race.laneField.targetL(s, driving.intent) };
     }
     const s = sector2(scene, 150);
     const fromL = lane('b') + 1;
@@ -574,7 +574,7 @@ test('a driver whose vehicle stands 2 s asks for the player’s manual recovery'
   place(scene, rival.body, s - 20, lane('a'));
   const driving = rival.body.driving;
   Object.assign(driving.intent, { lane: 0, at: s - 20, offset: undefined });
-  rival.body.driving = { ...driving, offset: null, target: (at) => race.forks.targetL(at, driving.intent) };
+  rival.body.driving = { ...driving, offset: null, target: (at) => race.laneField.targetL(at, driving.intent) };
   const counts = [];
   for (let step = 0; step < 900 && !rival.actor.recovery.recoveries; step++) {
     race.advance(braked);
@@ -608,7 +608,7 @@ async function approach(on, keepsLane) {
   if (keepsLane) {
     const driving = rival.body.driving;
     Object.assign(driving.intent, { lane: 0, at: sector2(scene, 20), offset: undefined });
-    rival.body.driving = { ...driving, offset: null, target: (at) => race.forks.targetL(at, driving.intent) };
+    rival.body.driving = { ...driving, offset: null, target: (at) => race.laneField.targetL(at, driving.intent) };
   }
   const s = sector2(scene, 20),
     at = sector2(scene, OBJECT_AT);

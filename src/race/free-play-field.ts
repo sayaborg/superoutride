@@ -1,6 +1,6 @@
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetColors } from '../vehicle/vehicle-sprite-set.js';
-import { mix } from './rival-exit.js';
+import { mix } from './seed-mix.js';
 import type { FreePlayRules, RivalPoolRule } from '../content/free-play-rules.js';
 
 /** A vehicle in one of its colors. */

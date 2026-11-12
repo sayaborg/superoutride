@@ -5,12 +5,12 @@ import type { CompiledLane } from '../../src/course/course-lanes.js';
 import { createCourseRoute, routeSectionS, type RouteOccurrence } from '../../src/course/course-route.js';
 import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coordinate.js';
 import { transformPlanarPoint } from '../../src/core/planar-transform.js';
-import { createCourseForkField, roomy } from '../../src/race/course-fork-field.js';
+import { createCourseLaneField, roomy } from '../../src/race/course-lane-field.js';
 import { PATH_OFFSET, pathOffsetAt, type LaneIntent } from '../../src/race/lane-following.js';
 
 /**
  * The viewer's drive: one car going along a lane of the Route, the camera riding on it. The car keeps to its lane's
- * centre as the race carries a driver's lane along the Route (`createCourseForkField`'s `carry` and `targetL`: across
+ * centre as the race carries a driver's lane along the Route (`createCourseLaneField`'s `carry` and `targetL`: across
  * each seam the lane continues), at each fork taking the first exit as the course map does; where its lane ends ahead
  * (narrower than the car, or a seam it does not continue across) it moves to the lane beside it that continues, as a
  * driver's path offset moves, by a cosine blend over `max(PATH_OFFSET.blendLeast, speed · PATH_OFFSET.blendSeconds)`.
@@ -52,7 +52,7 @@ export function createDrive(course: CompiledCourse) {
   const builder = createCourseRoute(course.entry);
   const { route } = builder;
   const extend = (s: number) => builder.extendThrough(s);
-  const forks = createCourseForkField(route);
+  const laneField = createCourseLaneField(route);
   const sample = createPlanCoordinateSample();
   // The occurrence at route station s, and its native station.
   const place = (s: number) => {
@@ -61,7 +61,8 @@ export function createDrive(course: CompiledCourse) {
     return { occurrence, at: Math.min(occurrence.end - occurrence.start, Math.max(0, routeSectionS(occurrence, s))) };
   };
   // The car's route lateral at route station s.
-  const lateral = (car: Car, s: number) => forks.targetL(s, car.intent) + (car.blend ? pathOffsetAt(car.blend, s) : 0);
+  const lateral = (car: Car, s: number) =>
+    laneField.targetL(s, car.intent) + (car.blend ? pathOffsetAt(car.blend, s) : 0);
 
   return Object.freeze({
     /** Where the Route ends (a circuit's never), once extended through `s`. */
@@ -100,15 +101,15 @@ export function createDrive(course: CompiledCourse) {
       extend(next + length);
       const terminal = route.terminal;
       car.s = terminal === null ? next : Math.min(next, terminal);
-      forks.carry(car.intent, car.s);
+      laneField.carry(car.intent, car.s);
       if (car.blend && car.s >= car.blend.at + car.blend.length) car.blend = null;
       // Its lane ending within a blend's length ahead: move to the lane beside it that continues.
-      const end = car.blend ? null : forks.laneEnd(car.s, car.s + length, car.intent);
+      const end = car.blend ? null : laneField.laneEnd(car.s, car.s + length, car.intent);
       if (end && end.merge !== null) {
         const from = lateral(car, car.s);
         car.intent.lane = end.merge;
         car.intent.at = car.s;
-        car.blend = { from: from - forks.targetL(car.s, car.intent), to: 0, at: car.s, length };
+        car.blend = { from: from - laneField.targetL(car.s, car.intent), to: 0, at: car.s, length };
       }
       return terminal === null || car.s < terminal;
     },

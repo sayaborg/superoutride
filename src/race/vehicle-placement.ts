@@ -2,7 +2,7 @@ import type { RouteView } from '../course/course-route.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { footprintsOverlap, type RouteFootprint } from './body-contacts.js';
-import type { createCourseForkField } from './course-fork-field.js';
+import type { createCourseLaneField } from './course-lane-field.js';
 import type { createRoadsideObjects } from './object-contacts.js';
 import type { PresentVehicle } from './present-vehicle.js';
 import { RECOVERY_POLICY, type RecoveryTarget } from './recovery.js';
@@ -13,11 +13,11 @@ import { RECOVERY_POLICY, type RecoveryTarget } from './recovery.js';
  */
 export function createVehiclePlacement(options: {
   readonly window: Pick<RouteView, 'start'>;
-  readonly forks: ReturnType<typeof createCourseForkField>;
+  readonly laneField: ReturnType<typeof createCourseLaneField>;
   readonly roadsideObjects: ReturnType<typeof createRoadsideObjects>;
   readonly bodies: readonly PresentVehicle[];
 }) {
-  const { window, forks, roadsideObjects, bodies } = options;
+  const { window, laneField, roadsideObjects, bodies } = options;
   const footprint = (model: VehicleModel, s: number, l: number): RouteFootprint => ({
     s,
     l,
@@ -78,6 +78,8 @@ export function createVehiclePlacement(options: {
      * there (`recoveryL`), behind any vehicle or standing object in the way; null when no place is free.
      */
     recoveryPlace: (self: PresentVehicle, s: number) =>
-      vacantPlace(self, s, (at) => forks.recoveryL(at, self.vehicle.course.l, self.model.compiledVehicle.footprint)),
+      vacantPlace(self, s, (at) =>
+        laneField.recoveryL(at, self.vehicle.course.l, self.model.compiledVehicle.footprint),
+      ),
   });
 }

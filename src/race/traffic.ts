@@ -1,6 +1,6 @@
-import { mix } from './rival-exit.js';
+import { mix } from './seed-mix.js';
 import type { ResolvedTraffic, TrafficCandidate } from './run-setup.js';
-import type { createCourseForkField } from './course-fork-field.js';
+import type { createCourseLaneField } from './course-lane-field.js';
 import type { LaneIntent, PathOffset } from './lane-following.js';
 import type { createLaneDriving } from './lane-driving.js';
 import type { createVehiclePlacement } from './vehicle-placement.js';
@@ -97,7 +97,7 @@ export function createTrafficField(options: {
       at(s: number): unknown;
     };
   };
-  readonly forks: ReturnType<typeof createCourseForkField>;
+  readonly laneField: ReturnType<typeof createCourseLaneField>;
   readonly modelOf: (vehicle: TrafficCandidate['vehicle']) => VehicleModel;
   readonly placement: ReturnType<typeof createVehiclePlacement>;
   readonly laneDriving: ReturnType<typeof createLaneDriving>;
@@ -106,7 +106,7 @@ export function createTrafficField(options: {
   readonly view: { readonly appearanceLine: () => number; readonly outOfView: (s: number) => boolean };
   readonly simulationSeconds: () => number;
 }) {
-  const { runtime, forks, modelOf, placement, laneDriving, takeLine, seed } = options;
+  const { runtime, laneField, modelOf, placement, laneDriving, takeLine, seed } = options;
   const { appearanceLine, outOfView } = options.view;
   const vehicles: TrafficMotion[] = [];
   const positions = options.traffic && createTrafficPositions(options.traffic, seed, appearanceLine());
@@ -138,18 +138,18 @@ export function createTrafficField(options: {
           at: s,
           width: model.compiledVehicle.footprint,
         };
-        const road = forks.roadLanes(s, intent.width);
+        const road = laneField.roadLanes(s, intent.width);
         // Traffic appears only on roads of two or more lanes there for it.
         if (road.length < 2) return;
         intent.lane = road[trafficDraw(seed, 'lane', position, road.length)]!;
-        let lane = (station: number) => forks.targetL(station, intent);
+        let lane = (station: number) => laneField.targetL(station, intent);
         const l = lane(s);
         if (placement.occupied(model, s, l)) return;
         const speed = laneDriving.appearanceSpeed(model, s, intent, candidate.driver);
         if (speed === null) return;
         // Traffic of the racing line takes it from its lane's centre where it appears, as an appearing rival does.
         const offset = options.traffic!.path === 'line' ? takeLine(intent, s, l) : null;
-        if (offset) lane = (station: number) => forks.targetL(station, intent);
+        if (offset) lane = (station: number) => laneField.targetL(station, intent);
         const vehicle = createVehicle(model, runtime.readers, { s, l, initialSpeed: speed });
         const id = `TRAFFIC_${String(position + 1).padStart(4, '0')}`;
         const color = candidate.colors[trafficDraw(seed, 'color', position, candidate.colors.length)]!;

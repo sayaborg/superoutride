@@ -4,7 +4,7 @@ import { rankRaceProgress } from './race-ranking.js';
 import { createRankLimitJudge, createRunOutcome, type RunStatus } from './run-outcome.js';
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
-import { createCourseForkField, LINE } from './course-fork-field.js';
+import { createCourseLaneField, LINE } from './course-lane-field.js';
 import { createRecoveryState, recoverVehicle, type RecoveryState } from './recovery.js';
 import {
   beginContactResponse,
@@ -121,7 +121,7 @@ export function createCourseRace(options: {
   const startPhase = createStartPhase();
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
   // The lanes and the racing line every driver and recovery reads.
-  const forks = createCourseForkField(runtime.route, options.setup.racingLines);
+  const laneField = createCourseLaneField(runtime.route, options.setup.racingLines);
   // A circuit's lap: its Sections around the cycle from the entry.
   let lapLength: number | null = null;
   if (course.type === 'CIRCUIT') {
@@ -145,7 +145,7 @@ export function createCourseRace(options: {
     passing: null,
   });
   const takeLine = (intent: LaneIntent, s: number, l: number, offset = lineOffset()) => {
-    const from = l - forks.targetL(s, lineProbe);
+    const from = l - laneField.targetL(s, lineProbe);
     intent.lane = LINE;
     intent.at = s;
     intent.offset = () => from;
@@ -260,7 +260,7 @@ export function createCourseRace(options: {
         offset,
         // Drivers plan in turn: the player's at phase 0, each rival's at its place on the entry list.
         workspace: createPlannedDriverWorkspace(rivalIndex + 1),
-        target: (s: number) => forks.targetL(s, intent),
+        target: (s: number) => laneField.targetL(s, intent),
         standing: 0,
       },
       { pace, set },
@@ -308,11 +308,11 @@ export function createCourseRace(options: {
     log: contactLog,
   });
   // Placement and the drivers' lane decisions read the present vehicles.
-  const placement = createVehiclePlacement({ window: runtime.window, forks, roadsideObjects, bodies });
+  const placement = createVehiclePlacement({ window: runtime.window, laneField, roadsideObjects, bodies });
   const laneDriving = createLaneDriving({
     road: runtime.readers,
     window: runtime.window,
-    forks,
+    laneField,
     roadsideObjects,
     bodies,
     lapLength,
@@ -340,8 +340,8 @@ export function createCourseRace(options: {
       intent.lane = entry.ahead!.lane;
       intent.offset = undefined;
       intent.at = s;
-      takeLine(intent, s, forks.targetL(s, intent), offset!);
-      c.body.driving!.target = (station: number) => forks.targetL(station, intent);
+      takeLine(intent, s, laneField.targetL(s, intent), offset!);
+      c.body.driving!.target = (station: number) => laneField.targetL(station, intent);
       const lane = c.body.driving!.target;
       // An appearance on another vehicle's footprint, or one a vehicle behind could not stop for, waits for a later step.
       if (placement.occupied(c.actor.model, s, lane(s))) continue;
@@ -420,7 +420,7 @@ export function createCourseRace(options: {
     seed: options.setup.seed,
     limit: RUN_RULE_LIMITS.traffic,
     runtime,
-    forks,
+    laneField,
     modelOf,
     placement,
     laneDriving,
@@ -518,7 +518,7 @@ export function createCourseRace(options: {
       intent: takeoverIntent,
       offset,
       workspace: takeoverWorkspace,
-      target: (station: number) => forks.targetL(station, takeoverIntent),
+      target: (station: number) => laneField.targetL(station, takeoverIntent),
       standing: 0,
     };
   };
@@ -540,7 +540,7 @@ export function createCourseRace(options: {
       intent: playerIntent,
       offset,
       workspace: playerWorkspace,
-      target: (station: number) => forks.targetL(station, playerIntent),
+      target: (station: number) => laneField.targetL(station, playerIntent),
       standing: 0,
     };
   };
@@ -807,7 +807,7 @@ export function createCourseRace(options: {
       if (!this.endable) throw new Error('Only a running run without a finish is ended by the player');
       outcome.end({ status: 'ENDED' });
     },
-    forks,
+    laneField,
     /**
      * One fixed step of SIM_DT; the race takes no step length. `input` is the player's; null hands the player to its
      * Run driver for the step (the player's own input resumes when one is given).

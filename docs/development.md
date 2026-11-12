@@ -789,7 +789,7 @@ workbench. It has one address, `course-viewer.html` at the site root, which open
 `dist/tools/course-viewer/course-viewer.html`). It offers every course the build's manifest delivers and loads only the
 chosen one, through the game's delivery (`loadDeliveredCourse`); how a course's elements are written (a repeat's
 original and copies) it reads from the authored document the build publishes for the workbench, and it adds nothing to
-the delivery. It lays the course out as the course map does (`firstExitRoute`: from the entry, one lap of a circuit,
+the delivery. It lays the course out as the course map does (`courseMapRoute`: from the entry, one lap of a circuit,
 each occurrence placed by its transform to the world).
 
 Every position, height and direction comes from the functions physics and the game read: the plan (`toWorld`), the
@@ -988,7 +988,7 @@ when it set out (the game's camera's place, D_cam behind and h above its base po
 camera); the car keeps to its lane's centre, along it and pitched to the road's grade, with no spring, and the camera
 keeps its height above the road and its direction against the road. Its lane is one of those at the slider's station,
 numbered from the left (the one nearest the centreline that has room for a car 1.8 m wide at first), carried along the
-Route by the race's rule for a driver's lane (`createCourseForkField`'s `carry` and `targetL`: across each seam the
+Route by the race's rule for a driver's lane (`createCourseLaneField`'s `carry` and `targetL`: across each seam the
 lane continues); where its lane ends ahead (narrower than the
 car, or at a seam it does not continue across) it moves to the lane beside it that continues, as a driver's path
 offset moves, by a cosine blend over `max(30 m, speed × 1.5 s)` (`PATH_OFFSET`). Its speed is set in km/h (120 at

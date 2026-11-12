@@ -1,5 +1,5 @@
 import { DEBRIS_PIECES, DEBRIS_WORDS, type ExplosionScript } from '../content/contact-explosion-pictures.js';
-import { mix } from '../race/rival-exit.js';
+import { mix } from '../race/seed-mix.js';
 
 /** A 16-bit word as signed. */
 const signed = (v: number) => (v << 16) >> 16;

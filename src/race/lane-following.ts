@@ -1,4 +1,4 @@
-import { LINE, type DriverIntent } from './course-fork-field.js';
+import { LINE, type DriverIntent } from './course-lane-field.js';
 import type { RouteFootprint } from './body-contacts.js';
 import {
   canFollow,
@@ -102,7 +102,7 @@ export interface LaneIntent extends DriverIntent {
  * where a lane ends and the racing line drivers' path offsets.
  */
 export function createLaneFollowing(
-  forks: {
+  laneField: {
     targetL(s: number, intent: DriverIntent): number;
     adjacentLanes(s: number, lane: number, vehicle?: number): readonly number[];
   },
@@ -121,7 +121,7 @@ export function createLaneFollowing(
     probe.at = intent.at;
     probe.offset = lane === intent.lane ? intent.offset : undefined;
     probe.width = intent.width;
-    return forks.targetL(s, probe);
+    return laneField.targetL(s, probe);
   };
   // Whether `other` occupies `lane` for the driver `self`, at other's station.
   const inLane = (self: RouteFootprint, intent: DriverIntent, lane: number, other: VehicleSighting) =>
@@ -207,7 +207,7 @@ export function createLaneFollowing(
       return greatest;
     }
     let least = Infinity;
-    for (const candidate of forks.adjacentLanes(self.s, lane, intent.width)) {
+    for (const candidate of laneField.adjacentLanes(self.s, lane, intent.width)) {
       trace(rest, self, intent, candidate, true);
       least = Math.min(least, clearFrom(centre(intent, candidate, other.s)) ?? Infinity);
     }
