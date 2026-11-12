@@ -1,6 +1,8 @@
 import { admit, readArray, readNumber, readRecord, readString, requireAdmission } from '../core/admission.js';
 import { readSpriteLodAsset, type SpriteLodAsset } from '../image/sprite.js';
-import { inOrder, type ContentDelivery } from './content-delivery.js';
+import { eachInTurn, type ContentDelivery } from './content-delivery.js';
+import { decodeContentJson } from './content-manifest.js';
+import { UNSLICED, type WorkSlices } from '../core/work-slices.js';
 import { requireLoaded } from './content-load-error.js';
 
 /**
@@ -143,15 +145,28 @@ export interface ContactExplosion {
   readonly pictures: ReadonlyMap<string, SpriteLodAsset>;
 }
 
-/** The contact explosion's script and pictures, each admitted as delivered. */
-export async function loadContactExplosion(content: ContentDelivery): Promise<ContactExplosion> {
+/**
+ * The contact explosion's script and pictures, each admitted as delivered; with `slices`, each picture's decoding and
+ * admission are units of their own.
+ */
+export async function loadContactExplosion(
+  content: ContentDelivery,
+  slices: WorkSlices = UNSLICED,
+): Promise<ContactExplosion> {
   const value = await content.json('explosion', CONTACT_EXPLOSION_SCRIPT);
   const script = requireLoaded(admit(`explosions/${CONTACT_EXPLOSION_SCRIPT}.json`, () => readExplosionScript(value)));
-  const pictures = await inOrder(
-    explosionPictureNames(script).map(async (name) => {
-      const picture = await content.json('explosion-picture', name);
-      return [name, requireLoaded(admit(`images/${name}.json`, () => readSpriteLodAsset(picture)))] as const;
-    }),
+  const names = explosionPictureNames(script);
+  const pictures = new Map<string, SpriteLodAsset>();
+  await eachInTurn(
+    names.map((name) => content.bytes('explosion-picture', name)),
+    async (bytes, index) => {
+      if (slices.due()) await slices.pause();
+      const picture = decodeContentJson(bytes);
+      pictures.set(
+        names[index]!,
+        requireLoaded(admit(`images/${names[index]}.json`, () => readSpriteLodAsset(picture))),
+      );
+    },
   );
-  return Object.freeze({ script, pictures: new Map(pictures) });
+  return Object.freeze({ script, pictures });
 }

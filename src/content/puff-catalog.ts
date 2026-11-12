@@ -20,7 +20,9 @@ import {
   spriteLodLayout,
   type SpriteLodAsset,
 } from '../image/sprite.js';
-import { inOrder, type ContentDelivery } from './content-delivery.js';
+import { eachInTurn, type ContentDelivery } from './content-delivery.js';
+import { decodeContentJson } from './content-manifest.js';
+import { UNSLICED, type WorkSlices } from '../core/work-slices.js';
 import { requireLoaded } from './content-load-error.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 
@@ -251,14 +253,23 @@ export function compilePuffs(
  * Transport verifies the saved bytes before admission; each composition loads the document and decodes the pictures it
  * names once, from their manifest image entries.
  */
-export async function loadPuffs(content: ContentDelivery, materialIds: readonly string[]): Promise<CompiledPuffs> {
+export async function loadPuffs(
+  content: ContentDelivery,
+  materialIds: readonly string[],
+  slices: WorkSlices = UNSLICED,
+): Promise<CompiledPuffs> {
   const sources = await content.documents('puffs');
   const names = [...new Set(sources.flatMap((source) => puffPictureNames(source.value)))];
-  const values = await inOrder(names.map((name) => content.json('puff-picture', name)));
   const pictures = new Map<string, SpriteLodAsset>();
-  names.forEach((name, index) => {
-    const { path } = content.manifest.files.find((file) => file.kind === 'puff-picture' && file.id === name)!;
-    pictures.set(name, requireLoaded(admitPuffPicture(values[index], path)));
-  });
+  // Each picture is decoded and admitted in a unit of `slices` of its own.
+  await eachInTurn(
+    names.map((name) => content.bytes('puff-picture', name)),
+    async (bytes, index) => {
+      if (slices.due()) await slices.pause();
+      const name = names[index]!;
+      const { path } = content.manifest.files.find((file) => file.kind === 'puff-picture' && file.id === name)!;
+      pictures.set(name, requireLoaded(admitPuffPicture(decodeContentJson(bytes), path)));
+    },
+  );
   return requireLoaded(compilePuffs(sources, materialIds, pictures));
 }

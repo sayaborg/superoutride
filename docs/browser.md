@@ -28,8 +28,15 @@ simulation. Loading leaves the race clock stopped; an assembled run starts after
 Loading never stops the frame loop: a run's course compiles in [slices](architecture.md#course-loading) of 8 ms of
 work (`LOADING_SLICE_MILLISECONDS`), each followed by a yield to the event loop through a message channel, so the frame
 loop and input run between them and TITLE, the attract demo and the PRE-RACE card keep drawing while a course loads. The
-page's own startup (delivered content and catalogs, before the first screen) is not sliced and happens once, over the
-page's black.
+page's own startup reads once the files decided from the manifest before reading starts
+([startup files](../src/shell/startup-files.ts)): the text tiles, then every file of the kinds the page reads whole
+(materials, engine sounds, vehicle sprite sets, vehicle and driving documents, the course index, screen pictures, music
+documents, series, FREE PLAY rules, the front end, the contact explosion and the puffs with their pictures, audio
+settings, surface sounds and engine loudness); courses, their products and recordings are read after it and are not
+among them. Its progress is the share of those files read: fetched, verified against their digests, decoded and
+admitted. Once the frame stands, every file left is fetched at once in reading order, and the startup's work runs in
+the same 8 ms slices: each file's decoding and its admission are units of work, and a vehicle sprite set's admission
+pauses between its pictures. It happens over the page's black.
 Every run assembly, a DEV tuning rebuild included, picks a new run seed from `crypto.getRandomValues`;
 the composition root is the only place that draws randomness.
 

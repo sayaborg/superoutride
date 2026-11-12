@@ -83,6 +83,10 @@ export function readContentManifest(value: unknown): AdmissionResult<ContentMani
   });
 }
 
+/** The JSON value of a delivered JSON content file's bytes, which must be UTF-8. */
+export const decodeContentJson = (bytes: Uint8Array): unknown =>
+  JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as unknown;
+
 /** The delivered encoding of every JSON content file: compact JSON followed by a newline. */
 export function encodeContentJson(value: unknown): Uint8Array<ArrayBuffer> {
   return new TextEncoder().encode(JSON.stringify(value) + '\n');

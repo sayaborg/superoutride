@@ -10,7 +10,10 @@ import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 import { createBrowserDevices } from './driving-shell.js';
 import { createAudioLifecycle } from './audio-lifecycle.js';
 import { mustGet } from './dom.js';
-import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
+import { loadVehicleDefinitions, loadVehicleSpriteSet, spriteAssets } from '../content/vehicle-catalog.js';
+import type { VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
+import { createCountedReading } from '../content/content-delivery.js';
+import { startupFiles } from './startup-files.js';
 import { loadEngineSounds } from '../content/engine-sound-catalog.js';
 import { loadEngineLoudness } from '../content/engine-loudness.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
@@ -99,7 +102,13 @@ async function startPage(): Promise<void> {
     }
     // With DEV, a loading run and a failure's reason with Retry also show outside the frame.
     const status = dev ? createStatus() : null;
-    const textTiles = await loadTextTiles(content);
+    // The startup's one counted reading: its files are decided from the manifest before reading starts, and its work
+    // runs in the run assembly's slices, so the frame loop and input run between them.
+    const slices = createWorkSlices(LOADING_SLICE_MILLISECONDS, () => performance.now(), nextTask);
+    const reading = createCountedReading(content, startupFiles(content.manifest), slices, (read, total) => {
+      if (status) status.textContent = `Loading ${Math.floor((read / total) * 100)}%`;
+    });
+    const textTiles = await reading.read(loadTextTiles);
     const textLayer = createTextLayer(textTiles);
     const devices = createBrowserDevices();
     const present = () => devices.present();
@@ -111,22 +120,30 @@ async function startPage(): Promise<void> {
       command() {},
       render() {},
     });
-    const materials = await loadSurfaceMaterials(content);
+    // The frame stands: every other startup file is fetched at once.
+    reading.fetchAll();
+    const materials = await reading.read(loadSurfaceMaterials);
     const materialIds = materials.source.materials.map((material) => material.id);
-    const engineSounds = await loadEngineSounds(content);
-    const definitions = await loadVehicleDefinitions(content, engineSounds);
+    const engineSounds = await reading.read(loadEngineSounds);
+    // Each vehicle sprite set is read on its own, its admission sliced between its pictures.
+    const sets: Record<string, VehicleSpriteSet> = {};
+    for (const { id } of content.manifest.files.filter((file) => file.kind === 'vehicle-sprite-set'))
+      sets[id] = await reading.read((delivery) => loadVehicleSpriteSet(delivery, id, slices));
+    const definitions = await reading.read((delivery) =>
+      loadVehicleDefinitions(delivery, engineSounds, spriteAssets(sets)),
+    );
     const { vehicles, driving } = definitions;
-    const courseIndex = await loadCourseIndex(content);
-    const screenPictures = await loadScreenPictures(content);
-    const music = await loadMusic(content, TEXT_COLUMNS);
-    const series = await loadSeriesCatalog(content, vehicles, screenPictures, music);
-    const freePlay = await loadFreePlayRules(content);
+    const courseIndex = await reading.read(loadCourseIndex);
+    const screenPictures = await reading.read((delivery) => loadScreenPictures(delivery, slices));
+    const music = await reading.read((delivery) => loadMusic(delivery, TEXT_COLUMNS));
+    const series = await reading.read((delivery) => loadSeriesCatalog(delivery, vehicles, screenPictures, music));
+    const freePlay = await reading.read(loadFreePlayRules);
     const player = openPlayerRecord(browserStorage());
-    const frontEnd = await loadFrontEndSelection(content, series, screenPictures, music);
-    const explosion = await loadContactExplosion(content);
+    const frontEnd = await reading.read((delivery) => loadFrontEndSelection(delivery, series, screenPictures, music));
+    const explosion = await reading.read((delivery) => loadContactExplosion(delivery, slices));
     // A stopped vehicle is drawn on the frames its explosion's script draws it standing.
     const raceSprites = createRaceSprites(vehicles, (response) => explosionShowsVehicle(explosion.script, response));
-    const puffs = await loadPuffs(content, materialIds);
+    const puffs = await reading.read((delivery) => loadPuffs(delivery, materialIds, slices));
     // DEV's PUFFS group and its export, for the page's lifetime; new runs throw with its values.
     const puffSettings = dev ? mountPuffSettings(mustGet('puff-settings'), puffs) : null;
     if (puffSettings)
@@ -135,15 +152,21 @@ async function startPage(): Promise<void> {
       );
     // The one run, which the current run screen shows.
     let run: Run | null = null;
-    const audioSettings = await loadAudioSettings(content);
+    const audioSettings = await reading.read(loadAudioSettings);
+    const surfaceSounds = await reading.read(loadSurfaceSounds);
+    const engineLoudness = await reading.read((delivery) =>
+      loadEngineLoudness(delivery, vehicles, audioSettings.sha256),
+    );
+    reading.finish();
+    if (status) status.hidden = true;
     const shell = devices.joinAudio(
       createAudioLifecycle(
         vehicles,
         {
           materialIds,
-          surfaces: await loadSurfaceSounds(content),
+          surfaces: surfaceSounds,
           engines: engineSounds,
-          engineLoudness: await loadEngineLoudness(content, vehicles, audioSettings.sha256),
+          engineLoudness,
         },
         audioSettings,
         player,

@@ -1,11 +1,13 @@
 import {
   deepFreeze,
   readArray,
+  readArraySteps,
   readDictionary,
   readDocument,
   readNumber,
   readRecord,
   requireAdmission,
+  throughSteps,
 } from '../core/admission.js';
 import { readRgb555 } from '../image/rgb555.js';
 import { IndexedPattern } from '../image/indexed-image.js';
@@ -113,6 +115,11 @@ function readFrame(value: unknown, path: string, extra: readonly string[] = []) 
  * picture and its shadow on the same texel grid (the anchors differ by whole texels).
  */
 export function readVehicleSpriteSet(value: unknown, name: string): VehicleSpriteSet {
+  return throughSteps(vehicleSpriteSetSteps(value, name));
+}
+
+/** `readVehicleSpriteSet` in steps, one a picture. */
+function* vehicleSpriteSetSteps(value: unknown, name: string): Generator<void, VehicleSpriteSet> {
   const banked = typeof value === 'object' && value !== null && Object.hasOwn(value, 'bankDegrees');
   const set = readRecord(
     value,
@@ -146,7 +153,7 @@ export function readVehicleSpriteSet(value: unknown, name: string): VehicleSprit
     off: readRgb555(lamp.off, '/brakeLamp/off'),
     on: readRgb555(lamp.on, '/brakeLamp/on'),
   });
-  const pictures = readArray(
+  const pictures = yield* readArraySteps(
     set.pictures,
     '/pictures',
     (value, path): VehiclePicture => {
@@ -197,6 +204,11 @@ export function readVehicleSpriteSet(value: unknown, name: string): VehicleSprit
  * `readVehicleSpriteSet`. Besides the set, it publishes the admitted document's set fields.
  */
 export function readVehicleSpriteSetDocument(value: unknown, name: string) {
+  return throughSteps(vehicleSpriteSetDocumentSteps(value, name));
+}
+
+/** `readVehicleSpriteSetDocument` in steps, one a picture, for admission sliced between them (`admitInSlices`). */
+export function* vehicleSpriteSetDocumentSteps(value: unknown, name: string) {
   const banked = typeof value === 'object' && value !== null && Object.hasOwn(value, 'bankDegrees');
   const fields = VEHICLE_SPRITE_SET_FIELDS.filter((field) => banked || field !== 'bankDegrees');
   const document = readDocument(
@@ -206,7 +218,7 @@ export function readVehicleSpriteSetDocument(value: unknown, name: string) {
     VEHICLE_SPRITE_SET_VERSION,
   );
   const fieldValues = Object.fromEntries(fields.map((field) => [field, document[field]]));
-  const set = readVehicleSpriteSet(fieldValues, name);
+  const set = yield* vehicleSpriteSetSteps(fieldValues, name);
   // The set passed its admission above, which establishes its document's shape.
   return Object.freeze({ set, document: deepFreeze(fieldValues as unknown as VehicleSpriteSetDocument) });
 }

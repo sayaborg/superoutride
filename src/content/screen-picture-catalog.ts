@@ -1,6 +1,7 @@
 import { admit, requireAdmission, type AdmissionResult } from '../core/admission.js';
 import { compileTilePicture, type TilePicture } from '../image/tile-picture.js';
 import type { ContentDelivery } from './content-delivery.js';
+import { UNSLICED, type WorkSlices } from '../core/work-slices.js';
 import { requireLoaded } from './content-load-error.js';
 import type { DocumentSource } from './document-catalog.js';
 
@@ -16,6 +17,35 @@ export const SERIES_IMAGE = Object.freeze({ columns: 40, rows: 30 });
 /** The admitted screen pictures by name. */
 export type ScreenPictureCatalog = ReadonlyMap<string, TilePicture>;
 
+/** Admit one screen picture: a tile picture named by its file name, the title logo at its size. */
+function admitScreenPicture(source: DocumentSource): AdmissionResult<TilePicture> {
+  return admit(source.path, () => {
+    const picture = compileTilePicture(source.value);
+    requireAdmission(
+      picture.name === source.id,
+      'invalid_value',
+      '/name',
+      `A screen picture is named by its file ${source.id}`,
+    );
+    if (source.id === TITLE_LOGO.id)
+      requireAdmission(
+        picture.columns === TITLE_LOGO.columns && picture.rows === TITLE_LOGO.rows,
+        'invalid_value',
+        '/columns',
+        `The title logo is ${TITLE_LOGO.columns}×${TITLE_LOGO.rows} tiles`,
+      );
+    return picture;
+  });
+}
+
+/** The catalog of the admitted pictures: the title logo is among them. */
+function screenPictureCatalog(pictures: Map<string, TilePicture>): AdmissionResult<ScreenPictureCatalog> {
+  return admit(`content/${SCREEN_PICTURES_DIRECTORY}/`, () => {
+    requireAdmission(pictures.has(TITLE_LOGO.id), 'unresolved_reference', '', `Missing ${TITLE_LOGO.id}`);
+    return pictures as ScreenPictureCatalog;
+  });
+}
+
 /**
  * Admit the screen pictures: each document is a tile picture named by its file name, and the title logo is among them
  * at its size. A series admits its own image's size and opacity.
@@ -23,34 +53,25 @@ export type ScreenPictureCatalog = ReadonlyMap<string, TilePicture>;
 export function compileScreenPictures(sources: readonly DocumentSource[]): AdmissionResult<ScreenPictureCatalog> {
   const pictures = new Map<string, TilePicture>();
   for (const source of sources) {
-    const admitted = admit(source.path, () => {
-      const picture = compileTilePicture(source.value);
-      requireAdmission(
-        picture.name === source.id,
-        'invalid_value',
-        '/name',
-        `A screen picture is named by its file ${source.id}`,
-      );
-      if (source.id === TITLE_LOGO.id)
-        requireAdmission(
-          picture.columns === TITLE_LOGO.columns && picture.rows === TITLE_LOGO.rows,
-          'invalid_value',
-          '/columns',
-          `The title logo is ${TITLE_LOGO.columns}×${TITLE_LOGO.rows} tiles`,
-        );
-      return picture;
-    });
+    const admitted = admitScreenPicture(source);
     if (!admitted.ok) return admitted;
     pictures.set(source.id, admitted.value);
   }
-  return admit(`content/${SCREEN_PICTURES_DIRECTORY}/`, () => {
-    requireAdmission(pictures.has(TITLE_LOGO.id), 'unresolved_reference', '', `Missing ${TITLE_LOGO.id}`);
-    return pictures as ScreenPictureCatalog;
-  });
+  return screenPictureCatalog(pictures);
 }
 
-/** The delivered screen pictures, admitted again as other delivered documents are. */
-export async function loadScreenPictures(content: ContentDelivery): Promise<ScreenPictureCatalog> {
-  const sources = await content.documents('screen-picture');
-  return requireLoaded(compileScreenPictures(sources));
+/**
+ * The delivered screen pictures, admitted again as other delivered documents are, as `compileScreenPictures` admits
+ * them; with `slices`, each picture's decoding and admission are units of their own.
+ */
+export async function loadScreenPictures(
+  content: ContentDelivery,
+  slices: WorkSlices = UNSLICED,
+): Promise<ScreenPictureCatalog> {
+  const pictures = new Map<string, TilePicture>();
+  for (const source of await content.documents('screen-picture', slices)) {
+    if (slices.due()) await slices.pause();
+    pictures.set(source.id, requireLoaded(admitScreenPicture(source)));
+  }
+  return requireLoaded(screenPictureCatalog(pictures));
 }

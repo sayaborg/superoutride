@@ -1,5 +1,10 @@
-import { admit, requireAdmission, type AdmissionResult } from '../core/admission.js';
-import { readVehicleSpriteSetDocument, type SpriteAssets } from '../vehicle/vehicle-sprite-library.js';
+import { admit, admitInSlices, requireAdmission, type AdmissionResult } from '../core/admission.js';
+import { UNSLICED, type WorkSlices } from '../core/work-slices.js';
+import {
+  readVehicleSpriteSetDocument,
+  vehicleSpriteSetDocumentSteps,
+  type SpriteAssets,
+} from '../vehicle/vehicle-sprite-library.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import {
   compileDrivingDocument,
@@ -22,8 +27,27 @@ export async function loadVehicleSpriteSets(content: ContentDelivery): Promise<S
   const sets: Record<string, VehicleSpriteSet> = {};
   for (const { id, path, value } of await content.documents('vehicle-sprite-set'))
     sets[id] = requireLoaded(admit(path, () => readVehicleSpriteSetDocument(value, id).set));
-  return Object.freeze({ sets: Object.freeze(sets) });
+  return spriteAssets(sets);
 }
+
+/**
+ * The vehicle sprite set `id` alone, admitted by its own rules as it is read; with `slices`, its decoding and its
+ * admission are units of their own, and its admission pauses between pictures.
+ */
+export async function loadVehicleSpriteSet(
+  content: ContentDelivery,
+  id: string,
+  slices: WorkSlices = UNSLICED,
+): Promise<VehicleSpriteSet> {
+  const value = await content.json('vehicle-sprite-set', id);
+  const { path } = content.manifest.files.find((file) => file.kind === 'vehicle-sprite-set' && file.id === id)!;
+  if (slices.due()) await slices.pause();
+  return requireLoaded(await admitInSlices(path, vehicleSpriteSetDocumentSteps(value, id), slices)).set;
+}
+
+/** The admitted sprite sets by name. */
+export const spriteAssets = (sets: Readonly<Record<string, VehicleSpriteSet>>): SpriteAssets =>
+  Object.freeze({ sets: Object.freeze({ ...sets }) });
 
 /** The single driving definition's identifier: its file name and manifest ID. */
 export const DRIVING_DEFINITION_ID = 'default';
@@ -85,12 +109,16 @@ export function compileVehicleDefinitions(
   });
 }
 
-/** Transport verifies every payload SHA before either admission boundary sees decoded content. */
+/**
+ * Transport verifies every payload SHA before either admission boundary sees decoded content. The sprite sets are those
+ * given, already read, else the delivered ones, read here.
+ */
 export async function loadVehicleDefinitions(
   content: ContentDelivery,
   sounds: EngineSoundCatalog,
+  sprites?: SpriteAssets,
 ): Promise<VehicleDefinitions> {
-  const sprites = await loadVehicleSpriteSets(content);
+  sprites ??= await loadVehicleSpriteSets(content);
   const driving = await content.documents('driving'),
     vehicles = await content.documents('vehicle'),
     listings = await content.documents('vehicle-listing');

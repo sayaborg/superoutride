@@ -848,6 +848,12 @@ scenarios pass no slices (`UNSLICED`) and compile through. A course image is adm
 one unit: the decoded readers are kept and the parsed document is dropped (build compilers that read the saved
 documents ask for them, frozen). The browser's slices are its own ([Browser](browser.md#display-and-scheduling)).
 
+The page's startup reads its delivered files in the same slices through one counted reading
+(`createCountedReading`, `content/content-delivery.ts`): its files are a plan of manifest entries, its loaders run one
+at a time and the files each takes count as read once it returns. A catalog's documents are decoded one unit each, and
+a vehicle sprite set is admitted in steps (`admitInSlices` over `vehicleSpriteSetDocumentSteps`), one a picture; tools
+and the build read the same documents through, with no slices.
+
 ## Definition delivery
 
 Vehicle mechanics, vehicle listing and driving documents are manifest entries like every delivered file;

@@ -5,6 +5,8 @@
  * first failure.
  */
 
+import type { WorkSlices } from './work-slices.js';
+
 /** Shape-level codes shared by every authored format; formats add their own semantic codes. */
 export type AdmissionCode =
   | 'invalid_shape'
@@ -199,18 +201,74 @@ export function readEnum<T extends string>(value: unknown, allowed: readonly T[]
   return value as T;
 }
 
-export function readArray<T>(
-  value: unknown,
-  path: string,
-  read: (value: unknown, path: string) => T,
-  { min = 0, max = Infinity, length }: { min?: number; max?: number; length?: number } = {},
-): readonly T[] {
+/** The bounds an admitted array's length keeps. */
+export interface ArrayLimits {
+  readonly min?: number;
+  readonly max?: number;
+  readonly length?: number;
+}
+
+function requireArray(value: unknown, path: string, { min = 0, max = Infinity, length }: ArrayLimits): unknown[] {
   if (!Array.isArray(value)) throw new AdmissionError('invalid_shape', path, 'Expected an array');
   if (value.length > max) throw new AdmissionError('resource_limit', path, `At most ${max} entries are admitted`);
   if (value.length < min) throw new AdmissionError('invalid_shape', path, `Expected at least ${min} entries`);
   if (length !== undefined && value.length !== length)
     throw new AdmissionError('invalid_shape', path, `Expected exactly ${length} entries`);
-  return Object.freeze(Array.from(value, (item, index) => read(item, `${path}/${index}`)));
+  return value as unknown[];
+}
+
+export function readArray<T>(
+  value: unknown,
+  path: string,
+  read: (value: unknown, path: string) => T,
+  limits: ArrayLimits = {},
+): readonly T[] {
+  return Object.freeze(Array.from(requireArray(value, path, limits), (item, index) => read(item, `${path}/${index}`)));
+}
+
+/**
+ * `readArray` in steps: it yields after each entry, so admission sliced between them can pause there
+ * (`admitInSlices`). Its value is `readArray`'s.
+ */
+export function* readArraySteps<T>(
+  value: unknown,
+  path: string,
+  read: (value: unknown, path: string) => T,
+  limits: ArrayLimits = {},
+): Generator<void, readonly T[]> {
+  const items = requireArray(value, path, limits),
+    result: T[] = [];
+  for (let index = 0; index < items.length; index++) {
+    result.push(read(items[index], `${path}/${index}`));
+    yield;
+  }
+  return Object.freeze(result);
+}
+
+/** Admission steps run through at once: their value, as a reader returns it. */
+export function throughSteps<T>(steps: Iterator<void, T>): T {
+  for (;;) {
+    const step = steps.next();
+    if (step.done) return step.value;
+  }
+}
+
+/** `admit` of admission steps, pausing between them whenever `slices` is due. */
+export async function admitInSlices<T>(
+  document: string,
+  steps: Iterator<void, T>,
+  slices: WorkSlices,
+): Promise<AdmissionResult<T, AdmissionDiagnostic<string>>> {
+  try {
+    for (;;) {
+      const step = steps.next();
+      if (step.done) return Object.freeze({ ok: true as const, value: step.value });
+      if (slices.due()) await slices.pause();
+    }
+  } catch (error) {
+    if (!(error instanceof AdmissionError)) throw error;
+    return Object.freeze({ ok: false as const, diagnostics: Object.freeze([admissionDiagnostic(error, document)]) });
+  }
 }
 
 /** An array of records whose `id` values are unique within it. */

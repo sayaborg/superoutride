@@ -589,11 +589,6 @@ K's decisions (2026-11-12):
 
 The work, in order; the game stays playable after each:
 
-2. **BT-3: one counted startup load.** The files read at startup are decided from the manifest before reading starts;
-   the progress is the files read (fetched, verified, decoded and admitted) over them. Files of one kind are fetched
-   together, verified one by one and admitted in the same order; one form reads all files of a kind for every
-   catalog; the startup's work runs in the run assembly's 8 ms slices. Files read after startup (courses, music) are
-   not counted.
 3. **BT-4: the LOADING screen,** a `Screen` shown as soon as the text tiles and its picture are read, with
    [Browser](browser.md)'s startup contract rewritten; a page that cannot start shows LOAD FAILED in the frame once it
    can write text.
