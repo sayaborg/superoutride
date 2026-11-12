@@ -193,6 +193,10 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
   );
   const K = Dk.length;
   const straightK = Dk.map(straight);
+  // Each step's F / D, F / D · behind and −scale · F / D, as the rows below take them.
+  const focalK = Dk.map((D) => F / D),
+    behindK = focalK.map((f) => f * behind),
+    slopeK = focalK.map((f) => -scale * f);
   // The original's rows: one a whole row, against the read road at its line's distance.
   const samples: { frame: number; D: number; difference: number; step: number }[] = [];
   const deviation = new Float64Array(V);
@@ -227,6 +231,11 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
   const byFrame = Array.from({ length: V + 1 }, () => 0);
   samples.forEach((s) => byFrame[s.frame + 1]!++);
   for (let p = 0; p < V; p++) byFrame[p + 1]! += byFrame[p]!;
+  // Each original row's level road's row and F / D, F / D · behind and −scale · F / D, as the rows below take them.
+  const straightS = Float64Array.from(samples, (s) => straight(s.D)),
+    focalS = Float64Array.from(samples, (s) => F / s.D),
+    behindS = focalS.map((f) => f * behind),
+    slopeS = focalS.map((f) => -scale * f);
 
   /** The grade at the player's station and its weights on the borders k and k + 1; the camera's pitch. */
   const pose = (g: Float64Array, p: number) => {
@@ -239,28 +248,29 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
     const th = -Math.atan(grade);
     return { k, w0: 1 - t, w1: t, sin: Math.sin(th), cos: Math.cos(th), dth: -1 / (1 + grade * grade) };
   };
-  const rowAt = (D: number, dh: number, sin: number, cos: number) =>
-    straight(D) + scale * (-F * sin - (F / D) * dh * cos + (F / D) * behind * sin);
-  const dRow = (D: number, dh: number, sin: number, cos: number) => ({
-    a: scale * (-F * cos + (F / D) * dh * sin + (F / D) * behind * cos),
-    b: -scale * (F / D) * cos,
-  });
+  type Pose = ReturnType<typeof pose>;
+  // A row of the read road at a distance, `straightD` its level road's and `f`, `fb`, `fs` the distance's F / D,
+  // F / D · behind and −scale · F / D; and the row's derivatives by the camera's pitch (`rowA`) and by the height (`rowB`).
+  const rowAt = (straightD: number, f: number, fb: number, dh: number, sin: number, cos: number) =>
+    straightD + scale * (-F * sin - f * dh * cos + fb * sin);
+  const rowA = (f: number, fb: number, dh: number, sin: number, cos: number) =>
+    scale * (-F * cos + f * dh * sin + fb * cos);
+  const rowB = (fs: number, cos: number) => fs * cos;
 
   /**
-   * One frame both ways: calls `game(k, w, r)` for each step's rows and `original(i, a, seen)` for each original row,
-   * with the steps' envelope's crest `arg`; returns the steps' rows.
+   * One frame's steps, at `pose`: their heights `dh`, their rows `y`, the rows' running least `env` (the steps' envelope)
+   * and its crest `arg`. Written into the arrays below, which hold them until the next frame.
    */
-  function frame(g: Float64Array, p: number) {
-    const { sin, cos } = pose(g, p);
-    const y = new Float64Array(K),
-      dh = new Float64Array(K),
-      arg = new Int32Array(K),
-      env = new Float64Array(K);
+  const y = new Float64Array(K),
+    dh = new Float64Array(K),
+    arg = new Int32Array(K),
+    env = new Float64Array(K);
+  function frame(g: Float64Array, p: number, { sin, cos }: Pose) {
     let least = Infinity,
       at = 0;
     for (let k = 0; k < K; k++) {
       dh[k] = rowDot(grid, p * K + k, g);
-      y[k] = rowAt(Dk[k]!, dh[k]!, sin, cos);
+      y[k] = rowAt(straightK[k]!, focalK[k]!, behindK[k]!, dh[k]!, sin, cos);
       if (y[k]! <= least) {
         least = y[k]!;
         at = k;
@@ -268,17 +278,17 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
       env[k] = least;
       arg[k] = at;
     }
-    return { y, dh, arg, env, sin, cos };
   }
 
+  const coef = new Float64Array(K);
   function cost(g: Float64Array) {
     const gradient = new Float64Array(edges + 1);
     let total = 0;
-    const coef = new Float64Array(K);
     for (let p = 0; p < V; p++) {
       const vw = weights[p]!;
-      const { y, dh, arg, env, sin, cos } = frame(g, p);
-      const { k: kb, w0, w1, dth } = pose(g, p);
+      const at = pose(g, p);
+      const { k: kb, w0, w1, dth, sin, cos } = at;
+      frame(g, p, at);
       coef.fill(0);
       for (let k = 1; k < K; k++) {
         const w = Math.max(0, env[k - 1]! - y[k]!);
@@ -293,25 +303,27 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
       for (let i = byFrame[p]!; i < byFrame[p + 1]!; i++) {
         const s = samples[i]!;
         const dhs = rowDot(lines, i, g);
-        const yo = rowAt(s.D, dhs, sin, cos);
+        const yo = rowAt(straightS[i]!, focalS[i]!, behindS[i]!, dhs, sin, cos);
         const visible = yo <= env[s.step]!;
-        const a = (visible ? yo : env[s.step]!) - straight(s.D) - s.difference;
+        const a = (visible ? yo : env[s.step]!) - straightS[i]! - s.difference;
         total += vw * a * a;
         if (!visible) coef[arg[s.step]!]! += 2 * vw * a;
         else {
-          const d = dRow(s.D, dhs, sin, cos);
-          perView += 2 * vw * a * d.a;
+          const da = rowA(focalS[i]!, behindS[i]!, dhs, sin, cos),
+            db = rowB(slopeS[i]!, cos);
+          perView += 2 * vw * a * da;
           for (let q = lines.start[i]!; q < lines.start[i + 1]!; q++)
-            gradient[lines.column[q]!]! += 2 * vw * a * d.b * lines.weight[q]!;
+            gradient[lines.column[q]!]! += 2 * vw * a * db * lines.weight[q]!;
         }
       }
       for (let k = 0; k < K; k++) {
         if (coef[k] === 0) continue;
-        const d = dRow(Dk[k]!, dh[k]!, sin, cos);
-        perView += coef[k]! * d.a;
+        const da = rowA(focalK[k]!, behindK[k]!, dh[k]!, sin, cos),
+          db = rowB(slopeK[k]!, cos);
+        perView += coef[k]! * da;
         const row = p * K + k;
         for (let q = grid.start[row]!; q < grid.start[row + 1]!; q++)
-          gradient[grid.column[q]!]! += coef[k]! * d.b * grid.weight[q]!;
+          gradient[grid.column[q]!]! += coef[k]! * db * grid.weight[q]!;
       }
       gradient[kb]! += perView * dth * w0;
       if (kb + 1 <= edges) gradient[kb + 1]! += perView * dth * w1;
@@ -323,7 +335,9 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
     let sqHill = 0,
       nHill = 0;
     for (let p = 0; p < V; p++) {
-      const { y, env, sin, cos } = frame(g, p);
+      const at = pose(g, p);
+      const { sin, cos } = at;
+      frame(g, p, at);
       let sq = 0,
         n = 0;
       for (let k = 1; k < K; k++) {
@@ -334,8 +348,8 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
       }
       for (let i = byFrame[p]!; i < byFrame[p + 1]!; i++) {
         const s = samples[i]!;
-        const yo = rowAt(s.D, rowDot(lines, i, g), sin, cos);
-        const a = Math.min(yo, env[s.step]!) - straight(s.D) - s.difference;
+        const yo = rowAt(straightS[i]!, focalS[i]!, behindS[i]!, rowDot(lines, i, g), sin, cos);
+        const a = Math.min(yo, env[s.step]!) - straightS[i]! - s.difference;
         sq += a * a;
         n += 1;
       }
@@ -356,8 +370,9 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
     const sq = new Float64Array(K);
     for (let p = 0; p < V; p++) {
       const vw = weights[p]!;
-      const { y, dh, arg, env, sin, cos } = frame(g, p);
-      const { k: kb, w0, w1, dth } = pose(g, p);
+      const at = pose(g, p);
+      const { k: kb, w0, w1, dth, sin, cos } = at;
+      frame(g, p, at);
       sq.fill(0);
       for (let k = 1; k < K; k++) sq[k] = Math.max(0, env[k - 1]! - y[k]!) * vw;
       const visible: boolean[] = [];
@@ -365,7 +380,7 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
       for (let i = byFrame[p]!; i < byFrame[p + 1]!; i++) {
         const s = samples[i]!;
         dhs.push(rowDot(lines, i, g));
-        const shown = rowAt(s.D, dhs.at(-1)!, sin, cos) <= env[s.step]!;
+        const shown = rowAt(straightS[i]!, focalS[i]!, behindS[i]!, dhs.at(-1)!, sin, cos) <= env[s.step]!;
         visible.push(shown);
         // A hidden original row moves with the crest's step.
         if (!shown) sq[arg[s.step]!]! += vw;
@@ -388,14 +403,16 @@ export function screenMeasure(frames: ScreenFrames, camera: ReadingCamera, cell:
       };
       for (let k = 0; k < K; k++) {
         if (!(sq[k]! > 0)) continue;
-        const d = dRow(Dk[k]!, dh[k]!, sin, cos);
-        add(...row(d.a, d.b, grid, p * K + k, Math.sqrt(sq[k]!)));
+        const da = rowA(focalK[k]!, behindK[k]!, dh[k]!, sin, cos),
+          db = rowB(slopeK[k]!, cos);
+        add(...row(da, db, grid, p * K + k, Math.sqrt(sq[k]!)));
       }
       visible.forEach((shown, n) => {
         if (!shown) return;
         const i = byFrame[p]! + n;
-        const d = dRow(samples[i]!.D, dhs[n]!, sin, cos);
-        add(...row(d.a, d.b, lines, i, Math.sqrt(vw)));
+        const da = rowA(focalS[i]!, behindS[i]!, dhs[n]!, sin, cos),
+          db = rowB(slopeS[i]!, cos);
+        add(...row(da, db, lines, i, Math.sqrt(vw)));
       });
     }
     return H;

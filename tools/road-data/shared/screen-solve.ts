@@ -32,20 +32,66 @@ export interface Solved {
   readonly elements: readonly Element[];
 }
 
-/** A dense matrix's product with a vector, and its transpose's. */
-const times = (m: readonly Float64Array[], v: ArrayLike<number>) =>
-  Float64Array.from(m, (row) => row.reduce((s, x, j) => s + x * v[j]!, 0));
-const timesTransposed = (m: readonly Float64Array[], v: ArrayLike<number>, columns: number) => {
-  const out = new Float64Array(columns);
-  m.forEach((row, i) => row.forEach((x, j) => (out[j]! += x * v[i]!)));
+/**
+ * A matrix by its rows' entries that are not 0, in column order, `columns` wide. A product leaves those 0 out: each sum
+ * starts at +0 and so is never −0, and a finite value times 0 adds ±0 to it, which changes no bit.
+ */
+interface Entries {
+  readonly start: Int32Array;
+  readonly column: Int32Array;
+  readonly value: Float64Array;
+  readonly columns: number;
+}
+const entriesOf = (m: readonly Float64Array[], columns: number): Entries => {
+  const start = new Int32Array(m.length + 1);
+  const column: number[] = [],
+    value: number[] = [];
+  m.forEach((row, i) => {
+    for (let j = 0; j < row.length; j++)
+      if (row[j] !== 0) {
+        column.push(j);
+        value.push(row[j]!);
+      }
+    start[i + 1] = column.length;
+  });
+  return { start, column: Int32Array.from(column), value: Float64Array.from(value), columns };
+};
+
+/** A matrix's product with a vector, and its transpose's: each sum taken in the rows' order, then the columns'. */
+const times = (m: Entries, v: ArrayLike<number>) => {
+  const out = new Float64Array(m.start.length - 1);
+  for (let i = 0; i < out.length; i++) {
+    let sum = 0;
+    for (let q = m.start[i]!; q < m.start[i + 1]!; q++) sum += m.value[q]! * v[m.column[q]!]!;
+    out[i] = sum;
+  }
   return out;
+};
+const timesTransposed = (m: Entries, v: ArrayLike<number>) => {
+  const out = new Float64Array(m.columns);
+  for (let i = 0; i < m.start.length - 1; i++)
+    for (let q = m.start[i]!; q < m.start[i + 1]!; q++) out[m.column[q]!]! += m.value[q]! * v[i]!;
+  return out;
+};
+/** A dense matrix's product with a vector whose entries not 0 are `at`, each sum in the columns' order. */
+const timesAt = (m: readonly Float64Array[], v: ArrayLike<number>, at: readonly number[]) =>
+  Float64Array.from(m, (row) => {
+    let sum = 0;
+    for (const j of at) sum += row[j]! * v[j]!;
+    return sum;
+  });
+/** The places of a vector's entries that are not 0, ascending. */
+const nonZero = (v: ArrayLike<number>) => {
+  const at: number[] = [];
+  for (let j = 0; j < v.length; j++) if (v[j] !== 0) at.push(j);
+  return at;
 };
 
 /**
  * The free grades of a chain of elements over `borders` + 1 borders: a straight ties its ends' grades into one group;
  * the groups holding the first and last borders are 0, or, `closed` (a lap), one group and free; the rest are the
  * unknowns, `columns` of them. `roots` names each knot's group, `column` each free group's unknown, and `map` gives every
- * border's grade from the unknowns.
+ * border's grade from the unknowns (`entries`, its entries that are not 0).
  */
 function structure(elements: readonly Element[], borders: number, closed = false) {
   const knots = [elements[0]!.from, ...elements.map((e) => e.to)];
@@ -81,7 +127,7 @@ function structure(elements: readonly Element[], borders: number, closed = false
         if (w && column.has(r)) map[j]![column.get(r)!]! += w;
     }
   });
-  return { knots, roots, column, map, columns: free.length };
+  return { knots, roots, column, map, entries: entriesOf(map, free.length), columns: free.length };
 }
 
 /** The unknowns from grades: each free group's mean grade at its knots. */
@@ -104,17 +150,16 @@ type Tile = (pieceGrades: Float64Array) => Float64Array;
 function solveUnknowns(
   measure: Measure,
   v: Float64Array,
-  map: readonly Float64Array[],
-  columns: number,
+  map: Entries,
   tile: Tile,
   tileTransposed: Tile,
   iterations: number,
 ): Float64Array {
-  if (!columns) return new Float64Array(0);
+  if (!map.columns) return new Float64Array(0);
   return minimiseInBox(
     (x) => {
       const { cost, gradient } = measure.cost(tile(times(map, x)));
-      return { cost, gradient: timesTransposed(map, tileTransposed(gradient), columns) };
+      return { cost, gradient: timesTransposed(map, tileTransposed(gradient)) };
     },
     v,
     {
@@ -141,13 +186,18 @@ function reduceOne(
   s: ReturnType<typeof structure>,
   tile: Tile,
 ): Element[] {
-  const g = tile(times(s.map, v));
+  const g = tile(times(s.entries, v));
   const H = measure.gaussNewton(g);
   // The unknowns' matrix: (tile · map)ᵀ H (tile · map).
   const columns = Array.from({ length: s.columns }, (_, c) => tile(Float64Array.from(s.map, (row) => row[c]!)));
-  const Hv = columns.map((a) => {
-    const Ha = times(H, a);
-    return Float64Array.from(columns, (b) => b.reduce((sum, x, j) => sum + x * Ha[j]!, 0));
+  const at = columns.map(nonZero);
+  const Hv = columns.map((a, c) => {
+    const Ha = timesAt(H, a, at[c]!);
+    return Float64Array.from(columns, (b, d) => {
+      let sum = 0;
+      for (const j of at[d]!) sum += b[j]! * Ha[j]!;
+      return sum;
+    });
   });
   const trace = Hv.reduce((sum, row, i) => sum + row[i]!, 0);
   const P = inverse(Hv.map((row, i) => row.map((x, j) => (i === j ? x + (RIDGE * trace) / Hv.length : x))));
@@ -167,7 +217,7 @@ function reduceOne(
   };
   let best: { value: number; kind: 'straight' | 'join'; i: number } | null = null;
   const weigh = (L: Float64Array, kind: 'straight' | 'join', i: number) => {
-    const den = dot(L, times(P, L));
+    const den = dot(L, timesAt(P, L, nonZero(L)));
     if (!(den > 0)) return;
     const value = dot(L, v) ** 2 / den;
     if (best === null || value < best.value) best = { value, kind, i };
@@ -258,16 +308,16 @@ export function solvePiece(measure: Measure, a: number, b: number, repeats?: num
     ...(b < borders ? [{ from: b, to: borders, curve: false }] : []),
   ];
   let s = structure(elements, borders, closed);
-  let v = solveUnknowns(measure, new Float64Array(s.columns), s.map, s.columns, tile, tileTransposed, FIRST_ITERATIONS);
+  let v = solveUnknowns(measure, new Float64Array(s.columns), s.entries, tile, tileTransposed, FIRST_ITERATIONS);
   const way: Solved[] = [];
   for (;;) {
-    const grades = times(s.map, v);
+    const grades = times(s.entries, v);
     const curves = elements.filter((e) => e.curve).length;
     way.push({ curves, look: rounded(measure.look(tile(grades))), grades, elements });
     if (curves <= 1) return way;
     elements = reduceOne(measure, elements, v, s, tile);
     s = structure(elements, borders, closed);
-    v = solveUnknowns(measure, unknownsFrom(grades, s), s.map, s.columns, tile, tileTransposed, LATER_ITERATIONS);
+    v = solveUnknowns(measure, unknownsFrom(grades, s), s.entries, tile, tileTransposed, LATER_ITERATIONS);
   }
 }
 
