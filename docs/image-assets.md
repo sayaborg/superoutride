@@ -832,6 +832,13 @@ kind `screen-picture`); delivery admits them once (`compileScreenPictures`). `ti
 its [series document](content-and-gameplay.md#series-documents) names it and where the
 [front end selection](content-and-gameplay.md#front-end-selection-document) names a series' picture by its ID.
 
+`controls`, the picture of the controls K draws, is the one [LOADING](browser.md#screens) stands on: 40×30 tiles (the
+320×240 frame), in the same format, its transparent pixels showing black. It is optional: while it is not delivered
+LOADING stands on black, and once it is, LOADING shows it with no change to the code. It is added as every screen
+picture is: its source `content/screen-picture-sources/controls.png` and a recipe `controls: {columns: 40, rows: 30,
+fit: "fill"}` (a 4:3 source), then `npm run screen-pictures` writes `content/screen-pictures/controls.json`. LOADING
+reads it first, with the text tiles, before the rest of the startup's files.
+
 A series image is named by its series' ID, and an ARCADE TRIBUTE series' ID is `arcade-tribute-` and its original's
 ID, as `arcade-tribute-pole-position-ii` (K, 2026-11-09). The main picture, which TITLE and the main menus stand on,
 will be 40×30 tiles too and may be transparent: its source's alpha marks the clear parts through which the attract
@@ -871,3 +878,4 @@ share their pattern and palette, which are saved once.
 | `arcade-tribute-chase-hq`           | 4:3               | 40×30, `fill`    |
 | `arcade-tribute-big-run`            | 4:3               | 40×30, `fill`    |
 | `arcade-tribute-cisco-heat`         | 4:3               | 40×30, `fill`    |
+| `controls` (not yet delivered)      | 4:3               | 40×30, `fill`    |

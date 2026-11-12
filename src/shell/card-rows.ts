@@ -1,7 +1,7 @@
 import { TEXT_PALETTES, TEXT_TILE_SIZE } from '../image/text-tiles.js';
 import type { TilePicture } from '../image/tile-picture.js';
 import type { MenuCommand } from '../input/menu-input.js';
-import { lineThinningRanks, newLineCount } from '../view/line-thinning.js';
+import { THINNING_STEPS, thinLines } from '../view/line-thinning.js';
 import { drawPlaneRow, fixedPoint, type PlaneRow } from '../view/scaled-plane.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
@@ -11,7 +11,7 @@ import { SCREEN_BACKGROUND, writeCentred } from './menu.js';
 import type { MenuResponse, Screen } from './screen-host.js';
 
 /** Fixed steps (60 a second) each motion takes (K, 2026-11-09: the demo K saw, "for now"). */
-export const CARD_STEPS = Object.freeze({ slide: 10, shake: 12, thin: 16, zoom: 24, hold: 30, rest: 30 });
+export const CARD_STEPS = Object.freeze({ slide: 10, shake: 12, thin: THINNING_STEPS, zoom: 24, hold: 30, rest: 30 });
 /** SELECT SERIES shows the series pictures at this scale: the focus picture the size of a card. */
 export const SERIES_SCALE = 0.7;
 /** The series pictures' pitch on the scaled plane: a picture and a clear tile, 41 tiles. */
@@ -24,7 +24,7 @@ export const ZOOM_CENTRE = Object.freeze({
 /** The shake's reach: this share of the row's pitch. */
 const SHAKE = 0.06;
 /** TITLE's PRESS START row, and its blink: shown this many fixed steps, then hidden as many as the second. */
-const PRESS_START_ROW = 28;
+export const PRESS_START_ROW = 28;
 const BLINK = Object.freeze({ on: 32, off: 16 });
 /** The title logo's top, standing for the main picture until it is made. */
 const LOGO_Y = 16;
@@ -414,11 +414,7 @@ export function createCardRows(
         scratch.set(frame.pixels);
         drawWorld(frame, world, title(view));
         drawRow(frame, view, undefined);
-        const ranks = lineThinningRanks(frame.height),
-          shown = newLineCount(frame.height, motion.steps / CARD_STEPS.thin);
-        for (let y = 0; y < frame.height; y++)
-          if (ranks[y]! >= shown)
-            frame.pixels.set(scratch.subarray(y * frame.width, (y + 1) * frame.width), y * frame.width);
+        thinLines(frame.pixels, scratch, frame.width, frame.height, motion.steps / CARD_STEPS.thin);
       } else {
         drawWorld(frame, world, view?.row.kind === 'title');
         drawRow(frame, view, motion);

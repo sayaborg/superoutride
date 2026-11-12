@@ -11,6 +11,9 @@ export const SCREEN_PICTURES_DIRECTORY = 'screen-pictures';
 /** The title logo: 36×14 tiles (288×112 px), which may be transparent. */
 export const TITLE_LOGO = Object.freeze({ id: 'title-logo', columns: 36, rows: 14 });
 
+/** The picture of the controls, which LOADING stands on: 40×30 tiles, the whole 320×240 frame. */
+export const CONTROLS_PICTURE = Object.freeze({ id: 'controls', columns: 40, rows: 30 });
+
 /** A series image: 40×30 tiles, the whole 320×240 frame, and opaque. */
 export const SERIES_IMAGE = Object.freeze({ columns: 40, rows: 30 });
 
@@ -33,6 +36,13 @@ function admitScreenPicture(source: DocumentSource): AdmissionResult<TilePicture
         'invalid_value',
         '/columns',
         `The title logo is ${TITLE_LOGO.columns}×${TITLE_LOGO.rows} tiles`,
+      );
+    if (source.id === CONTROLS_PICTURE.id)
+      requireAdmission(
+        picture.columns === CONTROLS_PICTURE.columns && picture.rows === CONTROLS_PICTURE.rows,
+        'invalid_value',
+        '/columns',
+        `The picture of the controls is ${CONTROLS_PICTURE.columns}×${CONTROLS_PICTURE.rows} tiles`,
       );
     return picture;
   });
@@ -74,4 +84,12 @@ export async function loadScreenPictures(
     pictures.set(source.id, requireLoaded(admitScreenPicture(source)));
   }
   return requireLoaded(screenPictureCatalog(pictures));
+}
+
+/** The delivered screen picture `id` alone, admitted as the catalog admits it, or null when none is delivered. */
+export async function loadScreenPicture(content: ContentDelivery, id: string): Promise<TilePicture | null> {
+  const entry = content.manifest.files.find((file) => file.kind === 'screen-picture' && file.id === id);
+  if (!entry) return null;
+  const value = await content.json('screen-picture', id);
+  return requireLoaded(admitScreenPicture({ id, path: entry.path, value, sha256: entry.sha256 }));
 }

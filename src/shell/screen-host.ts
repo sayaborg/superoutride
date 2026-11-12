@@ -1,6 +1,7 @@
 import { createFrameLoop } from './frame-loop.js';
 import type { MenuCommand, InputRoute } from '../input/menu-input.js';
 import type { TilePicture } from '../image/tile-picture.js';
+import { THINNING_STEPS } from '../view/line-thinning.js';
 
 /**
  * What a menu command did: confirmed PRESS START (`start`), moved the cursor or changed a value, slid SELECT SERIES to another series, confirmed
@@ -30,6 +31,11 @@ export interface Screen {
    * on the same picture are one place, between which the host changes at once.
    */
   readonly wallpaper?: TilePicture | null;
+  /**
+   * Whether a change from this screen goes by line thinning rather than through black: the frame it showed last gives
+   * way line by line to the next screen's. LOADING is left so. Absent is false.
+   */
+  readonly thinsAway?: boolean;
 }
 
 /** The devices the host routes: driving input, sound and menu commands, and the sound of what a command did. */
@@ -41,6 +47,10 @@ export interface ScreenDevices {
   menuSound(response: MenuResponse): void;
   /** The brightness the next frames are presented at, in eighths of full. */
   setBrightness(eighths: number): void;
+  /** Hold the frame presented last, which line thinning shows on the lines not yet the next frames'. */
+  holdFrame(): void;
+  /** The share of lines, 0 to 1, the next frames are presented on; the held frame shows on the rest. */
+  setThinning(share: number): void;
 }
 
 /** Fixed steps the frame takes to darken to black, and the next screen to brighten from it. */
@@ -55,7 +65,9 @@ export const TRANSITION_STEPS = 8;
  * command) exactly while the page is visible, no transition runs and the current screen is live, menu while it is
  * visible otherwise, and off while hidden. Vehicle sound is live while a vehicle is driven: while the page is visible,
  * no transition runs and the current screen is live or drives a vehicle; each fixed step reads it again. It alone watches document visibility and page hiding, and reloads a page
- * restored from the back/forward cache.
+ * restored from the back/forward cache. A change from a screen that thins away goes instead by line thinning over
+ * `THINNING_STEPS` fixed steps: the next screen is current at once and drawn on a growing share of lines, the frame
+ * the screen showed last on the rest; meanwhile too no screen advances and menu commands are dropped.
  */
 export function createScreenHost(
   target: Window,
@@ -63,22 +75,27 @@ export function createScreenHost(
   devices: ScreenDevices,
   initial: Screen,
 ) {
-  // The page starts from black. `next` is the screen a transition darkens toward; `brightness` is in eighths.
+  // The page starts from black. `next` is the screen a transition darkens toward; `brightness` is in eighths; `thinning`
+  // counts a line thinning's steps.
   let screen = initial,
     next: Screen | null = null,
     brightness = 0,
+    thinning: number | null = null,
     hidden = visibilityDocument.hidden,
     route: InputRoute | null = null,
     vehicleSound: boolean | null = null;
-  const steady = () => next === null && brightness === TRANSITION_STEPS;
+  const steady = () => next === null && brightness === TRANSITION_STEPS && thinning === null;
   // Each start begins a new frame clock, so stopped real time never enters the simulation. Each step first delivers
   // the menu commands to the current screen.
   const loop = createFrameLoop(
     () => {
       const commands = devices.menuCommands();
       if (!steady()) {
-        // A transition: darken toward the next screen, which is made current at black, or brighten the current one.
-        if (next === null) brightness++;
+        // A transition: thin the lines over to the current screen, darken toward the next screen, which is made current
+        // at black, or brighten the current one.
+        if (thinning !== null) {
+          if (++thinning === THINNING_STEPS) thinning = null;
+        } else if (next === null) brightness++;
         else if (brightness === 0 || --brightness === 0) {
           screen.leave?.();
           [screen, next] = [next, null];
@@ -97,6 +114,7 @@ export function createScreenHost(
     },
     () => {
       devices.setBrightness(brightness);
+      devices.setThinning(thinning === null ? 1 : thinning / THINNING_STEPS);
       screen.render();
     },
   );
@@ -124,7 +142,7 @@ export function createScreenHost(
   /** Make `target` the current screen at once, at full brightness. */
   const cut = (target: Screen) => {
     if (target !== screen) screen.leave?.();
-    [screen, next, brightness] = [target, null, TRANSITION_STEPS];
+    [screen, next, brightness, thinning] = [target, null, TRANSITION_STEPS, null];
     update();
   };
   update();
@@ -136,12 +154,19 @@ export function createScreenHost(
       return route === 'driving';
     },
     /**
-     * Make `target` the current screen through black, or at once when it stands on the current screen's wallpaper and
-     * no transition runs; the screen it replaces is told it was left. A later request during the transition replaces
+     * Make `target` the current screen through black, by line thinning from a screen that thins away, or at once when
+     * it stands on the current screen's wallpaper; the last two only while no transition runs. The screen it replaces
+     * is told it was left. A later request during the transition replaces
      * its target; one for the current screen while darkening brightens it again.
      */
     show(target: Screen) {
       if (steady() && target.wallpaper && target.wallpaper === screen.wallpaper) return cut(target);
+      if (steady() && screen.thinsAway && target !== screen) {
+        devices.holdFrame();
+        screen.leave?.();
+        [screen, thinning] = [target, 0];
+        return update();
+      }
       next = target === screen ? null : target;
       update();
     },

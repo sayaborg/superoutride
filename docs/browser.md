@@ -36,7 +36,8 @@ settings, surface sounds and engine loudness); courses, their products and recor
 among them. Its progress is the share of those files read: fetched, verified against their digests, decoded and
 admitted. Once the frame stands, every file left is fetched at once in reading order, and the startup's work runs in
 the same 8 ms slices: each file's decoding and its admission are units of work, and a vehicle sprite set's admission
-pauses between its pictures. It happens over the page's black.
+pauses between its pictures. The frame stands as soon as the text tiles are read, and the startup stands on LOADING
+([Screens](#screens)).
 Every run assembly, a DEV tuning rebuild included, picks a new run seed from `crypto.getRandomValues`;
 the composition root is the only place that draws randomness.
 
@@ -62,6 +63,15 @@ RESULT delay and the SLOW DOWN utilizations belong to the page and persist. A fa
 the console and, with `dev=1`, outside the frame with Retry.
 
 ## Screens
+
+LOADING is the page's first screen: it stands once the text tiles and the picture of the controls are read (the
+picture is [`controls`](image-assets.md#screen-pictures); while none is delivered, LOADING stands on black). It appears
+at full brightness at once, from the page's black. Over the picture it writes `LOADING <n>%` centred in YELLOW on row
+28, TITLE's PRESS START row, and nothing else, without blinking: `<n>` is the share of the startup's files read
+([Display and scheduling](#display-and-scheduling)), whole and never falling. It has no minimum time. While it stands,
+menu commands do nothing and nothing sounds. Once it has drawn 100% it gives way by line thinning to TITLE, or to the
+PRE-RACE card of a run the URL names. A startup that fails once the frame can write text shows LOAD FAILED in the frame,
+its RETRY and BACK reloading the page; its reason goes to the console.
 
 The page always has one current screen, owned by the screen host. A screen advances one fixed step, draws one
 frame (the framebuffer and the [text layer](architecture.md#text-layer)) and says whether it is live: whether the
@@ -102,8 +112,8 @@ LOAD FAILED screen shows `LOAD FAILED` in red with RETRY, which requests the sam
 the row that requested it: SELECT VEHICLE, or TITLE for a run the URL or a DEV control requested. The
 reason is not drawn, since it may hold characters without text tiles: it goes to the console and, with `dev=1`, to a
 status element outside the frame, which also shows `Loading course…` while a run loads. Without `dev=1` nothing shows
-outside the frame, except when the page itself cannot start (its content or text tiles cannot load, so the frame
-cannot draw text): then its reason and a Retry that reloads the page show outside the frame. The run screen holds the run and its state: running, paused (manual PAUSE)
+outside the frame, except when the page cannot start before the frame can write text (its manifest or text tiles
+cannot be read): then its reason and a Retry that reloads the page show outside the frame. The run screen holds the run and its state: running, paused (manual PAUSE)
 or finished (the run reached RESULT). The run runs only while neither holds: paused and finished advance no race,
 and driving input and sound stop, so no touch indicator is drawn. Every
 frame still draws the scene. While paused, the PAUSE menu is drawn over the stopped frame, which is first halved to
@@ -120,8 +130,12 @@ of the row under it; LEFT and RIGHT change it, wrapping at both ends, CONFIRM do
 
 A change of screen outside the rows goes through black: the frame darkens to black over 8 fixed steps, with its RGB555
 channels scaled by the remaining eighths, and the next screen brightens from black over 8 more; the page starts from
-black. During a transition no screen advances, the route is the menu's, and menu commands are dropped. The screen host
-owns the transition and the shell presents each frame at the host's brightness. A screen declares the wallpaper it
+black. A screen may declare that it thins away (LOADING): a change from it goes instead by line thinning over 16 fixed
+steps ([Image assets](image-assets.md#background-transitions)), the next screen current at once and presented on a
+growing share of lines, the frame the screen presented last held on the rest. During a transition no screen advances,
+the route is the menu's, and menu commands are dropped. The screen host owns the transition and the shell presents each
+frame at the host's brightness and share of lines; the lines' order and their merging are
+[line thinning's](../src/view/line-thinning.ts), which the rows and every other change by thinning use. A screen declares the wallpaper it
 stands on (a series' picture: the rows of a series' world and the PRE-RACE card); a change between two screens standing
 on the same wallpaper, asked for while no transition runs, is immediate, and the next frame draws the next screen at
 full brightness. So a series' SELECT VEHICLE gives way to its PRE-RACE card at once, while FREE PLAY's SELECT VEHICLE →

@@ -18,7 +18,12 @@ import { loadEngineSounds } from '../content/engine-sound-catalog.js';
 import { loadEngineLoudness } from '../content/engine-loudness.js';
 import { createCoursePerformanceHud } from './course-performance-hud.js';
 import { loadSeriesCatalog } from '../content/series-catalog.js';
-import { loadScreenPictures, TITLE_LOGO } from '../content/screen-picture-catalog.js';
+import {
+  CONTROLS_PICTURE,
+  loadScreenPicture,
+  loadScreenPictures,
+  TITLE_LOGO,
+} from '../content/screen-picture-catalog.js';
 import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
 import { createMenuMusic } from './menu-music.js';
@@ -27,7 +32,7 @@ import { createPreRaceScreen, preRaceCardOf } from './prerace-screen.js';
 import { createRunVehicle, runVehicleSha256 } from '../content/run-vehicle.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { createRunScreen, createRunScreenState } from './run-screen.js';
-import { createLoadFailedScreen } from './loading-screen.js';
+import { createLoadFailedScreen, createLoadingScreen } from './loading-screen.js';
 import { createSelectionFlow } from './selection-flow.js';
 import { createCardFaces } from './card-face.js';
 import { CARD_STYLES } from './card-styles.js';
@@ -85,6 +90,8 @@ async function startPage(): Promise<void> {
     return element;
   };
 
+  // Set once the frame can write text: how a startup that fails then shows it.
+  let startupFailed: ((error: unknown) => void) | null = null;
   try {
     // The page lifetime: delivered content, catalogs, settings and browser devices are created once. The frame and input
     // stand as soon as the text tiles are read; the audio joins once its catalogs are.
@@ -103,23 +110,38 @@ async function startPage(): Promise<void> {
     // With DEV, a loading run and a failure's reason with Retry also show outside the frame.
     const status = dev ? createStatus() : null;
     // The startup's one counted reading: its files are decided from the manifest before reading starts, and its work
-    // runs in the run assembly's slices, so the frame loop and input run between them.
+    // runs in the run assembly's slices, so the frame loop and input run between them. LOADING shows its progress.
     const slices = createWorkSlices(LOADING_SLICE_MILLISECONDS, () => performance.now(), nextTask);
-    const reading = createCountedReading(content, startupFiles(content.manifest), slices, (read, total) => {
-      if (status) status.textContent = `Loading ${Math.floor((read / total) * 100)}%`;
-    });
+    let loading: ReturnType<typeof createLoadingScreen> | null = null;
+    const reading = createCountedReading(content, startupFiles(content.manifest), slices, (read, total) =>
+      loading?.progress(read / total),
+    );
     const textTiles = await reading.read(loadTextTiles);
     const textLayer = createTextLayer(textTiles);
     const devices = createBrowserDevices();
     const present = () => devices.present();
-    // The one owner of the current screen; it runs the frame loop while the page is visible.
-    // The page starts from black; the first screen, TITLE or a URL's run, brightens from it.
+    // The one owner of the current screen; it runs the frame loop while the page is visible. The page starts from
+    // black, and LOADING stands on it at once, without brightening.
     const host = createScreenHost(window, document, devices, {
       live: false,
       tick() {},
       command() {},
       render() {},
     });
+    // From here the frame writes text: a startup that fails shows LOAD FAILED in it, whose RETRY and BACK reload.
+    startupFailed = (error) => {
+      console.error('Course could not start', error);
+      const reload = () => location.reload();
+      host.show(createLoadFailedScreen(devices.framebuffer, textLayer, present, { retry: reload, back: reload }));
+    };
+    // LOADING stands on the picture of the controls once it is read, or on black while none is delivered.
+    loading = createLoadingScreen(
+      devices.framebuffer,
+      textLayer,
+      present,
+      await reading.read((delivery) => loadScreenPicture(delivery, CONTROLS_PICTURE.id)),
+    );
+    host.cut(loading.screen);
     // The frame stands: every other startup file is fetched at once.
     reading.fetchAll();
     const materials = await reading.read(loadSurfaceMaterials);
@@ -158,7 +180,6 @@ async function startPage(): Promise<void> {
       loadEngineLoudness(delivery, vehicles, audioSettings.sha256),
     );
     reading.finish();
-    if (status) status.hidden = true;
     const shell = devices.joinAudio(
       createAudioLifecycle(
         vehicles,
@@ -380,6 +401,8 @@ async function startPage(): Promise<void> {
         run: (next, back) => void request(next, back),
       },
     );
+    // LOADING leaves once it has shown 100%, by line thinning, for TITLE or a URL's run's PRE-RACE card.
+    await loading.completed;
     // A URL that names a run (a series and class, or a course) starts it at once; an invalid URL request fails like an
     // assembly. Otherwise the page starts at TITLE.
     const urlRequest = () => {
@@ -393,7 +416,8 @@ async function startPage(): Promise<void> {
     };
     urlRequest();
   } catch (error) {
-    // The page itself could not start: the frame cannot draw text, so its reason and a reload show outside it.
+    if (startupFailed) return startupFailed(error);
+    // The page itself could not start before the frame could write text: its reason and a reload show outside it.
     console.error('Course could not start', error);
     const status = createStatus();
     status.textContent = `Course could not start: ${error instanceof Error ? error.message : String(error)} `;

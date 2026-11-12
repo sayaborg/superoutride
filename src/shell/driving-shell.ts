@@ -2,6 +2,7 @@ import type { createAudioLifecycle, AudioTimingSource } from './audio-lifecycle.
 import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
 import { expandRgb555Pixels, scaleRgb555Pixels } from '../image/rgb555.js';
 import { SoftwareSurface } from '../view/software-surface.js';
+import { thinLines } from '../view/line-thinning.js';
 import { InputManager } from '../input/input-manager.js';
 import { TouchPointers } from '../input/touch-pointers.js';
 import { GamepadReading } from '../input/gamepads.js';
@@ -31,6 +32,10 @@ export interface BrowserDevices {
   present(overlay?: (ctx: CanvasRenderingContext2D) => void): void;
   /** The brightness frames are presented at, in eighths: the screen host's black transition sets it. */
   setBrightness(eighths: number): void;
+  /** Hold the frame presented last for line thinning: the screen host's change from a screen that thins away. */
+  holdFrame(): void;
+  /** The share of lines frames are presented on, the held frame on the rest: the screen host's line thinning sets it. */
+  setThinning(share: number): void;
   /**
    * The one procedure that routes devices, called by the screen host when the route changes: driving input is live only
    * while driving and vehicle sound while a vehicle is driven; menu commands follow the route.
@@ -111,10 +116,18 @@ export function createBrowserDevices(): BrowserDevices {
   let audio: PageAudio | null = null;
   let route: InputRoute = 'off',
     vehicleSound = false;
-  let brightness = 8;
+  let brightness = 8,
+    thinning = 1;
+  const held = new Uint16Array(framebuffer.pixels.length);
   const shown: Omit<BrowserDevices, 'joinAudio'> = {
     setBrightness(eighths): void {
       brightness = eighths;
+    },
+    holdFrame(): void {
+      held.set(framebuffer.pixels);
+    },
+    setThinning(share): void {
+      thinning = share;
     },
     setRoute(next, sound): void {
       [route, vehicleSound] = [next, sound];
@@ -139,6 +152,7 @@ export function createBrowserDevices(): BrowserDevices {
       // The RGB555 frame is expanded to the canvas's RGBA once per presented frame; every screen draws its whole frame
       // anew, so scaling it in place for a transition never compounds.
       scaleRgb555Pixels(framebuffer.pixels, brightness);
+      if (thinning < 1) thinLines(framebuffer.pixels, held, framebuffer.width, framebuffer.height, thinning);
       expandRgb555Pixels(framebuffer.pixels, presented);
       ctx.putImageData(imageData, 0, 0);
       touchIndicators.update(inputManager.touch);

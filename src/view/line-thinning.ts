@@ -23,3 +23,17 @@ export function lineThinningRanks(height: number): Uint16Array {
 
 /** How many of `height` lines show the new picture at share `p`: those ranked below it. */
 export const newLineCount = (height: number, p: number) => Math.round(height * p);
+
+/** The fixed steps a change by line thinning takes, from the first new line to the last. */
+export const THINNING_STEPS = 16;
+
+/**
+ * Line thinning at share `p` drawn into `pixels`, which hold the new picture: every line not yet the new picture's
+ * shows `old`'s line instead. Both are `width` × `height` frames.
+ */
+export function thinLines(pixels: Uint16Array, old: Uint16Array, width: number, height: number, p: number): void {
+  const ranks = lineThinningRanks(height),
+    shown = newLineCount(height, p);
+  for (let y = 0; y < height; y++)
+    if (ranks[y]! >= shown) pixels.set(old.subarray(y * width, (y + 1) * width), y * width);
+}

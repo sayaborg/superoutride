@@ -31,7 +31,14 @@ test('a screen shown before the page has brightened becomes current through blac
   const frames = steppedFrames();
   const log = [],
     brightness = [];
-  const devices = { setRoute() {}, menuCommands: () => [], menuSound() {}, setBrightness: (b) => brightness.push(b) };
+  const devices = {
+    setRoute() {},
+    menuCommands: () => [],
+    menuSound() {},
+    setBrightness: (b) => brightness.push(b),
+    holdFrame() {},
+    setThinning() {},
+  };
   const host = createScreenHost(events(), events(), devices, screen('first', log));
   // The page starts from black; the next screen is asked for at once.
   host.show(screen('second', log));
@@ -41,4 +48,36 @@ test('a screen shown before the page has brightened becomes current through blac
   assert.ok(log.includes('tick second'), 'the second screen advances once it is fully bright');
   assert.ok(brightness.every((b) => Number.isInteger(b) && b >= 0 && b <= TRANSITION_STEPS));
   assert.equal(brightness.at(-1), TRANSITION_STEPS);
+});
+
+test('a screen that thins away gives way by line thinning, never through black', () => {
+  const frames = steppedFrames();
+  const log = [],
+    brightness = [],
+    shares = [];
+  let held = 0;
+  const devices = {
+    setRoute() {},
+    menuCommands: () => [],
+    menuSound() {},
+    setBrightness: (b) => brightness.push(b),
+    holdFrame: () => held++,
+    setThinning: (share) => shares.push(share),
+  };
+  const host = createScreenHost(events(), events(), devices, screen('blank', log));
+  // LOADING stands at once, at full brightness, and leaves by thinning for the next screen.
+  host.cut({ ...screen('loading', log), thinsAway: true });
+  frames(2);
+  host.show(screen('next', log));
+  frames(4 * TRANSITION_STEPS);
+  assert.equal(held, 1, 'the frame LOADING showed last is held once');
+  assert.ok(log.includes('leave loading'));
+  assert.ok(log.includes('tick next'), 'the next screen advances once the thinning ends');
+  assert.ok(
+    brightness.every((b) => b === TRANSITION_STEPS),
+    'no frame is darkened',
+  );
+  const thinning = shares.filter((share) => share < 1);
+  assert.ok(thinning.length > 0 && thinning.every((share, i) => i === 0 || share >= thinning[i - 1]));
+  assert.equal(shares.at(-1), 1);
 });

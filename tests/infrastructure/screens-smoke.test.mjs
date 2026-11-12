@@ -149,7 +149,14 @@ test('the front end screens render from the delivered content', async () => {
   host = createScreenHost(
     page,
     page,
-    { setRoute() {}, menuCommands: () => [], menuSound() {}, setBrightness: (eighths) => brightness.push(eighths) },
+    {
+      setRoute() {},
+      menuCommands: () => [],
+      menuSound() {},
+      setBrightness: (eighths) => brightness.push(eighths),
+      holdFrame() {},
+      setThinning() {},
+    },
     screen,
   );
   for (let i = 0; i < 2 * TRANSITION_STEPS; i++) {

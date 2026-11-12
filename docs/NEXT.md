@@ -622,9 +622,6 @@ K's decisions (2026-11-12):
 
 The work, in order; the game stays playable after each:
 
-3. **BT-4: the LOADING screen,** a `Screen` shown as soon as the text tiles and its picture are read, with
-   [Browser](browser.md)'s startup contract rewritten; a page that cannot start shows LOAD FAILED in the frame once it
-   can write text.
 4. **BT-5: the game's modules bundled,** so the files the browser fetches do not grow with the imports' depth; the
    commit directory, the workbench's build, `../delivery/` and the AudioWorklet module keep their meaning. Type
    checks, the layer check and the scenarios still read the sources. The stage's last PR removes this section.
