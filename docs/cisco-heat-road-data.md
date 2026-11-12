@@ -27,6 +27,13 @@ position along and across. The main program holds the car on a road where its li
 record, its end at +4 and its flags at +8), a record whose flags' bit 1 is set holding the car on its road from the end
 of the record before to its own end; each list's first record ends at 0, before the road.
 
+Its main program holds each stage's goal (M 0x224E: 350,000 positions in STAGE 1, 600,000 in the others), which ends the
+stage where the car's position plus 90 reaches it (M 0x17B44), and its checkpoint (M 0x225C: 356,136, 312,237, 251,000
+and 336,000 in STAGES 2 to 5; STAGE 1's, at 800,000, past its goal, none). A road position is 16.2 mm (1.75 / 108 m,
+`positionMetres`): its speedometer shows a unit of the car's speed as 1.75 km/h (M 0x15CBA: the speed held within 0 and
+160 units, four times its whole units the index of its digits at M 0x3B00, 280 km/h at its top), and the unit gains the
+road a position a tick of 1/30 s ([Stage CS](NEXT.md#stage-cs--cisco-heat-from-the-roms)).
+
 ## Its plan
 
 Each road's table is laid by [the plan from a table's arcs](original-road-data.md#plan-from-a-tables-arcs) within BIG

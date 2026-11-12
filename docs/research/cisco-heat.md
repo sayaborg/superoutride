@@ -58,7 +58,16 @@ RUN](big-run.md)).
   within 1.5 positions of its records' heights record by record (`arcRoad`).
 - **Held stretches.** As the study found, and past each goal, both roads, stretches its last records hold (not
   courses').
-- **Open.** The speedometer's factor (1.75 km/h a unit) and each stage's goal are not found in the program yet.
+- **The speedometer.** M 0x15CBA holds the speed (`$f319a`, 16.16) within 0 and 0xA00000 and takes four times its whole
+  units (0 to 640) as its index into M 0x3B00, three words an index, each the offset of a digit's picture in M 0x15EBA's
+  table (0 a blank, 4(k + 1) digit k); the speeds there are ⌊index × 7/16⌋ but at 24 multiples of 16, one less, 280 km/h
+  at 640, so 1.75 km/h a unit. With `$f000a` bit 6 set it first takes the index times 0x9FC4 or 0xA08C ÷ 65,536 (by
+  `$f31ac`), miles shown.
+- **The goals and checkpoints.** M 0x222A to 0x2262 load a stage's from its tables by `$f011a`: its goal to `$f0234`
+  (0x23D8) and its checkpoint to `$f0250` (0x23EC), and its `$f0230` (0x23C4, −7,680 to −4,096 positions) and `$f0504`
+  (0x954). Each tick M 0x5FC0 sets `$f02c0` to the car's position (`$f0410`) plus 90; where it reaches the goal the
+  stage ends (M 0x17B44, `$f0024` 7), and where it passes the checkpoint M 0x18010 sets `$f025c` bit 6 and a count of 90
+  frames.
 
 ## Its road across
 
