@@ -12,9 +12,11 @@ import type {
   Lateral,
   StripDocument,
 } from '../../../src/course/course-document.js';
+import { COURSE_DOCUMENT_LIMITS } from '../../../src/course/course-limits.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
 import { cameraDistance } from '../../../src/view/camera.js';
 import type { ArcPlanLimits } from '../shared/arc-plan.js';
+import { contractUnmet } from '../shared/conversion-errors.js';
 import { CoursePath } from '../shared/course-path.js';
 import { groundMaterial } from '../shared/ground-material.js';
 import { gridReach, type StartGrids } from '../shared/grid-rule.js';
@@ -38,8 +40,13 @@ const DRAWN_APART = 1;
 const GRID_CLEAR = 1000;
 /** Road 1's centre is taken every this many positions where it parts from P. */
 const SAMPLE = 500;
+/** A turn's inside read at this many even steps over it, and the plan laid at most this many times to keep it. */
+const INSIDE_SAMPLES = 8;
+const PLAN_PASSES = 8;
 /** A stripe's part: the stripes' runs are whole multiples of it, positions. */
 const STRIPE_PART = 15;
+/** The most strips a Section holds: the course format's, less room for its ground's and its limits'. */
+const SECTION_STRIPS = COURSE_DOCUMENT_LIMITS.stripElements - 64;
 
 /** Strips over a period laid as runs, `runs` positions from the period's start, repeated from `zero` over `[a, b]`. */
 function periodic<T>(
@@ -108,6 +115,17 @@ export interface BoardSprite {
   readonly body: readonly { readonly across: number; readonly width: number }[] | null;
 }
 
+/**
+ * Which of the original's roads the course takes where: P is road 2 but from `switchAt` on, road 1 there; `course(p)` the
+ * original's road the course takes at `p`, its held road or P; `original(road, p)` the original's road a course's road
+ * (2 P, 1 the other) is at `p`.
+ */
+export interface BoardCourseRoads {
+  readonly switchAt: number;
+  course(p: number): RoadNumber;
+  original(road: RoadNumber, p: number): RoadNumber;
+}
+
 /** What a course's hooks are given once it is laid out: its stations and its roads' places and drawing. */
 export interface BoardCourseContext {
   /** A position's station, metres, and a station's position. */
@@ -120,8 +138,9 @@ export interface BoardCourseContext {
   readonly shown1: PiecewiseLinear;
   readonly leavesAt: number;
   readonly notTakenEnd: number;
-  /** Whether road `road` is drawn at position `p`. */
+  /** Whether the course's road `road` (2 P, 1 the other) is drawn at position `p`. */
   drawn(road: RoadNumber, p: number): boolean;
+  readonly roads: BoardCourseRoads;
 }
 
 /** A stage of an original on the board, as its course is laid from it. */
@@ -142,16 +161,23 @@ export interface BoardStage {
   readonly held: readonly HeldStretch[];
   readonly grid: readonly BoardGridSlot[];
   readonly lanes: ReturnType<typeof lanesOverTwoRoads>;
-  readonly heights: BoardHeights;
-  /** Positions where a Section is cut besides where a picture changes, the roads part and meet and a hold changes. */
+  /** Its heights, given the road the course takes at each position, the original's road number (`BoardCourseRoads`). */
+  heights(roads: BoardCourseRoads): BoardHeights;
+  /** Positions where a Section is cut besides where the roads part and meet and a hold changes. */
   readonly cuts: readonly number[];
+  /**
+   * Whether a Section is cut where either road's picture changes too (BIG RUN's), its outermost bands its own; else at
+   * as few of its pictures' changes as keep each Section's strips within the course format's, its pictures changing
+   * within it, its outermost bands those at its middle.
+   */
+  readonly cutAtPictures: boolean;
   /** The positions a stripe's colors span. */
   readonly stripePeriod: number;
   /** The ground where nothing else gives one: beneath a clear run, between the roads and beyond the limits. */
   readonly clearGround: Material;
   /** The lanes' material where the held road's picture gives none. */
   readonly laneGround: Material;
-  /** Road `road`'s picture across at position `p`, its record there `record`. */
+  /** The original's road `road`'s picture across at position `p`, its record there `record`. */
   runsOf(road: RoadNumber, record: RoadPlanRecord, p: number): readonly ColoredRun[];
   /** Its skies' knots and each one's yaw origin in a Section from `s`. */
   skies(context: BoardCourseContext): {
@@ -164,18 +190,68 @@ export interface BoardStage {
 
 /**
  * Stage `stage`'s course: its plan (road 2 as P, road 1 beside it), road 1's centre where it parts from P and meets it
- * again, and as the road not taken where it leaves; its lanes over both roads; its grid; its Sections cut where a
+ * again (where it jumps back onto P, its own to a position before), and as the road not taken where it leaves; its lanes over both roads; its grid; its Sections cut where a
  * picture changes, the roads part and meet and a hold changes; each road drawn but where they share their plan and lie
  * more than a metre apart in height; its pictures' strips, road 2's clear runs first, road 1's picture over them, then
  * road 2's own; its limits `LIMIT_UNITS` beyond the outermost road's centre; its skies and sprites by its hooks.
  */
 export function layBoardCourse(stage: BoardStage) {
-  const { id, name, goal, end, metres, across: ACROSS, held, grid, lanes } = stage;
-  const [road1, road2] = stage.roads;
-  // Its plan: road 2 as P, road 1 beside it.
-  const plan = twoRoadPlan(stage.tables, road1.plan, road2.plan, end, metres, () => 0, stage.planLimits);
-  const leaving = plan.beside.partings.filter((g) => !g.meets);
-  const leavesAt = leaving.length ? leaving[0]!.from : Infinity;
+  const { id, name, goal, end, metres, across: ACROSS, grid, lanes } = stage;
+  // How far the course reaches across, both sides' limits: no arc nor turn of its plan bends tighter, so that its road
+  // never comes near itself where it turns (the plan's least radius, `leastLaneRadius` in its rule).
+  const reach = LIMIT_UNITS * ACROSS * 2;
+  const planOf = (one: readonly RoadPlanRecord[], p: readonly RoadPlanRecord[]) =>
+    twoRoadPlan(stage.tables, one, p, end, metres, () => reach, stage.planLimits);
+  // Its plan: road 2 as P, road 1 beside it; but where the original holds the car on road 1 after road 1 has left P for
+  // good, the course follows road 1 from where it left, road 2 the other road from there (K, 2026-11-12).
+  const leftAt = (planned: ReturnType<typeof planOf>) =>
+    planned.beside.partings.find((g) => !g.meets)?.from ?? Infinity;
+  const first = planOf(stage.roads[0].plan, stage.roads[1].plan);
+  const switchAt = stage.held.some((h) => h.road === 1 && h.from >= leftAt(first) && h.from < end)
+    ? leftAt(first)
+    : Infinity;
+  const original = (road: RoadNumber, p: number): RoadNumber => (p >= switchAt ? (road === 1 ? 2 : 1) : road);
+  const [road1, road2] = ([1, 2] as const).map((road) => ({
+    plan: [
+      ...stage.roads[road - 1]!.plan.filter((r) => r.start < switchAt),
+      ...stage.roads[2 - road]!.plan.filter((r) => r.start >= switchAt),
+    ],
+  })) as [{ plan: RoadPlanRecord[] }, { plan: RoadPlanRecord[] }];
+  const records =
+    switchAt < Infinity ? ([road1.plan, road2.plan] as const) : ([stage.roads[0].plan, stage.roads[1].plan] as const);
+  const once = switchAt < Infinity ? planOf(...records) : first;
+  // The road the original holds the car on, where it does, as the course's road: P or the other.
+  const held = stage.held.map((h) => ({ ...h, road: h.from >= switchAt ? (h.road === 1 ? 2 : 1) : h.road }) as const);
+  const heldOn = (p: number): RoadNumber => held.find((h) => h.from <= p && p < h.to)?.road ?? 2;
+  // The other road, where it leaves P and never meets it again, is the road not taken from where the original holds the
+  // car on P after it, or from where it leaves.
+  const leaving = once.beside.partings.find((g) => !g.meets);
+  const leavesAt = leaving
+    ? Math.max(leaving.from, held.find((h) => h.road === 2 && h.from >= leaving.from)?.from ?? leaving.from)
+    : Infinity;
+  // No turn bends tighter than the course reaches on its inside there: its reach, or its limit beyond road 1's centre
+  // where road 1 lies on that side of P before it is the road not taken, so that no limit folds past a turn's centre.
+  // Road 1 lies as P turns, so the plan is laid again until its elements keep (its partings are its tables').
+  const insideOf = (laid: typeof once) => (from: number, to: number, side: 'left' | 'right') => {
+    let most = 0;
+    for (const g of laid.beside.partings) {
+      const [a, b] = [Math.max(g.from, from), Math.min(g.to, to, leavesAt)];
+      for (let k = 0; k <= INSIDE_SAMPLES && a <= b; k++) {
+        const lateral = laid.beside.lateralAt(a + ((b - a) * k) / INSIDE_SAMPLES) * metres;
+        most = Math.max(most, side === 'left' ? -lateral : lateral);
+      }
+    }
+    return Math.max(reach, LIMIT_UNITS * ACROSS + most);
+  };
+  let plan = once;
+  for (let pass = 0; ; pass++) {
+    if (pass === PLAN_PASSES) throw contractUnmet(`${name}'s plan does not keep its turns' least radii`);
+    const next = twoRoadPlan(stage.tables, ...records, end, metres, insideOf(plan), stage.planLimits);
+    const keeps =
+      JSON.stringify([next.p.elements, next.road1.elements]) === JSON.stringify([plan.p.elements, plan.road1.elements]);
+    plan = next;
+    if (keeps) break;
+  }
   // Road 1's centre, units across from P: where it parts and meets P again, its own; where it leaves, P's.
   const knots = [
     ...new Set([
@@ -185,10 +261,17 @@ export function layBoardCourse(stage: BoardStage) {
       ...road2.plan.map((r) => r.start),
       ...plan.beside.partings.flatMap((g) =>
         g.meets
-          ? Array.from({ length: Math.ceil((g.to - g.from) / SAMPLE) + 1 }, (_, k) =>
-              Math.min(g.to, g.from + k * SAMPLE),
-            )
-          : [g.from],
+          ? [
+              ...Array.from({ length: Math.ceil((g.to - g.from) / SAMPLE) + 1 }, (_, k) =>
+                Math.min(g.to, g.from + k * SAMPLE),
+              ),
+              // A road that jumps back onto P where it meets it: its own centre to a position before.
+              ...(g.jumps ? [g.to - 1] : []),
+            ]
+          : // A road that leaves: its own centre to where it is the road not taken.
+            Array.from({ length: Math.ceil((Math.min(leavesAt, end) - g.from) / SAMPLE) + 1 }, (_, k) =>
+              Math.min(leavesAt, end, g.from + k * SAMPLE),
+            ),
       ),
     ]),
   ]
@@ -217,8 +300,13 @@ export function layBoardCourse(stage: BoardStage) {
     ),
     ...(notTakenEnd < end ? [[end, 0] as const] : []),
   ]);
-  // The road the original holds the car on, where it does.
-  const heldOn = (p: number): RoadNumber => held.find((h) => h.from <= p && p < h.to)?.road ?? 2;
+  // Where road 1 jumps back onto P, its picture is drawn at its own centre to the cut there, never sweeping to P.
+  const jumpsBack = plan.beside.partings.filter((g) => g.jumps).map((g) => g.to);
+  /** Road 1's drawn centre at `p` in a Section ending at `to`: its own to a jump back at its end. */
+  const shownIn = (p: number, to: number) =>
+    jumpsBack.includes(p) && p >= to - 1e-6 ? lateral1.at(p - 1) : shown1.at(p);
+  const roads: BoardCourseRoads = { switchAt, course: (p) => original(heldOn(p), p), original };
+  const heights = stage.heights(roads);
   // The grid: the own car's slot (the first) and the others', each on its road (laterals units across).
   const slotLateral = (k: number) => {
     const slot = grid[k]!;
@@ -280,12 +368,12 @@ export function layBoardCourse(stage: BoardStage) {
   const path = new CoursePath(pieces);
   const laidLength = path.length;
   // Its heights, metres, as its original gives them.
-  const bends: Bend[] = stage.heights.bends.map((b) => ({
+  const bends: Bend[] = heights.bends.map((b) => ({
     from: station(b.from),
     to: station(b.to),
     curvature: b.curvature,
   }));
-  const kinks: Kink[] = stage.heights.kinks.map((k) => ({
+  const kinks: Kink[] = heights.kinks.map((k) => ({
     at: k.at === 0 ? 0 : station(k.at),
     change: k.change,
   }));
@@ -298,38 +386,87 @@ export function layBoardCourse(stage: BoardStage) {
     records
       .filter((r, i) => i > 0 && (r.kind !== records[i - 1]!.kind || r.variant !== records[i - 1]!.variant))
       .map((r) => r.start);
-  const cutsAt = [
-    ...changes(road1.plan),
-    ...changes(road2.plan),
+  const pictureChanges = [...changes(road1.plan), ...changes(road2.plan)];
+  const sectionCuts = [
+    ...(stage.cutAtPictures ? pictureChanges : []),
     ...plan.beside.partings.flatMap((g) => [g.from, g.to]),
     ...held.flatMap((h) => [h.from, h.to]),
     ...stage.cuts,
     ...(leavesAt < end ? [notTakenEnd] : []),
   ].filter((p) => p > 0 && p < end);
+  // Where a Section's pictures' stretches are cut: its own cuts and every picture change, each once and in order, so
+  // that the stretches follow one another.
+  const cutsAt = [
+    ...new Set(stage.cutAtPictures ? sectionCuts : [...sectionCuts, ...pictureChanges.filter((p) => p > 0 && p < end)]),
+  ].sort((a, b) => a - b);
   // Whether road `road` is drawn at `p`: the held road always; the other unless they share their plan and lie more than
   // a metre apart in height, or it has left P.
   const drawn = (road: RoadNumber, p: number) => {
     if (road === heldOn(p)) return true;
     if (road === 1 && p >= leavesAt) return p < notTakenEnd;
-    const apart = stage.heights.apart(p);
+    const apart = heights.apart(p);
     return !(Math.abs(lateral1.at(p)) < 1e-6 && apart > DRAWN_APART);
   };
-  const context: BoardCourseContext = { station, positionOf, back, path, shown1, leavesAt, notTakenEnd, drawn };
+  const context: BoardCourseContext = { station, positionOf, back, path, shown1, leavesAt, notTakenEnd, drawn, roads };
   const placed = stage.sprites(context);
-  const runsOf = (road: RoadNumber, p: number) => stage.runsOf(road, pictureAt(road, p), p);
-  // Its limits: LIMIT_UNITS beyond the outermost road's centre on each side.
-  const limitKnots = (side: number) =>
-    knots.map((p) => {
-      const c = [0, ...(p < leavesAt ? [lateral1.at(p)] : [])];
-      return [station(p), (side < 0 ? Math.min(...c) - LIMIT_UNITS : Math.max(...c) + LIMIT_UNITS) * ACROSS] as [
-        number,
-        number,
-      ];
-    });
-  const limits: ProgramLimits = {
-    left: [[0, limitKnots(-1)[0]![1]], ...limitKnots(-1)],
-    right: [[0, limitKnots(1)[0]![1]], ...limitKnots(1)],
-    ground: stage.clearGround,
+  const runsOf = (road: RoadNumber, p: number) => stage.runsOf(original(road, p), pictureAt(road, p), p);
+  // Where its pictures change within a Section, the Sections cut at as few of them as keep each one's strips within
+  // the format's: a picture's stretch counts at most a strip a run and three more a color its stripe changes to.
+  if (!stage.cutAtPictures) {
+    const changesAt = [...new Set(pictureChanges.filter((p) => p > 0 && p < end))].sort((a, b) => a - b);
+    const bounds = [...new Set([0, ...sectionCuts, ...changesAt, end])].sort((a, b) => a - b);
+    const stripsOver = (a: number, b: number) => {
+      const at = (a + b) / 2;
+      return ([1, 2] as const)
+        .filter((road) => drawn(road, at))
+        .reduce(
+          (sum, road) =>
+            sum +
+            runsOf(road, at).reduce((n, { colors }) => {
+              let parts = 0;
+              for (let k = STRIPE_PART; k < colors.length; k += STRIPE_PART)
+                if (colors[k] !== colors[k - STRIPE_PART]) parts++;
+              return n + 1 + 3 * parts;
+            }, 2),
+          4,
+        );
+    };
+    let filled = 0;
+    for (let i = 0; i + 1 < bounds.length; i++) {
+      const [a, b] = [bounds[i]!, bounds[i + 1]!];
+      if (sectionCuts.includes(a)) filled = 0;
+      const strips = stripsOver(a, b);
+      if (filled + strips > SECTION_STRIPS && filled > 0 && changesAt.includes(a)) {
+        sectionCuts.push(a);
+        filled = 0;
+      }
+      filled += strips;
+    }
+  }
+  // A Section's limits, it ending at `to`: LIMIT_UNITS beyond the outermost road's centre on each side, road 1's held
+  // up to a jump back or to where it is the road not taken at the Section's end, as its picture is, so that they jump
+  // only at its ends.
+  const limitsTo = (to: number): ProgramLimits => {
+    const limitKnots = (side: number) =>
+      knots.map((p) => {
+        const atEnd = p >= to - 1e-6;
+        const road1 =
+          p < leavesAt
+            ? [jumpsBack.includes(p) && atEnd ? lateral1.at(p - 1) : lateral1.at(p)]
+            : p === leavesAt && atEnd
+              ? [(plan.beside.lateralAt(p) * metres) / ACROSS]
+              : [];
+        const c = [0, ...road1];
+        return [station(p), (side < 0 ? Math.min(...c) - LIMIT_UNITS : Math.max(...c) + LIMIT_UNITS) * ACROSS] as [
+          number,
+          number,
+        ];
+      });
+    return {
+      left: [[0, limitKnots(-1)[0]![1]], ...limitKnots(-1)],
+      right: [[0, limitKnots(1)[0]![1]], ...limitKnots(1)],
+      ground: stage.clearGround,
+    };
   };
   const skies = stage.skies(context);
   const skyKnots = skies.knots;
@@ -403,8 +540,8 @@ export function layBoardCourse(stage: BoardStage) {
     name,
     pieces,
     // Cut where a picture changes, but within its grid, whose stretch its first Section holds, and from its goal on.
-    cuts: cutsAt.filter((p) => p > Math.max(...grid.map((g) => g.position)) + GRID_CLEAR && p < goal).map(station),
-    reach: LIMIT_UNITS * ACROSS * 2,
+    cuts: sectionCuts.filter((p) => p > Math.max(...grid.map((g) => g.position)) + GRID_CLEAR && p < goal).map(station),
+    reach,
     road: { bends, kinks },
     grids: stand(station(grid[0]!.position)),
     checkpoints: stage.checkpoint === null ? [] : [{ id: `${id}-CP1`, s: station(stage.checkpoint) }],
@@ -436,7 +573,10 @@ export function layBoardCourse(stage: BoardStage) {
         [...new Set([...steps, ...notTaken.filter((_, k) => k % 2 === 0).map(station)])]
           .filter((s) => s >= span.from && s <= span.to)
           .sort((a, b) => a - b)
-          .map((s) => [s, micrometre(shown1.at(Math.max(0, positionOf(s))) * ACROSS)] as [number, number]),
+          .map(
+            (s) =>
+              [s, micrometre(shownIn(Math.max(0, positionOf(s)), positionOf(span.to)) * ACROSS)] as [number, number],
+          ),
       );
       const fromCentre = (road: RoadNumber, x: number): Lateral =>
         road === 2 ? micrometre(x * ACROSS) : { boundary: 'road-1-centre', offset: micrometre(x * ACROSS) };
@@ -531,7 +671,9 @@ export function layBoardCourse(stage: BoardStage) {
             return [...reaching, ...colored];
           });
         };
-        return [...layer(2, true), ...layer(1, false), ...layer(2, false)];
+        // The original's second road over its first, whichever is P.
+        const [under, over] = original(2, at) === 2 ? ([1, 2] as const) : ([2, 1] as const);
+        return [...layer(over, true), ...layer(under, false), ...layer(over, false)];
       });
       const inForce = [...skyKnots].reverse().find((k) => k.s <= span.from + 1e-6)!;
       const environment = (k: BoardSkyKnot, s: number): EnvironmentDocument => ({
@@ -592,7 +734,7 @@ export function layBoardCourse(stage: BoardStage) {
           ...strips,
         ],
         outermost: [outer(-1), outer(1)],
-        limits,
+        limits: limitsTo(positionOf(span.to)),
         boundaries: [
           {
             id: 'road-1-centre',
@@ -619,5 +761,5 @@ export function layBoardCourse(stage: BoardStage) {
       };
     },
   });
-  return { laid, plan, path, station, placed, skyKnots };
+  return { laid, plan, path, station, placed, skyKnots, roads, leavesAt, heights };
 }

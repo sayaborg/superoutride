@@ -63,6 +63,23 @@ export const CISCO_HEAT_TILE_ROMS: readonly Rom[] = Object.freeze([
   { name: 'ch9071.t74', size: 0x40000, crc: 0x735a2e25 },
 ]);
 
+/** The road layers' lines: two 512 KiB ROMs, one after the other, the lines of both layers. */
+export const CISCO_HEAT_ROAD_ROMS: readonly Rom[] = Object.freeze([
+  { name: 'ch9073.r21', size: 0x80000, crc: 0x2943d2f6 },
+  { name: 'ch9073.r22', size: 0x80000, crc: 0x2dd44f85 },
+]);
+
+/** The road layers' lines from the ROM set, one ROM after the other. */
+export function assembleCiscoHeatRoadLines(set: RomSet): Uint8Array {
+  const out = new Uint8Array(CISCO_HEAT_ROAD_ROMS.reduce((n, r) => n + r.size, 0));
+  let at = 0;
+  for (const rom of CISCO_HEAT_ROAD_ROMS) {
+    out.set(set.data(rom), at);
+    at += rom.size;
+  }
+  return out;
+}
+
 /** The sprites' ROMs: four pairs of 512 KiB ROMs, each its even and odd bytes, one pair after the other. */
 export const CISCO_HEAT_SPRITE_ROMS = Object.freeze([
   {

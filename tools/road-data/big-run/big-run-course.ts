@@ -271,12 +271,13 @@ export function bigRunCourses(set: RomSet) {
       grid: stageGrid(main, stage),
       lanes,
       // Its heights, f times its 3D road's, in metres.
-      heights: {
+      heights: () => ({
         bends: heights.profile.bends.map((b) => ({ from: b.from, to: b.to, curvature: (b.curvature * f) / metres })),
         kinks: heights.profile.kinks.map((k) => ({ at: k.at, change: k.change * f })),
         apart: (p) => Math.abs(otherHeights[0]!.height(p) - otherHeights[1]!.height(p)) * f * metres,
-      },
+      }),
       cuts: town0 ? [town0] : [],
+      cutAtPictures: true,
       stripePeriod: STRIPE_PERIOD,
       clearGround: CLEAR_GROUND,
       laneGround: 'DIRT',

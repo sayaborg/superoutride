@@ -150,6 +150,44 @@ pictures that changes along the road, read where its programs hold them (`cisco-
   moves a plane up and down by its record's table of steps (+1A, 8 bytes a step: its start, its rows and its rate, M
   0xA3F8); a sky lays its scene's own offset.
 
+## Its conversion
+
+Its five courses (`cisco-heat-course`, each laid as the board's, `jaleco/board-course`) are its stages,
+`cisco-heat-stage-1` to `-5` (K, 2026-11-09):
+
+- **Its road.** From its start to its goal and on to the first record of either road past it, at most 2,000 positions:
+  road 2's plan as P and road 1 beside it ([its plan](#its-plan)), no arc nor turn of it tighter than the course reaches
+  on its inside there: both sides' limits (21 m), or its limit beyond road 1's centre where road 1 lies on that side, so
+  that no limit folds past a turn's centre; its 10° to 20° jumps turn over 3.6 to 7.3 m where road 1 lies with P, and
+  over more where it lies on their inside. The plan is laid again until its turns keep, road 1 lying as P turns. Where
+  road 1 jumps back onto P, or is the road not taken from its Section's end, its centre jumps at a Section's cut: its
+  picture and the course's limits are held at its own centre to the cut and at P's from it, so that neither sweeps
+  across. Its heights are road 2's read back from its screen ([its heights](#its-heights)), and road 1's where
+  the main program holds the car on road 1, a kink where it changes road by the two grades' difference there. In STAGE 5
+  road 1 leaves road 2 at 340,872 and never meets it again, and the main program holds the car on road 1 from 507,330
+  past the goal, so the course follows road 1 from 340,872, where the two are last one ([Stage
+  CS](NEXT.md#stage-cs--cisco-heat-from-the-roms), K, 2026-11-12): road 2 is its other road from there, and from 507,330
+  the road not taken, drawn as far as it heads within 60° of road 1. As a rule of the board's: where the original holds
+  the car on road 1 after it has left P for good, the course follows it from where it left, and the other road is not
+  taken from where the car is held on the course's road.
+- **Its lanes** are its most common picture's ([its road across](#its-road-across)) over its two roads, each at its
+  own centre ([two roads](original-road-data.md#two-roads)).
+- **Its pictures.** Each road's picture across, its nearest line's runs, is laid at its centre as BIG RUN's are, road 2's
+  over road 1's; a picture's neighbouring runs of one paint are one, its colors and material its widest run's, so that
+  the strips at a station keep within the course format's. Each run's colors are its stripes' over 510 positions in
+  its layer's palette as its stage loads it ([its colours](#its-colours)). Its Sections are cut where its roads part
+  and meet and a hold changes, and where its pictures change only as often as keeps each Section's strips within the
+  format's, its pictures changing within a Section.
+- **Its materials.** Its road `ASPHALT`; a one-line picture's and the ground beside the road by their colors
+  (`groundMaterial`); under a clear run, between its roads and beyond its limits the city's `ASPHALT`.
+- **Its limits** lie 512 units, a line's half, beyond the outermost road's centre on each side.
+- **Its grid** is its own car alone at its start on road 2, at the centre of the lane right of its middle (71 units).
+- **Its scale across** is its own car's as K's study measured it: 97 units, 1.969 m, so a unit across is 20.3 mm.
+- **Its skies** are its planes' scenes in force with the sky's entries' first set, and their last from where its fade
+  begins, laid over its 96 ticks at 200 km/h; a sky's yaw is its back plane facing its middle column where its scene
+  loads, turning at its one rate ([its skies](#its-skies)).
+- **Its objects** are not placed yet (CS-4).
+
 ## Its objects
 
 Each stage's objects are its main program's records beside its roads (`cisco-heat-objects`), drawn as BIG RUN's by the

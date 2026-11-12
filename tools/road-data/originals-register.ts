@@ -36,6 +36,9 @@ import { CONTINENTAL_CIRCUS_COMMANDS } from './continental-circus/continental-ci
 import { BIG_RUN_ROMS } from './big-run/big-run-rom.js';
 import { BIG_RUN_CONVERSION } from './big-run/big-run-course.js';
 import { BIG_RUN_COMMANDS } from './big-run/big-run-commands.js';
+import { CISCO_HEAT_ROMS } from './cisco-heat/cisco-heat-rom.js';
+import { CISCO_HEAT_CONVERSION } from './cisco-heat/cisco-heat-course.js';
+import { CISCO_HEAT_COMMANDS } from './cisco-heat/cisco-heat-commands.js';
 
 /** An original as the tool raises it: its ROM source (its name, `source.original`), its conversion and its commands. */
 export interface RegisteredOriginal {
@@ -59,6 +62,7 @@ export const ORIGINALS: readonly RegisteredOriginal[] = Object.freeze([
     commands: CONTINENTAL_CIRCUS_COMMANDS,
   },
   { source: BIG_RUN_ROMS, conversion: BIG_RUN_CONVERSION, commands: BIG_RUN_COMMANDS },
+  { source: CISCO_HEAT_ROMS, conversion: CISCO_HEAT_CONVERSION, commands: CISCO_HEAT_COMMANDS },
 ]);
 
 /** An original's conversion command's name: `<original>-course`. */

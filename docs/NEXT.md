@@ -510,6 +510,8 @@ K decided (2026-11-12):
   in height its two roads lie where they part. A second road layer, which would draw them at their own heights and the
   water BIG RUN's first road shows below its second over its rivers, would be a stage of its own, its courses and BIG
   RUN's raised again then.
+- **STAGE 5's end.** Its course follows road 1 there, as its main program holds the car on it from 507,330 past its
+  goal; road 2 is the road not taken from there, drawn clear to 515,706 and going on 16° right of road 1 from 556,330.
 
 The stage starts by reading how its screen draws its two roads where their order changes, which one's paint shows over
 the other's, and its courses' PR measures its own car's width again.
@@ -545,6 +547,14 @@ Defaults for K to confirm before the stage closes, each its PR's:
   layer's palette as its stage loads it at its start, the changes its records make on along it not read; its sky's
   entries their first set, then their last from where its fade begins ([its
   colours](cisco-heat-road-data.md#its-colours)).
+- **Its courses** (CS-3). Its own car alone at its start on road 2, at the centre of the lane right of the road's
+  middle; the ground where its pictures give none the city's `ASPHALT`; a picture's neighbouring runs of one paint one
+  run, its widest run's colors and material, for the course format's 64 strips at a station; its Sections cut at its
+  pictures' changes only as often as keeps their strips within the format's 2,048; no turn of its plan tighter than it
+  reaches on its inside there (21 m, or its limit beyond road 1's centre where road 1 lies on that side), the least
+  radius it gives the plan from a table's arcs (its rule's `leastLaneRadius`); its scale
+  across its study's 97 units, measured again with its sprites in CS-4 ([its
+  conversion](cisco-heat-road-data.md#its-conversion)).
 - **Its objects' places** (CS-4a). An object's lateral is its picture's left edge from its road's centre and its height
   its picture's bottom edge over its road, as its sprites are drawn up from their y; its scale its flags' bits 12 to 14;
   those of its flags' bits 11 (between the two roads) and 15 (moved by the program) read as the others; a hit where its
@@ -555,7 +565,6 @@ Defaults for K to confirm before the stage closes, each its PR's:
 
 The PRs, in order:
 
-- **CS-3** CISCO HEAT's five courses without objects.
 - **CS-4** CISCO HEAT's objects.
 - **CS-5** The stage closes, its scale across left for K to adjust at the end: this section goes, what is left goes to
   [Courses of the originals](#courses-of-the-originals), and CISCO HEAT's class goes into [the
