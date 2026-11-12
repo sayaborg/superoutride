@@ -123,14 +123,8 @@ export function compileCourseTopology(entry: CompiledSection, sections: readonly
     'Every Section must be reachable from the entry Section',
     'invalid_topology',
   );
-  const hasBranches = sections.some((section) => section.outgoing.length >= 2);
-  requireCourse(
-    !(hasCycle && hasBranches),
-    '/links',
-    'A course cannot combine cycles and branches',
-    'invalid_topology',
-  );
-  const type = hasCycle ? 'CIRCUIT' : hasBranches ? 'BRANCH' : 'LINEAR';
+  // A course does not branch (K, 2026-11-12): a Section has one outgoing Link at most.
+  const type = hasCycle ? 'CIRCUIT' : 'LINEAR';
   for (const [index, section] of sections.entries()) {
     const path = `/sections/${index}`;
     // Each Link leaves by a lane of its own road, and every road at the end has a Link (one at least).
@@ -143,12 +137,7 @@ export function compileCourseTopology(entry: CompiledSection, sections: readonly
       'Each road at the Section end needs a Link of its own',
       'invalid_topology',
     );
-    requireCourse(
-      section.outgoing.length <= (type === 'BRANCH' ? 3 : 1),
-      path,
-      'Too many outgoing Links',
-      'invalid_topology',
-    );
+    requireCourse(section.outgoing.length <= 1, path, 'A Section has one outgoing Link at most', 'invalid_topology');
     if (type === 'LINEAR') requireCourse(section.incoming.length <= 1, path, 'LINEAR cannot merge', 'invalid_topology');
   }
   if (type === 'CIRCUIT') {

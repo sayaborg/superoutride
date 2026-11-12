@@ -53,7 +53,6 @@ export const spriteElement = (sprite: {
   at: sprite.at,
   lateral: micrometre(sprite.lateral),
   groundOffset: micrometre(sprite.groundOffset),
-  unselectedLink: null,
   body:
     sprite.body === null
       ? null

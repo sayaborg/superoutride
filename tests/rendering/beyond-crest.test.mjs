@@ -43,7 +43,6 @@ const board = (s, at) => ({
   at,
   lateral: 0,
   groundOffset: 0,
-  unselectedLink: null,
   body: null,
 });
 // The images are admitted with the copy standing once at the course's far end, so every frame names it.

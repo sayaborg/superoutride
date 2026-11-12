@@ -76,7 +76,7 @@ import {
 } from './continental-circus-rom.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 9;
+export const CONTINENTAL_CIRCUS_CONVERSION_VERSION = 10;
 
 /** The conversion's course ids, by the program's course numbers. */
 export const COURSE_IDS = CONTINENTAL_CIRCUS_COURSES.map((name) => `continental-circus-${name.toLowerCase()}`);

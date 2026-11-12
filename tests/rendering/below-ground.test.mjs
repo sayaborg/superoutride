@@ -82,7 +82,6 @@ test("a board's rows below the ground are hidden by the nearer drawn ground and 
     at: { joint: 's0', offset: 100 },
     lateral: 0,
     groundOffset: -1,
-    unselectedLink: null,
     body: null,
   };
   const [ground, groundBoard, clear, clearBoard] = [

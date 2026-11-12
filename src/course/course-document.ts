@@ -118,8 +118,6 @@ export interface SpriteDocument {
   readonly kind: 'sprite';
   readonly image: string;
   readonly palette: string;
-  /** Null, or the id of a Link leaving the Section: the sprite shows when that Link is not chosen. */
-  readonly unselectedLink: string | null;
   readonly at: CoursePosition;
   readonly lateral: Lateral;
   readonly groundOffset: number;
@@ -226,7 +224,6 @@ export type CourseGateDocument =
       readonly grid: readonly CourseGridSlotDocument[];
       readonly bikeGrid: readonly CourseGridSlotDocument[] | null;
     }
-  | { readonly kind: 'lock' | 'closure'; readonly at: CoursePosition }
   /** Where the roads part, and the side this course's road takes there: route information, neither shape nor picture. */
   | { readonly kind: 'parting'; readonly at: CoursePosition; readonly side: 'left' | 'right' };
 
@@ -505,16 +502,7 @@ function environment(value: unknown, path: string): EnvironmentDocument {
   });
 }
 function sprite(value: unknown, path: string): SpriteDocument {
-  const s = readRecord(value, path, [
-    'kind',
-    'image',
-    'palette',
-    'at',
-    'lateral',
-    'groundOffset',
-    'unselectedLink',
-    'body',
-  ]);
+  const s = readRecord(value, path, ['kind', 'image', 'palette', 'at', 'lateral', 'groundOffset', 'body']);
   if (s.kind !== 'sprite') throw new CourseInputError('unsupported_feature', `${path}/kind`, 'Expected sprite');
   return Object.freeze({
     kind: 'sprite',
@@ -526,7 +514,6 @@ function sprite(value: unknown, path: string): SpriteDocument {
       min: -COURSE_DOCUMENT_LIMITS.heightMeters,
       max: COURSE_DOCUMENT_LIMITS.heightMeters,
     }),
-    unselectedLink: s.unselectedLink === null ? null : readString(s.unselectedLink, `${path}/unselectedLink`, ID),
     body: s.body === null ? null : spriteBody(s.body, `${path}/body`),
   });
 }
@@ -720,10 +707,6 @@ function gate(value: unknown, path: string): CourseGateDocument {
       id: readString(v.id, `${path}/id`, ID),
       at: position(v.at, `${path}/at`),
     });
-  }
-  if (kind === 'lock' || kind === 'closure') {
-    const v = readRecord(value, path, ['kind', 'at']);
-    return Object.freeze({ kind, at: position(v.at, `${path}/at`) });
   }
   if (kind === 'parting') {
     const v = readRecord(value, path, ['kind', 'at', 'side']);

@@ -63,7 +63,7 @@ import {
  */
 const OPEN: ReadonlySet<number> = new Set([0x0ff0, 0x5484, 0x5490]);
 /** The conversion's version: its outputs' format. */
-export const CISCO_HEAT_CONVERSION_VERSION = 2;
+export const CISCO_HEAT_CONVERSION_VERSION = 3;
 
 /**
  * The jumps each stage's original shows as turns at right angles, laid as quarter turns: tried first at STAGE 1's wharf

@@ -43,9 +43,6 @@ import { compileCourseBoundaries } from './course-lateral.js';
 import { compileCourseBarriers, compileCourseWalls, compileWallEnds } from './course-walls.js';
 import { compileCourseSpriteObjects, compileCourseSpritePlacements } from './course-objects.js';
 import { compileCourseGates } from './course-rules.js';
-import { compileCourseFork } from './course-fork.js';
-import { enumerateCourseRoutes } from './course-routes.js';
-import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import type { SurfaceMaterialCatalog } from '../surface-material.js';
 
 /** A Section compiled but not yet closed: its links, fork and appearance come when every Section is compiled. */
@@ -205,7 +202,6 @@ async function compileSection(
       resources,
       resolve,
       path,
-      result.fork,
       walls,
       placements,
       pairs,
@@ -216,17 +212,6 @@ async function compileSection(
     section: result,
     joints,
     compileAppearance,
-    controls: section.gates.flatMap((gate, index) =>
-      gate.kind === 'lock' || gate.kind === 'closure'
-        ? [
-            {
-              kind: gate.kind,
-              path: `${path}/gates/${index}`,
-              at: resolve(gate.at, `${path}/gates/${index}/at`),
-            },
-          ]
-        : [],
-    ),
   };
 }
 
@@ -287,25 +272,6 @@ export async function compileCourseDocument(
       return link;
     });
     const type = compileCourseTopology(entry, sections);
-    const routes = enumerateCourseRoutes(entry, type);
-    if (routes.length > COURSE_DOCUMENT_LIMITS.routes) {
-      // The first route over the limit leaves the last admitted one at a fork Section.
-      const over = routes.at(-1)!,
-        last = routes.at(-2)!;
-      const fork = over.find((link, index) => link !== last[index])!.from.section;
-      requireCourse(
-        false,
-        `/sections/${sections.findIndex((section) => section === fork)}`,
-        `A course allows at most ${COURSE_DOCUMENT_LIMITS.routes} routes`,
-        'resource_limit',
-      );
-    }
-    const forks = await compileStage(opened, slices, (open, index) =>
-      compileCourseFork(open.section, open.controls, `/sections/${index}`),
-    );
-    opened.forEach((open, index) => {
-      open.section.fork = forks[index]!;
-    });
     await compileStage(opened, slices, (open) => open.compileAppearance());
     const gates = compileCourseGates(
       document,

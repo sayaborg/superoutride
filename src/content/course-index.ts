@@ -46,7 +46,7 @@ export type CourseIndex = readonly CourseIndexEntry[];
 export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 9 } as const);
 /** The course index's manifest ID. */
 export const COURSE_INDEX_ID = 'courses';
-const COURSE_TYPES: readonly CompiledCourse['type'][] = ['CIRCUIT', 'LINEAR', 'BRANCH'];
+const COURSE_TYPES: readonly CompiledCourse['type'][] = ['CIRCUIT', 'LINEAR'];
 /**
  * A delivered map's precision: its centreline is cut to the fewest of its samples that keep it within `share` of its
  * extent (the larger of its spans east and north) of them all; its points are written in whole metres, its length to a

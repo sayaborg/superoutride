@@ -8,7 +8,7 @@ import type { CompiledLink, CompiledSection } from './course-graph.js';
  */
 export function enumerateCourseRoutes(
   entry: CompiledSection,
-  type: 'CIRCUIT' | 'BRANCH' | 'LINEAR',
+  type: 'CIRCUIT' | 'LINEAR',
 ): readonly (readonly CompiledLink[])[] {
   if (type === 'CIRCUIT') return Object.freeze([Object.freeze([])]);
   const routes: (readonly CompiledLink[])[] = [];

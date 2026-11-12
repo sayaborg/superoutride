@@ -89,7 +89,7 @@ import { passageSteps } from '../shared/passage-steps.js';
 import { PIXEL_ASPECT } from '../taito/z-system-display.js';
 import { SECTION_RECORDS } from '../taito/course-records.js';
 
-export const CHASE_HQ_CONVERSION_VERSION = 13;
+export const CHASE_HQ_CONVERSION_VERSION = 14;
 
 /** A stage's far sky set where the original picks one at random: 0 in stages 1, 3 and 5, 2 in 2 and 4 (K, 2026-11-08). */
 const STAGE_SETS = Object.freeze([0, 2, 0, 2, 0]);

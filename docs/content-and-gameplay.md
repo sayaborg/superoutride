@@ -79,7 +79,6 @@ resolve in their named scopes rather than by array position.
 
 Schema-valid drafts may contain empty arrays or unresolved references.
 Compilation requires complete semantic input.
-Branching Sections still require lock and closure gates.
 
 ### Lanes
 
@@ -137,7 +136,7 @@ resolve authored references.
 ### Sprites and environment
 
 Section `sprites` is an ordered array of `sprite` or `repeat` elements. A sprite is
-`{kind:"sprite",image,palette,at,lateral,groundOffset,unselectedLink,body}`.
+`{kind:"sprite",image,palette,at,lateral,groundOffset,body}`.
 `image` names a sprite image; `palette` is a required nonempty name
 without surrounding whitespace, declared by that image. To use its default color, write the image's
 `defaultPalette` name explicitly; arrays, null and omission are invalid. Compilation rejects unknown
@@ -164,20 +163,12 @@ direction, `width` a positive width in metres, and `movable` null for a fixed pa
 `invalid_numeric_domain` outside), and `airborne` and `landed` the sprite images it shows while flying and once landed,
 drawn in the placement's palette (they may name one image twice). Compilation rejects a part wider than the image's
 world width (its master width at 40 texels/m) or whose middle lies outside the image's columns (`invalid_placement` at
-`/body/<i>/width` and `/body/<i>/across`), a body on a state-selected sign and a body on a board extending sideways
+`/body/<i>/width` and `/body/<i>/across`) and a body on a board extending sideways
 (`invalid_placement` at `/body`);
 the appearance compiler resolves the knocked images like the placement's own and requires a movable body's image and its
 airborne and landed images each to carry a shadow, and the knocked images not to extend sideways and to stand on their
 bottom edge (`invalid_placement` at the image's pointer); the object casts the shadow
 ([Shadows](architecture.md#shadows)).
-
-`unselectedLink` is null for ordinary sprites or names, by id, a Link leaving the Section's fork. A state-selected
-sign appears at a fork occurrence once that occurrence has a selected successor on the Route whose Link is not the
-sign's; each occurrence follows its own choice, so repeated passes do not mix. The appearance compiler owns these
-checks and reads the compiled fork after it: a state-selected sign requires a fork and lies from lock through closure
-(`invalid_fork` at the sprite); an id that is not one of the fork's Links is `unresolved_reference` at
-`/unselectedLink`. Lying at or before closure already places
-it before every exit cut; a sprite's image width is not a length along s and does not enter the check.
 
 Section `environments` is an array at the same level as `strips` and `sprites`, with at least one element; every
 Section has a compiled appearance. The environment list must begin at s=0.
@@ -350,8 +341,6 @@ for author-confirmed time limits. Array order supplies checkpoint order within e
 | `start`      | `grid`, `bikeGrid`  | Exactly one, in the entry Section or a circuit's Section returning to it, when race settings exist                |
 | `checkpoint` | `id`, `at`          | Increasing Section positions after zero, through a continuation's terminal station and strictly before its finish |
 | `finish`     | `id`, `at`          | One per terminal Section; in a circuit, only at the terminal station of the Section returning to entry            |
-| `lock`       | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
-| `closure`    | `at`                | Exactly one in every Section with two or three outgoing Links                                                     |
 | `parting`    | `at`, `side`        | Increasing Section positions from zero through its end                                                            |
 
 A start gate has two grids, each a list of slots `{at, lateral}`: `grid` serves every run, and `bikeGrid`, when it
@@ -362,12 +351,10 @@ A grid may hold more slots than a run's sixteen competitors (`startGridSlots`, 3
 sixteen slots, and its last slot is the sixteenth, or on a shorter grid the grid's last. FREE PLAY and TIME ATTACK
 fill the slots a run uses from the front: the rivals in order, then the player, in the first when it has no rivals; a
 RACE's grid entries take the slots their class gives them ([Run setup](#run-setup)). Each slot of either grid must be
-on supported material, at/after its Section's start and before the first checkpoint, finish or lock gate there; a grid has at least one slot. The grid a run starts from must hold its entries. Starting velocity is zero.
+on supported material, at/after its Section's start and before the first checkpoint or finish gate there; a grid has at least one slot. The grid a run starts from must hold its entries. Starting velocity is zero.
 At a checkpoint or finish there is a road, and every lane wider than zero there is supported across its edges. Runtime crossing width is the coordinate domain at the line. A checkpoint at a continuation seam
 belongs to the preceding Section, while the runtime bounds use the successor's domain at that station.
-A circuit has exactly one finish; other circuit Sections have none. The fork section below owns lock and
-closure geometry; the appearance compiler checks conditional signs against it. A Section with at most one outgoing Link cannot have either
-lock or closure gates. A `parting` gate is route information, neither shape nor picture: where the roads part and the
+A circuit has exactly one finish; other circuit Sections have none. A `parting` gate is route information, neither shape nor picture: where the roads part and the
 side, `left` or `right`, this course's road takes there. Compiled `gates` keep each Section's partings in order; a run
 reads the side of the next parting along the course when no checkpoint or finish comes before it (`nextParting`,
 following each Section's one outgoing Link; a branch or the road's end stops it), and the HUD shows it
@@ -395,7 +382,6 @@ Empty collections are arrays. CourseDocument nulls each have one meaning:
 | Strip `color`                    | Leave the earlier color channel unchanged                 |
 | Strip `material`                 | Leave the earlier material channel unchanged              |
 | Strip `left` / `right`           | That edge is open to negative / positive lateral infinity |
-| Sprite `unselectedLink`          | Ordinary sprite with no exit-selection condition          |
 | Sprite `body`                    | Scenery: vehicles pass through it                         |
 | Sprite body part `movable`       | A fixed part                                              |
 | Wall `solid`                     | A wall for looks only: vehicles pass through it           |
@@ -568,20 +554,18 @@ origin, 43,000 m, heights within `heightMeters`, and composed translations over 
 a visual or driving allowance.
 Other boundaries, materials, Strips and appearance may change at the cut.
 
-The graph has an explicit entry. All Sections are reachable. The compiler derives the course kind:
-a directed cycle selects CIRCUIT, otherwise any Section with at least two outgoing Links selects BRANCH,
-and otherwise the kind is LINEAR. A graph combining a cycle with branches is rejected as `invalid_topology`.
-The document has no authored kind selector. Compiled `course.type` publishes the derived kind.
-LINEAR is a finite chain with at most
-one incoming/outgoing Link per Section. BRANCH is a finite acyclic graph with two/three-way forks
-and merges. Their entry has no incoming Link. Links from a Section to itself are forbidden for every type.
+The graph has an explicit entry. All Sections are reachable. A course does not branch (K, 2026-11-12): a Section
+has one outgoing Link at most (`invalid_topology` otherwise). The compiler derives the course kind: a directed cycle
+selects CIRCUIT, and otherwise the kind is LINEAR. The document has no authored kind selector. Compiled `course.type`
+publishes the derived kind. LINEAR is a finite chain with at most one incoming/outgoing Link per Section; its entry
+has no incoming Link. Links from a Section to itself are forbidden for every type.
 CIRCUIT is one directed cycle containing the entry and at least two Sections. Each Section has exactly
 one outgoing Link; all Sections must be reachable from entry, and each has one incoming Link.
 
 Compilation requires the composition of Link transforms around the cycle to return to identity in both
 position and heading, within the accumulated `COURSE_LINK_RECIPE` translation and angular tolerances.
 Nonclosing cycles report `cycle_not_closed`, naming a Section on the cycle and both residuals and limits.
-Acyclic branch merges have no closure condition. [Architecture](architecture.md#cycle-closure)
+[Architecture](architecture.md#cycle-closure)
 owns the bounded algorithm and tolerance accumulation.
 
 ## Course authoring operations
@@ -758,7 +742,7 @@ Build image compilation delivers, under each name, every sprite master the cours
 movable body's knocked image) as saved, with every level of its LOD, and each background as its compact JSON; the delivered course document is the admitted one. Results and input diagnostics follow the shared
 [admission contract](architecture.md#content-admission-toolkit); clients use code and path.
 `invalid_gate` identifies gate-specific rules: gate kind, gate ID uniqueness,
-counts, ordering, lane support, grid, lock/closure and circuit finish conditions.
+counts, ordering, lane support, grid and circuit finish conditions.
 Shared shape, numeric, reference and position rules keep their own codes (for example
 `invalid_shape`, `unresolved_reference` and `invalid_position`), with a path into the affected gate.
 Each check chooses its code explicitly; paths do not select codes and exceptions are not recoded.
@@ -792,22 +776,14 @@ A driving scene requires run settings and compiled start gates, and checks the r
 (the first sixteen of either grid, `courseStartGrid`) against the camera's distance behind the player (`D_cam`, 6 m
 with the product camera): it must be at least that far from its Section's start, where the Route begins. A linear
 course therefore lays at least that much road before its rearmost slot. A grid's slots stand at their route stations
-in the Route's first occurrence (`gridRouteS`). Driving out past the Route's start is a road end
-([Vehicle physics](vehicle-physics.md)). Recovery preserves
+in the Route's first occurrence (`gridRouteS`). The Route's start is a course limit across the road
+([Barrier lines](#barrier-lines)). Recovery preserves
 accepted cross sections and laps and suppresses crossing credit for that step.
 
 ## Fork lock and handoff
 
-The number of outgoing Links determines branching. A Section with two or three exits requires exactly
-one `lock` and one `closure` gate with `0 < lock < closure < every exit seam`.
-The compiler builds its branch controls from those gates after Links are resolved. The zone from lock through
-closure lies on straight plan: every plan segment it overlaps has zero curvature. From lock through closure every lane and median keeps its width, and the material table supplies one contiguous
-supported interval at lock. Through closure,
-material span edges remain parallel and the supported interval retains the same bounds. Gate and
-grid support checks also read this table. The roads at the lock line are the exits, each the road of one outgoing
-Link's lane, supported across its edges. Adjacent exit roads require a positive-width supported interval between
-their edges: the separating median, defined by lane edges and material.
-Invalid controls produce `invalid_fork`.
+Courses do not branch (K, 2026-11-12): the compiler admits no fork, so the fork parts below never apply. The race's
+fork machinery goes in Stage RC's RC-3b; the lane rules stay.
 
 Exit roads are ordered by their actual lock-line edges. Median centers divide supported
 space into exit intervals; outer supported shoulders belong to the outer exits. The shared half-open

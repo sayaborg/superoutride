@@ -53,7 +53,7 @@ import {
 } from './big-run-road.js';
 import { roadTables, type RoadNumber, type RoadProfileRecord } from '../jaleco/road-tables.js';
 
-export const BIG_RUN_CONVERSION_VERSION = 2;
+export const BIG_RUN_CONVERSION_VERSION = 3;
 
 /** Its courses' names, a stage each (K, 2026-11-09). */
 const NAMES = Object.freeze([

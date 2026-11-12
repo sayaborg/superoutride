@@ -298,7 +298,6 @@
           "at": { "joint": "end", "offset": -25.132045 },
           "lateral": -10.498418,
           "groundOffset": -0.684542,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -313,7 +312,6 @@
               "at": { "joint": "end", "offset": -25.132045 },
               "lateral": 3.52,
               "groundOffset": -0.666794,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -325,7 +323,6 @@
           "at": { "joint": "end", "offset": -22.486566 },
           "lateral": -10.788313,
           "groundOffset": -1.444235,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -335,7 +332,6 @@
           "at": { "joint": "end", "offset": -20.502458 },
           "lateral": 3.809882,
           "groundOffset": -0.666794,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -345,7 +341,6 @@
           "at": { "joint": "end", "offset": -19.841088 },
           "lateral": -10.374207,
           "groundOffset": -1.461983,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -355,7 +350,6 @@
           "at": { "joint": "end", "offset": -18.518349 },
           "lateral": -10.78833,
           "groundOffset": -1.444235,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -365,7 +359,6 @@
           "at": { "joint": "end", "offset": -18.518349 },
           "lateral": 4.244706,
           "groundOffset": -0.931626,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -375,7 +368,6 @@
           "at": { "joint": "end", "offset": -15.87287 },
           "lateral": -10.187872,
           "groundOffset": -0.666794,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -385,7 +377,6 @@
           "at": { "joint": "end", "offset": -15.87287 },
           "lateral": 3.52,
           "groundOffset": -1.064562,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -395,7 +386,6 @@
           "at": { "joint": "end", "offset": -13.888761 },
           "lateral": 3.727059,
           "groundOffset": -1.444235,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -405,7 +395,6 @@
           "at": { "joint": "end", "offset": -13.227392 },
           "lateral": -10.788354,
           "groundOffset": -0.843233,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -415,7 +404,6 @@
           "at": { "joint": "end", "offset": -12.566022 },
           "lateral": 3.727059,
           "groundOffset": -0.684542,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -425,7 +413,6 @@
           "at": { "joint": "end", "offset": -11.243283 },
           "lateral": -10.705539,
           "groundOffset": -0.684542,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -435,7 +422,6 @@
           "at": { "joint": "end", "offset": -9.920544 },
           "lateral": -10.394957,
           "groundOffset": -0.666794,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -445,7 +431,6 @@
           "at": { "joint": "end", "offset": -8.597805 },
           "lateral": -10.187904,
           "groundOffset": -0.684542,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -455,7 +440,6 @@
           "at": { "joint": "end", "offset": -8.597805 },
           "lateral": 3.747765,
           "groundOffset": -1.373937,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -465,7 +449,6 @@
           "at": { "joint": "end", "offset": -7.275065 },
           "lateral": -9.93944,
           "groundOffset": 0.057403,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -475,7 +458,6 @@
           "at": { "joint": "end", "offset": -6.613696 },
           "lateral": 5.176471,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -485,7 +467,6 @@
           "at": { "joint": "end", "offset": -5.952326 },
           "lateral": 2.898824,
           "groundOffset": 0.057403,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -495,7 +476,6 @@
           "at": { "joint": "end", "offset": -3.968217 },
           "lateral": -13.790749,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -505,7 +485,6 @@
           "at": { "joint": "end", "offset": -3.968217 },
           "lateral": 4.141176,
           "groundOffset": -1.700089,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -515,7 +494,6 @@
           "at": { "joint": "end", "offset": -1.322739 },
           "lateral": -11.140407,
           "groundOffset": 0.057403,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -1588,7 +1566,6 @@
           "at": { "joint": "s0", "offset": 0 },
           "lateral": 4.555294,
           "groundOffset": -0.843233,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1598,7 +1575,6 @@
           "at": { "joint": "s0", "offset": 1.322739 },
           "lateral": -15.530066,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1608,7 +1584,6 @@
           "at": { "joint": "s0", "offset": 1.322739 },
           "lateral": -13.459478,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1618,7 +1593,6 @@
           "at": { "joint": "s0", "offset": 1.322739 },
           "lateral": 4.141176,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1628,7 +1602,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": -26.069384,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1638,7 +1611,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": -22.238796,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1648,7 +1620,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": -20.892914,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1658,7 +1629,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": -17.062325,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1668,7 +1638,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": 7.247059,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1678,7 +1647,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": 11.056941,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1688,7 +1656,6 @@
           "at": { "joint": "s0", "offset": 9.259174 },
           "lateral": -14.515514,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1703,7 +1670,6 @@
               "at": { "joint": "s0", "offset": 9.259174 },
               "lateral": 7.247059,
               "groundOffset": -0.244034,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -1715,7 +1681,6 @@
           "at": { "joint": "s0", "offset": 18.518349 },
           "lateral": 4.555294,
           "groundOffset": -1.629098,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1725,7 +1690,6 @@
           "at": { "joint": "s0", "offset": 23.809306 },
           "lateral": -17.310873,
           "groundOffset": 2.620034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1735,7 +1699,6 @@
           "at": { "joint": "s0", "offset": 23.809306 },
           "lateral": -17.310873,
           "groundOffset": -0.113143,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1750,7 +1713,6 @@
               "at": { "joint": "s0", "offset": 23.809306 },
               "lateral": 6.211765,
               "groundOffset": 2.620034,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -1767,7 +1729,6 @@
               "at": { "joint": "s0", "offset": 23.809306 },
               "lateral": 6.211765,
               "groundOffset": -0.113143,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -1779,7 +1740,6 @@
           "at": { "joint": "s0", "offset": 26.454784 },
           "lateral": -13.480297,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1789,7 +1749,6 @@
           "at": { "joint": "s0", "offset": 26.454784 },
           "lateral": 6.211765,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1799,7 +1758,6 @@
           "at": { "joint": "end", "offset": -23.809306 },
           "lateral": -13.480308,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1809,7 +1767,6 @@
           "at": { "joint": "end", "offset": -17.85698 },
           "lateral": 4.555294,
           "groundOffset": 0.057403,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1819,7 +1776,6 @@
           "at": { "joint": "end", "offset": -17.19561 },
           "lateral": -15.654456,
           "groundOffset": -0.166387,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1829,7 +1785,6 @@
           "at": { "joint": "end", "offset": -14.550132 },
           "lateral": 4.141176,
           "groundOffset": -0.166387,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1839,7 +1794,6 @@
           "at": { "joint": "end", "offset": -11.904653 },
           "lateral": -17.31095,
           "groundOffset": 2.620034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1849,7 +1803,6 @@
           "at": { "joint": "end", "offset": -11.904653 },
           "lateral": -17.31095,
           "groundOffset": -0.113143,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1859,7 +1812,6 @@
           "at": { "joint": "end", "offset": -9.259175 },
           "lateral": -13.480374,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1869,7 +1821,6 @@
           "at": { "joint": "end", "offset": -7.936436 },
           "lateral": -12.093085,
           "groundOffset": -1.665009,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -1879,7 +1830,6 @@
           "at": { "joint": "end", "offset": -6.613697 },
           "lateral": -13.480385,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -3321,7 +3271,6 @@
           "at": { "joint": "s0", "offset": 0 },
           "lateral": 4.141176,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3331,7 +3280,6 @@
           "at": { "joint": "s0", "offset": 3.968218 },
           "lateral": -13.459727,
           "groundOffset": -1.779227,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3341,7 +3289,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": -20.893151,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3351,7 +3298,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": -17.062562,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3366,7 +3312,6 @@
               "at": { "joint": "s0", "offset": 6.613696 },
               "lateral": 7.247059,
               "groundOffset": -0.208538,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -3383,7 +3328,6 @@
               "at": { "joint": "s0", "offset": 6.613696 },
               "lateral": 11.056941,
               "groundOffset": -0.208538,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -3395,7 +3339,6 @@
           "at": { "joint": "s0", "offset": 9.259174 },
           "lateral": -14.515751,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3410,7 +3353,6 @@
               "at": { "joint": "s0", "offset": 9.259174 },
               "lateral": 7.247059,
               "groundOffset": -0.244034,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -3427,7 +3369,6 @@
               "at": { "joint": "end", "offset": -33.06848 },
               "lateral": 7.247059,
               "groundOffset": -0.244034,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -3439,7 +3380,6 @@
           "at": { "joint": "s0", "offset": 11.904653 },
           "lateral": -14.515762,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3449,7 +3389,6 @@
           "at": { "joint": "s0", "offset": 21.163827 },
           "lateral": 4.348235,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3459,7 +3398,6 @@
           "at": { "joint": "s0", "offset": 23.809306 },
           "lateral": -17.31111,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3469,7 +3407,6 @@
           "at": { "joint": "s0", "offset": 23.809306 },
           "lateral": -17.269698,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3484,7 +3421,6 @@
               "at": { "joint": "s0", "offset": 23.809306 },
               "lateral": 6.211765,
               "groundOffset": 3.687126,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -3501,7 +3437,6 @@
               "at": { "joint": "s0", "offset": 23.809306 },
               "lateral": 6.211765,
               "groundOffset": -0.113264,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -3513,7 +3448,6 @@
           "at": { "joint": "s0", "offset": 26.454784 },
           "lateral": -13.480533,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3528,7 +3462,6 @@
               "at": { "joint": "s0", "offset": 26.454784 },
               "lateral": 6.211765,
               "groundOffset": -0.272874,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -3540,7 +3473,6 @@
           "at": { "joint": "s0", "offset": 29.100263 },
           "lateral": -13.480545,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3550,7 +3482,6 @@
           "at": { "joint": "s0", "offset": 34.39122 },
           "lateral": 4.244706,
           "groundOffset": -1.26745,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3560,7 +3491,6 @@
           "at": { "joint": "s0", "offset": 35.713959 },
           "lateral": -12.30034,
           "groundOffset": -1.629098,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3570,7 +3500,6 @@
           "at": { "joint": "s0", "offset": 39.682176 },
           "lateral": -3.314004,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3580,7 +3509,6 @@
           "at": { "joint": "s0", "offset": 41.004916 },
           "lateral": -17.311187,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3590,7 +3518,6 @@
           "at": { "joint": "s0", "offset": 41.004916 },
           "lateral": -17.269775,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3600,7 +3527,6 @@
           "at": { "joint": "s0", "offset": 43.650394 },
           "lateral": -13.480611,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3610,7 +3536,6 @@
           "at": { "joint": "s0", "offset": 46.295872 },
           "lateral": -13.480622,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3620,7 +3545,6 @@
           "at": { "joint": "s0", "offset": 55.555047 },
           "lateral": -12.963017,
           "groundOffset": -1.665009,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3630,7 +3554,6 @@
           "at": { "joint": "s0", "offset": 55.555047 },
           "lateral": 3.934118,
           "groundOffset": -1.629098,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3640,7 +3563,6 @@
           "at": { "joint": "s0", "offset": 59.523265 },
           "lateral": -18.346564,
           "groundOffset": 2.620034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3650,7 +3572,6 @@
           "at": { "joint": "s0", "offset": 59.523265 },
           "lateral": -18.346564,
           "groundOffset": -0.113143,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3660,7 +3581,6 @@
           "at": { "joint": "s0", "offset": 59.523265 },
           "lateral": 7.247059,
           "groundOffset": 2.620034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3670,7 +3590,6 @@
           "at": { "joint": "s0", "offset": 59.523265 },
           "lateral": 7.247059,
           "groundOffset": -0.113143,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3680,7 +3599,6 @@
           "at": { "joint": "s0", "offset": 62.168743 },
           "lateral": -14.515988,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3695,7 +3613,6 @@
               "at": { "joint": "s0", "offset": 62.168743 },
               "lateral": 7.247059,
               "groundOffset": -0.208538,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -3707,7 +3624,6 @@
           "at": { "joint": "end", "offset": -60.846004 },
           "lateral": -11.14097,
           "groundOffset": -0.366258,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3717,7 +3633,6 @@
           "at": { "joint": "end", "offset": -56.877786 },
           "lateral": -12.693929,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3727,7 +3642,6 @@
           "at": { "joint": "end", "offset": -55.555047 },
           "lateral": -18.574406,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3737,7 +3651,6 @@
           "at": { "joint": "end", "offset": -55.555047 },
           "lateral": -15.3857,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3752,7 +3665,6 @@
               "at": { "joint": "end", "offset": -55.555047 },
               "lateral": 6.211765,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -3769,7 +3681,6 @@
               "at": { "joint": "end", "offset": -55.555047 },
               "lateral": 9.379765,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -3781,7 +3692,6 @@
           "at": { "joint": "end", "offset": -52.909568 },
           "lateral": -13.48077,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3791,7 +3701,6 @@
           "at": { "joint": "end", "offset": -52.909568 },
           "lateral": 6.211765,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3801,7 +3710,6 @@
           "at": { "joint": "end", "offset": -50.26409 },
           "lateral": -13.480782,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3811,7 +3719,6 @@
           "at": { "joint": "end", "offset": -48.941351 },
           "lateral": -12.756082,
           "groundOffset": -1.700089,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3821,7 +3728,6 @@
           "at": { "joint": "end", "offset": -47.618611 },
           "lateral": -13.480794,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3831,7 +3737,6 @@
           "at": { "joint": "end", "offset": -43.650394 },
           "lateral": 4.141176,
           "groundOffset": -1.400039,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3841,7 +3746,6 @@
           "at": { "joint": "end", "offset": -38.359437 },
           "lateral": -20.893542,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3851,7 +3755,6 @@
           "at": { "joint": "end", "offset": -38.359437 },
           "lateral": -17.062953,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3861,7 +3764,6 @@
           "at": { "joint": "end", "offset": -33.06848 },
           "lateral": -3.314271,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3871,7 +3773,6 @@
           "at": { "joint": "end", "offset": -19.841088 },
           "lateral": 4.182588,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3881,7 +3782,6 @@
           "at": { "joint": "end", "offset": -11.904653 },
           "lateral": -13.128954,
           "groundOffset": -1.26745,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3891,7 +3791,6 @@
           "at": { "joint": "end", "offset": -10.581913 },
           "lateral": -15.655078,
           "groundOffset": -0.380263,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3901,7 +3800,6 @@
           "at": { "joint": "end", "offset": -6.613696 },
           "lateral": -18.574625,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3911,7 +3809,6 @@
           "at": { "joint": "end", "offset": -6.613696 },
           "lateral": -15.385919,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3921,7 +3818,6 @@
           "at": { "joint": "end", "offset": -5.290957 },
           "lateral": 3.727059,
           "groundOffset": -0.020348,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3931,7 +3827,6 @@
           "at": { "joint": "end", "offset": -3.968217 },
           "lateral": -13.48099,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -3941,7 +3836,6 @@
           "at": { "joint": "end", "offset": -1.322739 },
           "lateral": -13.481002,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -4885,7 +4779,6 @@
               "at": { "joint": "s0", "offset": 3.968218 },
               "lateral": 4.141176,
               "groundOffset": 0.298941,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -4897,7 +4790,6 @@
           "at": { "joint": "s0", "offset": 10.581914 },
           "lateral": -19.382231,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -4907,7 +4799,6 @@
           "at": { "joint": "s0", "offset": 10.581914 },
           "lateral": -19.34082,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -4917,7 +4808,6 @@
           "at": { "joint": "s0", "offset": 10.581914 },
           "lateral": 8.282353,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -4927,7 +4817,6 @@
           "at": { "joint": "s0", "offset": 10.581914 },
           "lateral": 8.282353,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -4937,7 +4826,6 @@
           "at": { "joint": "s0", "offset": 13.227392 },
           "lateral": -15.551655,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -4947,7 +4835,6 @@
           "at": { "joint": "s0", "offset": 13.227392 },
           "lateral": 8.282353,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -4957,7 +4844,6 @@
           "at": { "joint": "s0", "offset": 18.518349 },
           "lateral": -17.311679,
           "groundOffset": -0.554622,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -4967,7 +4853,6 @@
           "at": { "joint": "s0", "offset": 30.423002 },
           "lateral": -18.574791,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -4977,7 +4862,6 @@
           "at": { "joint": "s0", "offset": 30.423002 },
           "lateral": -15.386085,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -4992,7 +4876,6 @@
               "at": { "joint": "s0", "offset": 30.423002 },
               "lateral": 6.211765,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -5009,7 +4892,6 @@
               "at": { "joint": "s0", "offset": 30.423002 },
               "lateral": 9.379765,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -5021,7 +4903,6 @@
           "at": { "joint": "s0", "offset": 31.745741 },
           "lateral": -12.756444,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5031,7 +4912,6 @@
           "at": { "joint": "s0", "offset": 33.06848 },
           "lateral": -13.481156,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5041,7 +4921,6 @@
           "at": { "joint": "s0", "offset": 42.327655 },
           "lateral": 4.141176,
           "groundOffset": -1.629098,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5051,7 +4930,6 @@
           "at": { "joint": "end", "offset": -41.004916 },
           "lateral": -11.762621,
           "groundOffset": -1.708651,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5061,7 +4939,6 @@
           "at": { "joint": "end", "offset": -38.359437 },
           "lateral": -18.574868,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5071,7 +4948,6 @@
           "at": { "joint": "end", "offset": -38.359437 },
           "lateral": -15.386162,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5081,7 +4957,6 @@
           "at": { "joint": "end", "offset": -35.713959 },
           "lateral": -13.481233,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5091,7 +4966,6 @@
           "at": { "joint": "end", "offset": -35.713959 },
           "lateral": 6.211765,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5101,7 +4975,6 @@
           "at": { "joint": "end", "offset": -34.39122 },
           "lateral": -16.897709,
           "groundOffset": -0.020348,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5111,7 +4984,6 @@
           "at": { "joint": "end", "offset": -33.06848 },
           "lateral": -13.481244,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5121,7 +4993,6 @@
           "at": { "joint": "end", "offset": -33.06848 },
           "lateral": 3.727059,
           "groundOffset": -0.380263,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5131,7 +5002,6 @@
           "at": { "joint": "end", "offset": -22.486567 },
           "lateral": -12.197527,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5141,7 +5011,6 @@
           "at": { "joint": "end", "offset": -19.841088 },
           "lateral": -18.347186,
           "groundOffset": 2.620034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5151,7 +5020,6 @@
           "at": { "joint": "end", "offset": -19.841088 },
           "lateral": -18.347186,
           "groundOffset": -0.113143,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5161,7 +5029,6 @@
           "at": { "joint": "end", "offset": -19.841088 },
           "lateral": 7.247059,
           "groundOffset": 2.620034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5171,7 +5038,6 @@
           "at": { "joint": "end", "offset": -19.841088 },
           "lateral": 7.247059,
           "groundOffset": -0.113143,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5181,7 +5047,6 @@
           "at": { "joint": "end", "offset": -13.227392 },
           "lateral": -12.094039,
           "groundOffset": -1.400039,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5191,7 +5056,6 @@
           "at": { "joint": "end", "offset": -6.613696 },
           "lateral": -11.410775,
           "groundOffset": 0.298941,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -5201,7 +5065,6 @@
           "at": { "joint": "end", "offset": -6.613696 },
           "lateral": 4.141176,
           "groundOffset": -1.700089,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -6814,7 +6677,6 @@
           "at": { "joint": "s0", "offset": 0.66137 },
           "lateral": -11.410866,
           "groundOffset": 0.298941,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6824,7 +6686,6 @@
           "at": { "joint": "s0", "offset": 1.322739 },
           "lateral": -12.756752,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6839,7 +6700,6 @@
               "at": { "joint": "s0", "offset": 1.322739 },
               "lateral": 4.141176,
               "groundOffset": 0.157513,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -6851,7 +6711,6 @@
           "at": { "joint": "s0", "offset": 5.290957 },
           "lateral": 4.141176,
           "groundOffset": -1.665009,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6861,7 +6720,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": -26.070658,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6871,7 +6729,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": -22.24007,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6881,7 +6738,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": -20.894187,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6891,7 +6747,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": -17.063599,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6901,7 +6756,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": 7.247059,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6911,7 +6765,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": 11.056941,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6921,7 +6774,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": 12.423529,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6931,7 +6783,6 @@
           "at": { "joint": "s0", "offset": 6.613696 },
           "lateral": 16.233412,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6941,7 +6792,6 @@
           "at": { "joint": "s0", "offset": 9.259174 },
           "lateral": -14.516787,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6951,7 +6801,6 @@
           "at": { "joint": "s0", "offset": 9.259174 },
           "lateral": 7.247059,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6961,7 +6810,6 @@
           "at": { "joint": "s0", "offset": 11.904653 },
           "lateral": -14.516799,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6971,7 +6819,6 @@
           "at": { "joint": "c1", "offset": -16.53424 },
           "lateral": -12.197776,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6981,7 +6828,6 @@
           "at": { "joint": "c1", "offset": -13.888761 },
           "lateral": 3.934118,
           "groundOffset": -1.708651,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -6991,7 +6837,6 @@
           "at": { "joint": "c1", "offset": -11.243283 },
           "lateral": -17.312153,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7001,7 +6846,6 @@
           "at": { "joint": "c1", "offset": -11.243283 },
           "lateral": -17.270741,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7011,7 +6855,6 @@
           "at": { "joint": "c1", "offset": -11.243283 },
           "lateral": 6.211765,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7021,7 +6864,6 @@
           "at": { "joint": "c1", "offset": -11.243283 },
           "lateral": 6.211765,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7031,7 +6873,6 @@
           "at": { "joint": "c1", "offset": -8.597805 },
           "lateral": -13.481576,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7041,7 +6882,6 @@
           "at": { "joint": "c1", "offset": -8.597805 },
           "lateral": 6.211765,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7051,7 +6891,6 @@
           "at": { "joint": "c1", "offset": -5.952326 },
           "lateral": -13.481588,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7061,7 +6900,6 @@
           "at": { "joint": "c1", "offset": 3.306848 },
           "lateral": -14.827393,
           "groundOffset": -0.166387,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7071,7 +6909,6 @@
           "at": { "joint": "c1", "offset": 7.275066 },
           "lateral": -19.609901,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7081,7 +6918,6 @@
           "at": { "joint": "c1", "offset": 7.275066 },
           "lateral": -16.421195,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7096,7 +6932,6 @@
               "at": { "joint": "c1", "offset": 7.275066 },
               "lateral": 7.247059,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7113,7 +6948,6 @@
               "at": { "joint": "c1", "offset": 7.275066 },
               "lateral": 10.415059,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7125,7 +6959,6 @@
           "at": { "joint": "c1", "offset": 9.920544 },
           "lateral": -14.515886,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7140,7 +6973,6 @@
               "at": { "joint": "c1", "offset": 9.920544 },
               "lateral": 7.247059,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7157,7 +6989,6 @@
               "at": { "joint": "c1", "offset": 44.311764 },
               "lateral": 7.247059,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7169,7 +7000,6 @@
           "at": { "joint": "c1", "offset": 16.534241 },
           "lateral": 4.141176,
           "groundOffset": 0.298941,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7179,7 +7009,6 @@
           "at": { "joint": "c1", "offset": 24.470676 },
           "lateral": -19.852565,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7189,7 +7018,6 @@
           "at": { "joint": "c1", "offset": 24.470676 },
           "lateral": -16.021977,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7204,7 +7032,6 @@
               "at": { "joint": "c1", "offset": 24.470676 },
               "lateral": 6.211765,
               "groundOffset": -0.208538,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7221,7 +7048,6 @@
               "at": { "joint": "c1", "offset": 24.470676 },
               "lateral": 10.021647,
               "groundOffset": -0.208538,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7233,7 +7059,6 @@
           "at": { "joint": "c1", "offset": 27.116154 },
           "lateral": -13.473647,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7248,7 +7073,6 @@
               "at": { "joint": "c1", "offset": 27.116154 },
               "lateral": 6.211765,
               "groundOffset": -0.244034,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7260,7 +7084,6 @@
           "at": { "joint": "c1", "offset": 29.761633 },
           "lateral": -13.472141,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7270,7 +7093,6 @@
           "at": { "joint": "c1", "offset": 41.666286 },
           "lateral": -19.591841,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7280,7 +7102,6 @@
           "at": { "joint": "c1", "offset": 41.666286 },
           "lateral": -16.403135,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7290,7 +7111,6 @@
           "at": { "joint": "c1", "offset": 44.311764 },
           "lateral": -14.495741,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7305,7 +7125,6 @@
               "at": { "joint": "c1", "offset": 45.634503 },
               "lateral": 4.141176,
               "groundOffset": -1.859404,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7317,7 +7136,6 @@
           "at": { "joint": "c1", "offset": 46.957242 },
           "lateral": -14.493098,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7327,7 +7145,6 @@
           "at": { "joint": "c1", "offset": 54.893678 },
           "lateral": 4.286118,
           "groundOffset": -1.665009,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7342,7 +7159,6 @@
               "at": { "joint": "c1", "offset": 58.861895 },
               "lateral": 6.211765,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7359,7 +7175,6 @@
               "at": { "joint": "c1", "offset": 58.861895 },
               "lateral": 9.379765,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7371,7 +7186,6 @@
           "at": { "joint": "c1", "offset": 60.184635 },
           "lateral": -12.717808,
           "groundOffset": -1.700089,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7381,7 +7195,6 @@
           "at": { "joint": "c1", "offset": 65.475591 },
           "lateral": -15.609459,
           "groundOffset": -0.166387,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7391,7 +7204,6 @@
           "at": { "joint": "c1", "offset": 70.766548 },
           "lateral": 4.141176,
           "groundOffset": -1.400039,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7401,7 +7213,6 @@
           "at": { "joint": "c1", "offset": 70.766548 },
           "lateral": 6.211765,
           "groundOffset": -0.554622,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7411,7 +7222,6 @@
           "at": { "joint": "c1", "offset": 76.057505 },
           "lateral": -17.249888,
           "groundOffset": 2.620034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7421,7 +7231,6 @@
           "at": { "joint": "c1", "offset": 76.057505 },
           "lateral": -17.249888,
           "groundOffset": -0.113143,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7436,7 +7245,6 @@
               "at": { "joint": "c1", "offset": 76.057505 },
               "lateral": 6.211765,
               "groundOffset": 2.620034,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7453,7 +7261,6 @@
               "at": { "joint": "c1", "offset": 76.057505 },
               "lateral": 6.211765,
               "groundOffset": -0.113143,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7465,7 +7272,6 @@
           "at": { "joint": "c1", "offset": 78.702983 },
           "lateral": -13.414773,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7475,7 +7281,6 @@
           "at": { "joint": "c1", "offset": 78.702983 },
           "lateral": 6.211765,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7485,7 +7290,6 @@
           "at": { "joint": "c1", "offset": 80.025723 },
           "lateral": -11.942392,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7495,7 +7299,6 @@
           "at": { "joint": "c1", "offset": 81.348462 },
           "lateral": -13.410246,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7505,7 +7308,6 @@
           "at": { "joint": "c1", "offset": 89.284897 },
           "lateral": -17.226316,
           "groundOffset": -0.554622,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7515,7 +7317,6 @@
           "at": { "joint": "end", "offset": -87.459517 },
           "lateral": -18.245595,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7525,7 +7326,6 @@
           "at": { "joint": "end", "offset": -87.459517 },
           "lateral": -18.204183,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7535,7 +7335,6 @@
           "at": { "joint": "end", "offset": -87.459517 },
           "lateral": 7.247059,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7545,7 +7344,6 @@
           "at": { "joint": "end", "offset": -87.459517 },
           "lateral": 7.247059,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7555,7 +7353,6 @@
           "at": { "joint": "end", "offset": -84.814038 },
           "lateral": -14.409357,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7565,7 +7362,6 @@
           "at": { "joint": "end", "offset": -84.814038 },
           "lateral": 7.247059,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7575,7 +7371,6 @@
           "at": { "joint": "end", "offset": -80.84582 },
           "lateral": 4.141176,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7585,7 +7380,6 @@
           "at": { "joint": "end", "offset": -76.877603 },
           "lateral": -12.072605,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7595,7 +7389,6 @@
           "at": { "joint": "end", "offset": -72.909385 },
           "lateral": -18.440612,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7605,7 +7398,6 @@
           "at": { "joint": "end", "offset": -72.909385 },
           "lateral": -15.251907,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7615,7 +7407,6 @@
           "at": { "joint": "end", "offset": -72.909385 },
           "lateral": 5.590588,
           "groundOffset": -0.380263,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7625,7 +7416,6 @@
           "at": { "joint": "end", "offset": -70.263907 },
           "lateral": -13.340572,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7635,7 +7425,6 @@
           "at": { "joint": "end", "offset": -67.618428 },
           "lateral": -13.333993,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7645,7 +7434,6 @@
           "at": { "joint": "end", "offset": -50.422819 },
           "lateral": -11.341277,
           "groundOffset": -1.064562,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7655,7 +7443,6 @@
           "at": { "joint": "end", "offset": -45.131862 },
           "lateral": -19.649489,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7665,7 +7452,6 @@
           "at": { "joint": "end", "offset": -45.131862 },
           "lateral": -15.8189,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7675,7 +7461,6 @@
           "at": { "joint": "end", "offset": -42.486383 },
           "lateral": -13.264209,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7685,7 +7470,6 @@
           "at": { "joint": "end", "offset": -35.872687 },
           "lateral": 4.265412,
           "groundOffset": -1.700089,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7695,7 +7479,6 @@
           "at": { "joint": "end", "offset": -30.58173 },
           "lateral": -17.057015,
           "groundOffset": 2.620034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7705,7 +7488,6 @@
           "at": { "joint": "end", "offset": -30.58173 },
           "lateral": -17.057015,
           "groundOffset": -0.113143,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7715,7 +7497,6 @@
           "at": { "joint": "end", "offset": -27.936252 },
           "lateral": -13.217646,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7725,7 +7506,6 @@
           "at": { "joint": "end", "offset": -22.645295 },
           "lateral": 3.727059,
           "groundOffset": 0.424008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7735,7 +7515,6 @@
           "at": { "joint": "end", "offset": -18.677077 },
           "lateral": -11.591386,
           "groundOffset": -1.665009,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7745,7 +7524,6 @@
           "at": { "joint": "end", "offset": -13.386121 },
           "lateral": -18.26038,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7755,7 +7533,6 @@
           "at": { "joint": "end", "offset": -13.386121 },
           "lateral": -15.071674,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7765,7 +7542,6 @@
           "at": { "joint": "end", "offset": -10.740642 },
           "lateral": -13.157049,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7780,7 +7556,6 @@
               "at": { "joint": "end", "offset": -10.740642 },
               "lateral": 6.211765,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7792,7 +7567,6 @@
           "at": { "joint": "end", "offset": -9.417903 },
           "lateral": -11.764914,
           "groundOffset": -1.26745,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7802,7 +7576,6 @@
           "at": { "joint": "end", "offset": -8.095164 },
           "lateral": -13.147187,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7812,7 +7585,6 @@
           "at": { "joint": "end", "offset": -2.804207 },
           "lateral": -11.056515,
           "groundOffset": 0.157513,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -8096,7 +7868,6 @@
           "at": { "joint": "end", "offset": -0.158729 },
           "lateral": 4.141176,
           "groundOffset": 0.298941,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -9592,7 +9363,6 @@
           "at": { "joint": "s0", "offset": 1.164011 },
           "lateral": -11.049652,
           "groundOffset": 0.298941,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9602,7 +9372,6 @@
           "at": { "joint": "s0", "offset": 2.48675 },
           "lateral": -11.857187,
           "groundOffset": -1.593394,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9612,7 +9381,6 @@
           "at": { "joint": "s0", "offset": 2.48675 },
           "lateral": 4.555294,
           "groundOffset": -1.444235,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9622,7 +9390,6 @@
           "at": { "joint": "s0", "offset": 10.423185 },
           "lateral": -20.532985,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9632,7 +9399,6 @@
           "at": { "joint": "s0", "offset": 10.423185 },
           "lateral": -16.702396,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9647,7 +9413,6 @@
               "at": { "joint": "s0", "offset": 10.423185 },
               "lateral": 7.247059,
               "groundOffset": -0.208538,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -9664,7 +9429,6 @@
               "at": { "joint": "s0", "offset": 10.423185 },
               "lateral": 11.056941,
               "groundOffset": -0.208538,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -9676,7 +9440,6 @@
           "at": { "joint": "s0", "offset": 10.423185 },
           "lateral": 12.423529,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9686,7 +9449,6 @@
           "at": { "joint": "s0", "offset": 10.423185 },
           "lateral": 16.233412,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9696,7 +9458,6 @@
           "at": { "joint": "s0", "offset": 13.068663 },
           "lateral": -14.155584,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9711,7 +9472,6 @@
               "at": { "joint": "s0", "offset": 13.068663 },
               "lateral": 7.247059,
               "groundOffset": -0.244034,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -9723,7 +9483,6 @@
           "at": { "joint": "c1", "offset": 3.677215 },
           "lateral": 7.247059,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9733,7 +9492,6 @@
           "at": { "joint": "s0", "offset": 15.714142 },
           "lateral": -14.155595,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9743,7 +9501,6 @@
           "at": { "joint": "c1", "offset": -22.777569 },
           "lateral": -13.285982,
           "groundOffset": -1.700089,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9753,7 +9510,6 @@
           "at": { "joint": "c1", "offset": -20.13209 },
           "lateral": 4.244706,
           "groundOffset": -1.26745,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9763,7 +9519,6 @@
           "at": { "joint": "c1", "offset": -16.163873 },
           "lateral": -2.953774,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9773,7 +9528,6 @@
           "at": { "joint": "c1", "offset": -2.936481 },
           "lateral": -15.294536,
           "groundOffset": -0.166387,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9783,7 +9537,6 @@
           "at": { "joint": "c1", "offset": 1.031737 },
           "lateral": -20.548812,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9793,7 +9546,6 @@
           "at": { "joint": "c1", "offset": 1.031737 },
           "lateral": -16.718224,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9803,7 +9555,6 @@
           "at": { "joint": "c1", "offset": 2.354476 },
           "lateral": -12.089973,
           "groundOffset": -1.629098,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9813,7 +9564,6 @@
           "at": { "joint": "c1", "offset": 3.677215 },
           "lateral": -14.191134,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9823,7 +9573,6 @@
           "at": { "joint": "c1", "offset": 14.259129 },
           "lateral": -12.296573,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9833,7 +9582,6 @@
           "at": { "joint": "c1", "offset": 18.227347 },
           "lateral": -17.084092,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9843,7 +9591,6 @@
           "at": { "joint": "c1", "offset": 18.227347 },
           "lateral": -17.04268,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9858,7 +9605,6 @@
               "at": { "joint": "c1", "offset": 18.227347 },
               "lateral": 6.211765,
               "groundOffset": 3.687126,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -9875,7 +9621,6 @@
               "at": { "joint": "c1", "offset": 18.227347 },
               "lateral": 6.211765,
               "groundOffset": -0.113264,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -9887,7 +9632,6 @@
           "at": { "joint": "c1", "offset": 20.872825 },
           "lateral": -13.269339,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9897,7 +9641,6 @@
           "at": { "joint": "c1", "offset": 34.100217 },
           "lateral": -12.346802,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9907,7 +9650,6 @@
           "at": { "joint": "c1", "offset": 36.745696 },
           "lateral": -18.447316,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9917,7 +9659,6 @@
           "at": { "joint": "c1", "offset": 36.745696 },
           "lateral": -15.25861,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9927,7 +9668,6 @@
           "at": { "joint": "c1", "offset": 36.745696 },
           "lateral": 6.211765,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9937,7 +9677,6 @@
           "at": { "joint": "c1", "offset": 36.745696 },
           "lateral": 9.379765,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9947,7 +9686,6 @@
           "at": { "joint": "c1", "offset": 39.391174 },
           "lateral": -13.365215,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9962,7 +9700,6 @@
               "at": { "joint": "c1", "offset": 39.391174 },
               "lateral": 6.211765,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -9974,7 +9711,6 @@
           "at": { "joint": "c1", "offset": 42.036653 },
           "lateral": -13.376761,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9984,7 +9720,6 @@
           "at": { "joint": "c1", "offset": 43.359392 },
           "lateral": -3.215946,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9994,7 +9729,6 @@
           "at": { "joint": "end", "offset": -41.044598 },
           "lateral": 4.141176,
           "groundOffset": -1.700089,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10004,7 +9738,6 @@
           "at": { "joint": "end", "offset": -38.39912 },
           "lateral": -17.251354,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10014,7 +9747,6 @@
           "at": { "joint": "end", "offset": -38.39912 },
           "lateral": -17.209942,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10024,7 +9756,6 @@
           "at": { "joint": "end", "offset": -35.753641 },
           "lateral": -13.429417,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10039,7 +9770,6 @@
               "at": { "joint": "end", "offset": -35.753641 },
               "lateral": 6.211765,
               "groundOffset": -0.272874,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -10051,7 +9781,6 @@
           "at": { "joint": "end", "offset": -33.108163 },
           "lateral": -13.436613,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10061,7 +9790,6 @@
           "at": { "joint": "end", "offset": -29.139945 },
           "lateral": -13.530231,
           "groundOffset": 0.424008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10071,7 +9799,6 @@
           "at": { "joint": "end", "offset": -29.139945 },
           "lateral": 3.727059,
           "groundOffset": 0.424008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10081,7 +9808,6 @@
           "at": { "joint": "end", "offset": -23.848988 },
           "lateral": -12.195822,
           "groundOffset": -1.629098,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10091,7 +9817,6 @@
           "at": { "joint": "end", "offset": -21.20351 },
           "lateral": -18.557533,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10101,7 +9826,6 @@
           "at": { "joint": "end", "offset": -21.20351 },
           "lateral": -15.368827,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10111,7 +9835,6 @@
           "at": { "joint": "end", "offset": -18.558031 },
           "lateral": -13.46816,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10121,7 +9844,6 @@
           "at": { "joint": "end", "offset": -7.976118 },
           "lateral": 4.141176,
           "groundOffset": -1.708651,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10131,7 +9853,6 @@
           "at": { "joint": "end", "offset": -5.330639 },
           "lateral": -17.312055,
           "groundOffset": 2.620034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10141,7 +9862,6 @@
           "at": { "joint": "end", "offset": -5.330639 },
           "lateral": -17.312055,
           "groundOffset": -0.113143,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10151,7 +9871,6 @@
           "at": { "joint": "end", "offset": -5.330639 },
           "lateral": 6.211765,
           "groundOffset": 2.620034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10161,7 +9880,6 @@
           "at": { "joint": "end", "offset": -5.330639 },
           "lateral": 6.211765,
           "groundOffset": -0.113143,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10171,7 +9889,6 @@
           "at": { "joint": "end", "offset": -2.685161 },
           "lateral": -13.482808,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10181,7 +9898,6 @@
           "at": { "joint": "end", "offset": -2.685161 },
           "lateral": 6.211765,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -10191,7 +9907,6 @@
           "at": { "joint": "end", "offset": -0.039682 },
           "lateral": -13.483118,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -11013,7 +10728,6 @@
           "at": { "joint": "s0", "offset": 3.928535 },
           "lateral": -15.24314,
           "groundOffset": -0.380263,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -11023,7 +10737,6 @@
           "at": { "joint": "s0", "offset": 13.18771 },
           "lateral": -12.696358,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -11033,7 +10746,6 @@
           "at": { "joint": "s0", "offset": 13.18771 },
           "lateral": 4.141176,
           "groundOffset": -1.708651,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -11043,7 +10755,6 @@
           "at": { "joint": "s0", "offset": 15.833188 },
           "lateral": -21.931193,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -11053,7 +10764,6 @@
           "at": { "joint": "s0", "offset": 15.833188 },
           "lateral": -18.100605,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -11063,7 +10773,6 @@
           "at": { "joint": "s0", "offset": 15.833188 },
           "lateral": 8.282353,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -11073,7 +10782,6 @@
           "at": { "joint": "s0", "offset": 15.833188 },
           "lateral": 12.092235,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -11083,7 +10791,6 @@
           "at": { "joint": "s0", "offset": 18.478667 },
           "lateral": -15.553794,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -11093,7 +10800,6 @@
           "at": { "joint": "s0", "offset": 18.478667 },
           "lateral": 8.282353,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -11103,7 +10809,6 @@
           "at": { "joint": "end", "offset": -18.558031 },
           "lateral": -15.553805,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -11113,7 +10818,6 @@
           "at": { "joint": "end", "offset": -9.298856 },
           "lateral": -11.41267,
           "groundOffset": 0.298941,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -11123,7 +10827,6 @@
           "at": { "joint": "end", "offset": -2.68516 },
           "lateral": 4.141176,
           "groundOffset": 0.298941,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -12146,7 +11849,6 @@
           "at": { "joint": "s0", "offset": 1.283057 },
           "lateral": -11.412777,
           "groundOffset": 0.298941,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12156,7 +11858,6 @@
           "at": { "joint": "s0", "offset": 1.283057 },
           "lateral": 4.141176,
           "groundOffset": -0.843233,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12166,7 +11867,6 @@
           "at": { "joint": "s0", "offset": 3.928535 },
           "lateral": -10.791612,
           "groundOffset": -1.444235,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12176,7 +11876,6 @@
           "at": { "joint": "s0", "offset": 3.928535 },
           "lateral": 4.141176,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12186,7 +11885,6 @@
           "at": { "joint": "s0", "offset": 3.928535 },
           "lateral": 9.317647,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12196,7 +11894,6 @@
           "at": { "joint": "s0", "offset": 10.542232 },
           "lateral": -23.52576,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12206,7 +11903,6 @@
           "at": { "joint": "s0", "offset": 10.542232 },
           "lateral": -23.484348,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12216,7 +11912,6 @@
           "at": { "joint": "s0", "offset": 10.542232 },
           "lateral": -18.349289,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12226,7 +11921,6 @@
           "at": { "joint": "s0", "offset": 10.542232 },
           "lateral": -18.307877,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12236,7 +11930,6 @@
           "at": { "joint": "s0", "offset": 10.542232 },
           "lateral": 7.247059,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12246,7 +11939,6 @@
           "at": { "joint": "s0", "offset": 10.542232 },
           "lateral": 7.247059,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12256,7 +11948,6 @@
           "at": { "joint": "s0", "offset": 10.542232 },
           "lateral": 12.423529,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12266,7 +11957,6 @@
           "at": { "joint": "s0", "offset": 10.542232 },
           "lateral": 12.423529,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12281,7 +11971,6 @@
               "at": { "joint": "s0", "offset": 13.18771 },
               "lateral": 7.247059,
               "groundOffset": -0.272874,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -12293,7 +11982,6 @@
           "at": { "joint": "end", "offset": -11.944335 },
           "lateral": -17.314072,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12303,7 +11991,6 @@
           "at": { "joint": "end", "offset": -11.944335 },
           "lateral": -17.27266,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12313,7 +12000,6 @@
           "at": { "joint": "end", "offset": -11.944335 },
           "lateral": 6.211765,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12323,7 +12009,6 @@
           "at": { "joint": "end", "offset": -11.944335 },
           "lateral": 6.211765,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12333,7 +12018,6 @@
           "at": { "joint": "end", "offset": -9.298856 },
           "lateral": -13.483496,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -12343,7 +12027,6 @@
           "at": { "joint": "end", "offset": -7.976117 },
           "lateral": 4.244706,
           "groundOffset": -1.629098,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -13498,7 +13181,6 @@
           "at": { "joint": "s0", "offset": 3.928535 },
           "lateral": 4.203294,
           "groundOffset": -0.020348,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13508,7 +13190,6 @@
           "at": { "joint": "s0", "offset": 13.18771 },
           "lateral": -17.314185,
           "groundOffset": 3.687126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13518,7 +13199,6 @@
           "at": { "joint": "s0", "offset": 13.18771 },
           "lateral": -17.272773,
           "groundOffset": -0.113264,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13533,7 +13213,6 @@
               "at": { "joint": "s0", "offset": 13.18771 },
               "lateral": 6.211765,
               "groundOffset": 3.687126,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -13550,7 +13229,6 @@
               "at": { "joint": "s0", "offset": 13.18771 },
               "lateral": 6.211765,
               "groundOffset": -0.113264,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -13562,7 +13240,6 @@
           "at": { "joint": "s0", "offset": 15.833188 },
           "lateral": -13.483608,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13572,7 +13249,6 @@
           "at": { "joint": "s0", "offset": 15.833188 },
           "lateral": 6.211765,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13582,7 +13258,6 @@
           "at": { "joint": "s0", "offset": 22.446884 },
           "lateral": -12.427638,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13592,7 +13267,6 @@
           "at": { "joint": "s0", "offset": 30.38332 },
           "lateral": -3.317085,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13602,7 +13276,6 @@
           "at": { "joint": "s0", "offset": 36.997016 },
           "lateral": 7.247059,
           "groundOffset": 2.620034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13612,7 +13285,6 @@
           "at": { "joint": "s0", "offset": 36.997016 },
           "lateral": 7.247059,
           "groundOffset": -0.113143,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13622,7 +13294,6 @@
           "at": { "joint": "end", "offset": -15.912553 },
           "lateral": -13.960057,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13632,7 +13303,6 @@
           "at": { "joint": "end", "offset": -9.298857 },
           "lateral": -16.279145,
           "groundOffset": -0.166387,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13642,7 +13312,6 @@
           "at": { "joint": "end", "offset": -9.298857 },
           "lateral": -13.960086,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13652,7 +13321,6 @@
           "at": { "joint": "end", "offset": -9.298857 },
           "lateral": 6.211765,
           "groundOffset": -0.554622,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -13662,7 +13330,6 @@
           "at": { "joint": "end", "offset": -1.362422 },
           "lateral": -3.317298,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -15029,7 +14696,6 @@
           "at": { "joint": "s0", "offset": 3.928535 },
           "lateral": -13.960146,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15039,7 +14705,6 @@
           "at": { "joint": "s0", "offset": 3.928535 },
           "lateral": 4.141176,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15049,7 +14714,6 @@
           "at": { "joint": "c1", "offset": -15.489276 },
           "lateral": 6.211765,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15059,7 +14723,6 @@
           "at": { "joint": "c1", "offset": -15.489276 },
           "lateral": 10.021647,
           "groundOffset": -0.208538,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15069,7 +14732,6 @@
           "at": { "joint": "c1", "offset": -12.843798 },
           "lateral": 6.211765,
           "groundOffset": -0.244034,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15079,7 +14741,6 @@
           "at": { "joint": "c1", "offset": -8.87558 },
           "lateral": -13.566823,
           "groundOffset": 0.424008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15089,7 +14750,6 @@
           "at": { "joint": "c1", "offset": -7.552841 },
           "lateral": 3.934118,
           "groundOffset": 0.424008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15099,7 +14759,6 @@
           "at": { "joint": "c1", "offset": 4.351812 },
           "lateral": -11.164073,
           "groundOffset": 0.057403,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15109,7 +14768,6 @@
           "at": { "joint": "s2", "offset": -4.166628 },
           "lateral": 3.934118,
           "groundOffset": -1.954973,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15119,7 +14777,6 @@
           "at": { "joint": "s2", "offset": 1.124329 },
           "lateral": -20.513044,
           "groundOffset": 0.14694,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15129,7 +14786,6 @@
           "at": { "joint": "s2", "offset": 6.415286 },
           "lateral": -15.420882,
           "groundOffset": -0.20008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15144,7 +14800,6 @@
               "at": { "joint": "s2", "offset": 6.415286 },
               "lateral": 8.282353,
               "groundOffset": -0.20008,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -15156,7 +14811,6 @@
           "at": { "joint": "s2", "offset": 11.706242 },
           "lateral": -21.447775,
           "groundOffset": -0.20008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15166,7 +14820,6 @@
           "at": { "joint": "s2", "offset": 16.997199 },
           "lateral": 12.423529,
           "groundOffset": -0.20008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15176,7 +14829,6 @@
           "at": { "joint": "s2", "offset": 19.642678 },
           "lateral": -15.724821,
           "groundOffset": 0.14694,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15186,7 +14838,6 @@
           "at": { "joint": "s2", "offset": 24.933635 },
           "lateral": -17.134302,
           "groundOffset": 0.14694,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15201,7 +14852,6 @@
               "at": { "joint": "s2", "offset": 27.579113 },
               "lateral": 6.211765,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -15213,7 +14863,6 @@
           "at": { "joint": "s2", "offset": 30.224591 },
           "lateral": -23.637431,
           "groundOffset": 0.14694,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15223,7 +14872,6 @@
           "at": { "joint": "s2", "offset": 38.161027 },
           "lateral": -19.86083,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15233,7 +14881,6 @@
           "at": { "joint": "s2", "offset": 38.161027 },
           "lateral": 9.317647,
           "groundOffset": -0.20008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15243,7 +14890,6 @@
           "at": { "joint": "s2", "offset": 43.451983 },
           "lateral": -21.746546,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15253,7 +14899,6 @@
           "at": { "joint": "s2", "offset": 48.74294 },
           "lateral": -18.849204,
           "groundOffset": 0.14694,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15263,7 +14908,6 @@
           "at": { "joint": "s2", "offset": 48.74294 },
           "lateral": 8.282353,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15273,7 +14917,6 @@
           "at": { "joint": "s2", "offset": 54.033897 },
           "lateral": -13.757039,
           "groundOffset": -0.20008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15283,7 +14926,6 @@
           "at": { "joint": "s2", "offset": 59.324854 },
           "lateral": -19.783932,
           "groundOffset": -0.20008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15298,7 +14940,6 @@
               "at": { "joint": "s2", "offset": 59.324854 },
               "lateral": 12.423529,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -15310,7 +14951,6 @@
           "at": { "joint": "s2", "offset": 67.261289 },
           "lateral": -14.060978,
           "groundOffset": 0.14694,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15320,7 +14960,6 @@
           "at": { "joint": "s2", "offset": 72.552246 },
           "lateral": -15.470459,
           "groundOffset": 0.14694,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15330,7 +14969,6 @@
           "at": { "joint": "end", "offset": -61.890968 },
           "lateral": 6.211765,
           "groundOffset": -0.206319,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15345,7 +14983,6 @@
               "at": { "joint": "end", "offset": -55.277272 },
               "lateral": 10.352941,
               "groundOffset": -0.099832,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -15357,7 +14994,6 @@
           "at": { "joint": "end", "offset": -48.663576 },
           "lateral": 14.494118,
           "groundOffset": 0.14694,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15367,7 +15003,6 @@
           "at": { "joint": "end", "offset": -39.404402 },
           "lateral": 18.635294,
           "groundOffset": -0.20008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15377,7 +15012,6 @@
           "at": { "joint": "end", "offset": -34.774814 },
           "lateral": -12.142936,
           "groundOffset": -0.099832,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15387,7 +15021,6 @@
           "at": { "joint": "end", "offset": -32.129336 },
           "lateral": -14.5145,
           "groundOffset": -0.20008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15397,7 +15030,6 @@
           "at": { "joint": "end", "offset": -24.192901 },
           "lateral": -17.343075,
           "groundOffset": -0.206319,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15407,7 +15039,6 @@
           "at": { "joint": "end", "offset": -22.208792 },
           "lateral": -20.773043,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15417,7 +15048,6 @@
           "at": { "joint": "end", "offset": -19.563313 },
           "lateral": -10.969548,
           "groundOffset": -0.20008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15427,7 +15057,6 @@
           "at": { "joint": "end", "offset": -15.595096 },
           "lateral": -17.042659,
           "groundOffset": -0.206319,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15437,7 +15066,6 @@
           "at": { "joint": "end", "offset": -15.595096 },
           "lateral": 14.494118,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15447,7 +15075,6 @@
           "at": { "joint": "end", "offset": -14.933726 },
           "lateral": 8.282353,
           "groundOffset": -0.052585,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15457,7 +15084,6 @@
           "at": { "joint": "end", "offset": -11.626878 },
           "lateral": 14.494118,
           "groundOffset": -0.20008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15467,7 +15093,6 @@
           "at": { "joint": "end", "offset": -8.9814 },
           "lateral": -20.310864,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -15477,7 +15102,6 @@
           "at": { "joint": "end", "offset": -8.9814 },
           "lateral": 6.211765,
           "groundOffset": 0.14694,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -16331,7 +15955,6 @@
           "at": { "joint": "end", "offset": -0.291002 },
           "lateral": -9.298379,
           "groundOffset": -0.30213,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -17042,7 +16665,6 @@
           "at": { "joint": "c1", "offset": 4.31213 },
           "lateral": 6.211765,
           "groundOffset": 0.891832,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17052,7 +16674,6 @@
           "at": { "joint": "c1", "offset": 4.31213 },
           "lateral": 6.211765,
           "groundOffset": -0.048807,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17062,7 +16683,6 @@
           "at": { "joint": "c1", "offset": 4.31213 },
           "lateral": 10.663529,
           "groundOffset": 0.891832,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17072,7 +16692,6 @@
           "at": { "joint": "c1", "offset": 4.31213 },
           "lateral": 13.852235,
           "groundOffset": -0.048807,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17087,7 +16706,6 @@
               "at": { "joint": "c1", "offset": 9.603087 },
               "lateral": 8.282353,
               "groundOffset": -0.20008,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17104,7 +16722,6 @@
               "at": { "joint": "c1", "offset": 14.894044 },
               "lateral": 12.423529,
               "groundOffset": -0.20008,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17116,7 +16733,6 @@
           "at": { "joint": "c1", "offset": 17.539522 },
           "lateral": -12.402824,
           "groundOffset": 0.891832,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17126,7 +16742,6 @@
           "at": { "joint": "c1", "offset": 17.539522 },
           "lateral": -12.402824,
           "groundOffset": -0.048807,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17136,7 +16751,6 @@
           "at": { "joint": "c1", "offset": 17.539522 },
           "lateral": -7.951059,
           "groundOffset": 0.891832,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17146,7 +16760,6 @@
           "at": { "joint": "c1", "offset": 17.539522 },
           "lateral": -4.762353,
           "groundOffset": -0.048807,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17161,7 +16774,6 @@
               "at": { "joint": "c1", "offset": 22.830479 },
               "lateral": 6.211765,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17178,7 +16790,6 @@
               "at": { "joint": "c1", "offset": 24.153218 },
               "lateral": -8.240941,
               "groundOffset": -0.366258,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17195,7 +16806,6 @@
               "at": { "joint": "c1", "offset": 26.798696 },
               "lateral": -10.663529,
               "groundOffset": 0.14694,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17212,7 +16822,6 @@
               "at": { "joint": "c1", "offset": 28.121436 },
               "lateral": 9.317647,
               "groundOffset": -0.20008,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17224,7 +16833,6 @@
           "at": { "joint": "c1", "offset": 30.766914 },
           "lateral": -10.311529,
           "groundOffset": -0.366258,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17234,7 +16842,6 @@
           "at": { "joint": "end", "offset": -28.915079 },
           "lateral": -11.056941,
           "groundOffset": -0.206319,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17244,7 +16851,6 @@
           "at": { "joint": "end", "offset": -26.269601 },
           "lateral": 8.282353,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17254,7 +16860,6 @@
           "at": { "joint": "end", "offset": -26.269601 },
           "lateral": 12.423529,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17264,7 +16869,6 @@
           "at": { "joint": "end", "offset": -18.346393 },
           "lateral": -11.926588,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17274,7 +16878,6 @@
           "at": { "joint": "end", "offset": -1.137556 },
           "lateral": -12.340706,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -17891,7 +17494,6 @@
           "at": { "joint": "s0", "offset": 1.507923 },
           "lateral": -8.344471,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17901,7 +17503,6 @@
           "at": { "joint": "s0", "offset": 5.47614 },
           "lateral": 8.282353,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17911,7 +17512,6 @@
           "at": { "joint": "s0", "offset": 5.47614 },
           "lateral": 12.423529,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17926,7 +17526,6 @@
               "at": { "joint": "s0", "offset": 21.349011 },
               "lateral": -15.446588,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17943,7 +17542,6 @@
               "at": { "joint": "s0", "offset": 23.994489 },
               "lateral": 12.423529,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17960,7 +17558,6 @@
               "at": { "joint": "s0", "offset": 27.962707 },
               "lateral": -17.517176,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17977,7 +17574,6 @@
               "at": { "joint": "s0", "offset": 35.899142 },
               "lateral": 24.847059,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17994,7 +17590,6 @@
               "at": { "joint": "s0", "offset": 37.221881 },
               "lateral": -19.587765,
               "groundOffset": -0.135328,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18011,7 +17606,6 @@
               "at": { "joint": "s0", "offset": 43.835578 },
               "lateral": 14.494118,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18028,7 +17622,6 @@
               "at": { "joint": "s0", "offset": 47.803795 },
               "lateral": -11.305412,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18045,7 +17638,6 @@
               "at": { "joint": "s0", "offset": 47.803795 },
               "lateral": 6.211765,
               "groundOffset": 0.761322,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18062,7 +17654,6 @@
               "at": { "joint": "c1", "offset": -8.227438 },
               "lateral": 6.211765,
               "groundOffset": 0.761322,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18079,7 +17670,6 @@
               "at": { "joint": "s0", "offset": 54.417491 },
               "lateral": 10.663529,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18096,7 +17686,6 @@
               "at": { "joint": "s0", "offset": 55.078861 },
               "lateral": -15.446588,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18113,7 +17702,6 @@
               "at": { "joint": "s0", "offset": 61.692557 },
               "lateral": -14.411294,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18130,7 +17718,6 @@
               "at": { "joint": "s0", "offset": 66.322144 },
               "lateral": 20.705882,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18147,7 +17734,6 @@
               "at": { "joint": "s0", "offset": 66.983514 },
               "lateral": -16.150588,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18159,7 +17745,6 @@
           "at": { "joint": "s0", "offset": 67.644883 },
           "lateral": -8.758588,
           "groundOffset": 0.761322,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18174,7 +17759,6 @@
               "at": { "joint": "s0", "offset": 67.644883 },
               "lateral": -8.758588,
               "groundOffset": 0.761322,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18186,7 +17770,6 @@
           "at": { "joint": "s3", "offset": 1.87829 },
           "lateral": -8.758588,
           "groundOffset": 0.761322,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18201,7 +17784,6 @@
               "at": { "joint": "s0", "offset": 74.258579 },
               "lateral": 6.211765,
               "groundOffset": -0.00461,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18218,7 +17800,6 @@
               "at": { "joint": "s0", "offset": 77.565427 },
               "lateral": -20.540235,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18230,7 +17811,6 @@
           "at": { "joint": "s0", "offset": 82.195015 },
           "lateral": 11.388235,
           "groundOffset": -0.135328,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18245,7 +17825,6 @@
               "at": { "joint": "s0", "offset": 86.824602 },
               "lateral": -17.517176,
               "groundOffset": -0.135328,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18257,7 +17836,6 @@
           "at": { "joint": "c1", "offset": -80.978094 },
           "lateral": 19.732706,
           "groundOffset": -0.037818,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18272,7 +17850,6 @@
               "at": { "joint": "c1", "offset": -80.316725 },
               "lateral": -20.623059,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18284,7 +17861,6 @@
           "at": { "joint": "c1", "offset": -69.073442 },
           "lateral": 14.494118,
           "groundOffset": -0.19079,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18294,7 +17870,6 @@
           "at": { "joint": "c1", "offset": -59.814267 },
           "lateral": 31.058824,
           "groundOffset": -0.037818,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18304,7 +17879,6 @@
           "at": { "joint": "c1", "offset": -30.714004 },
           "lateral": -5.404235,
           "groundOffset": 0.298941,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18314,7 +17888,6 @@
           "at": { "joint": "c1", "offset": -26.745787 },
           "lateral": -4.783059,
           "groundOffset": -1.954973,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18329,7 +17902,6 @@
               "at": { "joint": "c2", "offset": -16.401966 },
               "lateral": -12.340706,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18346,7 +17918,6 @@
               "at": { "joint": "c2", "offset": -15.079227 },
               "lateral": 3.727059,
               "groundOffset": -0.135328,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18358,7 +17929,6 @@
           "at": { "joint": "c6", "offset": -7.341203 },
           "lateral": 3.727059,
           "groundOffset": -0.135328,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18373,7 +17943,6 @@
               "at": { "joint": "c2", "offset": -5.158683 },
               "lateral": -10.270118,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18390,7 +17959,6 @@
               "at": { "joint": "c5", "offset": -1.574059 },
               "lateral": -10.270118,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18407,7 +17975,6 @@
               "at": { "joint": "c2", "offset": -3.835944 },
               "lateral": 6.211765,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18424,7 +17991,6 @@
               "at": { "joint": "c2", "offset": 2.777752 },
               "lateral": -12.340706,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18441,7 +18007,6 @@
               "at": { "joint": "c2", "offset": 4.100491 },
               "lateral": 7.247059,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18458,7 +18023,6 @@
               "at": { "joint": "c2", "offset": 8.068709 },
               "lateral": -11.305412,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18475,7 +18039,6 @@
               "at": { "joint": "c2", "offset": 13.359666 },
               "lateral": -8.489412,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18492,7 +18055,6 @@
               "at": { "joint": "c2", "offset": 13.359666 },
               "lateral": 4.555294,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18509,7 +18071,6 @@
               "at": { "joint": "s3", "offset": -10.687732 },
               "lateral": -14.411294,
               "groundOffset": -0.135328,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18526,7 +18087,6 @@
               "at": { "joint": "s3", "offset": -10.687732 },
               "lateral": 9.317647,
               "groundOffset": 0.072361,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18543,7 +18103,6 @@
               "at": { "joint": "s3", "offset": -5.396776 },
               "lateral": 3.789176,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18560,7 +18119,6 @@
               "at": { "joint": "s3", "offset": -1.428558 },
               "lateral": -8.820706,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18577,7 +18135,6 @@
               "at": { "joint": "s9", "offset": -2.645478 },
               "lateral": -8.820706,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18594,7 +18151,6 @@
               "at": { "joint": "s3", "offset": 2.53966 },
               "lateral": 5.176471,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18606,7 +18162,6 @@
           "at": { "joint": "c5", "offset": 18.267029 },
           "lateral": 5.176471,
           "groundOffset": -0.135744,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18621,7 +18176,6 @@
               "at": { "joint": "s3", "offset": 5.185138 },
               "lateral": -10.270118,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18638,7 +18192,6 @@
               "at": { "joint": "s3", "offset": 13.121573 },
               "lateral": -8.820706,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18655,7 +18208,6 @@
               "at": { "joint": "s3", "offset": 13.121573 },
               "lateral": 6.832941,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18672,7 +18224,6 @@
               "at": { "joint": "s3", "offset": 19.735269 },
               "lateral": -8.903529,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18689,7 +18240,6 @@
               "at": { "joint": "s3", "offset": 23.703487 },
               "lateral": 4.141176,
               "groundOffset": -0.00461,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18706,7 +18256,6 @@
               "at": { "joint": "s3", "offset": 31.639922 },
               "lateral": 5.176471,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18723,7 +18272,6 @@
               "at": { "joint": "s9", "offset": -2.645478 },
               "lateral": 5.176471,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18740,7 +18288,6 @@
               "at": { "joint": "c4", "offset": 21.45483 },
               "lateral": -10.270118,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18752,7 +18299,6 @@
           "at": { "joint": "c4", "offset": 22.777569 },
           "lateral": 9.317647,
           "groundOffset": -0.037818,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18767,7 +18313,6 @@
               "at": { "joint": "c5", "offset": -20.092408 },
               "lateral": -9.234824,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18779,7 +18324,6 @@
           "at": { "joint": "c5", "offset": -17.44693 },
           "lateral": 4.141176,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18794,7 +18338,6 @@
               "at": { "joint": "c5", "offset": -15.462821 },
               "lateral": -10.415059,
               "groundOffset": -0.144202,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18811,7 +18354,6 @@
               "at": { "joint": "s9", "offset": -23.809306 },
               "lateral": -10.415059,
               "groundOffset": -0.144202,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18828,7 +18370,6 @@
               "at": { "joint": "c5", "offset": -11.494603 },
               "lateral": 7.247059,
               "groundOffset": -0.144202,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18840,7 +18381,6 @@
           "at": { "joint": "end", "offset": -33.147845 },
           "lateral": 7.247059,
           "groundOffset": -0.144202,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18855,7 +18395,6 @@
               "at": { "joint": "c5", "offset": -10.833234 },
               "lateral": -8.820706,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18872,7 +18411,6 @@
               "at": { "joint": "c5", "offset": -6.203646 },
               "lateral": -6.853647,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18884,7 +18422,6 @@
           "at": { "joint": "c5", "offset": -5.542277 },
           "lateral": 5.176471,
           "groundOffset": 0.072361,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18894,7 +18431,6 @@
           "at": { "joint": "c5", "offset": 0.41005 },
           "lateral": 3.727059,
           "groundOffset": -0.135744,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18909,7 +18445,6 @@
               "at": { "joint": "c5", "offset": 3.055528 },
               "lateral": -11.305412,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18921,7 +18456,6 @@
           "at": { "joint": "c5", "offset": 6.362376 },
           "lateral": 4.141176,
           "groundOffset": -0.401546,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18936,7 +18470,6 @@
               "at": { "joint": "c5", "offset": 7.685115 },
               "lateral": -8.178824,
               "groundOffset": 0.072361,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18953,7 +18486,6 @@
               "at": { "joint": "c5", "offset": 12.314703 },
               "lateral": -9.856,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18965,7 +18497,6 @@
           "at": { "joint": "c5", "offset": 12.314703 },
           "lateral": 8.282353,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18980,7 +18511,6 @@
               "at": { "joint": "c5", "offset": 16.94429 },
               "lateral": -6.895059,
               "groundOffset": -0.10212,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18992,7 +18522,6 @@
           "at": { "joint": "c6", "offset": -13.29353 },
           "lateral": 4.555294,
           "groundOffset": -0.02579,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -19007,7 +18536,6 @@
               "at": { "joint": "s9", "offset": -34.391219 },
               "lateral": -13.376,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19019,7 +18547,6 @@
           "at": { "joint": "s9", "offset": -34.391219 },
           "lateral": 3.934118,
           "groundOffset": -0.457008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -19034,7 +18561,6 @@
               "at": { "joint": "s9", "offset": -34.391219 },
               "lateral": 8.282353,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19046,7 +18572,6 @@
           "at": { "joint": "s9", "offset": -33.06848 },
           "lateral": -9.027765,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -19056,7 +18581,6 @@
           "at": { "joint": "s9", "offset": -33.06848 },
           "lateral": 7.247059,
           "groundOffset": -0.272874,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -19071,7 +18595,6 @@
               "at": { "joint": "s9", "offset": -29.100263 },
               "lateral": -6.667294,
               "groundOffset": -0.02579,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19088,7 +18611,6 @@
               "at": { "joint": "s9", "offset": -29.100263 },
               "lateral": 5.176471,
               "groundOffset": -0.02579,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19105,7 +18627,6 @@
               "at": { "joint": "s9", "offset": -23.809306 },
               "lateral": 5.590588,
               "groundOffset": -0.144202,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19122,7 +18643,6 @@
               "at": { "joint": "s9", "offset": -18.518349 },
               "lateral": -8.344471,
               "groundOffset": -0.10212,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19139,7 +18659,6 @@
               "at": { "joint": "s9", "offset": -18.518349 },
               "lateral": 3.727059,
               "groundOffset": -0.457008,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19156,7 +18675,6 @@
               "at": { "joint": "s9", "offset": -13.227392 },
               "lateral": -11.305412,
               "groundOffset": -0.383798,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19173,7 +18691,6 @@
               "at": { "joint": "s9", "offset": -13.227392 },
               "lateral": 4.141176,
               "groundOffset": -0.135328,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19190,7 +18707,6 @@
               "at": { "joint": "s9", "offset": -7.936435 },
               "lateral": -9.152,
               "groundOffset": -0.29284,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19207,7 +18723,6 @@
               "at": { "joint": "s9", "offset": 2.645479 },
               "lateral": -11.698824,
               "groundOffset": 0.072361,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19224,7 +18739,6 @@
               "at": { "joint": "s9", "offset": 2.645479 },
               "lateral": 8.282353,
               "groundOffset": -0.10212,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19241,7 +18755,6 @@
               "at": { "joint": "s9", "offset": 7.936435 },
               "lateral": -7.536941,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19258,7 +18771,6 @@
               "at": { "joint": "s9", "offset": 7.936435 },
               "lateral": 3.727059,
               "groundOffset": 0.030886,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19275,7 +18787,6 @@
               "at": { "joint": "s9", "offset": 13.227392 },
               "lateral": -9.234824,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19292,7 +18803,6 @@
               "at": { "joint": "s9", "offset": 13.227392 },
               "lateral": 4.555294,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -19714,7 +19224,6 @@
           "at": { "joint": "end", "offset": -2.605797 },
           "lateral": -10.415059,
           "groundOffset": -0.144202,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -19724,7 +19233,6 @@
           "at": { "joint": "end", "offset": -2.605797 },
           "lateral": 5.590588,
           "groundOffset": -0.144202,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -20149,7 +19657,6 @@
               "at": { "joint": "c0", "offset": 2.685161 },
               "lateral": -8.344471,
               "groundOffset": -0.10212,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20161,7 +19668,6 @@
           "at": { "joint": "c0", "offset": 2.685161 },
           "lateral": 3.727059,
           "groundOffset": -0.457008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20176,7 +19682,6 @@
               "at": { "joint": "c0", "offset": 7.976117 },
               "lateral": -11.305412,
               "groundOffset": -0.383798,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20193,7 +19698,6 @@
               "at": { "joint": "c0", "offset": 7.976117 },
               "lateral": 4.141176,
               "groundOffset": -0.135328,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20205,7 +19709,6 @@
           "at": { "joint": "end", "offset": -3.055527 },
           "lateral": 4.141176,
           "groundOffset": -0.135328,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20220,7 +19723,6 @@
               "at": { "joint": "c0", "offset": 13.267074 },
               "lateral": -9.152,
               "groundOffset": -0.29284,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20232,7 +19734,6 @@
           "at": { "joint": "c0", "offset": 13.267074 },
           "lateral": 7.247059,
           "groundOffset": -0.144202,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20247,7 +19748,6 @@
               "at": { "joint": "c0", "offset": 18.558031 },
               "lateral": -8.820706,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20259,7 +19759,6 @@
           "at": { "joint": "c0", "offset": 18.558031 },
           "lateral": 5.176471,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20274,7 +19773,6 @@
               "at": { "joint": "c0", "offset": 23.848988 },
               "lateral": -11.698824,
               "groundOffset": 0.072361,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20286,7 +19784,6 @@
           "at": { "joint": "c0", "offset": 23.848988 },
           "lateral": 8.282353,
           "groundOffset": -0.10212,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20296,7 +19793,6 @@
           "at": { "joint": "c0", "offset": 27.817206 },
           "lateral": 8.282353,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20306,7 +19802,6 @@
           "at": { "joint": "c0", "offset": 27.817206 },
           "lateral": 10.352941,
           "groundOffset": -0.135744,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20316,7 +19811,6 @@
           "at": { "joint": "c0", "offset": 27.817206 },
           "lateral": 18.635294,
           "groundOffset": -0.135744,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20331,7 +19825,6 @@
               "at": { "joint": "c0", "offset": 29.139945 },
               "lateral": -7.536941,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20343,7 +19836,6 @@
           "at": { "joint": "c0", "offset": 31.785423 },
           "lateral": 4.141176,
           "groundOffset": -0.062326,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20358,7 +19850,6 @@
               "at": { "joint": "c0", "offset": 33.108162 },
               "lateral": -4.803765,
               "groundOffset": -8.856202,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20375,7 +19866,6 @@
               "at": { "joint": "c0", "offset": 117.763472 },
               "lateral": -4.803765,
               "groundOffset": -8.856202,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20392,7 +19882,6 @@
               "at": { "joint": "s1", "offset": -64.033806 },
               "lateral": -4.803765,
               "groundOffset": -8.856202,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20404,7 +19893,6 @@
           "at": { "joint": "c0", "offset": 33.108162 },
           "lateral": 13.458824,
           "groundOffset": -0.401546,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20414,7 +19902,6 @@
           "at": { "joint": "c0", "offset": 33.108162 },
           "lateral": 20.705882,
           "groundOffset": -0.401546,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20429,7 +19916,6 @@
               "at": { "joint": "c0", "offset": 34.430902 },
               "lateral": -9.234824,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20441,7 +19927,6 @@
           "at": { "joint": "c0", "offset": 34.430902 },
           "lateral": 3.727059,
           "groundOffset": -0.228504,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20451,7 +19936,6 @@
           "at": { "joint": "c0", "offset": 37.07638 },
           "lateral": -14.162824,
           "groundOffset": -0.062326,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20466,7 +19950,6 @@
               "at": { "joint": "c0", "offset": 37.07638 },
               "lateral": -11.056941,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20483,7 +19966,6 @@
               "at": { "joint": "s1", "offset": 21.944243 },
               "lateral": -11.056941,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20495,7 +19977,6 @@
           "at": { "joint": "c0", "offset": 37.07638 },
           "lateral": -7.309176,
           "groundOffset": -0.10212,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20505,7 +19986,6 @@
           "at": { "joint": "c0", "offset": 38.399119 },
           "lateral": 14.494118,
           "groundOffset": -0.135744,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20515,7 +19995,6 @@
           "at": { "joint": "c0", "offset": 38.399119 },
           "lateral": 22.776471,
           "groundOffset": -0.135744,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20525,7 +20004,6 @@
           "at": { "joint": "c0", "offset": 39.721859 },
           "lateral": -13.376,
           "groundOffset": -0.037818,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20540,7 +20018,6 @@
               "at": { "joint": "c0", "offset": 41.044598 },
               "lateral": 5.176471,
               "groundOffset": -0.228504,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20552,7 +20029,6 @@
           "at": { "joint": "c0", "offset": 45.012815 },
           "lateral": -6.667294,
           "groundOffset": -0.02579,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20567,7 +20043,6 @@
               "at": { "joint": "c0", "offset": 47.658294 },
               "lateral": 3.727059,
               "groundOffset": -0.10212,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20579,7 +20054,6 @@
           "at": { "joint": "c0", "offset": 50.303772 },
           "lateral": -10.415059,
           "groundOffset": -0.144202,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20589,7 +20063,6 @@
           "at": { "joint": "c0", "offset": 60.885686 },
           "lateral": 3.727059,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20604,7 +20077,6 @@
               "at": { "joint": "c0", "offset": 67.499382 },
               "lateral": 3.727059,
               "groundOffset": -0.062326,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20616,7 +20088,6 @@
           "at": { "joint": "c0", "offset": 74.113078 },
           "lateral": 6.211765,
           "groundOffset": -0.062326,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20631,7 +20102,6 @@
               "at": { "joint": "c0", "offset": 80.726774 },
               "lateral": 3.727059,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20643,7 +20113,6 @@
           "at": { "joint": "s1", "offset": -64.033806 },
           "lateral": 3.727059,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20658,7 +20127,6 @@
               "at": { "joint": "c0", "offset": 91.308688 },
               "lateral": -25.799529,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20675,7 +20143,6 @@
               "at": { "joint": "c0", "offset": 96.599645 },
               "lateral": 3.727059,
               "groundOffset": -0.00565,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20692,7 +20159,6 @@
               "at": { "joint": "c0", "offset": 133.636343 },
               "lateral": 3.727059,
               "groundOffset": -0.00565,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20709,7 +20175,6 @@
               "at": { "joint": "s1", "offset": -87.843111 },
               "lateral": 3.727059,
               "groundOffset": -0.00565,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20726,7 +20191,6 @@
               "at": { "joint": "c0", "offset": 101.890602 },
               "lateral": -15.446588,
               "groundOffset": -0.457008,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20743,7 +20207,6 @@
               "at": { "joint": "c0", "offset": 112.472515 },
               "lateral": -18.552471,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20755,7 +20218,6 @@
           "at": { "joint": "c0", "offset": 121.07032 },
           "lateral": 2.898824,
           "groundOffset": -0.10212,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20765,7 +20227,6 @@
           "at": { "joint": "c0", "offset": 123.054429 },
           "lateral": -9.379765,
           "groundOffset": -0.10212,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20775,7 +20236,6 @@
           "at": { "joint": "c0", "offset": 133.636343 },
           "lateral": -19.504941,
           "groundOffset": -0.037818,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20785,7 +20245,6 @@
           "at": { "joint": "s1", "offset": -132.816245 },
           "lateral": -10.270118,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20795,7 +20254,6 @@
           "at": { "joint": "s1", "offset": -129.509397 },
           "lateral": 2.898824,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20805,7 +20263,6 @@
           "at": { "joint": "s1", "offset": -122.234331 },
           "lateral": -17.268706,
           "groundOffset": -0.401546,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20815,7 +20272,6 @@
           "at": { "joint": "s1", "offset": -111.652417 },
           "lateral": -12.092235,
           "groundOffset": -0.062326,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20825,7 +20281,6 @@
           "at": { "joint": "s1", "offset": -101.070504 },
           "lateral": -11.222588,
           "groundOffset": -0.037818,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20835,7 +20290,6 @@
           "at": { "joint": "s1", "offset": -90.48859 },
           "lateral": -23.728941,
           "groundOffset": -0.383798,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20845,7 +20299,6 @@
           "at": { "joint": "s1", "offset": -76.599828 },
           "lateral": 2.898824,
           "groundOffset": -0.062326,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20855,7 +20308,6 @@
           "at": { "joint": "s1", "offset": -57.42011 },
           "lateral": 7.247059,
           "groundOffset": -0.159731,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20870,7 +20322,6 @@
               "at": { "joint": "s1", "offset": -52.129153 },
               "lateral": -18.697412,
               "groundOffset": -0.159731,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20887,7 +20338,6 @@
               "at": { "joint": "s1", "offset": -46.838196 },
               "lateral": -9.234824,
               "groundOffset": -0.135328,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20904,7 +20354,6 @@
               "at": { "joint": "s1", "offset": -41.547239 },
               "lateral": -16.399059,
               "groundOffset": -0.02579,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20916,7 +20365,6 @@
           "at": { "joint": "s1", "offset": -37.579021 },
           "lateral": 8.282353,
           "groundOffset": -0.062326,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20931,7 +20379,6 @@
               "at": { "joint": "s1", "offset": -36.256282 },
               "lateral": -14.411294,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20943,7 +20390,6 @@
           "at": { "joint": "s1", "offset": -30.965325 },
           "lateral": 6.211765,
           "groundOffset": -0.10212,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -20958,7 +20404,6 @@
               "at": { "joint": "s1", "offset": -25.674368 },
               "lateral": -12.257882,
               "groundOffset": -0.02579,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20975,7 +20420,6 @@
               "at": { "joint": "s1", "offset": -20.383412 },
               "lateral": -13.376,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -20987,7 +20431,6 @@
           "at": { "joint": "s1", "offset": -17.737933 },
           "lateral": 6.211765,
           "groundOffset": -0.228504,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -21002,7 +20445,6 @@
               "at": { "joint": "s1", "offset": -15.092455 },
               "lateral": -8.116706,
               "groundOffset": -0.02579,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21019,7 +20461,6 @@
               "at": { "joint": "s1", "offset": -9.801498 },
               "lateral": -8.820706,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21036,7 +20477,6 @@
               "at": { "joint": "s1", "offset": -4.510541 },
               "lateral": -13.376,
               "groundOffset": -0.383798,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21053,7 +20493,6 @@
               "at": { "joint": "s1", "offset": 2.103155 },
               "lateral": 17.827765,
               "groundOffset": 0.072361,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21070,7 +20509,6 @@
               "at": { "joint": "s1", "offset": 8.716851 },
               "lateral": 9.317647,
               "groundOffset": -0.383798,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21087,7 +20525,6 @@
               "at": { "joint": "s1", "offset": 15.330547 },
               "lateral": 7.247059,
               "groundOffset": -0.457008,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21099,7 +20536,6 @@
           "at": { "joint": "s1", "offset": 28.557939 },
           "lateral": 5.176471,
           "groundOffset": -0.29284,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -21109,7 +20545,6 @@
           "at": { "joint": "s1", "offset": 35.171635 },
           "lateral": 10.352941,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -21119,7 +20554,6 @@
           "at": { "joint": "s1", "offset": 41.785331 },
           "lateral": 3.727059,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -21129,7 +20563,6 @@
           "at": { "joint": "end", "offset": -42.737704 },
           "lateral": 5.176471,
           "groundOffset": -0.02579,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -21139,7 +20572,6 @@
           "at": { "joint": "end", "offset": -36.124007 },
           "lateral": 11.388235,
           "groundOffset": -0.119798,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -21149,7 +20581,6 @@
           "at": { "joint": "end", "offset": -29.510311 },
           "lateral": 16.564706,
           "groundOffset": -0.401546,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -21568,7 +20999,6 @@
               "at": { "joint": "s0", "offset": 0.91269 },
               "lateral": -8.820706,
               "groundOffset": -0.135328,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21585,7 +21015,6 @@
               "at": { "joint": "s0", "offset": 2.235429 },
               "lateral": 5.176471,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21602,7 +21031,6 @@
               "at": { "joint": "s0", "offset": 4.880908 },
               "lateral": -12.092235,
               "groundOffset": -0.062326,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21619,7 +21047,6 @@
               "at": { "joint": "s0", "offset": 7.526386 },
               "lateral": 8.282353,
               "groundOffset": -0.02579,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21636,7 +21063,6 @@
               "at": { "joint": "s0", "offset": 8.849125 },
               "lateral": -19.587765,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21653,7 +21079,6 @@
               "at": { "joint": "s0", "offset": 12.817343 },
               "lateral": -8.820706,
               "groundOffset": -0.457008,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21670,7 +21095,6 @@
               "at": { "joint": "s0", "offset": 12.817343 },
               "lateral": 14.494118,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21687,7 +21111,6 @@
               "at": { "joint": "c1", "offset": -9.17981 },
               "lateral": -10.187294,
               "groundOffset": -0.02579,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21704,7 +21127,6 @@
               "at": { "joint": "c1", "offset": -7.857071 },
               "lateral": 8.282353,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21721,7 +21143,6 @@
               "at": { "joint": "c1", "offset": -5.211593 },
               "lateral": -13.686588,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21738,7 +21159,6 @@
               "at": { "joint": "c1", "offset": -2.566114 },
               "lateral": 10.352941,
               "groundOffset": -0.10212,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21755,7 +21175,6 @@
               "at": { "joint": "c1", "offset": -1.243375 },
               "lateral": -15.446588,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21772,7 +21191,6 @@
               "at": { "joint": "c1", "offset": 2.724843 },
               "lateral": -9.234824,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21789,7 +21207,6 @@
               "at": { "joint": "c1", "offset": 2.724843 },
               "lateral": 13.458824,
               "groundOffset": -0.383798,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21806,7 +21223,6 @@
               "at": { "joint": "c2", "offset": -4.841226 },
               "lateral": -12.340706,
               "groundOffset": -0.383798,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21823,7 +21239,6 @@
               "at": { "joint": "c2", "offset": -3.518487 },
               "lateral": 6.211765,
               "groundOffset": -0.607866,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21840,7 +21255,6 @@
               "at": { "joint": "c2", "offset": -0.873008 },
               "lateral": -19.587765,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21857,7 +21271,6 @@
               "at": { "joint": "c2", "offset": 1.77247 },
               "lateral": 4.141176,
               "groundOffset": -0.119798,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21874,7 +21287,6 @@
               "at": { "joint": "c3", "offset": -5.925872 },
               "lateral": 7.247059,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -21891,7 +21303,6 @@
               "at": { "joint": "c3", "offset": -0.634915 },
               "lateral": 11.388235,
               "groundOffset": -0.383798,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -22129,7 +21540,6 @@
               "at": { "joint": "s0", "offset": 0.568778 },
               "lateral": -11.305412,
               "groundOffset": -0.051077,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -22141,7 +21551,6 @@
           "at": { "joint": "s0", "offset": 3.214256 },
           "lateral": 14.494118,
           "groundOffset": -0.064336,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -22151,7 +21560,6 @@
           "at": { "joint": "s0", "offset": 8.505213 },
           "lateral": 8.282353,
           "groundOffset": -0.401546,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -22161,7 +21569,6 @@
           "at": { "joint": "end", "offset": -5.343866 },
           "lateral": 10.352941,
           "groundOffset": -0.10212,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -22620,7 +22027,6 @@
               "at": { "joint": "c0", "offset": 1.26983 },
               "lateral": -11.305412,
               "groundOffset": -0.051077,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -22637,7 +22043,6 @@
               "at": { "joint": "c0", "offset": 1.26983 },
               "lateral": 7.247059,
               "groundOffset": 0.030886,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -22654,7 +22059,6 @@
               "at": { "joint": "c0", "offset": 4.576678 },
               "lateral": 10.352941,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -22671,7 +22075,6 @@
               "at": { "joint": "c0", "offset": 7.883526 },
               "lateral": -8.820706,
               "groundOffset": -0.047004,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -22688,7 +22091,6 @@
               "at": { "joint": "c0", "offset": 9.867635 },
               "lateral": 6.211765,
               "groundOffset": -0.051077,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -22705,7 +22107,6 @@
               "at": { "joint": "end", "offset": -18.822579 },
               "lateral": 6.211765,
               "groundOffset": -0.051077,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -22717,7 +22118,6 @@
           "at": { "joint": "c0", "offset": 14.497222 },
           "lateral": 15.529412,
           "groundOffset": -0.170824,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -22727,7 +22127,6 @@
           "at": { "joint": "c0", "offset": 14.497222 },
           "lateral": 19.649882,
           "groundOffset": -0.261782,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -22742,7 +22141,6 @@
               "at": { "joint": "c0", "offset": 19.126809 },
               "lateral": 10.352941,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -22759,7 +22157,6 @@
               "at": { "joint": "c0", "offset": 25.740505 },
               "lateral": 5.176471,
               "groundOffset": -0.135328,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -22771,7 +22168,6 @@
           "at": { "joint": "c0", "offset": 29.047353 },
           "lateral": 12.423529,
           "groundOffset": -0.037818,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -22781,7 +22177,6 @@
           "at": { "joint": "c0", "offset": 32.354201 },
           "lateral": 9.317647,
           "groundOffset": -0.119798,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -22791,7 +22186,6 @@
           "at": { "joint": "end", "offset": -25.436275 },
           "lateral": -8.903529,
           "groundOffset": 1.938681,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -22801,7 +22195,6 @@
           "at": { "joint": "end", "offset": -25.436275 },
           "lateral": 16.564706,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -22811,7 +22204,6 @@
           "at": { "joint": "end", "offset": -25.436275 },
           "lateral": 21.327059,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -22821,7 +22213,6 @@
           "at": { "joint": "end", "offset": -18.822579 },
           "lateral": 12.423529,
           "groundOffset": -0.170824,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -22831,7 +22222,6 @@
           "at": { "joint": "end", "offset": -18.822579 },
           "lateral": 16.544,
           "groundOffset": -0.261782,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -23351,7 +22741,6 @@
               "at": { "joint": "c0", "offset": 0.35714 },
               "lateral": 12.423529,
               "groundOffset": -0.037818,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23368,7 +22757,6 @@
               "at": { "joint": "c0", "offset": 1.018509 },
               "lateral": -11.305412,
               "groundOffset": -0.051077,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23385,7 +22773,6 @@
               "at": { "joint": "s1", "offset": -68.941167 },
               "lateral": -11.305412,
               "groundOffset": -0.051077,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23402,7 +22789,6 @@
               "at": { "joint": "s1", "offset": -16.031599 },
               "lateral": -11.305412,
               "groundOffset": -0.051077,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23419,7 +22805,6 @@
               "at": { "joint": "c0", "offset": 3.663988 },
               "lateral": 9.317647,
               "groundOffset": -0.119798,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23436,7 +22821,6 @@
               "at": { "joint": "c0", "offset": 7.632205 },
               "lateral": -8.820706,
               "groundOffset": -0.047004,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23453,7 +22837,6 @@
               "at": { "joint": "c0", "offset": 67.15547 },
               "lateral": -8.820706,
               "groundOffset": -0.047004,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23470,7 +22853,6 @@
               "at": { "joint": "s1", "offset": -37.195426 },
               "lateral": -8.820706,
               "groundOffset": -0.047004,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23487,7 +22869,6 @@
               "at": { "joint": "c0", "offset": 10.277684 },
               "lateral": 7.247059,
               "groundOffset": 0.030886,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23504,7 +22885,6 @@
               "at": { "joint": "c0", "offset": 13.584532 },
               "lateral": 10.352941,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23516,7 +22896,6 @@
           "at": { "joint": "c0", "offset": 14.245901 },
           "lateral": 6.211765,
           "groundOffset": -0.554622,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23531,7 +22910,6 @@
               "at": { "joint": "c0", "offset": 18.875489 },
               "lateral": 6.211765,
               "groundOffset": -0.051077,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23548,7 +22926,6 @@
               "at": { "joint": "c0", "offset": 56.573556 },
               "lateral": 6.211765,
               "groundOffset": -0.051077,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23565,7 +22942,6 @@
               "at": { "joint": "s1", "offset": -47.11597 },
               "lateral": 6.211765,
               "groundOffset": -0.051077,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23577,7 +22953,6 @@
           "at": { "joint": "s1", "offset": -9.417903 },
           "lateral": 6.211765,
           "groundOffset": -0.051077,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23587,7 +22962,6 @@
           "at": { "joint": "c0", "offset": 27.473293 },
           "lateral": 16.564706,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23597,7 +22971,6 @@
           "at": { "joint": "c0", "offset": 27.473293 },
           "lateral": 21.327059,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23612,7 +22985,6 @@
               "at": { "joint": "c0", "offset": 28.134663 },
               "lateral": 10.352941,
               "groundOffset": -0.135744,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23629,7 +23001,6 @@
               "at": { "joint": "c0", "offset": 34.748359 },
               "lateral": 5.176471,
               "groundOffset": -0.135328,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -23641,7 +23012,6 @@
           "at": { "joint": "c0", "offset": 40.700686 },
           "lateral": 12.423529,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23651,7 +23021,6 @@
           "at": { "joint": "c0", "offset": 40.700686 },
           "lateral": 17.185882,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23661,7 +23030,6 @@
           "at": { "joint": "c0", "offset": 47.314382 },
           "lateral": 14.494118,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23671,7 +23039,6 @@
           "at": { "joint": "c0", "offset": 47.314382 },
           "lateral": 19.256471,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23681,7 +23048,6 @@
           "at": { "joint": "c0", "offset": 53.928078 },
           "lateral": 6.211765,
           "groundOffset": -0.155294,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23691,7 +23057,6 @@
           "at": { "joint": "c0", "offset": 53.928078 },
           "lateral": 10.021647,
           "groundOffset": -0.155294,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23701,7 +23066,6 @@
           "at": { "joint": "c0", "offset": 67.15547 },
           "lateral": 6.211765,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23711,7 +23075,6 @@
           "at": { "joint": "c0", "offset": 67.15547 },
           "lateral": 10.974118,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23721,7 +23084,6 @@
           "at": { "joint": "s1", "offset": -34.549948 },
           "lateral": 4.141176,
           "groundOffset": 0.424008,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23731,7 +23093,6 @@
           "at": { "joint": "s1", "offset": -21.322556 },
           "lateral": -10.332235,
           "groundOffset": 1.643327,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23741,7 +23102,6 @@
           "at": { "joint": "s1", "offset": -8.095164 },
           "lateral": 4.141176,
           "groundOffset": -0.380263,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23751,7 +23111,6 @@
           "at": { "joint": "s1", "offset": -0.158728 },
           "lateral": 10.352941,
           "groundOffset": -0.170824,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -23761,7 +23120,6 @@
           "at": { "joint": "s1", "offset": -0.158728 },
           "lateral": 14.473412,
           "groundOffset": -0.261782,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -25176,7 +24534,6 @@
           "at": { "joint": "c1", "offset": -1.481468 },
           "lateral": -18.945882,
           "groundOffset": -0.170824,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25186,7 +24543,6 @@
           "at": { "joint": "c1", "offset": -1.481468 },
           "lateral": -14.804706,
           "groundOffset": -0.261782,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25196,7 +24552,6 @@
           "at": { "joint": "c1", "offset": -1.481468 },
           "lateral": -9.255529,
           "groundOffset": -1.064562,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25211,7 +24566,6 @@
               "at": { "joint": "c1", "offset": -0.158729 },
               "lateral": -14.328471,
               "groundOffset": -0.02579,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -25228,7 +24582,6 @@
               "at": { "joint": "c1", "offset": -0.158729 },
               "lateral": 6.211765,
               "groundOffset": -0.607866,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -25240,7 +24593,6 @@
           "at": { "joint": "c1", "offset": 1.164011 },
           "lateral": -9.545412,
           "groundOffset": -1.444235,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25250,7 +24602,6 @@
           "at": { "joint": "c1", "offset": 5.132228 },
           "lateral": -10.290824,
           "groundOffset": -0.684542,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25260,7 +24611,6 @@
           "at": { "joint": "c1", "offset": 5.132228 },
           "lateral": 15.529412,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25270,7 +24620,6 @@
           "at": { "joint": "c1", "offset": 5.132228 },
           "lateral": 20.291765,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25285,7 +24634,6 @@
               "at": { "joint": "c1", "offset": 7.777707 },
               "lateral": -21.658353,
               "groundOffset": -0.457008,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -25302,7 +24650,6 @@
               "at": { "joint": "c1", "offset": 7.777707 },
               "lateral": 9.317647,
               "groundOffset": -0.543529,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -25319,7 +24666,6 @@
               "at": { "joint": "c1", "offset": 7.777707 },
               "lateral": 14.08,
               "groundOffset": -0.277311,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -25331,7 +24677,6 @@
           "at": { "joint": "c1", "offset": 15.714142 },
           "lateral": -11.305412,
           "groundOffset": -0.135744,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25346,7 +24691,6 @@
               "at": { "joint": "c1", "offset": 15.714142 },
               "lateral": 5.176471,
               "groundOffset": -0.401546,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -25358,7 +24702,6 @@
           "at": { "joint": "c1", "offset": 18.35962 },
           "lateral": -25.385412,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25368,7 +24711,6 @@
           "at": { "joint": "c1", "offset": 18.35962 },
           "lateral": -20.623059,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25378,7 +24720,6 @@
           "at": { "joint": "c1", "offset": 18.35962 },
           "lateral": 4.141176,
           "groundOffset": -0.807945,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25388,7 +24729,6 @@
           "at": { "joint": "c1", "offset": 23.650577 },
           "lateral": -24.122353,
           "groundOffset": -0.170824,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25398,7 +24738,6 @@
           "at": { "joint": "c1", "offset": 23.650577 },
           "lateral": -19.981176,
           "groundOffset": -0.261782,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25408,7 +24747,6 @@
           "at": { "joint": "c1", "offset": 23.650577 },
           "lateral": 17.6,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25418,7 +24756,6 @@
           "at": { "joint": "c1", "offset": 23.650577 },
           "lateral": 22.362353,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25428,7 +24765,6 @@
           "at": { "joint": "c1", "offset": 31.587012 },
           "lateral": -27.228235,
           "groundOffset": -0.170824,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25438,7 +24774,6 @@
           "at": { "joint": "c1", "offset": 31.587012 },
           "lateral": -23.087059,
           "groundOffset": -0.261782,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25448,7 +24783,6 @@
           "at": { "joint": "c1", "offset": 31.587012 },
           "lateral": 11.388235,
           "groundOffset": -0.135328,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25458,7 +24792,6 @@
           "at": { "joint": "c1", "offset": 39.523448 },
           "lateral": -12.092235,
           "groundOffset": -0.607866,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25468,7 +24801,6 @@
           "at": { "joint": "c1", "offset": 39.523448 },
           "lateral": 16.564706,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25478,7 +24810,6 @@
           "at": { "joint": "c1", "offset": 39.523448 },
           "lateral": 21.327059,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25488,7 +24819,6 @@
           "at": { "joint": "end", "offset": -44.880541 },
           "lateral": -12.340706,
           "groundOffset": -0.166387,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25498,7 +24828,6 @@
           "at": { "joint": "end", "offset": -44.880541 },
           "lateral": 13.458824,
           "groundOffset": -0.170824,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25508,7 +24837,6 @@
           "at": { "joint": "end", "offset": -44.880541 },
           "lateral": 17.579294,
           "groundOffset": -0.261782,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25518,7 +24846,6 @@
           "at": { "joint": "end", "offset": -36.944106 },
           "lateral": 5.176471,
           "groundOffset": -0.607866,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25528,7 +24855,6 @@
           "at": { "joint": "end", "offset": -29.00767 },
           "lateral": -26.420706,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25538,7 +24864,6 @@
           "at": { "joint": "end", "offset": -29.00767 },
           "lateral": -21.658353,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25548,7 +24873,6 @@
           "at": { "joint": "end", "offset": -29.00767 },
           "lateral": 5.176471,
           "groundOffset": -0.554622,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -25558,7 +24882,6 @@
           "at": { "joint": "end", "offset": -21.071235 },
           "lateral": -15.446588,
           "groundOffset": -0.401546,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -26037,7 +25360,6 @@
           "at": { "joint": "s0", "offset": 2.73807 },
           "lateral": -11.305412,
           "groundOffset": -0.135744,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26047,7 +25369,6 @@
           "at": { "joint": "s0", "offset": 2.73807 },
           "lateral": 17.6,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26057,7 +25378,6 @@
           "at": { "joint": "s0", "offset": 2.73807 },
           "lateral": 22.362353,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26067,7 +25387,6 @@
           "at": { "joint": "s0", "offset": 10.674505 },
           "lateral": -24.122353,
           "groundOffset": -0.170824,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26077,7 +25396,6 @@
           "at": { "joint": "s0", "offset": 10.674505 },
           "lateral": -19.981176,
           "groundOffset": -0.261782,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26087,7 +25405,6 @@
           "at": { "joint": "s0", "offset": 10.674505 },
           "lateral": 11.388235,
           "groundOffset": -0.135328,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26097,7 +25414,6 @@
           "at": { "joint": "s0", "offset": 18.610941 },
           "lateral": -27.228235,
           "groundOffset": -0.170824,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26107,7 +25423,6 @@
           "at": { "joint": "s0", "offset": 18.610941 },
           "lateral": -23.087059,
           "groundOffset": -0.261782,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26117,7 +25432,6 @@
           "at": { "joint": "s0", "offset": 18.610941 },
           "lateral": 16.564706,
           "groundOffset": -0.543529,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26127,7 +25441,6 @@
           "at": { "joint": "s0", "offset": 18.610941 },
           "lateral": 21.327059,
           "groundOffset": -0.277311,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26137,7 +25450,6 @@
           "at": { "joint": "s0", "offset": 26.547376 },
           "lateral": -12.092235,
           "groundOffset": -0.607866,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26147,7 +25459,6 @@
           "at": { "joint": "s0", "offset": 26.547376 },
           "lateral": 13.458824,
           "groundOffset": -0.170824,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26157,7 +25468,6 @@
           "at": { "joint": "s0", "offset": 26.547376 },
           "lateral": 17.579294,
           "groundOffset": -0.261782,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26167,7 +25477,6 @@
           "at": { "joint": "s0", "offset": 34.483811 },
           "lateral": 5.176471,
           "groundOffset": -0.607866,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26182,7 +25491,6 @@
               "at": { "joint": "s0", "offset": 41.097507 },
               "lateral": 4.141176,
               "groundOffset": -0.366258,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26194,7 +25502,6 @@
           "at": { "joint": "s0", "offset": 41.097507 },
           "lateral": 7.247059,
           "groundOffset": -0.366258,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26209,7 +25516,6 @@
               "at": { "joint": "s0", "offset": 45.462547 },
               "lateral": 16.564706,
               "groundOffset": -0.164168,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26226,7 +25532,6 @@
               "at": { "joint": "s0", "offset": 45.462547 },
               "lateral": 19.111529,
               "groundOffset": -0.111132,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26238,7 +25543,6 @@
           "at": { "joint": "s0", "offset": 46.388464 },
           "lateral": -8.240941,
           "groundOffset": -0.366258,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26253,7 +25557,6 @@
               "at": { "joint": "s0", "offset": 46.388464 },
               "lateral": -5.135059,
               "groundOffset": -0.366258,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26270,7 +25573,6 @@
               "at": { "joint": "s0", "offset": 50.356682 },
               "lateral": -10.104471,
               "groundOffset": -0.380263,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26287,7 +25589,6 @@
               "at": { "joint": "s0", "offset": 50.356682 },
               "lateral": 5.321412,
               "groundOffset": -0.380263,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26299,7 +25600,6 @@
           "at": { "joint": "s0", "offset": 50.753504 },
           "lateral": -6.688,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26309,7 +25609,6 @@
           "at": { "joint": "s0", "offset": 52.076243 },
           "lateral": 4.141176,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26319,7 +25618,6 @@
           "at": { "joint": "s0", "offset": 58.689939 },
           "lateral": -18.697412,
           "groundOffset": 0.087769,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26334,7 +25632,6 @@
               "at": { "joint": "s0", "offset": 65.303635 },
               "lateral": 17.6,
               "groundOffset": 0.229197,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26346,7 +25643,6 @@
           "at": { "joint": "s0", "offset": 69.271853 },
           "lateral": -4.783059,
           "groundOffset": -1.480078,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26356,7 +25652,6 @@
           "at": { "joint": "s0", "offset": 74.562809 },
           "lateral": -6.418824,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26371,7 +25666,6 @@
               "at": { "joint": "s0", "offset": 78.134205 },
               "lateral": -16.481882,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26388,7 +25682,6 @@
               "at": { "joint": "s0", "offset": 78.531027 },
               "lateral": -22.238118,
               "groundOffset": -0.111132,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26405,7 +25698,6 @@
               "at": { "joint": "s0", "offset": 78.531027 },
               "lateral": -19.111529,
               "groundOffset": -0.164168,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26422,7 +25714,6 @@
               "at": { "joint": "s0", "offset": 80.779684 },
               "lateral": 5.176471,
               "groundOffset": -0.064336,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26439,7 +25730,6 @@
               "at": { "joint": "s0", "offset": 83.425162 },
               "lateral": -16.481882,
               "groundOffset": -0.554622,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26456,7 +25746,6 @@
               "at": { "joint": "s0", "offset": 86.070641 },
               "lateral": 5.176471,
               "groundOffset": -0.554622,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26468,7 +25757,6 @@
           "at": { "joint": "end", "offset": -85.964822 },
           "lateral": -5.404235,
           "groundOffset": 0.298941,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26478,7 +25766,6 @@
           "at": { "joint": "end", "offset": -85.568 },
           "lateral": -24.308706,
           "groundOffset": -0.111132,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26488,7 +25775,6 @@
           "at": { "joint": "end", "offset": -85.568 },
           "lateral": -21.182118,
           "groundOffset": -0.164168,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26498,7 +25784,6 @@
           "at": { "joint": "end", "offset": -78.028386 },
           "lateral": -8.116706,
           "groundOffset": 0.001352,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26508,7 +25793,6 @@
           "at": { "joint": "end", "offset": -75.382908 },
           "lateral": -10.415059,
           "groundOffset": 0.001352,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26518,7 +25802,6 @@
           "at": { "joint": "end", "offset": -72.737429 },
           "lateral": -18.304,
           "groundOffset": -0.206319,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26528,7 +25811,6 @@
           "at": { "joint": "end", "offset": -72.737429 },
           "lateral": 14.494118,
           "groundOffset": -0.380263,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26538,7 +25820,6 @@
           "at": { "joint": "end", "offset": -72.340608 },
           "lateral": -21.679059,
           "groundOffset": 0.229197,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26548,7 +25829,6 @@
           "at": { "joint": "end", "offset": -68.769212 },
           "lateral": 4.141176,
           "groundOffset": 0.298941,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26558,7 +25838,6 @@
           "at": { "joint": "end", "offset": -64.800994 },
           "lateral": -16.875294,
           "groundOffset": -0.099832,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26568,7 +25847,6 @@
           "at": { "joint": "end", "offset": -64.800994 },
           "lateral": 12.423529,
           "groundOffset": -0.099832,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26583,7 +25861,6 @@
               "at": { "joint": "end", "offset": -63.081433 },
               "lateral": 4.348235,
               "groundOffset": -1.505486,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -26595,7 +25872,6 @@
           "at": { "joint": "end", "offset": -60.435955 },
           "lateral": 5.694118,
           "groundOffset": -1.26745,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26605,7 +25881,6 @@
           "at": { "joint": "end", "offset": -59.510037 },
           "lateral": 13.458824,
           "groundOffset": -0.020348,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26615,7 +25890,6 @@
           "at": { "joint": "end", "offset": -52.49952 },
           "lateral": -16.626824,
           "groundOffset": 0.087769,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26625,7 +25899,6 @@
           "at": { "joint": "end", "offset": -52.49952 },
           "lateral": 12.423529,
           "groundOffset": 0.087769,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26635,7 +25908,6 @@
           "at": { "joint": "end", "offset": -50.250863 },
           "lateral": -13.376,
           "groundOffset": -0.166387,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26645,7 +25917,6 @@
           "at": { "joint": "end", "offset": -45.885823 },
           "lateral": -20.643765,
           "groundOffset": 0.229197,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26655,7 +25926,6 @@
           "at": { "joint": "end", "offset": -45.885823 },
           "lateral": 16.564706,
           "groundOffset": 0.229197,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26665,7 +25935,6 @@
           "at": { "joint": "end", "offset": -43.240345 },
           "lateral": 5.176471,
           "groundOffset": -1.708651,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26675,7 +25944,6 @@
           "at": { "joint": "end", "offset": -40.594867 },
           "lateral": 4.182588,
           "groundOffset": -1.859404,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26685,7 +25953,6 @@
           "at": { "joint": "end", "offset": -39.272127 },
           "lateral": -19.132235,
           "groundOffset": -0.111132,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26695,7 +25962,6 @@
           "at": { "joint": "end", "offset": -39.272127 },
           "lateral": -16.005647,
           "groundOffset": -0.164168,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26705,7 +25971,6 @@
           "at": { "joint": "end", "offset": -39.272127 },
           "lateral": 13.458824,
           "groundOffset": -0.164168,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26715,7 +25980,6 @@
           "at": { "joint": "end", "offset": -39.272127 },
           "lateral": 16.005647,
           "groundOffset": -0.111132,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26725,7 +25989,6 @@
           "at": { "joint": "end", "offset": -36.626649 },
           "lateral": -4.762353,
           "groundOffset": -1.480078,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26735,7 +25998,6 @@
           "at": { "joint": "end", "offset": -33.981171 },
           "lateral": -7.226353,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26745,7 +26007,6 @@
           "at": { "joint": "end", "offset": -32.658431 },
           "lateral": -19.732706,
           "groundOffset": 0.087769,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26755,7 +26016,6 @@
           "at": { "joint": "end", "offset": -24.721996 },
           "lateral": 6.211765,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26765,7 +26025,6 @@
           "at": { "joint": "end", "offset": -19.431039 },
           "lateral": 15.529412,
           "groundOffset": 0.229197,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26775,7 +26034,6 @@
           "at": { "joint": "end", "offset": -12.817343 },
           "lateral": -17.662118,
           "groundOffset": 0.087769,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26785,7 +26043,6 @@
           "at": { "joint": "end", "offset": -12.817343 },
           "lateral": 13.458824,
           "groundOffset": 0.087769,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26795,7 +26052,6 @@
           "at": { "joint": "end", "offset": -10.171865 },
           "lateral": -6.605176,
           "groundOffset": -1.700089,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -26805,7 +26061,6 @@
           "at": { "joint": "end", "offset": -7.526386 },
           "lateral": -7.454118,
           "groundOffset": -1.505486,
-          "unselectedLink": null,
           "body": null
         }
       ],
@@ -27034,7 +26289,6 @@
           "at": { "joint": "s0", "offset": 0.013227 },
           "lateral": -4.306824,
           "groundOffset": 0.794218,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27044,7 +26298,6 @@
           "at": { "joint": "s0", "offset": 0.013227 },
           "lateral": -4.306824,
           "groundOffset": 1.782,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27054,7 +26307,6 @@
           "at": { "joint": "s0", "offset": 0.013227 },
           "lateral": -2.526118,
           "groundOffset": 1.783664,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27064,7 +26316,6 @@
           "at": { "joint": "s0", "offset": 0.013227 },
           "lateral": 0.082824,
           "groundOffset": 1.783664,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27074,7 +26325,6 @@
           "at": { "joint": "s0", "offset": 0.013227 },
           "lateral": 2.215529,
           "groundOffset": 0.794218,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27084,7 +26334,6 @@
           "at": { "joint": "s0", "offset": 0.013227 },
           "lateral": 4.079059,
           "groundOffset": 1.782,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27094,7 +26343,6 @@
           "at": { "joint": "s0", "offset": 2.658706 },
           "lateral": 4.141176,
           "groundOffset": -1.064562,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27104,7 +26352,6 @@
           "at": { "joint": "s0", "offset": 6.626923 },
           "lateral": -15.550118,
           "groundOffset": 0.123126,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27114,7 +26361,6 @@
           "at": { "joint": "s0", "offset": 6.626923 },
           "lateral": -9.711059,
           "groundOffset": 0.229197,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27124,7 +26370,6 @@
           "at": { "joint": "end", "offset": -5.952327 },
           "lateral": -6.853647,
           "groundOffset": -1.461983,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27134,7 +26379,6 @@
           "at": { "joint": "end", "offset": -5.952327 },
           "lateral": 4.141176,
           "groundOffset": -1.480078,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27144,7 +26388,6 @@
           "at": { "joint": "end", "offset": -4.629588 },
           "lateral": 3.727059,
           "groundOffset": 0.057403,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27154,7 +26397,6 @@
           "at": { "joint": "end", "offset": -1.984109 },
           "lateral": -6.232471,
           "groundOffset": -0.931626,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -27164,7 +26406,6 @@
           "at": { "joint": "end", "offset": -0.66137 },
           "lateral": 5.797647,
           "groundOffset": -1.373937,
-          "unselectedLink": null,
           "body": null
         }
       ],

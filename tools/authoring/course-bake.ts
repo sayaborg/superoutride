@@ -22,7 +22,6 @@ export interface BakeSite {
   readonly list: string;
   readonly pieces: readonly BakePlacement[];
   readonly at: Json;
-  readonly unselectedLink: Json;
   /** The first piece's lateral, which the baked placement's is measured as. */
   readonly lateral: Json;
 }
@@ -51,7 +50,7 @@ export function withLateralOffset(lateral: Json, offset: number): Json {
 
 /**
  * The bake entries of a course document: in each element list (a Section's sprites or a repeat's elements), two or
- * more sprite placements without a body at the same `at`, the same `unselectedLink` and laterals from the same line make
+ * more sprite placements without a body at the same `at` and laterals from the same line make
  * a group; groups of one arrangement are one entry, in the order they first stand.
  */
 export function findBakeEntries(document: Json): readonly BakeEntry[] {
@@ -65,9 +64,9 @@ export function findBakeEntries(document: Json): readonly BakeEntry[] {
       if (element.kind === 'repeat') return visit(element.elements, childPointer(pointer, 'elements'));
       const lateral = lateralLine(element.lateral ?? null);
       if (element.kind !== 'sprite' || element.body !== null || !lateral) return;
-      const key = JSON.stringify([element.at, element.unselectedLink, lateral.line]);
+      const key = JSON.stringify([element.at, lateral.line]);
       const group = groups.get(key) ?? {
-        site: { list, at: element.at!, unselectedLink: element.unselectedLink ?? null, lateral: element.lateral! },
+        site: { list, at: element.at!, lateral: element.lateral! },
         pieces: [],
       };
       group.pieces.push({
@@ -133,7 +132,7 @@ const elementIndex = (site: BakeSite, piece: BakePlacement) => Number(piece.poin
 
 /**
  * At every site of `entry` (found in `document`), the included pieces' placements give way to one placement of
- * `image`: its palette the site's combination joined by `+`, the pieces' `at` and `unselectedLink`, the first piece's
+ * `image`: its palette the site's combination joined by `+`, the pieces' `at`, the first piece's
  * lateral line at its offset plus `across`, `groundOffset` `up`, and no body. It takes the first included piece's place
  * in the list; excluded pieces and every other element stay. Each list is rebuilt once from its elements as read, so no
  * site's edit moves another's; a site whose included pieces are not side by side is refused (`bakeRefusal`).
@@ -172,7 +171,6 @@ export function bakeCoursePieces(
         at: site.at,
         lateral: withLateralOffset(site.lateral, fine(first.offset + across)),
         groundOffset: fine(up),
-        unselectedLink: site.unselectedLink,
         body: null,
       });
     }
@@ -200,8 +198,7 @@ export interface UnbakedPiece {
 
 /**
  * Every placement of the baked picture `image` gives way to its pieces again, in their order and at its place: each
- * piece's picture, its palette from the placement's combination (split by `+`), the placement's `at`, `unselectedLink`
- * and lateral line at its offset plus the piece's `across`, its ground offset plus the piece's `up`, and no body.
+ * piece's picture, its palette from the placement's combination (split by `+`), the placement's `at` and lateral line at its offset plus the piece's `across`, its ground offset plus the piece's `up`, and no body.
  */
 export function unbakeCoursePieces(document: Json, image: string, pieces: readonly UnbakedPiece[]): CourseEditResult {
   const changes: CourseChange[] = [];
@@ -223,7 +220,6 @@ export function unbakeCoursePieces(document: Json, image: string, pieces: readon
         at: element.at!,
         lateral: withLateralOffset(element.lateral!, fine(line.offset + piece.across)),
         groundOffset: fine((element.groundOffset as number) + piece.up),
-        unselectedLink: element.unselectedLink ?? null,
         body: null,
       }));
     });

@@ -1,7 +1,6 @@
 import { expandCourseElements, expansionWork, shiftedCoursePosition } from '../course-repeat.js';
 import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import { type CoursePosition, type SectionDocument } from '../course-document.js';
-import type { CompiledFork } from './course-graph.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import { CourseInputError, requireCourse } from '../course-diagnostics.js';
 import type {
@@ -55,10 +54,7 @@ export function createCourseSpriteResources() {
   };
 }
 
-/**
- * Resolve saved environment and sprites through canonical geometry/assets. It reads the Section's compiled
- * fork, when there is one, to check its own state-selected signs at their document positions.
- */
+/** Resolve saved environment and sprites through canonical geometry/assets. */
 export function compileCourseAppearance(
   section: SectionDocument,
   length: number,
@@ -66,7 +62,6 @@ export function compileCourseAppearance(
   resource: ReturnType<typeof createCourseSpriteResources>,
   resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   path: string,
-  fork: Readonly<CompiledFork> | null,
   walls: readonly CompiledWall[],
   placements: readonly CourseSpritePlacement[],
   pairs: readonly StripColorPairExtent[],
@@ -199,21 +194,9 @@ export function compileCourseAppearance(
             landed: knockedPicture(movable.knocked.landed, `${at}/body/0/movable/knocked/landed`),
           })
         : null;
-    const unselectedLink = placement.unselectedLink;
-    if (unselectedLink !== null) {
-      requireCourse(fork !== null, at, 'State-selected road signs require a fork', 'invalid_fork');
-      if (!fork!.exits.some((exit) => exit.link.id === unselectedLink))
-        throw new CourseInputError('unresolved_reference', `${at}/unselectedLink`, 'Not a Link leaving this fork');
-      // Between lock and closure, a sign also precedes every exit cut.
-      requireCourse(
-        position.s >= fork!.lock.s && position.s <= fork!.closure.s,
-        at,
-        'Road signs lie between lock and closure',
-        'invalid_fork',
-      );
-    }
     return Object.freeze({
-      unselectedLink,
+      // No sign is state-selected since courses do not branch; the field goes with the fork runtime (RC-3b).
+      unselectedLink: null,
       instance,
       at: position,
       l,

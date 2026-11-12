@@ -94,12 +94,6 @@ export function compileCourseSpriteObjects(
       'A board extending sideways cannot be solid',
       'invalid_placement',
     );
-    requireCourse(
-      source.unselectedLink === null,
-      `${path}/body`,
-      'A state-selected sign cannot be solid',
-      'invalid_placement',
-    );
     // The image's columns, metres from the placement's lateral.
     const left = -(image.image.anchorX + 0.5) / SPRITE_SOURCE_TEXELS_PER_METER;
     const right = left + image.image.worldWidthMeters;

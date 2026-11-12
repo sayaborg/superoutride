@@ -147,7 +147,6 @@ function ring(objects = []) {
               kind: 'sprite',
               image: 'outrun-015-shadowed',
               palette: 'p054',
-              unselectedLink: null,
               at: { joint: 's1', offset },
               lateral: l,
               groundOffset: 0,

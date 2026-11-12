@@ -207,12 +207,12 @@ the final segment.
 
 ## Cycle closure
 
-Topology admission first forbids self Links and checks reachability; DFS detects cycles and outgoing
-Link counts detect branches. The derived kind admits only an acyclic
-LINEAR/BRANCH graph or one unbranched CIRCUIT cycle of at least two Sections. In the latter case,
+Topology admission first forbids self Links and checks reachability; DFS detects cycles, and a Section has one
+outgoing Link at most (courses do not branch). The derived kind admits only an acyclic
+LINEAR chain or one CIRCUIT cycle of at least two Sections. In the latter case,
 one incoming and one outgoing Link per Section plus reachability proves there is exactly one cycle.
 The compiler follows that cycle from entry once and composes `toFromFrom` transforms in
-traversal order. Acyclic merges are never compared for a common world embedding.
+traversal order.
 
 For an accumulated transform `(R,t)` followed by a Link, the positional error budget increases by
 `edgeToleranceMeters + 2*sin(headingToleranceRadians/2)*|t|`; the chord term accounts for rotating

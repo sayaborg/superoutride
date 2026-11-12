@@ -7735,7 +7735,6 @@
           "at": { "joint": "s0", "offset": 0 },
           "lateral": 0.008142,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [
             { "across": -7.569107, "width": 2.436785, "movable": null },
             { "across": 7.569107, "width": 2.436785, "movable": null }
@@ -7753,7 +7752,6 @@
               "at": { "joint": "s0", "offset": 3.084864 },
               "lateral": -8.393614,
               "groundOffset": 0.265205,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7765,7 +7763,6 @@
           "at": { "joint": "s0", "offset": 3.08872 },
           "lateral": 8.393614,
           "groundOffset": 0.265205,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7775,7 +7772,6 @@
           "at": { "joint": "s0", "offset": 6.173583 },
           "lateral": -8.393614,
           "groundOffset": 0.240699,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7785,7 +7781,6 @@
           "at": { "joint": "s0", "offset": 6.177439 },
           "lateral": 8.393614,
           "groundOffset": 0.240699,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7795,7 +7790,6 @@
           "at": { "joint": "s0", "offset": 9.266159 },
           "lateral": 8.393614,
           "groundOffset": 0.265205,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -7810,7 +7804,6 @@
               "at": { "joint": "s0", "offset": 21.605613 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7827,7 +7820,6 @@
               "at": { "joint": "c1", "offset": 37.900934656 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7844,7 +7836,6 @@
               "at": { "joint": "c2", "offset": 6.314717134 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7861,7 +7852,6 @@
               "at": { "joint": "c2", "offset": 179.079076134 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7878,7 +7868,6 @@
               "at": { "joint": "c2", "offset": 292.743993134 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7895,7 +7884,6 @@
               "at": { "joint": "c3", "offset": -472.770278276 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7912,7 +7900,6 @@
               "at": { "joint": "c3", "offset": -313.873038276 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7929,7 +7916,6 @@
               "at": { "joint": "c3", "offset": -238.727899276 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7946,7 +7932,6 @@
               "at": { "joint": "c3", "offset": -163.576445276 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7963,7 +7948,6 @@
               "at": { "joint": "c3", "offset": -68.628351276 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7980,7 +7964,6 @@
               "at": { "joint": "c4", "offset": -123.787409716 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -7997,7 +7980,6 @@
               "at": { "joint": "c6", "offset": 335.111896861 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8009,7 +7991,6 @@
           "at": { "joint": "end", "offset": -14.694412136 },
           "lateral": 9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -8019,7 +8000,6 @@
           "at": { "joint": "s0", "offset": 64.793703 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8029,7 +8009,6 @@
           "at": { "joint": "s0", "offset": 87.158964 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8044,7 +8023,6 @@
               "at": { "joint": "c1", "offset": -84.841460344 },
               "lateral": -17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8061,7 +8039,6 @@
               "at": { "joint": "c3", "offset": -556.503433276 },
               "lateral": -17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8078,7 +8055,6 @@
               "at": { "joint": "c5", "offset": 38.107172947 },
               "lateral": -17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8090,7 +8066,6 @@
           "at": { "joint": "c1", "offset": -77.129301344 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8100,7 +8075,6 @@
           "at": { "joint": "c1", "offset": -57.848903344 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8110,7 +8084,6 @@
           "at": { "joint": "c1", "offset": -57.841191344 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8120,7 +8093,6 @@
           "at": { "joint": "c1", "offset": -38.560794344 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8130,7 +8102,6 @@
           "at": { "joint": "c1", "offset": -19.280397344 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8140,7 +8111,6 @@
           "at": { "joint": "c1", "offset": 0.012629656 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8150,7 +8120,6 @@
           "at": { "joint": "c1", "offset": 78.908711656 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8160,7 +8129,6 @@
           "at": { "joint": "c1", "offset": 78.921340656 },
           "lateral": 13.502771,
           "groundOffset": 0.167181,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -8170,7 +8138,6 @@
           "at": { "joint": "c1", "offset": 135.766428656 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8180,7 +8147,6 @@
           "at": { "joint": "c2", "offset": -126.306981866 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8190,7 +8156,6 @@
           "at": { "joint": "c2", "offset": -107.350198866 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8200,7 +8165,6 @@
           "at": { "joint": "c2", "offset": -88.406046866 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8210,7 +8174,6 @@
           "at": { "joint": "c2", "offset": -69.461893866 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8220,7 +8183,6 @@
           "at": { "joint": "c2", "offset": -50.517740866 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8230,7 +8192,6 @@
           "at": { "joint": "c2", "offset": -31.573587866 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8240,7 +8201,6 @@
           "at": { "joint": "c2", "offset": -12.629434866 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8250,7 +8210,6 @@
           "at": { "joint": "c2", "offset": 25.258870134 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8265,7 +8224,6 @@
               "at": { "joint": "c2", "offset": 46.470007134 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8282,7 +8240,6 @@
               "at": { "joint": "c2", "offset": 242.731430134 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8299,7 +8256,6 @@
               "at": { "joint": "c3", "offset": -371.734796276 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8316,7 +8272,6 @@
               "at": { "joint": "c3", "offset": -18.110610276 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8333,7 +8288,6 @@
               "at": { "joint": "c6", "offset": 33.510630861 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8350,7 +8304,6 @@
               "at": { "joint": "c6", "offset": 167.553155861 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8367,7 +8320,6 @@
               "at": { "joint": "c6", "offset": 301.601265861 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8379,7 +8331,6 @@
           "at": { "joint": "end", "offset": -81.715674136 },
           "lateral": 17.517108,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -8394,7 +8345,6 @@
               "at": { "joint": "c2", "offset": 84.358312134 },
               "lateral": -25.910722,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8411,7 +8361,6 @@
               "at": { "joint": "c2", "offset": 537.123565134 },
               "lateral": -25.910722,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8423,7 +8372,6 @@
           "at": { "joint": "c2", "offset": 160.134924134 },
           "lateral": -11.678072,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8433,7 +8381,6 @@
           "at": { "joint": "c2", "offset": 198.023229134 },
           "lateral": -11.678072,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8443,7 +8390,6 @@
           "at": { "joint": "c2", "offset": 235.911535134 },
           "lateral": -11.678072,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8453,7 +8399,6 @@
           "at": { "joint": "c2", "offset": 273.799841134 },
           "lateral": -11.678072,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8463,7 +8408,6 @@
           "at": { "joint": "c2", "offset": 311.688146134 },
           "lateral": -11.678072,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8473,7 +8417,6 @@
           "at": { "joint": "c2", "offset": 340.862142134 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8483,7 +8426,6 @@
           "at": { "joint": "c2", "offset": 349.576452134 },
           "lateral": 8.758554,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8493,7 +8435,6 @@
           "at": { "joint": "c2", "offset": 368.520605134 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8503,7 +8444,6 @@
           "at": { "joint": "c2", "offset": 387.464758134 },
           "lateral": 8.758554,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8513,7 +8453,6 @@
           "at": { "joint": "c2", "offset": 406.408910134 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8523,7 +8462,6 @@
           "at": { "joint": "c2", "offset": 425.353063134 },
           "lateral": 8.758554,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8538,7 +8476,6 @@
               "at": { "joint": "c2", "offset": 438.992853134 },
               "lateral": 25.910722,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8555,7 +8492,6 @@
               "at": { "joint": "end", "offset": -249.274415136 },
               "lateral": 25.910722,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -8567,7 +8503,6 @@
           "at": { "joint": "c2", "offset": 463.241369134 },
           "lateral": 8.758554,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8577,7 +8512,6 @@
           "at": { "joint": "c2", "offset": 476.881159134 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8587,7 +8521,6 @@
           "at": { "joint": "c2", "offset": 501.129674134 },
           "lateral": 8.758554,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8597,7 +8530,6 @@
           "at": { "joint": "c2", "offset": 514.769464134 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8607,7 +8539,6 @@
           "at": { "joint": "c2", "offset": 539.017980134 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8617,7 +8548,6 @@
           "at": { "joint": "c3", "offset": -543.873998276 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8627,7 +8557,6 @@
           "at": { "joint": "c3", "offset": -518.615127276 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8637,7 +8566,6 @@
           "at": { "joint": "c3", "offset": -510.027111276 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8647,7 +8575,6 @@
           "at": { "joint": "c3", "offset": -466.442931276 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8657,7 +8584,6 @@
           "at": { "joint": "c3", "offset": -434.869342276 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8667,7 +8593,6 @@
           "at": { "joint": "c3", "offset": -426.281327276 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8677,7 +8602,6 @@
           "at": { "joint": "c3", "offset": -422.252537276 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8687,7 +8611,6 @@
           "at": { "joint": "c3", "offset": -377.658001276 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8697,7 +8620,6 @@
           "at": { "joint": "c3", "offset": -351.136187276 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8707,7 +8629,6 @@
           "at": { "joint": "c3", "offset": -351.129872276 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8717,7 +8638,6 @@
           "at": { "joint": "c3", "offset": -302.506547276 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8727,7 +8647,6 @@
           "at": { "joint": "c3", "offset": -275.984733276 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8737,7 +8656,6 @@
           "at": { "joint": "c3", "offset": -238.721584276 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8747,7 +8665,6 @@
           "at": { "joint": "c3", "offset": -227.355092276 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8757,7 +8674,6 @@
           "at": { "joint": "c3", "offset": -200.833279276 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8767,7 +8683,6 @@
           "at": { "joint": "c3", "offset": -126.306981276 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8777,7 +8692,6 @@
           "at": { "joint": "c3", "offset": -94.733393276 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8787,7 +8701,6 @@
           "at": { "joint": "c3", "offset": -94.727079276 },
           "lateral": 8.393614,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8797,7 +8710,6 @@
           "at": { "joint": "c3", "offset": -63.153491276 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8807,7 +8719,6 @@
           "at": { "joint": "c3", "offset": -31.579902276 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8817,7 +8728,6 @@
           "at": { "joint": "c3", "offset": -31.573588276 },
           "lateral": 8.393614,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8827,7 +8737,6 @@
           "at": { "joint": "c3", "offset": 45.541743724 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8837,7 +8746,6 @@
           "at": { "joint": "c3", "offset": 80.904161724 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8847,7 +8755,6 @@
           "at": { "joint": "c3", "offset": 116.266580724 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8857,7 +8764,6 @@
           "at": { "joint": "c4", "offset": -94.739708716 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8867,7 +8773,6 @@
           "at": { "joint": "c4", "offset": -94.733393716 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8877,7 +8782,6 @@
           "at": { "joint": "c4", "offset": -63.159805716 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8887,7 +8791,6 @@
           "at": { "joint": "c4", "offset": -63.153490716 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8897,7 +8800,6 @@
           "at": { "joint": "c4", "offset": -31.579902716 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8907,7 +8809,6 @@
           "at": { "joint": "c4", "offset": -31.573587716 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8917,7 +8818,6 @@
           "at": { "joint": "c4", "offset": 2.833798284 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -8927,7 +8827,6 @@
           "at": { "joint": "c4", "offset": 23.162336284 },
           "lateral": 8.758554,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8937,7 +8836,6 @@
           "at": { "joint": "c4", "offset": 43.490874284 },
           "lateral": 8.758554,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8947,7 +8845,6 @@
           "at": { "joint": "c5", "offset": -60.997811053 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8957,7 +8854,6 @@
           "at": { "joint": "c5", "offset": -60.993745053 },
           "lateral": 8.758554,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8967,7 +8863,6 @@
           "at": { "joint": "c5", "offset": -40.665207053 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8977,7 +8872,6 @@
           "at": { "joint": "c5", "offset": -40.661142053 },
           "lateral": 8.758554,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -8987,7 +8881,6 @@
           "at": { "joint": "c5", "offset": -20.332604053 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -8997,7 +8890,6 @@
           "at": { "joint": "c5", "offset": -20.328538053 },
           "lateral": 8.758554,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -9007,7 +8899,6 @@
           "at": { "joint": "c5", "offset": 10.181646947 },
           "lateral": 8.758554,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -9022,7 +8913,6 @@
               "at": { "joint": "c6", "offset": -44.680841139 },
               "lateral": -17.517108,
               "groundOffset": 0,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -9034,7 +8924,6 @@
           "at": { "joint": "c6", "offset": 190.452086861 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -9044,7 +8933,6 @@
           "at": { "joint": "c6", "offset": 199.946765861 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -9054,7 +8942,6 @@
           "at": { "joint": "c6", "offset": 208.324423861 },
           "lateral": -19.524277,
           "groundOffset": 0.265205,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9064,7 +8951,6 @@
           "at": { "joint": "c6", "offset": 209.441444861 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -9074,7 +8960,6 @@
           "at": { "joint": "c6", "offset": 215.026549861 },
           "lateral": -19.524277,
           "groundOffset": 0.240699,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9084,7 +8969,6 @@
           "at": { "joint": "c6", "offset": 218.936123861 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -9094,7 +8978,6 @@
           "at": { "joint": "c6", "offset": 221.728676861 },
           "lateral": -19.524277,
           "groundOffset": 0.265205,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9104,7 +8987,6 @@
           "at": { "joint": "c6", "offset": 228.430802861 },
           "lateral": -19.524277,
           "groundOffset": 0.240699,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -9114,7 +8996,6 @@
           "at": { "joint": "c6", "offset": 228.430802861 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -9124,7 +9005,6 @@
           "at": { "joint": "c6", "offset": 237.925481861 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -9134,7 +9014,6 @@
           "at": { "joint": "c6", "offset": 247.420160861 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -9144,7 +9023,6 @@
           "at": { "joint": "c6", "offset": 256.914838861 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -9154,7 +9032,6 @@
           "at": { "joint": "c6", "offset": 266.409517861 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -9164,7 +9041,6 @@
           "at": { "joint": "c6", "offset": 268.090634861 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -9174,7 +9050,6 @@
           "at": { "joint": "c6", "offset": 275.904196861 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -9184,7 +9059,6 @@
           "at": { "joint": "end", "offset": -115.231890136 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         }
       ],
@@ -17053,7 +16927,6 @@
           "at": { "joint": "c0", "offset": 0 },
           "lateral": -0.016283,
           "groundOffset": 0.038108,
-          "unselectedLink": null,
           "body": [
             { "across": 5.447514, "width": 1.554972, "movable": null },
             { "across": -5.354124, "width": 1.741752, "movable": null }
@@ -17071,7 +16944,6 @@
               "at": { "joint": "c0", "offset": 18.816219 },
               "lateral": -17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17088,7 +16960,6 @@
               "at": { "joint": "c1", "offset": 89.478970122 },
               "lateral": -17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17105,7 +16976,6 @@
               "at": { "joint": "c7", "offset": 10.702694623 },
               "lateral": -17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17122,7 +16992,6 @@
               "at": { "joint": "s15", "offset": -40.916787819 },
               "lateral": -17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17139,7 +17008,6 @@
               "at": { "joint": "s17", "offset": -26.224252389 },
               "lateral": -17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17156,7 +17024,6 @@
               "at": { "joint": "c0", "offset": 52.326851 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17173,7 +17040,6 @@
               "at": { "joint": "s6", "offset": -57.064506672 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17190,7 +17056,6 @@
               "at": { "joint": "c9", "offset": 46.900338291 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17207,7 +17072,6 @@
               "at": { "joint": "c11", "offset": -0.075293638 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17224,7 +17088,6 @@
               "at": { "joint": "c12", "offset": -2.743986035 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17241,7 +17104,6 @@
               "at": { "joint": "c16", "offset": -26.009769664 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17258,7 +17120,6 @@
               "at": { "joint": "s17", "offset": -1.639015389 },
               "lateral": 17.517108,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17270,7 +17131,6 @@
           "at": { "joint": "end", "offset": -43.512000803 },
           "lateral": 17.517108,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17280,7 +17140,6 @@
           "at": { "joint": "c0", "offset": 85.837482 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -17295,7 +17154,6 @@
               "at": { "joint": "c0", "offset": 119.348113 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17312,7 +17170,6 @@
               "at": { "joint": "c1", "offset": 89.473385122 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17329,7 +17186,6 @@
               "at": { "joint": "s2", "offset": -11.17021051 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17346,7 +17202,6 @@
               "at": { "joint": "s2", "offset": 43.85061349 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17363,7 +17218,6 @@
               "at": { "joint": "c5", "offset": 16.748647711 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17380,7 +17234,6 @@
               "at": { "joint": "s6", "offset": -78.207339672 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17397,7 +17250,6 @@
               "at": { "joint": "c11", "offset": 28.829149362 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17414,7 +17266,6 @@
               "at": { "joint": "c12", "offset": 24.926221965 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17431,7 +17282,6 @@
               "at": { "joint": "s13", "offset": 7.943098946 },
               "lateral": 9.123494,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17443,7 +17293,6 @@
           "at": { "joint": "c0", "offset": 119.353698 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17458,7 +17307,6 @@
               "at": { "joint": "c0", "offset": 152.864329 },
               "lateral": -25.910722,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17475,7 +17323,6 @@
               "at": { "joint": "s13", "offset": 31.877992946 },
               "lateral": -25.910722,
               "groundOffset": 0.036473,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17487,7 +17334,6 @@
           "at": { "joint": "c0", "offset": 186.374961 },
           "lateral": 25.910722,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17497,7 +17343,6 @@
           "at": { "joint": "c1", "offset": -175.662728878 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -17507,7 +17352,6 @@
           "at": { "joint": "c1", "offset": -83.793332878 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17517,7 +17361,6 @@
           "at": { "joint": "c1", "offset": -83.787747878 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17527,7 +17370,6 @@
           "at": { "joint": "c1", "offset": -55.862221878 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17537,7 +17379,6 @@
           "at": { "joint": "c1", "offset": -55.856636878 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17547,7 +17388,6 @@
           "at": { "joint": "c1", "offset": -27.931110878 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17557,7 +17397,6 @@
           "at": { "joint": "c1", "offset": -27.925525878 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17567,7 +17406,6 @@
           "at": { "joint": "c1", "offset": 33.622333122 },
           "lateral": -11.678072,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -17577,7 +17415,6 @@
           "at": { "joint": "c1", "offset": 44.792544122 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -17587,7 +17424,6 @@
           "at": { "joint": "c1", "offset": 67.132964122 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -17597,7 +17433,6 @@
           "at": { "joint": "c1", "offset": 100.643596122 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -17607,7 +17442,6 @@
           "at": { "joint": "c1", "offset": 134.154227122 },
           "lateral": -11.678072,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -17617,7 +17451,6 @@
           "at": { "joint": "s2", "offset": -134.07045051 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -17627,7 +17460,6 @@
           "at": { "joint": "s2", "offset": -111.73002951 },
           "lateral": -11.678072,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -17637,7 +17469,6 @@
           "at": { "joint": "s2", "offset": -78.21939851 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -17647,7 +17478,6 @@
           "at": { "joint": "s2", "offset": -55.85663751 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -17657,7 +17487,6 @@
           "at": { "joint": "s2", "offset": -44.70876751 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -17667,7 +17496,6 @@
           "at": { "joint": "s2", "offset": -11.19813551 },
           "lateral": -11.678072,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -17677,7 +17505,6 @@
           "at": { "joint": "s2", "offset": 202.20193949 },
           "lateral": -8.393614,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17687,7 +17514,6 @@
           "at": { "joint": "s2", "offset": 244.65993149 },
           "lateral": -8.393614,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17697,7 +17523,6 @@
           "at": { "joint": "s2", "offset": 287.11792349 },
           "lateral": -8.393614,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17712,7 +17537,6 @@
               "at": { "joint": "s2", "offset": 389.01710349 },
               "lateral": 13.502771,
               "groundOffset": 0,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17729,7 +17553,6 @@
               "at": { "joint": "s2", "offset": 481.38871049 },
               "lateral": 13.502771,
               "groundOffset": 0,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17741,7 +17564,6 @@
           "at": { "joint": "s2", "offset": 573.76031749 },
           "lateral": 13.502771,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -17751,7 +17573,6 @@
           "at": { "joint": "s2", "offset": 402.21304749 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.75, "movable": null }]
         },
         {
@@ -17766,7 +17587,6 @@
               "at": { "joint": "s2", "offset": 415.40899149 },
               "lateral": 18.611927,
               "groundOffset": 0,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -17778,7 +17598,6 @@
           "at": { "joint": "s2", "offset": 428.60493449 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.75, "movable": null }]
         },
         {
@@ -17788,7 +17607,6 @@
           "at": { "joint": "s2", "offset": 441.80087849 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.75, "movable": null }]
         },
         {
@@ -17798,7 +17616,6 @@
           "at": { "joint": "s2", "offset": 468.19276649 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.75, "movable": null }]
         },
         {
@@ -17808,7 +17625,6 @@
           "at": { "joint": "s2", "offset": 494.58465449 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.75, "movable": null }]
         },
         {
@@ -17818,7 +17634,6 @@
           "at": { "joint": "s2", "offset": 520.97654149 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.75, "movable": null }]
         },
         {
@@ -17828,7 +17643,6 @@
           "at": { "joint": "s2", "offset": 534.17248549 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.75, "movable": null }]
         },
         {
@@ -17838,7 +17652,6 @@
           "at": { "joint": "s2", "offset": 560.56437349 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.75, "movable": null }]
         },
         {
@@ -17848,7 +17661,6 @@
           "at": { "joint": "s2", "offset": 586.95626049 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.75, "movable": null }]
         },
         {
@@ -17858,7 +17670,6 @@
           "at": { "joint": "c3", "offset": -509.563833127 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17868,7 +17679,6 @@
           "at": { "joint": "c3", "offset": -467.105842127 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17878,7 +17688,6 @@
           "at": { "joint": "c3", "offset": -424.647850127 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17888,7 +17697,6 @@
           "at": { "joint": "c3", "offset": -322.748670127 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17898,7 +17706,6 @@
           "at": { "joint": "c3", "offset": -280.290678127 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17908,7 +17715,6 @@
           "at": { "joint": "c3", "offset": -237.832686127 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17918,7 +17724,6 @@
           "at": { "joint": "c3", "offset": -135.933506127 },
           "lateral": -11.678072,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -17928,7 +17733,6 @@
           "at": { "joint": "c3", "offset": -127.399450127 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17938,7 +17742,6 @@
           "at": { "joint": "c3", "offset": -84.983916127 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -17948,7 +17751,6 @@
           "at": { "joint": "c3", "offset": -84.932967127 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17958,7 +17760,6 @@
           "at": { "joint": "c3", "offset": -42.466483127 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17968,7 +17769,6 @@
           "at": { "joint": "c3", "offset": -34.034326127 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -17978,7 +17778,6 @@
           "at": { "joint": "c3", "offset": 8.723521873 },
           "lateral": -10.218313,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17988,7 +17787,6 @@
           "at": { "joint": "c3", "offset": 34.999190873 },
           "lateral": -10.218313,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -17998,7 +17796,6 @@
           "at": { "joint": "c4", "offset": -65.702309591 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18008,7 +17805,6 @@
           "at": { "joint": "c4", "offset": -65.697930591 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18018,7 +17814,6 @@
           "at": { "joint": "c4", "offset": -43.801539591 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18028,7 +17823,6 @@
           "at": { "joint": "c4", "offset": -43.797160591 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18038,7 +17832,6 @@
           "at": { "joint": "c4", "offset": -21.900769591 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18048,7 +17841,6 @@
           "at": { "joint": "c4", "offset": -21.896390591 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18058,7 +17850,6 @@
           "at": { "joint": "c4", "offset": 57.501096409 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18068,7 +17859,6 @@
           "at": { "joint": "c5", "offset": -51.910352289 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18078,7 +17868,6 @@
           "at": { "joint": "c5", "offset": -25.955176289 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18093,7 +17882,6 @@
               "at": { "joint": "c5", "offset": 16.752171711 },
               "lateral": -17.517108,
               "groundOffset": 0,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18110,7 +17898,6 @@
               "at": { "joint": "c5", "offset": 51.986702711 },
               "lateral": -17.517108,
               "groundOffset": 0,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18127,7 +17914,6 @@
               "at": { "joint": "c5", "offset": 59.037837711 },
               "lateral": 13.502771,
               "groundOffset": 0.167181,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18144,7 +17930,6 @@
               "at": { "joint": "c7", "offset": -190.405595377 },
               "lateral": 13.502771,
               "groundOffset": 0.167181,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18161,7 +17946,6 @@
               "at": { "joint": "c7", "offset": -86.355424377 },
               "lateral": 13.502771,
               "groundOffset": 0.167181,
-              "unselectedLink": null,
               "body": null
             }
           ]
@@ -18173,7 +17957,6 @@
           "at": { "joint": "s6", "offset": 0.005756328 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18183,7 +17966,6 @@
           "at": { "joint": "s6", "offset": 23.594913328 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -18193,7 +17975,6 @@
           "at": { "joint": "s6", "offset": 33.380556328 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -18203,7 +17984,6 @@
           "at": { "joint": "s6", "offset": 34.549077328 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18213,7 +17993,6 @@
           "at": { "joint": "s6", "offset": 42.014947328 },
           "lateral": -19.524277,
           "groundOffset": 0.240699,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18223,7 +18002,6 @@
           "at": { "joint": "s6", "offset": 43.166200328 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -18233,7 +18011,6 @@
           "at": { "joint": "s6", "offset": 48.922460328 },
           "lateral": -19.524277,
           "groundOffset": 0.265205,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18243,7 +18020,6 @@
           "at": { "joint": "s6", "offset": 52.951843328 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -18253,7 +18029,6 @@
           "at": { "joint": "s6", "offset": 55.829973328 },
           "lateral": -19.524277,
           "groundOffset": 0.240699,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18263,7 +18038,6 @@
           "at": { "joint": "s6", "offset": 62.737486328 },
           "lateral": -19.524277,
           "groundOffset": 0.265205,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18273,7 +18047,6 @@
           "at": { "joint": "s6", "offset": 62.737486328 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -18283,7 +18056,6 @@
           "at": { "joint": "s6", "offset": 69.086642328 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18293,7 +18065,6 @@
           "at": { "joint": "s6", "offset": 72.523130328 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -18303,7 +18074,6 @@
           "at": { "joint": "s6", "offset": 82.308773328 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -18313,7 +18083,6 @@
           "at": { "joint": "s6", "offset": 92.094416328 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -18323,7 +18092,6 @@
           "at": { "joint": "s6", "offset": 101.880060328 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -18333,7 +18101,6 @@
           "at": { "joint": "s6", "offset": 103.629963328 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18343,7 +18110,6 @@
           "at": { "joint": "s6", "offset": 111.665703328 },
           "lateral": -8.781363,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 1.1, "movable": null }]
         },
         {
@@ -18353,7 +18119,6 @@
           "at": { "joint": "s6", "offset": 138.167528328 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18363,7 +18128,6 @@
           "at": { "joint": "s6", "offset": 172.705093328 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18373,7 +18137,6 @@
           "at": { "joint": "s6", "offset": 207.248414328 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18383,7 +18146,6 @@
           "at": { "joint": "c7", "offset": -224.948916377 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18393,7 +18155,6 @@
           "at": { "joint": "c7", "offset": -219.192655377 },
           "lateral": -13.502771,
           "groundOffset": 0.167181,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18403,7 +18164,6 @@
           "at": { "joint": "c7", "offset": -190.411351377 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18413,7 +18173,6 @@
           "at": { "joint": "c7", "offset": -155.868030377 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18423,7 +18182,6 @@
           "at": { "joint": "c7", "offset": -121.330465377 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18433,7 +18191,6 @@
           "at": { "joint": "c7", "offset": -115.148241377 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18443,7 +18200,6 @@
           "at": { "joint": "c7", "offset": -86.361181377 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18453,7 +18209,6 @@
           "at": { "joint": "c7", "offset": -57.574120377 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18463,7 +18218,6 @@
           "at": { "joint": "c7", "offset": -28.787060377 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18473,7 +18227,6 @@
           "at": { "joint": "c7", "offset": 44.709827623 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -18483,7 +18236,6 @@
           "at": { "joint": "s8", "offset": -22.680869381 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -18493,7 +18245,6 @@
           "at": { "joint": "s8", "offset": 11.147815619 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -18503,7 +18254,6 @@
           "at": { "joint": "s8", "offset": 44.607994619 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -18513,7 +18263,6 @@
           "at": { "joint": "s8", "offset": 78.068172619 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -18523,7 +18272,6 @@
           "at": { "joint": "s8", "offset": 78.079326619 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18533,7 +18281,6 @@
           "at": { "joint": "s8", "offset": 105.968384619 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18543,7 +18290,6 @@
           "at": { "joint": "s8", "offset": 111.528351619 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -18553,7 +18299,6 @@
           "at": { "joint": "c9", "offset": -115.537995709 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18563,7 +18308,6 @@
           "at": { "joint": "c9", "offset": -104.406909709 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -18573,7 +18317,6 @@
           "at": { "joint": "c9", "offset": -87.648936709 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18583,7 +18326,6 @@
           "at": { "joint": "c9", "offset": -70.946731709 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -18593,7 +18335,6 @@
           "at": { "joint": "c9", "offset": -59.759878709 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18603,7 +18344,6 @@
           "at": { "joint": "c9", "offset": -37.486552709 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -18613,7 +18353,6 @@
           "at": { "joint": "c9", "offset": -31.870819709 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18623,7 +18362,6 @@
           "at": { "joint": "c9", "offset": -4.026374709 },
           "lateral": -11.678072,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 1.4625, "width": 5.85, "movable": null }]
         },
         {
@@ -18633,7 +18371,6 @@
           "at": { "joint": "s10", "offset": -25.058124854 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18643,7 +18380,6 @@
           "at": { "joint": "s10", "offset": 5.737340146 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18653,7 +18389,6 @@
           "at": { "joint": "c11", "offset": -25.097725638 },
           "lateral": 8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18663,7 +18398,6 @@
           "at": { "joint": "c11", "offset": -12.744625638 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18673,7 +18407,6 @@
           "at": { "joint": "c11", "offset": 14.186870362 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18683,7 +18416,6 @@
           "at": { "joint": "c12", "offset": -28.823385035 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18693,7 +18425,6 @@
           "at": { "joint": "s13", "offset": -6.934396054 },
           "lateral": -8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18703,7 +18434,6 @@
           "at": { "joint": "s13", "offset": 13.496619946 },
           "lateral": -8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18713,7 +18443,6 @@
           "at": { "joint": "s13", "offset": 33.051271946 },
           "lateral": -8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18723,7 +18452,6 @@
           "at": { "joint": "c14", "offset": -39.109302876 },
           "lateral": -8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18733,7 +18461,6 @@
           "at": { "joint": "c14", "offset": -19.554650876 },
           "lateral": -8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18743,7 +18470,6 @@
           "at": { "joint": "c14", "offset": 25.197297124 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -18753,7 +18479,6 @@
           "at": { "joint": "s15", "offset": -15.719490819 },
           "lateral": -9.123494,
           "groundOffset": 0.036473,
-          "unselectedLink": null,
           "body": [{ "across": 0.281366, "width": 2.428817, "movable": null }]
         },
         {
@@ -18763,7 +18488,6 @@
           "at": { "joint": "s15", "offset": 9.054001181 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18773,7 +18497,6 @@
           "at": { "joint": "s15", "offset": 22.064088181 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18783,7 +18506,6 @@
           "at": { "joint": "c16", "offset": -26.012370664 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18793,7 +18515,6 @@
           "at": { "joint": "c16", "offset": -13.004884664 },
           "lateral": -8.758554,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18803,7 +18524,6 @@
           "at": { "joint": "s17", "offset": 30.848635611 },
           "lateral": -8.393614,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18813,7 +18533,6 @@
           "at": { "joint": "s17", "offset": 38.560794611 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18823,7 +18542,6 @@
           "at": { "joint": "s17", "offset": 46.272953611 },
           "lateral": -8.393614,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18833,7 +18551,6 @@
           "at": { "joint": "s17", "offset": 53.985112611 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18843,7 +18560,6 @@
           "at": { "joint": "s17", "offset": 84.833747611 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18853,7 +18569,6 @@
           "at": { "joint": "end", "offset": -82.072794803 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18863,7 +18578,6 @@
           "at": { "joint": "end", "offset": -74.360635803 },
           "lateral": -8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18873,7 +18587,6 @@
           "at": { "joint": "end", "offset": -66.648476803 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18883,7 +18596,6 @@
           "at": { "joint": "end", "offset": -35.799841803 },
           "lateral": -8.393614,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18893,7 +18605,6 @@
           "at": { "joint": "end", "offset": -28.087682803 },
           "lateral": 8.393614,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18903,7 +18614,6 @@
           "at": { "joint": "end", "offset": -8.483374803 },
           "lateral": -8.393614,
           "groundOffset": 0.044651,
-          "unselectedLink": null,
           "body": [{ "across": 0, "width": 2.925, "movable": null }]
         },
         {
@@ -18913,7 +18623,6 @@
           "at": { "joint": "end", "offset": -7.326550803 },
           "lateral": -13.502771,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 2.926316, "width": 6.95, "movable": null }]
         },
         {
@@ -18923,7 +18632,6 @@
           "at": { "joint": "end", "offset": -3.470471803 },
           "lateral": -8.393614,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": null
         },
         {
@@ -18933,7 +18641,6 @@
           "at": { "joint": "end", "offset": -3.084863803 },
           "lateral": 7.663735,
           "groundOffset": 0.020145,
-          "unselectedLink": null,
           "body": [{ "across": 2.926316, "width": 6.95, "movable": null }]
         },
         {
@@ -18943,7 +18650,6 @@
           "at": { "joint": "end", "offset": -2.699255803 },
           "lateral": -6.568916,
           "groundOffset": 0,
-          "unselectedLink": null,
           "body": null
         }
       ],
