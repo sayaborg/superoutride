@@ -48,6 +48,8 @@ export interface ArcRoad {
   height(s: number): number;
   /** Its angle at position `s`, radians up, as its records give it, a jump where one starts at another angle. */
   angle(s: number): number;
+  /** How far it runs level to position `s`, positions: its angle's cosines along it, laid from its first record. */
+  run(s: number): number;
   /** The most its height departs from the table's where each record starts. */
   readonly departure: number;
 }
@@ -60,15 +62,22 @@ export interface ArcRoad {
 export function arcRoad(tables: RoadTablesAt, records: readonly RoadProfileRecord[], end: number): ArcRoad {
   if (!records.length || records[0]!.start !== 0) throw contractUnmet("A road's 3D road does not start at 0");
   const unit = angleRadians(tables);
-  const pieces: { readonly from: number; readonly height: number; readonly angle: number; readonly bend: number }[] =
-    [];
-  let height = 0;
+  const pieces: {
+    readonly from: number;
+    readonly height: number;
+    readonly run: number;
+    readonly angle: number;
+    readonly bend: number;
+  }[] = [];
+  let [height, run] = [0, 0];
   records.forEach((r, i) => {
     const to = records[i + 1]?.start ?? end;
     if (!(to > r.start)) throw contractUnmet(`A profile record at ${r.start} has no length`);
-    const piece = { from: r.start, height, angle: r.grade * unit, bend: r.radius ? (r.rising ? 1 : -1) / r.radius : 0 };
+    const angle = r.grade * unit;
+    const piece = { from: r.start, height, run, angle, bend: r.radius ? (r.rising ? 1 : -1) / r.radius : 0 };
     pieces.push(piece);
     height = rise(piece, to - r.start) + height;
+    run = level(piece, to - r.start) + run;
   });
   const pieceAt = (s: number) => {
     let lo = 0;
@@ -88,9 +97,19 @@ export function arcRoad(tables: RoadTablesAt, records: readonly RoadProfileRecor
       const p = pieceAt(s);
       return p.angle + p.bend * (s - p.from);
     },
+    run: (s: number) => {
+      const p = pieceAt(s);
+      return p.run + level(p, s - p.from);
+    },
   };
   const departure = Math.max(...records.map((r) => Math.abs(road.height(r.start) - (r.height - records[0]!.height))));
   return { ...road, departure };
+}
+
+/** A piece's level run over `d` positions from its start: its angle's cosine along a straight, along an arc its sines'. */
+function level(piece: { readonly angle: number; readonly bend: number }, d: number): number {
+  if (!piece.bend) return Math.cos(piece.angle) * d;
+  return (Math.sin(piece.angle + piece.bend * d) - Math.sin(piece.angle)) / piece.bend;
 }
 
 /** A piece's rise over `d` positions from its start: its angle's sine along a straight, along an arc its cosines'. */

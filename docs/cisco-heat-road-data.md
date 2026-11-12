@@ -56,6 +56,19 @@ stage's first record, its heights keep within 1.5 positions of the table's at ea
 sine changing evenly along an arc, departs from these by thousands of positions; its heights are what its screen shows
 ([Stage CS](NEXT.md#stage-cs--cisco-heat-from-the-roms)), read from this road.
 
+## Its heights
+
+Its heights are [read back from its screen](original-road-data.md#profile-from-the-originals-screen) (a screen alone)
+through [its camera](#its-camera), each stage's road a piece from its start to its end (`cisco-heat-screen-frames`): its
+screen is its road CPU's rows as its program draws them (R1 0x19F0 to 0x2174), frame by frame every 64 positions of the
+car. A row k + 1 up from the nearest (91 rows, their depths from R1 0x3234) takes the road's point at its depth ahead of
+the car, in the road's vertical plane its run level and its height (R1 0x1FA0, by its records' arcs as `arcRoad` lays
+them), less its point under the car (`$c0044`, `$c0040`, R1 0x1758); its height by the pitch's cosine less its run by
+its sine (R1 0x2120: `$c0052` and `$c0050`, the pitch the road's angle under the car, R1 0x15EA), times the row's scale
+over 16,384 (its table 0xB8 bytes on, R1 0x216A), is how many whole rows above that row it shows. Its level road is each
+row where the road keeps its grade; its nearest row is its screen's last. The scales fall by 165.5 a row, a pinhole's of
+99.0 rows, not its depths' of 92.70, so it draws a rise ahead about 7 % taller near the car than a pinhole would.
+
 ## Its road across
 
 Each line of a road layer is a line of the road ROMs, BIG RUN's format (`jaleco/road-lines`). A plan record's picture

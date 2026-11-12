@@ -49,6 +49,14 @@ import { LOOK_PLACES } from './shared/shared-constants.js';
 import { assembleFinalLap2, FINAL_LAP_2_ROMS } from './final-lap-2/final-lap-2-rom.js';
 import { intervalMetres, LAP_UNITS, readNames, readSlopeTables } from './final-lap-2/final-lap-2-road.js';
 import { finalLap2Inputs, finalLap2LapFrames, readProjection } from './final-lap-2/final-lap-2-screen-frames.js';
+import { assembleCiscoHeatMain, assembleCiscoHeatRoadCpu, CISCO_HEAT_ROMS } from './cisco-heat/cisco-heat-rom.js';
+import { positionMetres as ciscoHeatPositionMetres } from './cisco-heat/cisco-heat-road.js';
+import {
+  ciscoHeatInputs,
+  ciscoHeatRoadFrames,
+  ciscoHeatStageRoads,
+  readCiscoHeatScreen,
+} from './cisco-heat/cisco-heat-screen-frames.js';
 
 const FILE = 'tools/road-data/shared/screen-pieces.json';
 /** The file's places: stations to the micrometre, grade changes to 1e-9, heights to the millimetre, steepest to 0.01 %. */
@@ -225,6 +233,10 @@ const FINAL_LAP_2_ABOUT =
   "FINAL LAP 2's laps, each by its course's name: its screen round its second lap of three alike, read through its " +
   "level camera at this game's focal length. A stretch starts at the camera's station when the car is at its table's " +
   'start; the grade is 0 there and at its end, a lap later.';
+const CISCO_HEAT_ABOUT =
+  "CISCO HEAT's stages' roads, each by its stage and road: its road CPU's rows from the stage's start to its end, its " +
+  "goal and on to the first record of either road past it, at most 2,000 positions, read through its camera tilting with the road at this game's focal length. A stretch starts at " +
+  "the camera's station when the car is at the stage's start; the grade is 0 there and at its end.";
 const ENDURO_RACER_ABOUT =
   "ENDURO RACER's normal path's cycle (256 positions from P & 0xFF = 0) and each hill's stretch of whole cycles (from " +
   "the cycle start at or before the hill's start; its length in cycles), read through its level camera at this game's " +
@@ -232,16 +244,18 @@ const ENDURO_RACER_ABOUT =
 
 /**
  * Which pieces: every one, or those `--table` (with `--kmh` for a held one), `--cycle`, `--hill`, `--laps` (FINAL LAP 2's
- * four) and `--course` name.
+ * four), `--course` and `--stage` (CISCO HEAT's two roads of each stage it lists, by their numbers) name.
  */
 function chosen(options: ReadonlyMap<string, string>) {
   const table = options.get('--table'),
     hill = options.get('--hill'),
-    course = options.get('--course');
+    course = options.get('--course'),
+    stage = options.get('--stage');
   const some =
     table !== undefined ||
     hill !== undefined ||
     course !== undefined ||
+    stage !== undefined ||
     options.has('--cycle') ||
     options.has('--laps');
   return {
@@ -251,6 +265,7 @@ function chosen(options: ReadonlyMap<string, string>) {
     cycle: !some || options.has('--cycle'),
     hill: (k: number) => !some || (hill !== undefined && Number(hill) === k),
     course: (name: string) => !some || options.has('--laps') || course === name,
+    stage: (n: number) => !some || (stage !== undefined && stage.split(',').map(Number).includes(n)),
   };
 }
 
@@ -264,8 +279,9 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       '--hill': 'value',
       '--laps': 'flag',
       '--course': 'value',
+      '--stage': 'value',
       '--sensitivity': 'flag',
-      ...zipOptions(OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS, FINAL_LAP_2_ROMS),
+      ...zipOptions(OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS, FINAL_LAP_2_ROMS, CISCO_HEAT_ROMS),
     },
     async function* (options) {
       const check = options.has('--check');
@@ -275,6 +291,7 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       const er = assembleEnduroRacerPrograms((await readSource(ENDURO_RACER_ROMS, options)).set);
       const screen: EnduroRacerScreen = readEnduroRacerScreen(er);
       const fl2 = assembleFinalLap2((await readSource(FINAL_LAP_2_ROMS, options)).set);
+      const cisco = (await readSource(CISCO_HEAT_ROMS, options)).set;
       const kept = JSON.parse(await readFile(FILE, 'utf8')) as PiecesFile;
       const solved: string[] = [];
       const seconds: Record<string, number> = {};
@@ -335,6 +352,28 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
         const head = { piece: name, inputs: finalLap2Inputs(projection, slopes[c]!, fl2Metres), cycles: 1 };
         return take(head, lap, kepts.get(`final-lap-2/${name}`));
       });
+      const ciscoMain = assembleCiscoHeatMain(cisco);
+      const ciscoCpus = [assembleCiscoHeatRoadCpu(cisco, 0), assembleCiscoHeatRoadCpu(cisco, 1)] as const;
+      const ciscoScreen = readCiscoHeatScreen(ciscoCpus[0]);
+      const ciscoMetres = ciscoHeatPositionMetres(ciscoMain);
+      // A stage's two roads read alike where their 3D roads are one (STAGES 1 to 3): solved once.
+      const solvedFrom = new Map<string, KeptPiece>();
+      const stageRoads = ciscoHeatStageRoads(ciscoMain, ciscoCpus).map((r) => {
+        if (!which.stage(r.stage + 1)) return keptPiece('cisco-heat', r.piece);
+        const head = { piece: r.piece, inputs: ciscoHeatInputs(ciscoScreen, r.arcs, r.end, ciscoMetres) };
+        const same = solvedFrom.get(head.inputs);
+        if (same) {
+          const piece = { ...same, piece: r.piece };
+          const old = kepts.get(`cisco-heat/${r.piece}`);
+          if (JSON.stringify(piece) !== JSON.stringify(old))
+            differ.push({ piece: r.piece, metres: old ? round(heightDifference(piece, old), 4) : Infinity });
+          return piece;
+        }
+        const frames = ciscoHeatRoadFrames(ciscoScreen, r.arcs, r.end, ciscoMetres);
+        const piece = take(head, frames, kepts.get(`cisco-heat/${r.piece}`));
+        solvedFrom.set(head.inputs, piece);
+        return piece;
+      });
       const outrunClock = readClock(outrun);
       const file: PiecesFile = {
         about: ABOUT,
@@ -361,6 +400,13 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
             cellPositions: closedCellPositions(fl2Metres, LAP_UNITS),
             pieces: laps,
           },
+          {
+            original: 'cisco-heat',
+            about: CISCO_HEAT_ABOUT,
+            positionMetres: ciscoMetres,
+            cellPositions: cellPositionsOf(ciscoMetres),
+            pieces: stageRoads,
+          },
         ],
       };
       if (check)
@@ -373,6 +419,6 @@ export const SCREEN_PIECES_COMMANDS: RoadDataCommands = Object.freeze({
       else await atomicWrite(FILE, formatSavedJson(file));
       yield { ok: true, checked: check, solved: solved.length, seconds, differ, ...(search ? { moved } : {}) };
     },
-    [OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS, FINAL_LAP_2_ROMS],
+    [OUTRUN_ROMS, TURBO_OUTRUN_ROMS, ENDURO_RACER_ROMS, FINAL_LAP_2_ROMS, CISCO_HEAT_ROMS],
   ),
 });

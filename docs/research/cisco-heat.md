@@ -26,6 +26,20 @@ RUN](big-run.md)).
   k) to within 0.57, a pinhole's; the scales fall by 165.5 a row from 16,384, as BIG RUN's do, not a pinhole's of the
   same depths.
 
+## Its screen
+
+- **The row loop.** R1 0x19F0 to 0x1B24 draws 91 rows up from the nearest, a depth a row from R1 0x3234: each row's
+  position (its depth plus the car's, `$c00ae`) finds its plan record (0x1BC8) and its point across (0x1DF4, 0x1F6A),
+  then its profile point (0x1FA0: on a straight its record's +6 and +0xA moved by the sine and cosine of its angle, +0x10
+  and +0x12; on an arc by its angle's at the distance, 0x30BA), raised over the car's (0x2120) and placed (0x2174: the
+  row's index added, its depth kept at `$c13b0` − 2 × row + 0x200, the rows held within ±0x1FF and below 216).
+- **The car's point and pitch.** R1 0x1758 takes the profile point at the car's position (`$c0044` its run, `$c0040`
+  its height); R1 0x15EA its angle less the main's `$c00c0` as the pitch, its sine and cosine (`$c0050`, `$c0052`).
+- **The rise.** R1 0x2120: (height − `$c0040`) × cosine − (run − `$c0044`) × sine, shifted by 14, plus `$c0074` (the
+  main's, 0 where it moves no horizon), times the row's scale (0xB8 bytes past its depth), shifted by 14 again.
+- **Open.** The screen row its nearest road row lies on (taken as its last); how the road layer's rows below 216 and
+  their priorities show; the main's `$c0074` and `$c00c0` as the car drives, which its screen is read without.
+
 ## Its skies
 
 - **The planes' ROMs.** Plane 0's tiles are `ch9071.a14`'s and plane 1's `ch9071.t74`'s, 2,048 tiles each, read by

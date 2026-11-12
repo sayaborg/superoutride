@@ -21,6 +21,10 @@ test("a vertical arc's angle changes evenly along it, so a quarter circle rises 
   assert.ok(near(road.angle(quarter / 2), Math.PI / 4));
   assert.ok(near(road.height(quarter + 500), R + 500));
   assert.ok(road.departure < 1e-6);
+  // It runs level its radius over the quarter circle, and none straight up from it.
+  assert.ok(near(road.run(quarter), R));
+  assert.ok(near(road.run(quarter / 2), R * Math.sin(Math.PI / 4)));
+  assert.ok(near(road.run(quarter + 500), R));
 });
 
 test('a record starting at another angle kinks the road there; a falling arc bends down', () => {
