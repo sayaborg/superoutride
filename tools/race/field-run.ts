@@ -72,7 +72,7 @@ export async function runField(job: FieldRunJob) {
   } as const;
   const prepared = await prepareRun(content, catalog, course, null, request);
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
-  const race = createCourseRace({ setup: prepared.resolve(job.seed), runtime: scene.runtime, playerExit: () => 0 });
+  const race = createCourseRace({ setup: prepared.resolve(job.seed), runtime: scene.runtime });
   race.start();
   const idle = { steering: 0, throttle: false, brake: false };
   const ticks = Math.ceil((READY_SECONDS + job.seconds) / SIM_DT);

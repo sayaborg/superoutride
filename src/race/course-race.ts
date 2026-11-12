@@ -6,7 +6,6 @@ import { createRankLimitJudge, createRunOutcome, type RunStatus } from './run-ou
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
 import { createCourseForkField, LINE } from './course-fork-field.js';
-import { rivalExit } from './rival-exit.js';
 import { createRecoveryState, recoverVehicle, type RecoveryState } from './recovery.js';
 import {
   beginContactResponse,
@@ -51,7 +50,7 @@ import { SIM_DT } from './fixed-step.js';
 import { createBarrierContacts } from './barrier-contacts.js';
 import { createRoadsideObjects, type KnockedObjectObservation } from './object-contacts.js';
 import type { createRouteRuntime } from './route-runtime.js';
-import { gridRouteS, routeSectionS, type RouteOccurrence } from '../course/course-route.js';
+import { gridRouteS, routeSectionS } from '../course/course-route.js';
 import { nextParting } from './next-parting.js';
 
 type RouteRuntime = ReturnType<typeof createRouteRuntime>;
@@ -88,8 +87,6 @@ interface RivalPacing {
 export function createCourseRace(options: {
   readonly setup: RunSetup;
   readonly runtime: RouteRuntime;
-  /** The target exit at each fork occurrence of the player's run driver, which drives the player on request. */
-  readonly playerExit?: (occurrence: RouteOccurrence) => number;
   /**
    * The steering rule the player drives by while the player's own input reaches its vehicle; the default rule when
    * absent. A driver, the player's run driver included, drives by its own rule.
@@ -126,22 +123,8 @@ export function createCourseRace(options: {
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
   // The course's routes as reference runs name them: each its Links in canonical order; a circuit's is empty.
   const routes = enumerateCourseRoutes(course.entry, course.type);
-  // The fork field is the fork decider: the only holder of the Route's selection authority. A choice changes what every
-  // driver's path returns beyond the fork, so each present driver takes a new path function, as on a change of lane:
-  // its plan caches by path.
-  const forks = createCourseForkField(
-    runtime.route,
-    lines,
-    (link) => {
-      runtime.selectSuccessor(link);
-      for (const { driving } of bodies)
-        if (driving) {
-          const { intent } = driving;
-          driving.target = (station: number) => forks.targetL(station, intent);
-        }
-    },
-    options.setup.racingLines,
-  );
+  // The lanes and the racing line every driver and recovery reads.
+  const forks = createCourseForkField(runtime.route, options.setup.racingLines);
   // A circuit's lap: its Sections around the cycle from the entry.
   let lapLength: number | null = null;
   if (course.type === 'CIRCUIT') {
@@ -152,9 +135,9 @@ export function createCourseRace(options: {
       section = section.outgoing[0]!.to.section;
     } while (section !== course.entry);
   }
-  // A driver takes the racing line of its exits at route station s from lateral l, holding l's offset from the line
-  // (written to `offset`).
-  const lineProbe: LaneIntent = { lane: LINE, at: 0, exit: () => 0 };
+  // A driver takes the racing line at route station s from lateral l, holding l's offset from the line (written to
+  // `offset`).
+  const lineProbe: LaneIntent = { lane: LINE, at: 0 };
   const lineOffset = (): PathOffset => ({
     from: 0,
     to: 0,
@@ -165,7 +148,6 @@ export function createCourseRace(options: {
     passing: null,
   });
   const takeLine = (intent: LaneIntent, s: number, l: number, offset = lineOffset()) => {
-    lineProbe.exit = intent.exit;
     const from = l - forks.targetL(s, lineProbe);
     intent.lane = LINE;
     intent.at = s;
@@ -263,15 +245,10 @@ export function createCourseRace(options: {
   const judge = createRankLimitJudge(rankLimits, player.id);
   const rivalDriving = rivalEntries.map(drivingOf);
   const rivals = rivalEntries.map((entry, rivalIndex) => {
-    // A grid rival takes the racing line from its slot; an ahead entry names its lane.
-    // The race assigns each rival's target exits from the run seed; its grid side implies none.
-    const exit = (occurrence: RouteOccurrence) =>
-      rivalExit(options.setup.seed, rivalIndex, occurrence.ordinal, occurrence.section.fork!.exits.length);
-    // An ahead entry's lane is read where it appears; until then nothing reads it.
+    // A grid rival takes the racing line from its slot; an ahead entry names its lane, read where it appears; until
+    // then nothing reads it.
     const width = modelOf(entry.vehicle).compiledVehicle.footprint;
-    const intent: LaneIntent = entry.slot
-      ? { lane: LINE, at: 0, exit }
-      : { lane: entry.ahead!.lane, at: 0, exit, width };
+    const intent: LaneIntent = entry.slot ? { lane: LINE, at: 0 } : { lane: entry.ahead!.lane, at: 0, width };
     // A grid rival takes the racing line from its slot; an ahead entry when it appears, from its lane.
     const offset = entry.slot ? takeLine(intent, gridRouteS(runtime.route, entry.slot), entry.slot.l) : lineOffset();
     // Until it appears, an ahead entry's actor waits unmoved at the player's slot; nothing reads it.
@@ -334,13 +311,7 @@ export function createCourseRace(options: {
     log: contactLog,
   });
   // Placement and the drivers' lane decisions read the present vehicles.
-  const placement = createVehiclePlacement({
-    readers: runtime.readers,
-    window: runtime.window,
-    forks,
-    roadsideObjects,
-    bodies,
-  });
+  const placement = createVehiclePlacement({ window: runtime.window, forks, roadsideObjects, bodies });
   const laneDriving = createLaneDriving({
     road: runtime.readers,
     window: runtime.window,
@@ -445,7 +416,6 @@ export function createCourseRace(options: {
   };
   const move = (body: PresentVehicle, input: DrivingInput, steering = steeringOf(body)) =>
     advancePresentVehicle(runtime.readers, body, input, steering);
-  const { legalRecovery } = placement;
   // The traffic field owns traffic appearance, holding and departure; the race supplies what it shares.
   const appearanceLine = () => player.actor.vehicle.course.s - view.cameraDistance + view.far;
   const trafficField = createTrafficField({
@@ -538,7 +508,7 @@ export function createCourseRace(options: {
   // terminal.
   const takeoverDriver = options.setup.driverOf(playerEntry!.vehicle);
   const takeoverWorkspace = createPlannedDriverWorkspace();
-  const takeoverIntent: LaneIntent = { lane: LINE, at: 0, exit: () => 0 };
+  const takeoverIntent: LaneIntent = { lane: LINE, at: 0 };
   const takeoverDomain = { start: 0, end: 0, terminal: null as number | null };
   let stopS = Infinity;
   const takeOver = () => {
@@ -556,8 +526,8 @@ export function createCourseRace(options: {
     };
   };
   // Before GOAL the player's run driver drives the player when the composition asks (an advance without input), as
-  // the takeover does after GOAL, toward the composition's target exits from the lane nearest the player at the time.
-  const playerIntent: LaneIntent = { lane: LINE, at: 0, exit: options.playerExit ?? (() => 0) };
+  // the takeover does after GOAL, on the racing line from where the player is at the time.
+  const playerIntent: LaneIntent = { lane: LINE, at: 0 };
   const playerWorkspace = createPlannedDriverWorkspace();
   const handOver = (driven: boolean) => {
     if (outcome.status === 'GOAL') return;
@@ -589,8 +559,7 @@ export function createCourseRace(options: {
     return laneDriving.drive(player.body, drivingDomainBefore(runtime.window, stopS, takeoverDomain));
   };
   /**
-   * Moves the present field one step: the player by `input`, each rival by its driver, then fork observation and Route
-   * loading. A running step (`stepStart` set) also paces the rivals by their lead over the player, the progress the
+   * Moves the present field one step: the player by `input`, each rival by its driver, then Route loading. A running step (`stepStart` set) also paces the rivals by their lead over the player, the progress the
    * standing ranks by; after the run ends they hold their pace.
    */
   const driveField = (input: DrivingInput | null, stepStart: number | null) => {
@@ -626,18 +595,15 @@ export function createCourseRace(options: {
       }
       move(body, laneDriving.drive(body));
     }
-    // Traffic drives as rivals do; it never selects a route, and recovery keeps it legal like any vehicle.
+    // Traffic drives as rivals do.
     trafficField.advance();
     // Only a running step counts: READY holds the field, and after the run ends nothing counts.
     if (stepStart !== null) for (const body of bodies) safetyNet(body);
     else for (const body of bodies) if (body.driving) body.driving.standing = 0;
     roadsideObjects.advance();
-    forks.observe(activeBodies);
     for (const body of activeBodies) {
       minS = Math.min(minS, body.vehicle.course.s);
       maxS = Math.max(maxS, body.vehicle.course.s);
-      // After the run ends, progress, events, presence and the clock hold; recovery still keeps the field legal.
-      if (stepStart === null) legalRecovery(body);
     }
     runtime.refresh(minS, maxS);
     if (trafficField.update()) refreshBodies();
@@ -662,7 +628,6 @@ export function createCourseRace(options: {
     candidates.length = 0;
     for (const c of active) {
       const { body } = c;
-      legalRecovery(body);
       for (const crossing of c.observer.crossings(body.previous, body.vehicle.course, body.recovered))
         candidates.push({ c, crossing, timeSeconds: raceEventSeconds(stepStart, crossing.u) });
     }
@@ -880,8 +845,8 @@ export function createCourseRace(options: {
       return stepObservation;
     },
     /**
-     * Manual recovery of the player: the ordinary recovery toward its lane, then a legal-road check and a
-     * progress baseline reset that award no progress, then a fresh observation.
+     * Manual recovery of the player: the ordinary recovery toward its lane, then a progress baseline reset that awards
+     * no progress, then a fresh observation.
      */
     recoverPlayer() {
       if (contactResponseStopped(playerActor.contactResponse)) return;
@@ -893,7 +858,6 @@ export function createCourseRace(options: {
       });
       if (!recovered) return;
       player.body.recovered = true;
-      legalRecovery(player.body);
       resync(player);
       publish();
     },
@@ -910,7 +874,7 @@ export function createCourseRace(options: {
         return startPhase.signalLamps;
       },
     }),
-    /** The read-only Route, whose entry occurrence carries the entry fork's choice. */
+    /** The read-only Route. */
     route: runtime.route,
     courseType: course.type,
     /** The laps to the finish; null for a run without a finish. */

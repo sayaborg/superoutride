@@ -28,8 +28,8 @@ vehicle physics, route readers, camera and rival sprite rendering as the browser
 through the browser's path (`prepareRun`: the run admission, the products it needs from delivery, and resolution).
 The player is driven by the product's driver: an advance without input hands the player to its run driver, the standard
 driver ([Driver roles](content-and-gameplay.md#driver-roles)), which plans, follows, passes and merges by the drivers'
-rules toward the scenario's target exit at every fork. Policies that need other inputs script them: the course limit and
-broadside policies hold pedals and steering. `npm test` runs them on every
+rules. Policies that need other inputs script them: the course limit and broadside policies hold pedals and steering.
+`npm test` runs them on every
 CI build. After `npm run build`, use `npm run test:scenarios` alone. The Node test runner reports total wall time and
 per-scenario times; these are observations, not timing gates.
 
@@ -989,7 +989,7 @@ camera); the car keeps to its lane's centre, along it and pitched to the road's 
 keeps its height above the road and its direction against the road. Its lane is one of those at the slider's station,
 numbered from the left (the one nearest the centreline that has room for a car 1.8 m wide at first), carried along the
 Route by the race's rule for a driver's lane (`createCourseForkField`'s `carry` and `targetL`: across each seam the
-lane continues; at a fork the first exit, as the map lays the course out); where its lane ends ahead (narrower than the
+lane continues); where its lane ends ahead (narrower than the
 car, or at a seam it does not continue across) it moves to the lane beside it that continues, as a driver's path
 offset moves, by a cosine blend over `max(30 m, speed × 1.5 s)` (`PATH_OFFSET`). Its speed is set in km/h (120 at
 first, 0 to 400). A circuit's car laps on, any other stops at the Route's end; the slider and its station follow the

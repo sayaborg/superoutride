@@ -780,65 +780,28 @@ in the Route's first occurrence (`gridRouteS`). The Route's start is a course li
 ([Barrier lines](#barrier-lines)). Recovery preserves
 accepted cross sections and laps and suppresses crossing credit for that step.
 
-## Fork lock and handoff
+## Lanes and the racing line
 
-Courses do not branch (K, 2026-11-12): the compiler admits no fork, so the fork parts below never apply. The race's
-fork machinery goes in Stage RC's RC-3b; the lane rules stay.
+Courses do not branch (K, 2026-11-12): each Section leaves by at most one Link, and the Route extends through it.
 
-Exit roads are ordered by their actual lock-line edges. Median centers divide supported
-space into exit intervals; outer supported shoulders belong to the outer exits. The shared half-open
-[lateral rule](architecture.md#boundary-geometry-and-point-ownership) assigns exact ties to the right.
-A crossing outside the coordinate domain or outside every fork interval selects no route.
-
-The player and rivals are eligible. Lock lines use the same route-s crossing function as race lines.
-The first forward crossing in a fixed step wins, using the s-derived fraction u and then stable actor
-ID for an exact tie. Interpolated route l, shifted by the occurrence's lateral origin, selects the
-fork interval. The winner appends one successor to the shared Route. That successor occurrence is the only
-stored fork choice: the occurrence after a fork occurrence on the Route (`selectedSuccessor`). A fork occurrence
-with a successor is locked, so each occurrence locks once; its choice is looked up by occurrence, so repeated
-passes of one fork Section are distinct. The lock, the closed roads, the legal recovery targets and state-selected signs all
-derive from that successor.
-Checkpoint credit remains per actor.
-
-A driver's intent has two separate values: its lane, a lane of the Section's lanes (its index left to right, medians
-not counted) at a route station, and its target exit, an exit index at each fork occurrence; any exit, a middle one
-included, can be intended, and the grid side implies none. Across a seam a lane continues as the lanes do: the Link's
-named lane as the next Section's centre lane, and the lanes beside it in order. A lane is there for a driver where it is
-no narrower than the driver's vehicle (one of zero width for none; a driver with no vehicle, every lane wider than
-zero), and ends for it where it narrows below that; at a fork, a lane not in the road of the Link the intent follows (the intended exit's, or the selected exit's
-once the occurrence is decided) ends at the lock line, or at closure once the fork is decided, so heading for an exit
-is merging; and a lane ends at a seam it does not continue across. Its driver merges toward the lane beside it that
+A driver's intent is its lane, a lane of the Section's lanes (its index left to right, medians not counted) at a route
+station. Across a seam a lane continues as the lanes do: the Link's named lane as the next Section's centre lane, and
+the lanes beside it in order. A lane is there for a driver where it is no narrower than the driver's vehicle (one of
+zero width for none; a driver with no vehicle, every lane wider than zero), and ends for it where it narrows below
+that; and a lane ends at a seam it does not continue across. Its driver merges toward the lane beside it that
 continues (below), crossing a median only then. The race carries each driver's lane to its station every step. The
-fork field's target (`targetL`) is the centre of the intent's lane, carried to the station. The racing line is one more
-lane of every road it lies on (`LINE`): its target is the course's racing line toward the Link the intent follows at each
-fork (the intended exit's, or the selected one once decided), or the centre lane's centre without delivered racing
-lines; it never ends and is not carried across seams, and the lanes beside it are the nearest lane on each side of it in
-that road. A grid rival takes the racing line from its slot, its path offset starting as its slot's offset from the
-line ([Path offsets](#path-offsets)); the player's run driver (the attract demo and the takeover)
-takes the racing line from where the player is. The recovery lane
-(`recoveryL`) keeps its own rule ([Recovery](#recovery)). The race assigns each rival's target exits from the
-Run seed:
-
-```text
-exit = hash(seed, rivalIndex, occurrence.ordinal) mod exitCount
-```
-
-`hash` (`rivalExit`) chains 32-bit integer avalanche steps (`Math.imul`, shifts and xor), so every runtime computes
-the same exits. Reference runs intend each planned Link's exit and change no lanes: their target is the racing line toward the
-planned Link at each fork (the reference line). Scenarios drive the player by
-its run driver and name their exit indices. Unselected roads show saved state-selected signs. At/beyond closure, an
-actor is on a closed road when its l lies within a road there that the selected Link does not leave by (edges
-included). It recovers at the same chainage to the nearest lane centre of the selected road; progress observations
-resynchronize. Geometry stays static.
-
-Before lock, the parent covers all required queries through fixed-step advance:
-`requiredEnd <= parentEnd`. After lock the selected Link extends the Route.
-At every exit, the parent owns its whole `[0,L]` interval. The successor starts at the cut;
-reverse travel stays on the selected predecessor in the same route coordinates.
+lane field's target (`targetL`) is the centre of the intent's lane, carried to the station. The racing line is one
+more lane of every road it lies on (`LINE`): its target is the course's racing line, or the centre lane's centre
+without delivered racing lines; it never ends and is not carried across seams, and the lanes beside it are the nearest
+lane on each side of it in the centre lane's road. A grid rival takes the racing line from its slot, its path offset
+starting as its slot's offset from the line ([Path offsets](#path-offsets)); the player's run driver (the attract demo
+and the takeover) takes the racing line from where the player is. The recovery lane (`recoveryL`) keeps its own rule
+([Recovery](#recovery)). Reference runs change no lanes: their target is the racing line (the reference line).
+Scenarios drive the player by its run driver.
 
 ## Route cross sections and progress
 
-`createRouteCrossSections` produces ordered race and fork-lock lines from the append-only Route. Each
+`createRouteCrossSections` produces ordered race lines from the append-only Route. Each
 occurrence from the entry on places its Section checkpoints and FINISH at route s; a circuit repeats those lines for
 each lap. The Section a circuit's start runs before the entry places none: the first FINISH crossed after GO is no
 lap, and its checkpoints none either. Lap numbers count FINISH lines along the Route: every line after the (k-1)-th FINISH
@@ -854,8 +817,8 @@ arrival.
 Crossing times are interpolated within the outer step. `previous` and `current` are the vehicle's `(s,l)` at
 the start and end of one fixed step, and u and the crossing l interpolate linearly between them; they are not
 the exact crossing of the path the vehicle follows through its 12 mechanics substeps. Event times
-(`stepStart + u*SIM_DT`), acceptance, the deadline, finish times and fork decisions are all decided on this
-approximation. Reverse travel and recovery steps grant no crossing credit. Road width and material
+(`stepStart + u*SIM_DT`), acceptance, the deadline and finish times are all decided on this approximation. Reverse
+travel and recovery steps grant no crossing credit. Road width and material
 support do not limit a race line's width.
 
 `createRouteProgress` is the single implementation for all course kinds. Each actor retains its next
@@ -900,12 +863,12 @@ another competitor's crossing exactly at the deadline is not decided. A run with
 count laps and it runs until the player ends it. The race publishes whether the run can be ended so (`endable`: such a
 run, RUNNING) and ends it between steps (`end`), ENDED at the race time of that moment.
 
-After the ending the race keeps moving the field: every present competitor advances each step with recovery, fork
-observation and Route loading, while race time, progress, events, presence and judging hold. The player's rank is
+After the ending the race keeps moving the field: every present competitor advances each step with recovery and
+Route loading, while race time, progress, events, presence and judging hold. The player's rank is
 therefore fixed at the ending: competitors unfinished at that moment rank behind a finished player. Rivals keep
 their last utilization. After GOAL the player's input no longer reaches its vehicle: its vehicle's standard driver
 ([Driver roles](#driver-roles)) drives it on the racing line, taken with a path offset from where
-the vehicle is at the end of the step it finished in (on a fork, toward the selected exit), and plans a stop at its
+the vehicle is at the end of the step it finished in, and plans a stop at its
 station then plus that vehicle's runout distance (`speedCap² / (2*a)`), within any Route terminal. After GAME OVER the player's throttle is released: its steering and brake still
 apply and the vehicle coasts.
 
@@ -944,7 +907,7 @@ k runs from the (k−1)-th gate to the k-th; STAGE 1 runs from GO to the first g
 stage interval is present in the run until the player has crossed its last stage's closing gate and the
 competitor is out of view: behind the camera, or farther from it than the farthest rendered depth, both read from
 the camera window in the Route runtime's loading coverage. Leaving is final. A competitor that is not present is not
-moved, ranked, judged by rank limits, counted for fork arrival, observed, drawn or voiced; the race exposes each
+moved, ranked, judged by rank limits, observed, drawn or voiced; the race exposes each
 competitor's presence and the player's STAGE. A competitor joining at a later stage appears in the step in which the
 player enters that stage: at the player's route station plus its ahead distance, in its lane, moving at its
 driver's planned speed there (the speed that is the driver's own planned target at that station, with the vehicle
@@ -1151,7 +1114,7 @@ and TIME ATTACK alike, is its entry's when the class fixes colors, otherwise the
 player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
 vehicle, zero to fifteen rivals within the grid, a rival pool, a traffic level and permitted laps; it has no clock.
 TIME ATTACK resolves one of its class's vehicle candidates on the class's course; the player runs alone, without
-rivals, traffic or clock, and selects fork routes by driving like any first competitor at a lock line. On a LINEAR or
+rivals, traffic or clock. On a LINEAR or
 BRANCH course it runs the class's laps to a finish; on a CIRCUIT it has no lap count (`lapCount` null): a run without
 a finish, whose finish lines count laps and never finish it ([race time and events](#race-time-and-events)). One admission,
 `compileRunConfiguration`, derives these rules from a request and checks it against the course, its class and
@@ -1183,7 +1146,7 @@ FREE PLAY rival pairs, every other vehicle that may drive in it (class entries, 
 candidates) and the clock's time budgets; the browser loads exactly these.
 The start speed is a resolved run setting: every competitor spawns at its grid slot moving at it along the
 road tangent. It is finite and may be negative; product runs and reference runs use 0. The run seed is a
-32-bit unsigned integer that run resolution takes with the configuration and checks; rival target exits derive from it. The
+32-bit unsigned integer that run resolution takes with the configuration and checks; traffic derives from it. The
 browser picks a new seed for every run assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
 FREE PLAY runs without rivals, use 0, and scenarios and tests fix theirs. The race builds each
 competitor's mechanics and each rival's driver from its entry's vehicle; the player's composition supplies input only.
@@ -1203,8 +1166,8 @@ reads completed racing lines and time budgets and owns live run driving policy.
 The measurement tool's continuous reference runs are FREE PLAY's runs without rivals or traffic, but from the last
 grid slot, where a FREE PLAY run alone starts from the first: product physics and finite routes/laps, with the
 standard driver alone, waiting at full throttle through READY, and no clock. It drives by its own plan along the
-racing line toward the planned Link at each fork (`racingLinePath`), without the race's sightings of other vehicles and
-standing objects, so that a run's path is the racing line's whatever stands on it. Each successful run records the
+racing line (`racingLinePath`), without the race's sightings of other vehicles and standing objects, so that a run's
+path is the racing line's whatever stands on it. Each successful run records the
 race's event stream for the player ([race time and events](#race-time-and-events)): ordered crossings with their race
 times, including within-step fractions. Reading a report derives the order and laps a run must record from the race's
 own lines: it builds the planned route's Route and reads its `RouteCrossSections` race lines through the completing
@@ -1438,12 +1401,10 @@ of `utilizationResolution`, 0.01) and below the speed cap; the drive and braking
 cell asks for. A driver's utilization is the fraction of its tires' limits it plans to use, with no other factor: at 1
 the plan corners at the limit itself (K, 2026-11-12). The steering rule's full input reaches the front tire's whole
 bound (100 %), so the utilization's remaining share of the limit is left for closing the path-following error. The load factor `n(v) = cos θ + v²·kv/g` enters every limit. The workspace caches a cell's geometry
-by road, path and interval (a path whose content changes is a new path: a change of lane or offset, and every present
-driver's path when a fork's choice is made, since the choice changes the line or lane the path follows beyond the fork),
-and a plan's cornering speeds cache a cell's cornering speed also by limits, planned utilization, speed cap, curvature
-and grip, so plans of several utilizations over one workspace's cells keep their own ([SLOW
-DOWN](browser.md#slow-down)). Each plan runs two passes over the cells' end nodes
-from the vehicle's station:
+by road, path and interval (a path whose content changes is a new path: a change of lane or offset), and a plan's
+cornering speeds cache a cell's cornering speed also by limits, planned utilization, speed cap, curvature and grip, so
+plans of several utilizations over one workspace's cells keep their own ([SLOW DOWN](browser.md#slow-down)). Each plan
+runs two passes over the cells' end nodes from the vehicle's station:
 
 - Forward, from the vehicle's speed: each node the previous node's speed driven over the segment at the drive limit
   less drag, grade, rolling resistance and cornering drag, within the cell's cornering speed. Where the load factor at
@@ -1603,10 +1564,10 @@ in `src/race/lane-following.ts`. These rules replace lane changes for passing; t
 rules below.
 
 Where a driver's lane ends, it merges first, passing or not: this is not a pass. A lane ends at the first end within the
-driver's lookahead by the rule above (its width falling below its vehicle's, a fork line it must leave its road by, or a seam it does
+driver's lookahead by the rule above (its width falling below its vehicle's, or a seam it does
 not continue across), or at a standing object in it (one that occupies the lane) nearer than that, whichever comes
 first. At such an end the lane to merge toward is the lane beside it that continues: the one there for its vehicle
-where a width ends, the one toward the followed road at a fork or seam; at a standing object it is the adjacent lane of
+where a width ends, the one toward the followed road at a seam; at a standing object it is the adjacent lane of
 its road there for its vehicle that does not end within the lookahead, the left one when both qualify, and none when neither does. The driver moves toward it
 one lane at a time. Each
 step that its lane ends ahead, the driver moves to the next lane toward it when that lane is free (the free-lane test
@@ -1668,21 +1629,20 @@ integer-millisecond budgets. [Development](development.md#build-outputs) owns ge
 
 ## Traffic
 
-Traffic vehicles are not competitors: they have no rank, rank limit, fork decision (the fork field never observes
-them), progress, events, record or pace, and the HUD does not count them. Each is an ordinary vehicle (its own
+Traffic vehicles are not competitors: they have no rank, rank limit, progress, events, record or pace, and the HUD does
+not count them. Each is an ordinary vehicle (its own
 mechanics, recovery and the same driver as rivals, except that its driver never changes lanes to pass: behind a slower
 vehicle it follows at that vehicle's speed; where its lane ends it merges as every driver does) whose role in the run is traffic; no vehicle document marks it.
 Traffic of `path: line` (K, 2026-11-10: SUPER HANG-ON's riders) instead takes the racing line from its lane's centre
 where it appears, as an appearing rival does, and drives it with its path offset, giving room to a vehicle alongside
 as every driver of the line does, but never passing: behind a slower vehicle on its line it follows at that vehicle's
-speed. Heading for a
-fork's exit is merging. Traffic positions lie on the Route at stations `offset + k × 1000/density` (k = 0, 1, …);
+speed. Traffic positions lie on the Route at stations `offset + k × 1000/density` (k = 0, 1, …);
 the offset in [0, spacing), and each position's vehicle, color and lane (a lane there for its vehicle of the road it
-drives at that station: at a fork the exit's road, else the centre lane's), derive from the run seed and k through the same 32-bit mixing as rival exits: the vehicle's draw falls in [0, the sum of
+drives at that station: the centre lane's), derive from the run seed and k through 32-bit integer avalanche steps
+(`mix`: `Math.imul`, shifts and xor, so every runtime computes the same draws): the vehicle's draw falls in [0, the sum
+of
 the weights), each candidate taking as many values as its weight in order, so a vehicle comes in proportion to its
-weight (FREE PLAY's candidates weigh 1 each, the draw then the candidate's index). At a fork a traffic
-vehicle heads for the selected exit, else for an exit drawn from the seed, k and the occurrence ordinal; one left on a
-closed road recovers like any vehicle.
+weight (FREE PLAY's candidates weigh 1 each, the draw then the candidate's index).
 
 The appearance line is the player's route station plus the farthest rendered distance ahead of it,
 `s − cameraDistance + far` from the loading coverage's view, whose `cameraDistance` is the camera's distance behind
@@ -1717,8 +1677,9 @@ with footprints F and overall heights H. A contact begins when all three are pos
 over one below it. It also begins when the height overlap is positive and the relative position, moving linearly from
 (Δs⁻, Δl⁻) to (Δs, Δl), entered the overlap box during the step although the footprints are apart at both its ends:
 thin footprints closing fast pass through each other within one step (two motorcycles' overlap lasts about 1.4 m of
-relative travel, one step at 84 m/s), and they meet as if they had touched. A vehicle, competitor or traffic, that a recovery (its step's,
-a return to the legal road or a manual recovery) or an appearance placed since the previous step moved from where it was
+relative travel, one step at 84 m/s), and they meet as if they had touched. A vehicle, competitor or traffic, that a
+recovery (its step's or a
+manual recovery) or an appearance placed since the previous step moved from where it was
 placed, so it sweeps nothing on its way there. Its face, an axis and a side, is decided once, as it begins, from the pair's route
 positions at the start of the previous step (Δs⁻, Δl⁻): the axis is ahead-behind when the vehicles were apart
 ahead-behind (`(F₁ + F₂)/2 − |Δs⁻| ≤ 0`) while overlapping side to side, and side to side in the opposite case. When
@@ -1789,8 +1750,8 @@ objects. It changes no mechanics; it reports quantities the contacts already com
   contact is the step it is pushed and knocked.
 
 Recovery and appearance place no vehicle on another present vehicle's footprint. Recovery backs its target along
-the Route behind each vehicle in the way, by `placementClearance`, until the place in its lane there is free;
-wrong-course recovery does the same on the selected road. A recovery that reaches the start of the resident Route
+the Route behind each vehicle in the way, by `placementClearance`, until the place in its lane there is free. A recovery
+that reaches the start of the resident Route
 without a free place, like an appearance whose place is occupied, waits: the vehicle does not recover that step, and
 the next step judges it again. A manual recovery without a free place does nothing. These choose where a vehicle is placed; they move no vehicle.
 
@@ -1845,13 +1806,13 @@ POLE POSITION.
 
 ## Recovery
 
-Airborne driving is ordinary; recovery applies only when driving cannot continue: coordinate-domain
-exit, an inverted landing, a fall 3 m below the ground, not moving while drive reaches the wheels (stuck), leaving the
-locked fork route (wrong course) or a manual request. The authored contact response above also requests recovery after
+Airborne driving is ordinary; recovery applies only when driving cannot continue: an inverted
+landing, a fall 3 m below the ground, not moving while drive reaches the wheels (stuck) or a manual request. The
+authored contact response above also requests recovery after
 its stopped interval. [Vehicle physics](vehicle-physics.md#airborne-state-and-recovery) owns the ordinary conditions. Recovery reconstructs
 pose, velocities, wheels, actuators, powertrain and observations at known supported coordinates while
 preserving steering/tire calibration and earned gates, locks and laps. Manual recovery is a race operation on the
-player: the ordinary recovery toward the centre of its road, the legal-road check, a progress baseline reset that awards
+player: the ordinary recovery toward the centre of its road, a progress baseline reset that awards
 no progress, then a fresh player observation.
 
 A driver asks for the player's manual recovery too (K, 2026-11-13): a safety net that asks no cause, and a driver's
@@ -1883,12 +1844,12 @@ request) changes neither its speed nor its place.
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage
 ([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)). The race owns target resolution: its
-recovery placement (`recoveryPlace`: its target lateral from the fork field's `recoveryL`, behind any vehicle or
+recovery placement (`recoveryPlace`: its target lateral from the lane field's `recoveryL`, behind any vehicle or
 standing object in the way, see [Body contact](#body-contact)) is passed to recovery separately from the policy. Every
-vehicle, driven or not, recovers to the centre of the lane nearest it (`recoveryLane`) of the roads it may drive: at a
-decided fork, the selected Link's road where that road is, else every lane there for its vehicle (every lane wider than
-zero where none is). Wrong-route recovery goes to the nearest lane centre of the selected road at
-the observed station (`legalTarget`). A driver whose vehicle a recovery placed drives on from there in its next step: a
+vehicle, driven or not, recovers to the centre of the lane nearest it (`recoveryLane`) of every lane there for its
+vehicle
+(every lane wider than zero where none is). A driver whose vehicle a recovery placed drives on from there in its next
+step: a
 lane driver (traffic keeping its lanes) takes the lane it was placed in as its own, and a racing line driver (a rival,
 racing line traffic, the player's run driver or the takeover) takes the line from that lane's centre, as on the grid.
 Every spawn and recovery target, route-derived or explicit, passes one check (`supportedTargetSurface`): its l

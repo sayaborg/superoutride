@@ -207,16 +207,15 @@ stop. No time limit applies to unsupported flight, and body rotation in the air 
 Pitch protection is inactive in the air; see [Torque protection](#torque-protection).
 
 Recovery applies only when driving cannot continue. After each gameplay step, recovery checks the
-first three conditions in order; race composition and the player request the last three:
+first three conditions in order; race composition and the player request the last two:
 
-| Reason         | Condition                                                                                                                                  |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `overturned`   | Body up points at or below the surface plane (`up dot normal <= 0`) and the CG is within `desiredCgHeight` of the surface along its normal |
-| `fallen`       | The CG lies more than `RECOVERY_POLICY.fallDepth` (3 m) below the heightfield along its normal, supported or not                           |
-| `stuck`        | Drive reaches the driven wheels and the vehicle's speed is below `RECOVERY_POLICY.stuckSpeed` (0.15 m/s), for 44 consecutive fixed steps   |
-| `wrong-course` | Race composition: the vehicle left the route its locked fork allows; it returns to the selected road                                       |
-| `explosion`    | Race composition: the authored contact response's stopped interval has ended                                                               |
-| `manual`       | The player's request, or a driver's: the safety net after its vehicle has stood 2 s                                                        |
+| Reason       | Condition                                                                                                                                  |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `overturned` | Body up points at or below the surface plane (`up dot normal <= 0`) and the CG is within `desiredCgHeight` of the surface along its normal |
+| `fallen`     | The CG lies more than `RECOVERY_POLICY.fallDepth` (3 m) below the heightfield along its normal, supported or not                           |
+| `stuck`      | Drive reaches the driven wheels and the vehicle's speed is below `RECOVERY_POLICY.stuckSpeed` (0.15 m/s), for 44 consecutive fixed steps   |
+| `explosion`  | Race composition: the authored contact response's stopped interval has ended                                                               |
+| `manual`     | The player's request, or a driver's: the safety net after its vehicle has stood 2 s                                                        |
 
 A vehicle whose centre of gravity is more than 3 m below the ground's height there recovers, supported or not
 (K, 2026-11-12). The heightfield is the one at the center's route coordinate, material-free ground included, so a

@@ -238,7 +238,7 @@ export function resolveRunSetup(
   return Object.freeze({
     course,
     configuration,
-    /** The run's 32-bit unsigned random seed; rival target exits and traffic derive from it. */
+    /** The run's 32-bit unsigned random seed; traffic derives from it. */
     seed,
     entries,
     traffic,

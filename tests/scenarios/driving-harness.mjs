@@ -250,15 +250,7 @@ export async function runScenario({ course }, scenario) {
   const driver = setup.driverOf(setup.entries[0].vehicle);
   const slot = setup.entries[0].slot;
   // The race builds every competitor, the player included; the harness reads their state for evidence.
-  // The player's run driver drives toward the scenario's target exit at every fork.
-  const race = createCourseRace({
-    setup,
-    runtime: scene.runtime,
-    playerExit: () => {
-      assert.ok(Number.isInteger(scenario.exit), `${scenario.name}: a fork needs the scenario's target exit`);
-      return scenario.exit;
-    },
-  });
+  const race = createCourseRace({ setup, runtime: scene.runtime });
   const { actor } = race.player;
   const { vehicle } = actor;
   const competitors = [race.player, ...race.rivals];
@@ -351,11 +343,6 @@ export async function runScenario({ course }, scenario) {
       assert.ok(
         race.events.every((event) => event.competitorId !== race.player.id),
         'recovery granted crossing credit',
-      );
-      assert.equal(
-        race.forks.legalTarget(vehicle.course.s, vehicle.course.l),
-        null,
-        'recovery left player on a closed road',
       );
     }
     for (const event of race.events) {

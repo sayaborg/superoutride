@@ -1,28 +1,23 @@
 import type { RouteView } from '../course/course-route.js';
-import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
-import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { footprintsOverlap, type RouteFootprint } from './body-contacts.js';
 import type { createCourseForkField } from './course-fork-field.js';
 import type { createRoadsideObjects } from './object-contacts.js';
 import type { PresentVehicle } from './present-vehicle.js';
-import { contactResponseStopped } from './contact-response.js';
-import { RECOVERY_POLICY, recoverVehicleToPlanCoordinate, type RecoveryTarget } from './recovery.js';
+import { RECOVERY_POLICY, type RecoveryTarget } from './recovery.js';
 
 /**
- * Where the race places vehicles: whether a place is free, where recovery backs a vehicle to, and the return of a vehicle off its locked fork route to the selected road. It reads the present
- * vehicles (`bodies`, which the race keeps current) and the standing roadside objects; it moves no vehicle but the one
- * it recovers.
+ * Where the race places vehicles: whether a place is free and where recovery backs a vehicle to. It reads the present
+ * vehicles (`bodies`, which the race keeps current) and the standing roadside objects; it moves no vehicle.
  */
 export function createVehiclePlacement(options: {
-  readonly readers: VehicleWorld & { readonly coordinates: PlanCoordinateReader };
   readonly window: Pick<RouteView, 'start'>;
   readonly forks: ReturnType<typeof createCourseForkField>;
   readonly roadsideObjects: ReturnType<typeof createRoadsideObjects>;
   readonly bodies: readonly PresentVehicle[];
 }) {
-  const { readers, window, forks, roadsideObjects, bodies } = options;
+  const { window, forks, roadsideObjects, bodies } = options;
   const footprint = (model: VehicleModel, s: number, l: number): RouteFootprint => ({
     s,
     l,
@@ -84,23 +79,5 @@ export function createVehiclePlacement(options: {
      */
     recoveryPlace: (self: PresentVehicle, s: number) =>
       vacantPlace(self, s, (at) => forks.recoveryL(at, self.vehicle.course.l, self.model.compiledVehicle.footprint)),
-    /**
-     * Return `body` to the selected road when it has left the route its locked fork allows: behind a vehicle in the
-     * way, the selected road's centre. A return marks the body recovered; with no free place it waits for a later step.
-     */
-    legalRecovery(body: PresentVehicle): void {
-      if (contactResponseStopped(body.actor.contactResponse)) return;
-      const target = forks.legalTarget(body.vehicle.course.s, body.vehicle.course.l);
-      if (!target) return;
-      const width = body.model.compiledVehicle.footprint;
-      const place = vacantPlace(body, target.s, (s) => forks.recoveryL(s, target.l, width), target.l);
-      if (!place) return;
-      recoverVehicleToPlanCoordinate(readers, body.vehicle, body.model, {
-        state: body.step.state,
-        reason: 'wrong-course',
-        target: place,
-      });
-      body.recovered = true;
-    },
   });
 }

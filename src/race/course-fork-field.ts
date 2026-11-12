@@ -1,27 +1,24 @@
-import type { CompiledLink, CompiledSection } from '../course/compiler/course-graph.js';
-import { routeSectionS, selectedSuccessor, type RouteOccurrence } from '../course/course-route.js';
+import type { CompiledSection } from '../course/compiler/course-graph.js';
+import { routeSectionS, type RouteOccurrence } from '../course/course-route.js';
 import { courseBoundaryAt, type CompiledBoundary } from '../course/course-boundaries.js';
 import { courseRoadsAt, type CompiledLane, type CourseRoad } from '../course/course-lanes.js';
-import { routeCrossingFraction, type createRouteCrossSections, type RoutePosition } from './route-cross-sections.js';
 import type { CourseRoute } from '../course/course-route.js';
 import type { RacingLines } from '../content/racing-line.js';
 
 /**
- * The lane index of the racing line: an intent in it drives the course's racing line toward its exit at each fork, a
- * lane of every road it lies on that neither ends nor is carried across seams.
+ * The lane index of the racing line: an intent in it drives the course's racing line, a lane of every road it lies on
+ * that neither ends nor is carried across seams.
  */
 export const LINE = -1;
 
 /**
  * A driver's intent: its lane, the index of a lane in its Section's lanes left to right (medians not counted) at route
- * station `at`, or `LINE`, and its target exit, an index into each fork occurrence's exits. Elsewhere on the Route the
- * lane is the one it continues as across each seam: a Link's named lane continues as the next Section's centre lane,
- * and the lanes beside it in order; `LINE` stays the racing line.
+ * station `at`, or `LINE`. Elsewhere on the Route the lane is the one it continues as across each seam: a Link's named
+ * lane continues as the next Section's centre lane, and the lanes beside it in order; `LINE` stays the racing line.
  */
 export interface DriverIntent {
   readonly lane: number;
   readonly at: number;
-  exit(occurrence: RouteOccurrence): number;
   /** On the racing line, the driver's offset from it at a route station (route lateral); none is 0. */
   offset?(s: number): number;
   /** Its vehicle's width, metres: a lane narrower is not there for the driver (`roomy`). None, 0. */
@@ -67,24 +64,16 @@ const roadOf = (section: CompiledSection, lane: CompiledLane, at: number): Cours
   courseRoadsAt(section.lanes, at).find((road) => road.lanes.includes(lane));
 
 /**
- * One field authority observes every eligible motion before publishing any irreversible choice. `racingLines` are the
- * course's; without them the racing line is the centre lane's centre.
+ * The lanes and the racing line along the Route, as drivers and recovery read them. `racingLines` are the course's;
+ * without them the racing line is the centre lane's centre.
  */
-export function createCourseForkField(
-  route: CourseRoute,
-  lines: ReturnType<typeof createRouteCrossSections>,
-  select: (link: CompiledLink) => void,
-  racingLines: RacingLines | null = null,
-) {
+export function createCourseForkField(route: CourseRoute, racingLines: RacingLines | null = null) {
   // The occurrence at route station s (clamped to the Route), and the native station there.
   const place = (s: number) => {
     const occurrence = route.at(Math.min(route.end, Math.max(route.start, s)))!;
     const domain = occurrence.section.coordinates.domain;
     return { occurrence, at: Math.min(domain.end, Math.max(domain.start, routeSectionS(occurrence, s))) };
   };
-  // The Link a fork occurrence leaves by: the selected one once decided, else the intended exit's.
-  const exitLink = (occurrence: RouteOccurrence, exit: DriverIntent['exit']) =>
-    selectedSuccessor(route, occurrence) ?? occurrence.section.fork!.exits[exit(occurrence)]!.link;
   // A lane index across the seam into `next` (its incoming Link), forward or backward; null when it does not continue.
   const across = (next: RouteOccurrence, lane: number, forward: boolean): number | null => {
     const link = next.incoming!;
@@ -134,14 +123,12 @@ export function createCourseForkField(
     const l = courseBoundaryAt(lanesOf(from.section)[lane]!.center, fromAt) - from.lateralOrigin;
     return nearestLane(to, toAt, l, there(to, toAt, vehicle));
   };
-  // The racing line's route lateral at route station `s` toward the Link `exit` takes at a fork.
-  const lineL = (s: number, exit: DriverIntent['exit']) => {
+  // The racing line's route lateral at route station `s`.
+  const lineL = (s: number) => {
     const { occurrence, at } = place(s);
     const section = occurrence.section;
     if (!racingLines) return courseBoundaryAt(section.lanes.center.center, at) - occurrence.lateralOrigin;
-    return (
-      racingLines.lateral(section, section.fork ? exitLink(occurrence, exit) : null, at) - occurrence.lateralOrigin
-    );
+    return racingLines.lateral(section, null, at) - occurrence.lateralOrigin;
   };
   // The intent's lane at route station `s`: carried across each seam between.
   const laneIn = (intent: DriverIntent, s: number) => {
@@ -165,19 +152,11 @@ export function createCourseForkField(
     return lane < first ? lane + 1 : lane > last ? lane - 1 : null;
   };
   /*
-   * Where lane `lane` of `occurrence` ends after native station `from` through `to`, for an intent following `exit` with
-   * a vehicle `vehicle` wide: where it leaves the vehicle no room (`narrowing`); at a fork, at the lock line (closure once decided) when it is not in the road of the
-   * Link followed; at the seam into the next occurrence when it does not continue. With the lane to merge toward: the
-   * neighbour beside it there for the vehicle. Null when it runs on.
+   * Where lane `lane` of `occurrence` ends after native station `from` through `to`, for a vehicle `vehicle` wide:
+   * where it leaves the vehicle no room (`narrowing`), or at the seam into the next occurrence when it does not
+   * continue. With the lane to merge toward: the neighbour beside it there for the vehicle. Null when it runs on.
    */
-  const endIn = (
-    occurrence: RouteOccurrence,
-    lane: number,
-    from: number,
-    to: number,
-    exit: DriverIntent['exit'],
-    vehicle = 0,
-  ) => {
+  const endIn = (occurrence: RouteOccurrence, lane: number, from: number, to: number, vehicle = 0) => {
     const section = occurrence.section,
       lanes = lanesOf(section),
       own = lanes[lane]!;
@@ -189,15 +168,6 @@ export function createCourseForkField(
       );
       end = { at: narrows, merge: merge ?? null };
     }
-    const fork = section.fork;
-    if (fork) {
-      const decided = selectedSuccessor(route, occurrence) !== null;
-      const line = decided ? fork.closure.s : fork.lock.s;
-      const link = exitLink(occurrence, exit);
-      const road = roadOf(section, link.from.lane, line);
-      if (line > from && line <= to && (end === null || line < end.at) && !road?.lanes.includes(own))
-        end = { at: line, merge: toward(lane, road, lanes) };
-    }
     const next = route.occurrences[occurrence.ordinal + 1];
     const seam = occurrence.end - occurrence.start;
     if (end === null && next && seam > from && seam <= to && across(next, lane, true) === null) {
@@ -206,62 +176,28 @@ export function createCourseForkField(
     }
     return end;
   };
-  // The intent's road at route station s: at a fork the road of the Link followed, else the centre lane's.
-  const roadAt = (s: number, exit: DriverIntent['exit']) => {
+  // The road at route station s: the centre lane's.
+  const roadAt = (s: number) => {
     const { occurrence, at } = place(s);
     const section = occurrence.section;
-    const followed = section.fork ? roadOf(section, exitLink(occurrence, exit).from.lane, at) : undefined;
-    return { occurrence, at, road: followed ?? roadOf(section, section.lanes.center, at)! };
+    return { occurrence, at, road: roadOf(section, section.lanes.center, at)! };
   };
-  // The Route's selected successor is the only stored choice; locks and legal targets derive from it.
   const forkField = Object.freeze({
-    choice: (occurrence: RouteOccurrence) => selectedSuccessor(route, occurrence),
-    observe(
-      motions: readonly {
-        readonly id: string;
-        readonly previous: RoutePosition;
-        readonly vehicle: { readonly course: RoutePosition };
-        readonly recovered: boolean;
-      }[],
-    ) {
-      for (const line of lines.forks) {
-        const occurrence = line.occurrence;
-        // A fork is decided once: an occurrence with a successor is already locked.
-        if (selectedSuccessor(route, occurrence)) continue;
-        const fork = occurrence.section.fork!;
-        let first: (typeof motions)[number] | null = null,
-          firstU = Infinity;
-        let selected: CompiledLink | null = null;
-        for (const motion of motions) {
-          if (motion.recovered) continue;
-          const u = routeCrossingFraction(line, motion.previous, motion.vehicle.course);
-          if (u === null || u > firstU || (u === firstU && first && motion.id >= first.id)) continue;
-          const l = motion.previous.l + u * (motion.vehicle.course.l - motion.previous.l) + occurrence.lateralOrigin;
-          const exit = fork.exits.find((exit) => l >= exit.left && l < exit.right);
-          if (!exit) continue;
-          first = motion;
-          firstU = u;
-          selected = exit.link;
-        }
-        if (first) select(selected!);
-      }
-    },
     /** The target l for an intent: the centre of its lane there, or the racing line (route lateral). */
     targetL(s: number, intent: DriverIntent) {
-      if (intent.lane === LINE) return lineL(s, intent.exit) + (intent.offset?.(s) ?? 0);
+      if (intent.lane === LINE) return lineL(s) + (intent.offset?.(s) ?? 0);
       const { occurrence, at } = place(s);
       return courseBoundaryAt(lanesOf(occurrence.section)[laneIn(intent, s)]!.center, at) - occurrence.lateralOrigin;
     },
     /** Rewrite an intent's lane as its lane at route station `s`. */
-    carry(intent: { lane: number; at: number; exit: DriverIntent['exit'] }, s: number) {
+    carry(intent: { lane: number; at: number }, s: number) {
       intent.lane = laneIn(intent, s);
       intent.at = s;
     },
     /**
-     * Where the intent's lane ends ahead, after route station `s` through `end` (where it leaves its vehicle no room, at a
-     * fork the line it must leave a road the Link followed does not take by, or a seam it does not continue across),
-     * and, when that is the first end ahead, the lane beside it to merge toward; null when the lane runs on through
-     * `end`.
+     * Where the intent's lane ends ahead, after route station `s` through `end` (where it leaves its vehicle no room,
+     * or a seam it does not continue across), and, when that is the first end ahead, the lane beside it to merge
+     * toward; null when the lane runs on through `end`.
      */
     laneEnd(
       s: number,
@@ -279,7 +215,6 @@ export function createCourseForkField(
           lane,
           Math.max(0, routeSectionS(occurrence, s)),
           Math.min(occurrence.end - occurrence.start, routeSectionS(occurrence, end)),
-          intent.exit,
           intent.width,
         );
         if (found) return { s: occurrence.start + found.at, merge: found.merge };
@@ -287,16 +222,16 @@ export function createCourseForkField(
       return null;
     },
     /**
-     * The lanes beside `lane` (the intent's lane index at route station `s`) in the same road there, there for a vehicle
-     * `vehicle` wide (`roomy`); beside the racing line, the nearest such lane on each side of it in the road of the Link
-     * `exit` takes.
+     * The lanes beside `lane` (the intent's lane index at route station `s`) in the same road there, there for a
+     * vehicle `vehicle` wide (`roomy`); beside the racing line, the nearest such lane on each side of it in the centre
+     * lane's road.
      */
-    adjacentLanes(s: number, lane: number, exit: DriverIntent['exit'], vehicle = 0): number[] {
+    adjacentLanes(s: number, lane: number, vehicle = 0): number[] {
       const { occurrence, at } = place(s);
       const lanes = lanesOf(occurrence.section);
       if (lane === LINE) {
-        const l = lineL(s, exit) + occurrence.lateralOrigin;
-        const road = forkField.roadLanes(s, exit, vehicle);
+        const l = lineL(s) + occurrence.lateralOrigin;
+        const road = forkField.roadLanes(s, vehicle);
         const centre = (i: number) => courseBoundaryAt(lanes[i]!.center, at);
         const left = road.filter((i) => centre(i) <= l).at(-1);
         const right = road.find((i) => centre(i) > l);
@@ -307,18 +242,18 @@ export function createCourseForkField(
         (i) => lanes[i] && road?.lanes.includes(lanes[i]!) && roomy(courseBoundaryAt(lanes[i]!.width, at), vehicle),
       );
     },
-    /** The edges of the road an intent following `exit` drives at route station `s` (route laterals). */
-    roadEdges(s: number, exit: DriverIntent['exit']): { readonly left: number; readonly right: number } {
-      const { occurrence, road } = roadAt(s, exit);
+    /** The edges of the road drivers drive at route station `s` (route laterals). */
+    roadEdges(s: number): { readonly left: number; readonly right: number } {
+      const { occurrence, road } = roadAt(s);
       return { left: road.left - occurrence.lateralOrigin, right: road.right - occurrence.lateralOrigin };
     },
     /**
      * The ground a racing line driver's path may take at route station `s` to clear a fixed object (route laterals):
-     * between the course limits, and within the solid walls beside the road an intent following `exit` drives there (a
-     * wall wholly to one side of that road's edges bounds the ground on that side).
+     * between the course limits, and within the solid walls beside the road drivers drive there (a wall wholly to one
+     * side of that road's edges bounds the ground on that side).
      */
-    groundEdges(s: number, exit: DriverIntent['exit']): { readonly left: number; readonly right: number } {
-      const { occurrence, at, road } = roadAt(s, exit);
+    groundEdges(s: number): { readonly left: number; readonly right: number } {
+      const { occurrence, at, road } = roadAt(s);
       let left = -Infinity,
         right = Infinity;
       for (const line of occurrence.section.barriers) {
@@ -330,11 +265,11 @@ export function createCourseForkField(
       return { left: left - occurrence.lateralOrigin, right: right - occurrence.lateralOrigin };
     },
     /**
-     * The lanes of the road an intent following `exit` drives at route station `s` there for a vehicle `vehicle` wide
-     * (`roomy`), as lane indices.
+     * The lanes of the road drivers drive at route station `s` there for a vehicle `vehicle` wide (`roomy`), as lane
+     * indices.
      */
-    roadLanes(s: number, exit: DriverIntent['exit'], vehicle = 0): number[] {
-      const { occurrence, at, road } = roadAt(s, exit);
+    roadLanes(s: number, vehicle = 0): number[] {
+      const { occurrence, at, road } = roadAt(s);
       const lanes = lanesOf(occurrence.section);
       return road.lanes
         .filter((lane) => roomy(courseBoundaryAt(lane.width, at), vehicle))
@@ -342,49 +277,17 @@ export function createCourseForkField(
     },
     /**
      * The recovery lane at route station `s` of a vehicle `vehicle` wide at route lateral `l`, every vehicle's alike:
-     * the lane nearest `l` of the roads it may drive there (at a decided fork, the selected Link's road where that road
-     * is), of those there for its vehicle; a lane index.
+     * the lane nearest `l` of those there for its vehicle; a lane index.
      */
     recoveryLane(s: number, l: number, vehicle = 0) {
       const { occurrence, at } = place(s);
-      const selected = selectedSuccessor(route, occurrence);
-      const road = selected && occurrence.section.fork ? roadOf(occurrence.section, selected.from.lane, at) : undefined;
-      const lanes = lanesOf(occurrence.section);
-      const candidates = road ? road.lanes.map((lane) => lanes.indexOf(lane)) : there(occurrence, at, vehicle);
-      return nearestLane(occurrence, at, l, candidates);
+      return nearestLane(occurrence, at, l, there(occurrence, at, vehicle));
     },
     /** The recovery l at route station `s`: the centre of the recovery lane (`recoveryLane`) there, route lateral. */
     recoveryL(s: number, l: number, vehicle = 0) {
       const { occurrence, at } = place(s);
       const lane = lanesOf(occurrence.section)[forkField.recoveryLane(s, l, vehicle)]!;
       return courseBoundaryAt(lane.center, at) - occurrence.lateralOrigin;
-    },
-    /**
-     * After a decided fork's closure, a position on a road the selected Link does not leave by is on a closed road: its
-     * legal target is the nearest lane centre of the selected road. Null elsewhere.
-     */
-    legalTarget(s: number, l: number) {
-      const occurrence = route.at(s);
-      if (!occurrence) return null;
-      const section = occurrence.section,
-        fork = section.fork;
-      const link = selectedSuccessor(route, occurrence);
-      const at = routeSectionS(occurrence, s);
-      if (!fork || !link || at < fork.closure.s) return null;
-      const native = l + occurrence.lateralOrigin;
-      const selected = roadOf(section, link.from.lane, at);
-      const closed = courseRoadsAt(section.lanes, at).some(
-        (road) => !road.lanes.includes(link.from.lane) && native >= road.left && native <= road.right,
-      );
-      if (!closed || !selected) return null;
-      const lanes = lanesOf(section);
-      const lane = nearestLane(
-        occurrence,
-        at,
-        l,
-        selected.lanes.map((candidate) => lanes.indexOf(candidate)),
-      );
-      return { s, l: courseBoundaryAt(lanes[lane]!.center, at) - occurrence.lateralOrigin };
     },
   });
   return forkField;

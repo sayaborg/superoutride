@@ -608,7 +608,8 @@ from this road's picture: its lane lines' middle 212/3, its outer lanes' outer e
 its half width 250. a and f are always one lane, 424/3 units (3.6 m). So at 212 the lanes are the two roads' own, and
 at w = 72, where four lanes show for kilometres (SEASIDE TOWN, OLD CAPITAL), c and d are 1.33 units (3.4 cm) wide,
 between the middle line's sides, as every lane is measured between its lines' middles; a lane narrower than a vehicle
-is not there for it ([Fork lock and handoff](content-and-gameplay.md#fork-lock-and-handoff)). The visible lines come from the two roads' picture, not the lanes. A lane or median 0
+is not there for it ([Lanes and the racing line](content-and-gameplay.md#lanes-and-the-racing-line)). The visible lines
+come from the two roads' picture, not the lanes. A lane or median 0
 throughout a Section is
 left out. Each width, and the centre lane's centre, is written at every position the joined width is, as its rule
 gives it, knots in line dropped.

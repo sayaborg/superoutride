@@ -83,11 +83,8 @@ export function runCourseReference(
     distance = 0,
     maximumSpeed = 0,
     maximumUtilization = 0;
-  const planned = new Map(route.map((link) => [link.from.section, link]));
-  // Its path: the racing line; the planned Link at each fork is the intended exit.
-  const lane = racingLinePath(scene.runtime.route, lines, (occurrence) =>
-    occurrence.section.fork!.exits.findIndex((exit) => exit.link === planned.get(occurrence.section)),
-  );
+  // Its path: the racing line.
+  const lane = racingLinePath(scene.runtime.route, lines);
   const workspace = createPlannedDriverWorkspace();
   // The standard driver: the standard role's utilization at the vehicle's speed cap.
   const driver = setup.driverOf(vehicleConfiguration);
@@ -96,8 +93,6 @@ export function runCourseReference(
   // times including the recovery, and counts its recoveries.
   const maxTicks = Math.ceil((READY_SECONDS + 3600 * lapCount) / SIM_DT);
   for (let tick = 0; tick < maxTicks; tick++) {
-    const occurrence = scene.runtime.route.at(vehicle.course.s)!,
-      section = occurrence.section;
     // The standard driver waits through READY at full throttle, as every driver does (K, 2026-11-12).
     const input =
       race.outcome.status === 'READY'
@@ -133,9 +128,6 @@ export function runCourseReference(
     if (race.outcome.status === 'GOAL') break;
     if (tick === maxTicks - 1)
       throw new RangeError(`${entry.compiledVehicle.id}: reference did not finish within the work limit`);
-    // Require the requested route to be reached physically, never select it on behalf of the field.
-    const choice = section.fork ? race.forks.choice(occurrence) : null;
-    if (choice && choice !== planned.get(section)) throw new RangeError('Reference selected an unintended route');
   }
   // Center following is verified against pavement; telemetry is descriptive, not force authority.
   const finalOccurrence = scene.runtime.route.at(vehicle.course.s)!;

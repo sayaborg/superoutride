@@ -26,7 +26,7 @@ import { add3, dot3, scale3, type Vec3 } from '../core/vector3.js';
 import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
 import { initializeVehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 
-type RecoveryReason = 'fallen' | 'stuck' | 'overturned' | 'manual' | 'wrong-course' | 'explosion' | 'outside-domain';
+type RecoveryReason = 'fallen' | 'stuck' | 'overturned' | 'manual' | 'explosion' | 'outside-domain';
 
 /** The fixed recovery policy: rules only, shared by every competitor; no live state or target resolution. */
 export interface RecoveryPolicy {

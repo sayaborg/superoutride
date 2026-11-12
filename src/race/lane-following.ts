@@ -104,7 +104,7 @@ export interface LaneIntent extends DriverIntent {
 export function createLaneFollowing(
   forks: {
     targetL(s: number, intent: DriverIntent): number;
-    adjacentLanes(s: number, lane: number, exit: DriverIntent['exit'], vehicle?: number): readonly number[];
+    adjacentLanes(s: number, lane: number, vehicle?: number): readonly number[];
   },
   window: Pick<DrivingDomain, 'end'>,
 ) {
@@ -112,15 +112,13 @@ export function createLaneFollowing(
   const probe: {
     lane: number;
     at: number;
-    exit: DriverIntent['exit'];
     offset: DriverIntent['offset'];
     width: DriverIntent['width'];
-  } = { lane: 0, at: 0, exit: () => 0, offset: undefined, width: undefined };
+  } = { lane: 0, at: 0, offset: undefined, width: undefined };
   // The centre of `lane` of the driver's intent at station s.
   const centre = (intent: DriverIntent, lane: number, s: number) => {
     probe.lane = lane;
     probe.at = intent.at;
-    probe.exit = intent.exit;
     probe.offset = lane === intent.lane ? intent.offset : undefined;
     probe.width = intent.width;
     return forks.targetL(s, probe);
@@ -209,7 +207,7 @@ export function createLaneFollowing(
       return greatest;
     }
     let least = Infinity;
-    for (const candidate of forks.adjacentLanes(self.s, lane, intent.exit, intent.width)) {
+    for (const candidate of forks.adjacentLanes(self.s, lane, intent.width)) {
       trace(rest, self, intent, candidate, true);
       least = Math.min(least, clearFrom(centre(intent, candidate, other.s)) ?? Infinity);
     }
@@ -304,7 +302,6 @@ export function createLaneFollowing(
   const candidate = {
     lane: LINE,
     at: 0,
-    exit: (() => 0) as DriverIntent['exit'],
     value: 0,
     line: (() => 0) as (s: number) => number,
     edges: (() => ({ left: 0, right: 0 })) as (s: number) => { readonly left: number; readonly right: number },
@@ -432,7 +429,6 @@ export function createLaneFollowing(
     };
     const here = line(self.s);
     candidate.at = intent.at;
-    candidate.exit = intent.exit;
     candidate.line = line;
     candidate.edges = edges;
     candidate.margin = self.width / 2 + edgeClearance;

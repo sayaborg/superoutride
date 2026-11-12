@@ -7,7 +7,6 @@ import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coord
 import { transformPlanarPoint } from '../../src/core/planar-transform.js';
 import { createCourseForkField, roomy } from '../../src/race/course-fork-field.js';
 import { PATH_OFFSET, pathOffsetAt, type LaneIntent } from '../../src/race/lane-following.js';
-import { createRouteCrossSections } from '../../src/race/route-cross-sections.js';
 
 /**
  * The viewer's drive: one car going along a lane of the Route, the camera riding on it. The car keeps to its lane's
@@ -49,7 +48,7 @@ const lanesOf = (section: CompiledSection): CompiledLane[] =>
   section.lanes.elements.flatMap((element) => (element.kind === 'lane' ? [element.lane] : []));
 
 export function createDrive(course: CompiledCourse) {
-  // The Route, taking each fork's first exit, extended as the car goes (lap after lap on a circuit).
+  // The Route, extended as the car goes (lap after lap on a circuit).
   const builder = createCourseRoute(course.entry);
   const { route } = builder;
   const extend = (s: number) => {
@@ -59,9 +58,8 @@ export function createDrive(course: CompiledCourse) {
       builder.select(outgoing[0]!);
     }
   };
-  const forks = createCourseForkField(route, createRouteCrossSections(route, course, null), builder.select);
+  const forks = createCourseForkField(route);
   const sample = createPlanCoordinateSample();
-  const firstExit = () => 0;
   // The occurrence at route station s, and its native station.
   const place = (s: number) => {
     extend(s);
@@ -96,7 +94,7 @@ export function createDrive(course: CompiledCourse) {
     /** A car at route station s in lane `lane` (an index of `lanesAt(s)`). */
     car(s: number, lane: number): Car {
       extend(s);
-      return { s, intent: { lane, at: s, exit: firstExit, width: CAR_WIDTH }, blend: null };
+      return { s, intent: { lane, at: s, width: CAR_WIDTH }, blend: null };
     },
     /**
      * The car moved `distance` metres on, carrying its lane, at `speed` metres a second (for its blends); false where

@@ -921,8 +921,8 @@ These lengths sit in one constant.
 The race publishes `slowDown`, a stage from 0 to 3 ([`src/race/slow-down.ts`](../src/race/slow-down.ts)): the
 player's vehicle planned as a driver ([Drivers](content-and-gameplay.md#drivers)) at three utilizations, 0.85, 0.90
 and 0.95 (`SLOW_DOWN.utilizations`), with its own mechanics, without a vehicle ahead, along the
-path that keeps its route lateral (at a fork before the lock, that lateral lies in the exit interval holding it, whose
-road the plan reads). After each step its raw stage is the highest whose plan's speed at the station `0.5 s × speed`
+path that keeps its route lateral. After each step its raw stage is the highest whose plan's speed at the station `0.5 s
+× speed`
 ahead the player's speed exceeds (1 for 0.85, 2 for 0.90, 3 for 0.95), or 0 when it exceeds none. A higher raw stage
 shows at once; a lower one, 0 included, shows only once the shown stage has held for one blink period, 16 fixed steps.
 The stage is 0 unless the player's own input drives the vehicle while the run is RUNNING (so never before GO, after

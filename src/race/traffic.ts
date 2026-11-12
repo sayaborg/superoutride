@@ -23,13 +23,12 @@ import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 
-/** Salts separating the run seed's traffic draws: the position offset and, per position, vehicle, color, lane, exits. */
+/** Salts separating the run seed's traffic draws: the position offset and, per position, vehicle, color, lane. */
 const TRAFFIC_SALTS = Object.freeze({
   offset: 0x7f4a7c15,
   vehicle: 0x632be5ab,
   color: 0x9e3779b1,
   lane: 0x85ebca77,
-  exit: 0xc2b2ae3d,
 });
 /** The 32-bit hash range, mapping a hash to [0, 1). */
 const HASH_RANGE = 2 ** 32;
@@ -40,9 +39,8 @@ export function trafficDraw(
   kind: Exclude<keyof typeof TRAFFIC_SALTS, 'offset'>,
   position: number,
   count: number,
-  ordinal = 0,
 ): number {
-  return mix(mix(mix(seed ^ TRAFFIC_SALTS[kind]) ^ position) ^ ordinal) % count;
+  return mix(mix(mix(seed ^ TRAFFIC_SALTS[kind]) ^ position)) % count;
 }
 
 /**
@@ -115,12 +113,10 @@ export function createTrafficField(options: {
   return Object.freeze({
     /** The traffic present, in order of appearance. */
     vehicles: vehicles as readonly TrafficMotion[],
-    /** One step of every traffic vehicle: its driver's input, ordinary mechanics with recovery, then the legal road. */
+    /** One step of every traffic vehicle: its driver's input and ordinary mechanics with recovery. */
     advance() {
-      for (const motion of vehicles) {
+      for (const motion of vehicles)
         advancePresentVehicle(runtime.readers, motion, laneDriving.drive(motion), motion.driving.driver.steering);
-        placement.legalRecovery(motion);
-      }
     },
     /** Traffic out of view leaves, then the positions the appearance line reached appear; true when either changed. */
     update(): boolean {
@@ -140,11 +136,9 @@ export function createTrafficField(options: {
         const intent: LaneIntent = {
           lane: 0,
           at: s,
-          exit: (occurrence) =>
-            trafficDraw(seed, 'exit', position, occurrence.section.fork!.exits.length, occurrence.ordinal),
           width: model.compiledVehicle.footprint,
         };
-        const road = forks.roadLanes(s, intent.exit, intent.width);
+        const road = forks.roadLanes(s, intent.width);
         // Traffic appears only on roads of two or more lanes there for it.
         if (road.length < 2) return;
         intent.lane = road[trafficDraw(seed, 'lane', position, road.length)]!;

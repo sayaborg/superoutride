@@ -61,7 +61,7 @@ export function createLaneDriving(options: {
     road.coordinates.toWorld(vehicle.course.s, vehicle.course.l, roadSample).heading;
   const byStation = (a: VehicleSighting, b: VehicleSighting) => a.s - b.s;
   const laneDomain = { start: 0, end: 0, terminal: null as number | null };
-  const probe: LaneIntent = { lane: 0, at: 0, exit: () => 0 };
+  const probe: LaneIntent = { lane: 0, at: 0 };
   // Drivers see the present vehicles as they stand now, and the fixed standing objects as stopped vehicles from the
   // rearmost present vehicle to the driver lookahead beyond the foremost one, or beyond station `through` when that is
   // farther.
@@ -131,8 +131,8 @@ export function createLaneDriving(options: {
     standing: false,
   };
   const appearanceDomain = { start: 0, end: 0, terminal: null as number | null };
-  // The racing line of an intent's exits, without its offset.
-  const lineIntent: LaneIntent = { lane: LINE, at: 0, exit: () => 0 };
+  // The racing line, without an intent's offset.
+  const lineIntent: LaneIntent = { lane: LINE, at: 0 };
   const line = (s: number) => forks.targetL(s, lineIntent);
   /*
    * A racing line driver's input: its plan along its path, which the vehicle ahead on it constrains, and the offset it
@@ -155,13 +155,12 @@ export function createLaneDriving(options: {
       following.leader(intent, driven.sighting, sightings),
       true,
     );
-    lineIntent.exit = intent.exit;
     const { resolution, blendSeconds, blendLeast } = PATH_OFFSET;
     const target = following.offsetTarget(intent, driven.sighting, sightings, {
       line,
       path: driving.target,
-      edges: (station) => forks.roadEdges(station, intent.exit),
-      ground: (station) => forks.groundEdges(station, intent.exit),
+      edges: (station) => forks.roadEdges(station),
+      ground: (station) => forks.groundEdges(station),
       offset,
       lapLength,
       speedBehind: (leader) => speedBehind(driven.vehicle, driver, plan.free, leader),
@@ -177,14 +176,14 @@ export function createLaneDriving(options: {
       const blend = Object.freeze({ from: offset.from, to: offset.to, at: offset.at, length: offset.length });
       // The path keeps within the road's edge margin, or within the ground inside the course limits while it clears a
       // fixed object, or no farther out than the line where the line is.
-      const own: LaneIntent = { lane: LINE, at: 0, exit: intent.exit };
+      const own: LaneIntent = { lane: LINE, at: 0 };
       const edges = target.clearing ? forks.groundEdges : forks.roadEdges;
       const margin = driven.sighting.width / 2 + PATH_OFFSET.edgeClearance;
       intent.offset = (station: number) => {
         const shift = pathOffsetAt(blend, station);
         if (shift === 0) return 0;
         const l = forks.targetL(station, own);
-        return heldLateral(l, shift, edges(station, own.exit), margin) - l;
+        return heldLateral(l, shift, edges(station), margin) - l;
       };
       driving.target = (station: number) => forks.targetL(station, intent);
       driven.sighting.target = driving.target(driven.sighting.s);
@@ -241,7 +240,6 @@ export function createLaneDriving(options: {
       const seamEnd = (lane: number) => {
         probe.lane = lane;
         probe.at = intent.at;
-        probe.exit = intent.exit;
         probe.width = intent.width;
         return forks.laneEnd(s, ahead, probe);
       };
@@ -257,7 +255,7 @@ export function createLaneDriving(options: {
         if (object === null) return seam && { s: seam.s, merge: seam.merge, seam: true };
         // A lane a standing object ends is left toward an adjacent lane of its road that does not end, the left one first.
         let merge: number | null = null;
-        for (const candidate of forks.adjacentLanes(s, lane, intent.exit, intent.width))
+        for (const candidate of forks.adjacentLanes(s, lane, intent.width))
           if (merge === null && !ends(candidate)) merge = candidate;
         return { s: object, merge, seam: false };
       };

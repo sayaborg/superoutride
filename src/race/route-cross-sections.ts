@@ -42,7 +42,6 @@ export function createRouteCrossSections(route: CourseRoute, course: CompiledCou
   const rules = new Map(course.gates.intervals.map((interval) => [interval.section, interval]));
   let indexed: readonly RouteOccurrence[] = [];
   let race: readonly RouteRaceLine[] = [];
-  let forks: readonly RouteCrossSection[] = [];
   const laps = new WeakMap<RouteOccurrence, number>();
   // Follow finish lines from the entry through occurrences the index has not yet seen.
   let cursor = course.entry,
@@ -75,8 +74,7 @@ export function createRouteCrossSections(route: CourseRoute, course: CompiledCou
   const sync = () => {
     if (indexed === route.occurrences) return;
     indexed = route.occurrences;
-    const nextRace: RouteRaceLine[] = [],
-      nextForks: RouteCrossSection[] = [];
+    const nextRace: RouteRaceLine[] = [];
     for (const occurrence of indexed) {
       const interval = rules.get(occurrence.section)!;
       const lap = occurrenceLap(occurrence);
@@ -97,19 +95,13 @@ export function createRouteCrossSections(route: CourseRoute, course: CompiledCou
             }),
           );
       }
-      if (occurrence.section.fork) nextForks.push(Object.freeze(line(occurrence, occurrence.section.fork.lock.s)));
     }
     race = Object.freeze(nextRace);
-    forks = Object.freeze(nextForks);
   };
   return Object.freeze({
     get race() {
       sync();
       return race;
-    },
-    get forks() {
-      sync();
-      return forks;
     },
     after(s: number): RouteRaceLine | null {
       sync();
