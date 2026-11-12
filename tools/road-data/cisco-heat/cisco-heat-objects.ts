@@ -221,3 +221,44 @@ export function ciscoHeatSpritePalette(main: Uint8Array, stage: number): readonl
   }
   return out;
 }
+
+/**
+ * A car's straight picture's width, units across (K, 2026-11-09: its scale across), `frames` its frames' table: the
+ * sedan's (the player's +0x40 where it chooses it, M 0x5CDC) or the other car's (M 0x5D4C). Its rear frame is the first
+ * the cars take by their angle (the table at the `lea` at M 0xCE52, a frame a word, the frames' table's long at twice
+ * it), a descriptor whose colored columns (pens other than 0 and 15) it spans; a car's zoom at a distance is its
+ * objects' table's word w there as (w / 2 & 127) + (w / 8 & 31) (M 0xCDB4 to 0xCDD8), 128 its own size, and the road's
+ * pixels a unit there the table at M 0x109C68's word over 32,768: its width is its columns over the road's pixels a
+ * unit at the distances it is drawn at its own size, their mean.
+ */
+export function carUnits(main: Uint8Array, frames: number, pen: (tile: number, x: number, y: number) => number) {
+  const [disp] = instruction(main, 0xce52, [0x41fa, null], "the cars' frames by their angle (lea pc)");
+  const rear = word(main, 0xce54 + ((disp << 16) >> 16));
+  const [high, low] = instruction(main, 0xe398, [0x43f9, null, null], 'the descriptors (lea)');
+  const d = ciscoHeatDescriptor(main, long(main, frames + 2 * rear) - (high * 0x10000 + low));
+  let [from, to] = [Infinity, -Infinity];
+  for (let ty = 0; ty < d.down; ty++)
+    for (let tx = 0; tx < d.across; tx++)
+      for (let y = 0; y < SPRITE_TILE; y++)
+        for (let x = 0; x < SPRITE_TILE; x++) {
+          const p = pen(d.tile + ty * d.across + tx, x, y);
+          if (p !== 15 && p !== 0) [from, to] = [Math.min(from, tx * 16 + x), Math.max(to, tx * 16 + x + 1)];
+        }
+  const [zh, zl] = instruction(main, 0xcdb4, [0x43f9, null, null, 0x3031, 0x2000, 0xe240, 0x3200], "a car's zoom");
+  instruction(main, 0xcdc2, [0x0241, 0x007f, 0x3d41, 0x007e, 0xe440, 0x0240, 0x001f, 0xd041], "a car's zoom's sum");
+  const [sh, sl] = instruction(main, 0xe27e, [0x43f9, null, null], "the road's scale (lea)");
+  const widths: number[] = [];
+  for (let at = 0; at < 0x1000; at += 2) {
+    const w = word(main, zh * 0x10000 + zl + at);
+    if (((w >> 1) & 0x7f) + ((w >> 3) & 0x1f) === 128)
+      widths.push((to - from) / (word(main, sh * 0x10000 + sl + at) / 0x8000));
+  }
+  if (!widths.length || from === Infinity) throw romDiffers("A car's picture is never drawn at its own size");
+  return widths.reduce((a, b) => a + b, 0) / widths.length;
+}
+
+/** The sedan's frames' table, the player's +0x40 where it chooses the sedan (M 0x5CDC). */
+export function sedanFrames(main: Uint8Array): number {
+  const [high, low] = instruction(main, 0x5cdc, [0x2d7c, null, null, 0x0040], "the sedan's frames (move.l #, $40(a6))");
+  return high * 0x10000 + low;
+}

@@ -5,6 +5,8 @@ import {
   ciscoHeatObjects,
   ciscoHeatPlace,
   ciscoHeatSpritePalette,
+  carUnits,
+  sedanFrames,
   objectScales,
   spritePixelUnits,
 } from '../../tools/road-data/cisco-heat/cisco-heat-objects.ts';
@@ -104,4 +106,34 @@ test("a stage's sprite colors are its list's entries from 48, each 16 words into
   assert.equal(palette[49][0], 1 << 10);
   assert.equal(palette[50], null);
   assert.throws(() => ciscoHeatSpritePalette(main, 5), RangeError);
+});
+
+test("a car's width is its rear frame's colored columns over the road's pixels a unit where it is drawn at its own size", () => {
+  const main = new Uint8Array(0x130000);
+  const put = (at, words) => words.forEach((w, i) => ((main[at + 2 * i] = w >> 8), (main[at + 2 * i + 1] = w & 0xff)));
+  put(0x5cdc, [0x2d7c, 0x0000, 0x8b28, 0x0040]); // move.l #$8b28, $40(a6)
+  put(0xce52, [0x41fa, 0xcedc - 0xce54]); // lea $cedc(pc), a0
+  put(0xcedc, [0x1c]); // the rear frame
+  put(0x8b28 + 0x38, [0x0004, 0x0010]); // its descriptor at 0x40010
+  put(0xe398, [0x43f9, 0x0004, 0x0000, 0xd2e8, 0x0004]);
+  put(0xe3a2, [0x2d51, 0x00a0]);
+  put(0xe3a6, [0x3d69, 0x0004, 0x0010, 0x3b69, 0x0006, 0x000c]);
+  put(0xe3b2, [0x3d69, 0x0008, 0x00a4]);
+  put(0xe8d8, [0x4a6e, 0x00a4]);
+  put(0xe8f4, [0x302e, 0x00a0, 0xb06e, 0x00a2]);
+  put(0x40010, [0, 0, 0x01, 0x100, 0]); // two tiles across, one down, from tile 0x100
+  put(0xcdb4, [0x43f9, 0x0012, 0x2272, 0x3031, 0x2000, 0xe240, 0x3200]);
+  put(0xcdc2, [0x0241, 0x007f, 0x3d41, 0x007e, 0xe440, 0x0240, 0x001f, 0xd041]);
+  put(0xe27e, [0x43f9, 0x0010, 0x9c68]);
+  // At distances 0 and 2 the car is drawn at its own size (0xCFCF: 103 + 25), the road 0.8 and then 0.75 pixels a unit.
+  put(0x122272, [0xcfcf, 0xcfcf, 0xffff]);
+  put(0x109c68, [0x6666, 0x6000, 0x8000]);
+  assert.equal(sedanFrames(main), 0x8b28);
+  // Columns 4 to 23 colored.
+  const pen = (tile, x) => {
+    const column = (tile - 0x100) * 16 + x;
+    return column >= 4 && column < 24 ? 3 : 15;
+  };
+  const units = carUnits(main, 0x8b28, pen);
+  assert.ok(Math.abs(units - (20 / (0x6666 / 0x8000) + 20 / 0.75) / 2) < 1e-9);
 });

@@ -553,7 +553,7 @@ Defaults for K to confirm before the stage closes, each its PR's:
   pictures' changes only as often as keeps their strips within the format's 2,048; no turn of its plan tighter than it
   reaches on its inside there (21 m, or its limit beyond road 1's centre where road 1 lies on that side), the least
   radius it gives the plan from a table's arcs (its rule's `leastLaneRadius`); its scale
-  across its study's 97 units, its own car's picture not found in its program to measure again ([its
+  across its own car's rear frame's 97.3 units where it is drawn at its own size, the study's 97 measured again ([its
   conversion](cisco-heat-road-data.md#its-conversion)).
 - **Its objects' places** (CS-4a). An object's lateral is its picture's left edge from its road's centre and its height
   its picture's bottom edge over its road, as its sprites are drawn up from their y; its scale its flags' bits 12 to 14;

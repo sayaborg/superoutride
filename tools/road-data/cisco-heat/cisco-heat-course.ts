@@ -18,13 +18,16 @@ import { lanesOverTwoRoads } from '../shared/two-roads.js';
 import { layBoardCourse, type BoardCourseRoads, type BoardSkyKnot } from '../jaleco/board-course.js';
 import { boardScenes, boardSky, SKY_MIDDLE, type BoardScene } from '../jaleco/ms1-skies.js';
 import { boardUses, zoomBoards } from '../jaleco/zoom-boards.js';
+import { spritePen } from '../jaleco/zoom-sprites.js';
 import { roadTables, type HeldStretch, type RoadNumber } from '../jaleco/road-tables.js';
 import { ciscoHeatSkies, STAGES } from './cisco-heat-backgrounds.js';
 import {
+  carUnits,
   ciscoHeatDescriptor,
   ciscoHeatObjects,
   ciscoHeatPlace,
   ciscoHeatSpritePalette,
+  sedanFrames,
   spritePixelUnits,
   type CiscoHeatObject,
 } from './cisco-heat-objects.js';
@@ -64,9 +67,8 @@ export const CISCO_HEAT_CONVERSION_VERSION = 1;
 /** How far a record may depart from its table's next heading and position: BIG RUN's (K, 2026-11-09). */
 const PLAN_LIMITS = Object.freeze({ heading: (0.03 * Math.PI) / 180, position: 14 });
 
-/** Its own car, the sedan: the Ford LTD Crown Victoria of 1990's width, metres (Edmunds), and its width in units. */
+/** Its own car, the sedan: the Ford LTD Crown Victoria of 1990's width, metres (Edmunds). */
 const CAR_METRES = 1.969;
-const CAR_UNITS = 97;
 
 /** Its screen's pixel's width over its height: 256 × 224 shown at 4:3. */
 const PIXEL_ASPECT = 7 / 6;
@@ -170,6 +172,9 @@ export function ciscoHeatCourses(set: RomSet) {
   const rom = assembleCiscoHeatRoadLines(set);
   const tiles = [set.data(CISCO_HEAT_TILE_ROMS[0]!), set.data(CISCO_HEAT_TILE_ROMS[1]!)] as const;
   const metres = positionMetres(main);
+  const sprites = assembleCiscoHeatSprites(set);
+  // Its scale across: its own car's straight picture as wide as the sedan (K, 2026-11-09).
+  const CAR_UNITS = carUnits(main, sedanFrames(main), (tile, x, y) => spritePen(sprites, tile, x, y));
   const ACROSS = CAR_METRES / CAR_UNITS;
   const outputs = new OriginalOutputs();
   const board = ciscoHeatSkies(main);
@@ -211,9 +216,7 @@ export function ciscoHeatCourses(set: RomSet) {
     }
     return { all, plain };
   });
-  const boards = new Map(
-    zoomBoards(assembleCiscoHeatSprites(set), uses.uses(), pixel * ACROSS, 1 / PIXEL_ASPECT).map((b) => [b.name, b]),
-  );
+  const boards = new Map(zoomBoards(sprites, uses.uses(), pixel * ACROSS, 1 / PIXEL_ASPECT).map((b) => [b.name, b]));
   for (const b of boards.values()) outputs.file(b.image.path, b.image.bytes);
   const courses = Array.from({ length: STAGES }, (_, stage) => {
     const [id, name] = [idOf(stage), nameOf(stage)];
@@ -426,7 +429,7 @@ export function ciscoHeatCourses(set: RomSet) {
     outputs,
     report: {
       positionMetres: Number(metres.toPrecision(6)),
-      carUnits: CAR_UNITS,
+      carUnits: round1(CAR_UNITS),
       acrossMetres: Number(ACROSS.toPrecision(6)),
       skies: skies.size,
       courses,

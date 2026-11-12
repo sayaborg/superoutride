@@ -57,8 +57,13 @@ RUN](big-run.md)).
 - **Their colors.** The sprites' palette is 0xBD000 to 0xBDFFF, 128 entries. M 0xEBB0 loads the fixed entries below 48
   (0 to 5, 20 to 34, 36, 46 and 47; 30 and 31 by the car chosen, `$f0020`); M 0xED4A loads the stage's list (`$f011a`)
   from 48 on, and every object of kind 0 takes one of its entries.
-- **Open.** The own car's straight picture, whose width K's study measured from its screen; how the program meets the
-  car with an object (from M 0xE964); what bits 11 and 15 do for the hits.
+- **The cars.** A car's frames' table is the player's +0x40 (M 0x5CDC the sedan's at 0x8B28, M 0x5D4C the other's at
+  0x8CD0), a long a frame at twice its word of the angle's table at M 0xCEDC (0x1C its rear, to 0x38), each a descriptor
+  in the objects' table at 0x40000; a car is drawn from up to seven sprites, placed by its +0x44, +0x48, +0x4C and +0x6C
+  tables (M 0xCE6C to 0xD3B8). Its zoom is the objects' table's word w as (w / 2 & 127) + (w / 8 & 31) (M 0xCDB4 to
+  0xCDD8, to `$f0508`), so a car's pixel at its own size spans 1.23 units near the camera, its rear frame 97.0 to 97.5
+  units within 1,000 positions.
+- **Open.** How the program meets the car with an object (from M 0xE964); what bits 11 and 15 do for the hits.
 
 ## Its skies
 
