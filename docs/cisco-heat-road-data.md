@@ -67,9 +67,12 @@ pictures that changes along the road, read where its programs hold them (`cisco-
   curves at its top speed: at its highest, 160 units a frame (the `move.l` at M 0x31B8, of four by gear and car) the
   index is 220's, the limit 15.86 pixels, reached in 7 frames, the front 15 one way and 16 the other and the back 7 and
   8, each taken at their mean, while the car turns 160 ÷ R radians a frame through a curve of R positions. So a plane
-  turns its pixels a frame × R ÷ 160 a radian, R the radius its roads turn through longest (`TURN_RADIUS`, 40,000
-  positions, a fifth of both roads' curves' length): 32.72 pixels a degree for the back (11,781 a turn) and 67.63 for
-  the front (24,347), each laid round from its seam ([Sky baking](original-road-data.md#sky-baking)).
+  turns its pixels a frame × R ÷ 160 a radian, R 7,000 positions (`TURN_RADIUS`, K, 2026-11-12), its roads' sharpest
+  common curves', a twelfth of both roads' curves' length: 5.73 pixels a degree for the back (2,062 a turn) and 11.84
+  for the front (4,261), each laid round from its seam ([Sky baking](original-road-data.md#sky-baking)). As this game
+  turns its sky with the car's heading, the radius sets only how narrow its pictures are laid, not how fast its sky
+  moves on the screen: at 7,000 the back plane's about 1.4 times narrower than the original draws them, as BIG RUN's
+  1.9; at its longest curves', 40,000, they would be 7.8 times.
 - **Their rows.** A plane's row offset is its scene's +8 plus the road's rows above its last line, which the road CPU
   gives (its shared word 0x500, M 0xA1EE), so a picture's bottom row lies as BIG RUN's do. Along a scene the program
   moves a plane up and down by its record's table of steps (+1A, 8 bytes a step: its start, its rows and its rate, M

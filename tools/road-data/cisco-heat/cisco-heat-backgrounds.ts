@@ -9,10 +9,11 @@ import type { BoardSkies } from '../jaleco/ms1-skies.js';
 export const STAGES = 5;
 
 /**
- * The radius of the curves its roads turn through longest, positions: 40,000 (648 m), a fifth of all its stages'
- * curves' length on either road. Its planes turn by it at one rate.
+ * The radius its planes turn by at one rate, positions: 7,000 (113 m), its roads' sharpest common curves', a twelfth of
+ * all its stages' curves' length on either road, at which its back plane's pictures are laid about 1.4 times narrower
+ * than the original draws them (K, 2026-11-12).
  */
-export const TURN_RADIUS = 40_000;
+export const TURN_RADIUS = 7_000;
 
 /**
  * The pixels each plane turns a turn, [back, front]: its program slides a plane only through a curve, by a rate of the

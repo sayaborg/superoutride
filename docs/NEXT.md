@@ -603,11 +603,11 @@ Defaults for K to confirm before the stage closes, each its PR's:
 - **Its camera's pitch** (CS-1). Its road CPUs pitch the camera by the held road's angle under the car, and its main
   program adds a pitch where a record of its first road's list gives one, gone within 16 frames
   ([research](research/cisco-heat.md#its-camera)); its screen is read at the road's angle alone.
-- **Its skies' turn** (CS-2). Its planes slide through a curve at its highest top speed, 160 units a frame, while the
-  car turns through the radius its roads turn through longest, 40,000 positions ([its
-  skies](cisco-heat-road-data.md#its-skies)): 32.72 pixels a degree for the back and 67.63 for the front, its pictures
-  laid about 8 times narrower and lower than the original draws them. Through its sharp curves of 7,000 positions they
-  would be 5.73 and 11.84 (pictures of both shown to K).
+- **Its skies' turn** (CS-2, CS-3f). Its planes slide through a curve at its highest top speed, 160 units a frame,
+  while the car turns through its roads' sharpest common curves, 7,000 positions ([its
+  skies](cisco-heat-road-data.md#its-skies)): 5.73 pixels a degree for the back and 11.84 for the front, its back
+  plane's pictures laid about 1.4 times narrower than the original draws them, as BIG RUN's 1.9; the radius its roads
+  turn through longest, 40,000, would lay them 7.8 times narrower.
 - **Each way's slide** (CS-2). A plane slides by its slide's whole pixels, a pixel more one way than the other (the
   front 15 and 16, the back 7 and 8): their mean.
 - **The steps along a scene** (CS-2). Not laid, as BIG RUN's: a sky lays its scene's own row offset.
