@@ -21,8 +21,10 @@ RUN](big-run.md)).
   0xF0222 four times a record's word +0 (bits 0 to 13, bit 14 its sign) where the car passes the end of a record of its
   first road's list (player +0x58, 20 B, unless +8 bit 7), and takes it back to 0 by a sixteenth of its value then each
   frame (M 0x5E70, 0x63D2). 0xF0220 is the same for the yaw, from the list at +0x50 (12 B records, M 0x5E20).
-- **Open.** Where the pinhole lies, its height and how far behind the car (the projection's table at R1 0x3232), is read
-  with the courses (CS-3).
+- **The pinhole.** Each road CPU's row loop (R1 0x2A66 to 0x2ACC) takes a depth a row for 92 rows (the `moveq #$5B` at
+  0x2A72) from R1 0x3232 (R2 0x3236), with a row's scale from 0x32EA (R2 0x32EE): the depths are 374.54 × k ÷ (92.70 −
+  k) to within 0.57, a pinhole's; the scales fall by 165.5 a row from 16,384, as BIG RUN's do, not a pinhole's of the
+  same depths.
 
 ## Its skies
 

@@ -64,6 +64,15 @@ nearest line the word its line-kind table gives the kind (R1 0x2848, R2 0x284C),
 291 lines; from 0x14 on, one line. Its stages take kinds 0 to 14 (lines 294 to 2,040) and 20 to 24 (lines 2,041 to
 2,043). The run at a line's centre is a lane line (pen 8, as at ±142 units), its surface pen 6 about it.
 
+## Its camera
+
+Each road CPU draws its road's 92 rows up from the nearest at depths from its table (R1 0x3232, R2 0x3236; the `lea` at
+R1 0x2A66), each added to the car's position: the depth of the row k above the nearest is a pinhole's, behind × k ÷
+(rows − k), every one within its rounding (`depthPinhole`): its nearest row 92.70 rows below the horizon, the eye 374.5
+positions behind it. Its screen is read by a camera at this game's focal length where that pinhole lies, tilting with
+the road (`cisco-heat-camera`, [Cameras](original-road-data.md#profile-from-the-originals-screen)): 6.07 m behind the
+car and 2.51 m above the road, at 16.2 mm a position.
+
 ## Its skies
 
 CISCO HEAT's sky is the board's: its two tile planes over its road layer's sky rows, each plane showing a scene of
