@@ -143,3 +143,33 @@ pictures that changes along the road, read where its programs hold them (`cisco-
   gives (its shared word 0x500, M 0xA1EE), so a picture's bottom row lies as BIG RUN's do. Along a scene the program
   moves a plane up and down by its record's table of steps (+1A, 8 bytes a step: its start, its rows and its rate, M
   0xA3F8); a sky lays its scene's own offset.
+
+## Its objects
+
+Each stage's objects are its main program's records beside its roads (`cisco-heat-objects`), drawn as BIG RUN's by the
+board's zoomed sprites ([its objects](big-run-road-data.md#its-objects), `jaleco/zoom-sprites`) from four pairs of
+sprite ROMs (`ch9072.r15` to `.r20`, `.r25` and `.r26`, 4 MiB):
+
+- **Their records.** A stage's list (M 0xDAF2: a pointer a stage; M 0xDDFE walks it, drawing those up to 20,000
+  positions ahead) holds 16 bytes a record in the order of their positions: position (+0), descriptor (+4, its offset
+  into the table at 0x40000), kind (+6's low byte, 0 a picture standing where it is put), lateral (+8), height (+A) and
+  flags (+C): road 1 where bit 7 is set, its picture mirrored by bit 8, its height below its road by bit 10, its palette
+  entry bits 0 to 6 and its scale bits 12 to 14.
+- **Their pictures.** A descriptor (10 bytes) gives its sprite's size (+4: tiles across less 1 in bits 0 to 3, down in
+  bits 4 to 7) and first tile (+6). A sprite is drawn at its distance's zoom (the table at M 0x122272, a word a
+  position, its low byte, 128 a tile's own size) times its scale, which its flags pick of 1/2, 5/8, 3/4, 1, 5/4, 3/2,
+  7/4 and 15/8 (M 0xE296, the table at 0xE358); the road's pixels a unit at that distance are the table at M 0x109C68's
+  word over 32,768, so a sprite's pixel at its own size is 1.992 units at the nearest distance.
+- **Their colors.** Each stage loads its sprites' palette from entry 48 on (M 0xED4A to 0xED8E: its list, the table at M
+  0xD738's pointer a stage, a count less 1 and an entry's 16 words' offset into the table at M 0x1AB3C for each), 72 to
+  79 entries, and its objects of kind 0 take no entry outside them; the entries below, the cars' and the screen's, are
+  not read.
+- **Their places.** Its sprite's x is its road's centre plus its lateral at the road's scale there, its left edge; its y
+  is the road's row less its height at that scale (M 0xE5E6 to 0xE7B2: 0xE8 less their sum), from which the board draws
+  CISCO HEAT's sprites up, as BIG RUN's down: its height is its picture's bottom edge over its road. Read so, the
+  pictures of kind 0 stand on their roads, 83 to 96 % of them in each stage at 0, where read as BIG RUN's, from their
+  top edges, they would sink 2 to 6 m. Its flags' bit 8 mirrors its picture and bit 9 draws its pen 0 as a shadow (M
+  0xE2D4, 0xE882).
+- **Their hits.** The program meets the car with an object at height 0 on the car's road between its descriptor's
+  columns +0 and +2 at its drawn size, mirrored with its picture, unless its descriptor's +8 is 0 or its +0 is its +2
+  (M 0xE8AE to 0xE964): 83 to 96 % of each stage's objects of kind 0. How it meets them is not read.

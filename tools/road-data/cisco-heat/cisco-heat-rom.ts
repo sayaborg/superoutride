@@ -62,3 +62,26 @@ export const CISCO_HEAT_TILE_ROMS: readonly Rom[] = Object.freeze([
   { name: 'ch9071.a14', size: 0x40000, crc: 0x7a6d147f },
   { name: 'ch9071.t74', size: 0x40000, crc: 0x735a2e25 },
 ]);
+
+/** The sprites' ROMs: four pairs of 512 KiB ROMs, each its even and odd bytes, one pair after the other. */
+export const CISCO_HEAT_SPRITE_ROMS = Object.freeze([
+  {
+    even: { name: 'ch9072.r15', size: 0x80000, crc: 0x38af4aea },
+    odd: { name: 'ch9072.r16', size: 0x80000, crc: 0x71388dad },
+  },
+  {
+    even: { name: 'ch9072.r17', size: 0x80000, crc: 0x9d052cf3 },
+    odd: { name: 'ch9072.r18', size: 0x80000, crc: 0xfe402a56 },
+  },
+  {
+    even: { name: 'ch9072.r25', size: 0x80000, crc: 0xbe8cca47 },
+    odd: { name: 'ch9072.r26', size: 0x80000, crc: 0x2f96f47b },
+  },
+  {
+    even: { name: 'ch9072.r19', size: 0x80000, crc: 0x4e996fa8 },
+    odd: { name: 'ch9072.r20', size: 0x80000, crc: 0xfa70b92d },
+  },
+] as const);
+
+/** The sprites' tiles from the ROM set: 4 MiB, the pairs one after the other. */
+export const assembleCiscoHeatSprites = (set: RomSet): Uint8Array => programImage(set, CISCO_HEAT_SPRITE_ROMS);

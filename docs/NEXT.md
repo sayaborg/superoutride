@@ -624,6 +624,10 @@ Defaults for K to confirm before the stage closes, each its PR's:
   layer's palette as its stage loads it at its start, the changes its records make on along it not read; its sky's
   entries their first set, then their last from where its fade begins ([its
   colours](cisco-heat-road-data.md#its-colours)).
+- **Its objects' places** (CS-4a). An object's lateral is its picture's left edge from its road's centre and its height
+  its picture's bottom edge over its road, as its sprites are drawn up from their y; its scale its flags' bits 12 to 14;
+  those of its flags' bits 11 (between the two roads) and 15 (moved by the program) read as the others; a hit where its
+  program meets the car with it, between its descriptor's columns +0 and +2, the program's own meeting not read.
 - **Each way's slide** (CS-2). A plane slides by its slide's whole pixels, a pixel more one way than the other (the
   front 15 and 16, the back 7 and 8): their mean.
 - **The steps along a scene** (CS-2). Not laid, as BIG RUN's: a sky lays its scene's own row offset.

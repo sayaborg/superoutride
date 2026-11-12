@@ -40,6 +40,26 @@ RUN](big-run.md)).
 - **Open.** The screen row its nearest road row lies on (taken as its last); how the road layer's rows below 216 and
   their priorities show; the main's `$c0074` and `$c00c0` as the car drives, which its screen is read without.
 
+## Its objects
+
+- **The routine.** M 0xDDFE takes the stage's list (`$c(a6)`, set at M 0xDAF2 from the table at 0xD720) and calls M
+  0xDFE8 for each record up to 20,000 positions ahead; M 0xE0F0 takes its flags, M 0xE27E and 0xE288 its distance's
+  scale and zoom (M 0xE234's table at 0x10FE12 instead where `$f025e` is set), M 0xE398 its descriptor (its +0 and +2 to
+  `$a0(a6)`, +4 to `$10(a6)`, +6 the sprite's tile, +8 to `$a4(a6)`), M 0xE5E6 to 0xE654 its x and M 0xE746 to 0xE7B2
+  its y, written to the sprite's words 3 and 4. Its flags' bit 11 lays a picture between the two roads' rows (its height
+  the rows' difference, M 0xE6FC); bit 15 moves it by M 0x28A84 (`$f060c`, `$f060e`); kind 0x6D is special (M 0xE2EE).
+- **The bottom edge.** CISCO HEAT's sprite chip takes a sprite's y as its bottom edge and draws its scaled rows up from
+  it; BIG RUN's takes it as its top edge. Its records' heights agree: 83 to 96 % of each stage's kind 0 lie at 0.
+- **Their hits.** M 0xE8AE on, for an object nearer than the car's position (`$f0612`) on the car's road (`$f3194`, M
+  0xE83C to 0xE87E: road 1 where set): its descriptor's +8 (`$a4(a6)`) not 0, its sprite's y between 0x50 and 0x100,
+  its +0 and +2 apart and its record's height 0 (M 0xE900); its columns +0 and +2 times its zoom (`$2(a5)`, bit 12
+  mirroring them) from its x. Flags' bit 9 sets its sprite's bit 12 (M 0xE882), its pen 0 a shadow.
+- **Their colors.** The sprites' palette is 0xBD000 to 0xBDFFF, 128 entries. M 0xEBB0 loads the fixed entries below 48
+  (0 to 5, 20 to 34, 36, 46 and 47; 30 and 31 by the car chosen, `$f0020`); M 0xED4A loads the stage's list (`$f011a`)
+  from 48 on, and every object of kind 0 takes one of its entries.
+- **Open.** The own car's straight picture, whose width K's study measured from its screen; how the program meets the
+  car with an object (from M 0xE964); what bits 11 and 15 do for the hits.
+
 ## Its skies
 
 - **The planes' ROMs.** Plane 0's tiles are `ch9071.a14`'s and plane 1's `ch9071.t74`'s, 2,048 tiles each, read by
