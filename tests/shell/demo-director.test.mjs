@@ -119,7 +119,7 @@ test('the demo introduces the course, then starts behind the grid and takes the 
   assert.equal(shots.at(-1), 'GOAL');
 });
 
-test('a course without laps is introduced past its forks along their first exits', async () => {
+test('a course without laps is introduced along its route', async () => {
   const shots = await film('outrun-a', { speed: 60, finish: 1e6, steps: INTRO + 1200 });
   assert.equal(shots[INTRO], 'START');
   assert.ok(shots.includes('PASSED'));

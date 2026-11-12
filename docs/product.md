@@ -11,7 +11,7 @@ from playtests; [NEXT](NEXT.md#pending-product-decisions) lists every open decis
 
 ## 1. Concept
 
-The pleasure is driving the road: its turn order, elevation, surfaces, forks and scenery, with
+The pleasure is driving the road: its turn order, elevation, surfaces and scenery, with
 distinctly different vehicles. Driving a familiar road with another vehicle is itself a goal, and
 modest vehicles (Mini, Beetle, Vespa, Super Cub) are chosen for their character, not only their speed.
 
@@ -55,14 +55,14 @@ belong to the player's SETTINGS alone; a class does not prescribe them.
 traffic and laps (§4). Every delivered product course is available in FREE PLAY; a course that no class runs is
 available only there.
 
-LINEAR means one route without forks or laps (not a straight road), BRANCH a course with forks and
-several goals, and CIRCUIT a lapped course. Stages are rule intervals; they need not coincide with
+LINEAR means one route without laps (not a straight road), and CIRCUIT a lapped course. Courses do not branch
+(K, 2026-11-12). Stages are rule intervals; they need not coincide with
 course Sections. Series, courses and vehicles are all available from the start;
 there is no unlocking, currency or progression.
 
 ## 3. Run rules
 
-A run combines these rule components. Forks, recovery and timing mechanics are common to all
+A run combines these rule components. Recovery and timing mechanics are common to all
 runs ([Content and gameplay](content-and-gameplay.md) owns their definitions).
 
 | Component          | Values                                                                      |
@@ -109,11 +109,7 @@ slowly, within its own vehicle's limits and at its vehicle's whole speed on a st
 drive alike ([Rival utilization](content-and-gameplay.md#rival-utilization)). No vehicle's mechanics change. The
 difference is visible driving, not a hidden correction.
 
-**Forks.** The first competitor to cross a fork's lock line selects the route for the whole field;
-alone, that is the player. Unselected roads show warnings and closure signs; vehicles remaining there
-at closure recover to the selected road. Recovery preserves earned progress.
-
-**Traffic** vehicles are not competitors: they take no rank, never select a route and have no part in records.
+**Traffic** vehicles are not competitors: they take no rank and have no part in records.
 Traffic appears only on roads of two or more lanes.
 They are ordinary vehicles with ordinary drivers, travelling the player's way. Where each one appears along the
 road, its vehicle, color and lane follow from the run's seed. A traffic vehicle appears ahead at the farthest
@@ -137,8 +133,7 @@ starts from the first grid slot. What it competes on depends on the course:
   the class's lap count is not used. The standing-start first lap counts like any other. The run's result is its
   fastest completed lap; its total time is neither a result nor recorded. The player ends the run from PAUSE, whose
   QUIT leads to RESULT, showing the completed laps and the best; a run ended before completing a lap has no result.
-- **LINEAR and BRANCH: the completion time** to the goal reached, as a run with a finish. On forks the player selects
-  the route by driving.
+- **LINEAR: the completion time** to the goal, as a run with a finish.
 
 **FREE PLAY** runs any product course with any vehicle. There is no clock. Its RULES, chosen before the course and
 kept as chosen (K, 2026-11-09), are the rival count (0–15), the rival vehicle pool (ALL, CARS or BIKES; default ALL),
@@ -325,7 +320,7 @@ elements, each reading one observation; the active run rules determine which app
 | Clock on                       | TIME remaining, EXTEND                                                      |
 | Two or more competitors ranked | POS n/m                                                                     |
 | Next gate has a rank limit     | PASS n                                                                      |
-| LINEAR or BRANCH               | STAGE n                                                                     |
+| LINEAR                         | STAGE n                                                                     |
 | CIRCUIT                        | LAP x/y (LAP x without a lap count), lap time, BEST lap                     |
 | One rival per stage            | TARGET distance while that rival is ahead                                   |
 | Ended                          | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT                   |
@@ -379,7 +374,7 @@ The browser keeps one versioned record of settings and records:
   lap on a CIRCUIT) and the vehicle it was set with.
 
 Records are TIME ATTACK's alone; RACE and FREE PLAY record nothing. A record keeps the identities of its course and
-of its vehicle's definitions and is discarded when either changes. On a LINEAR or BRANCH course only a run that
+of its vehicle's definitions and is discarded when either changes. On a LINEAR course only a run that
 reaches GOAL records. On a CIRCUIT a lap that beats the record is recorded when it is completed, and NEW RECORD
 sounds then, so ending the run, or leaving it any other way, never loses it. READY shows the record and RESULT judges
 the run against the reached goal's record, or on a CIRCUIT shows the run's best lap against the record, with NEW

@@ -16,7 +16,7 @@ import { RUN_RULE_LIMITS, type TrafficSettings } from '../course/run-rules.js';
 import { COURSE_TEXT_LIMITS } from '../course/course-limits.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseStartGrid } from '../course/compiler/course-rules.js';
-import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
+import { courseRouteLinks } from '../course/compiler/course-routes.js';
 import { createCourseRoute } from '../course/course-route.js';
 import { MAXIMUM_VEHICLE_SPEED_KILOMETERS_PER_HOUR, type VehicleId } from '../vehicle/physics/vehicle-definitions.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -393,7 +393,7 @@ function readStages(value: unknown, path: string): StageInterval {
   return Object.freeze({ first, last });
 }
 
-/** The fewest stages any run of the course takes: race gates per route, times the laps on a circuit. */
+/** The stages a run of the course takes: race gates along its route, times the laps on a circuit. */
 function courseStageCount(course: CompiledCourse, laps: number): number {
   const gates = new Map(
     course.gates.intervals.map(({ section, checkpoints, finish }) => [section, checkpoints.length + (finish ? 1 : 0)]),
@@ -407,16 +407,15 @@ function courseStageCount(course: CompiledCourse, laps: number): number {
     } while (section !== course.entry);
     return count * laps;
   }
-  return Math.min(
-    ...enumerateCourseRoutes(course.entry, course.type).map((links) =>
-      [course.entry, ...links.map((link) => link.to.section)].reduce((n, s) => n + (gates.get(s) ?? 0), 0),
-    ),
+  return [course.entry, ...courseRouteLinks(course.entry, course.type).map((link) => link.to.section)].reduce(
+    (n, s) => n + (gates.get(s) ?? 0),
+    0,
   );
 }
 
 /**
- * The least distance, over every route, from the race gate opening STAGE `stage` to the next race gate after it: an
- * ahead appearance must fall short of it.
+ * The distance from the race gate opening STAGE `stage` to the next race gate after it: an ahead appearance must fall
+ * short of it.
  */
 function aheadRoom(course: CompiledCourse, laps: number, stage: number): number {
   const gatesOf = new Map(
@@ -425,25 +424,19 @@ function aheadRoom(course: CompiledCourse, laps: number, stage: number): number 
       [...checkpoints, ...(finish ? [finish] : [])],
     ]),
   );
-  const routes = course.type === 'CIRCUIT' ? [null] : enumerateCourseRoutes(course.entry, course.type);
-  let room = Infinity;
-  for (const links of routes) {
-    const builder = createCourseRoute(course.entry);
-    if (links) for (let i = 0; i < links.length; i++) builder.extend();
-    else {
-      // A circuit repeats its loop once per lap.
-      let sections = 1;
-      for (let section = course.entry.outgoing[0]!.to.section; section !== course.entry; sections++)
-        section = section.outgoing[0]!.to.section;
-      for (let i = 1; i < sections * laps; i++) builder.extend();
-    }
-    const gates: number[] = [];
-    for (const occurrence of builder.route.occurrences)
-      for (const gate of gatesOf.get(occurrence.section) ?? []) gates.push(occurrence.start + gate.at.s);
-    const opening = gates[stage - 2]!;
-    room = Math.min(room, (gates[stage - 1] ?? Infinity) - opening);
-  }
-  return room;
+  const builder = createCourseRoute(course.entry);
+  if (course.type === 'CIRCUIT') {
+    // A circuit repeats its loop once per lap.
+    let sections = 1;
+    for (let section = course.entry.outgoing[0]!.to.section; section !== course.entry; sections++)
+      section = section.outgoing[0]!.to.section;
+    for (let i = 1; i < sections * laps; i++) builder.extend();
+  } else builder.extendThrough(Infinity);
+  const gates: number[] = [];
+  for (const occurrence of builder.route.occurrences)
+    for (const gate of gatesOf.get(occurrence.section) ?? []) gates.push(occurrence.start + gate.at.s);
+  const opening = gates[stage - 2]!;
+  return (gates[stage - 1] ?? Infinity) - opening;
 }
 
 function requireUnique(values: readonly string[], path: string, kind: string): void {

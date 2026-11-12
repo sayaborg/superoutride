@@ -1002,13 +1002,12 @@ TIME ATTACK run records (`createRunRecords`); RACE, FREE PLAY, the attract demo 
 Run record and compare nothing, and a run requested by URL records as one requested from the menus. On a CIRCUIT
 each completed lap is judged against the class's record when it completes: a faster lap is saved at once, with its
 gate times within the lap, and `new-record` sounds then, so ending the run, or leaving it any other way, never loses
-it. On a LINEAR or BRANCH course the run is judged once, at its finish, against the record of the goal reached, and a
+it. On a LINEAR course the run is judged once, at its finish, against the record of its goal, and a
 faster time is saved with its gate times. An equal time keeps the earlier record; a stored record whose identities are
 not current counts as none and is replaced. While driven, each of the player's crossings is compared with the record
-run's crossing of the same index (within the lap on a CIRCUIT) against the record as it stands, once the goal the run
-can reach is known: from the start on a course with one goal, else once the race has decided the route
-(`routeLinks`), whose last FINISH is the goal; the records read that goal only at a crossing of the player's on a course
-with several goals. READY, the PRE-RACE card and RESULT show the record as it stood before
+run's crossing of the same index (within the lap on a CIRCUIT) against the record as it stands, from the start: the
+course's goal is the last FINISH along its one route (`courseRouteLinks`). READY, the PRE-RACE card and RESULT show the
+record as it stood before
 the run: READY and the PRE-RACE card the class's fastest at any goal (`shownRecord`, the one record
 of a course with one goal), RESULT the record at the goal the run was judged at. The judgement and the HUD's record belong to the run they were made for.
 

@@ -165,7 +165,7 @@ test('from a start before the line, laps and checkpoints count from the line, as
     course,
     new Map(course.sections.map((s) => [s.id, racingLineStations(s).map(() => 0)])),
   );
-  const run = runCourseReference(course, vehicle, catalog, [], 2, lines, true);
+  const run = runCourseReference(course, vehicle, catalog, 2, lines, true);
   // Every line after the line, lap by lap; the line crossed from the grid is none.
   assert.deepEqual(
     run.events.map((e) => [e.landmarkId, e.lap]),

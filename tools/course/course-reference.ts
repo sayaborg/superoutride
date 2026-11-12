@@ -12,17 +12,15 @@ import {
   type AdmissionResult,
 } from '../../src/core/admission.js';
 import { SHA256_TEXT } from '../../src/core/content-digest.js';
-import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { createCourseRoute } from '../../src/course/course-route.js';
 import { createRouteCrossSections, type RouteRaceLine } from '../../src/race/route-cross-sections.js';
 
-/** The race lines a run of this route and lap count crosses, in order through its completing FINISH. */
-function expectedRaceLines(course: CompiledCourse, links: readonly CompiledCourse['links'][number][], laps: number) {
+/** The race lines a run of the course's route and `laps` crosses, in order through its completing FINISH. */
+function expectedRaceLines(course: CompiledCourse, laps: number) {
   const builder = createCourseRoute(course.entry);
   const lines = createRouteCrossSections(builder.route, course, laps);
-  for (let i = 0; i < links.length; i++) builder.extend();
   // A circuit repeats its cycle until the final lap's FINISH is on the Route.
-  while (!lines.race.some((line) => line.finish)) builder.extend();
+  while (!lines.race.some((line) => line.finish) && builder.extend());
   const race: readonly RouteRaceLine[] = lines.race;
   return race.slice(0, race.findIndex((line) => line.finish) + 1);
 }
@@ -39,10 +37,10 @@ export interface CourseReferenceTimes {
 const SECONDS = { min: 0, exclusiveMin: true };
 
 /**
- * Admit a saved reference report (`superoutride.course-reference` version 5) for the vehicle `vehicleId`, whose
+ * Admit a saved reference report (`superoutride.course-reference` version 6) for the vehicle `vehicleId`, whose
  * Run vehicle has the identity `vehicleSha256`, against the compiled course and the reference run's identity
- * `referenceSha256`, and resolve its runs to the course's canonical landmarks: one run per route, each through the
- * maximum laps, recording exactly the race lines its route crosses.
+ * `referenceSha256`, and resolve its run to the course's canonical landmarks: one run of the course's route through
+ * the maximum laps, recording exactly the race lines it crosses.
  */
 export function readCourseReference(
   course: CompiledCourse,
@@ -59,7 +57,7 @@ export function readCourseReference(
       input,
       ['format', 'version', 'courseBuildSha256', 'procedureSha256', 'vehicles'],
       'superoutride.course-reference',
-      5,
+      6,
     );
     requireAdmission(
       readString(data.courseBuildSha256, '/courseBuildSha256', SHA256_TEXT) === course.identity.buildSha256,
@@ -75,7 +73,7 @@ export function readCourseReference(
     );
     const vehicles = readArray(data.vehicles, '/vehicles', (item, at) => ({
       at,
-      record: readRecord(item, at, ['vehicleId', 'vehicleSha256', 'runs']),
+      record: readRecord(item, at, ['vehicleId', 'vehicleSha256', 'run']),
     }));
     const candidates = vehicles.filter(({ record }) => record.vehicleId === vehicleId);
     requireAdmission(candidates.length === 1, 'invalid_value', '/vehicles', `Expected one entry for ${vehicleId}`);
@@ -86,80 +84,66 @@ export function readCourseReference(
       `${at}/vehicleSha256`,
       'Stale vehicle/calibration/assist identity',
     );
-    const routes = enumerateCourseRoutes(course.entry, course.type);
-    const after = new Map<CompiledCourseLandmark, Map<number, number>>(),
-      seen = new Set<string>();
+    const after = new Map<CompiledCourseLandmark, Map<number, number>>();
     let initialSeconds = 0;
-    readArray(
-      candidate.runs,
-      `${at}/runs`,
-      (item, runAt) => {
-        const run = readRecord(item, runAt, ['links', 'lapCount', 'elapsedSeconds', 'events', 'metrics']);
-        const ids = readArray(run.links, `${runAt}/links`, (id, path) => readString(id, path));
-        const key = JSON.stringify(ids);
-        requireAdmission(!seen.has(key), 'duplicate_id', `${runAt}/links`, 'Duplicate route');
-        seen.add(key);
-        const route = routes.find((r) => r.length === ids.length && r.every((link, i) => link.id === ids[i]));
-        requireAdmission(route !== undefined, 'unresolved_reference', `${runAt}/links`, 'Unknown route');
-        requireAdmission(
-          readNumber(run.lapCount, `${runAt}/lapCount`, { integer: true }) === maxLaps,
-          'invalid_value',
-          `${runAt}/lapCount`,
-          'Expected a run through the maximum laps',
-        );
-        const metrics = readRecord(run.metrics, `${runAt}/metrics`, [
-          'maximumSpeed',
-          'maximumUtilization',
-          'distance',
-          'recoveries',
-        ]);
-        readNumber(metrics.recoveries, `${runAt}/metrics/recoveries`, { min: 0, integer: true });
-        // The race's own lines for the planned route: the order and laps a run must record.
-        const expected = expectedRaceLines(course, route, maxLaps);
-        const events = readArray(
-          run.events,
-          `${runAt}/events`,
-          (value, eventAt) => ({
-            eventAt,
-            event: readRecord(value, eventAt, ['landmarkId', 'lap', 'timeSeconds', 'intervalSeconds']),
-          }),
-          { length: expected.length },
-        );
-        let previous = 0;
-        events.forEach(({ eventAt, event }, index) => {
-          const point = expected[index]!;
-          requireAdmission(
-            readString(event.landmarkId, `${eventAt}/landmarkId`) === point.landmark.id &&
-              readNumber(event.lap, `${eventAt}/lap`, { integer: true }) === point.lap,
-            'invalid_value',
-            eventAt,
-            `Expected ${point.landmark.id} on lap ${point.lap}`,
-          );
-          const time = readNumber(event.timeSeconds, `${eventAt}/timeSeconds`, SECONDS),
-            duration = time - previous;
-          requireAdmission(
-            duration > 0 && readNumber(event.intervalSeconds, `${eventAt}/intervalSeconds`) === duration,
-            'invalid_value',
-            `${eventAt}/intervalSeconds`,
-            'Inconsistent interval time',
-          );
-          if (index === 0) initialSeconds = Math.max(initialSeconds, duration);
-          else {
-            const prior = expected[index - 1]!,
-              values = after.get(prior.landmark) ?? new Map<number, number>();
-            values.set(prior.lap, Math.max(values.get(prior.lap) ?? 0, duration));
-            after.set(prior.landmark, values);
-          }
-          previous = time;
-        });
-        requireAdmission(
-          readNumber(run.elapsedSeconds, `${runAt}/elapsedSeconds`) === previous,
-          'invalid_value',
-          `${runAt}/elapsedSeconds`,
-          'Completion time mismatch',
-        );
-      },
-      { length: routes.length },
+    const runAt = `${at}/run`;
+    const run = readRecord(candidate.run, runAt, ['lapCount', 'elapsedSeconds', 'events', 'metrics']);
+    requireAdmission(
+      readNumber(run.lapCount, `${runAt}/lapCount`, { integer: true }) === maxLaps,
+      'invalid_value',
+      `${runAt}/lapCount`,
+      'Expected a run through the maximum laps',
+    );
+    const metrics = readRecord(run.metrics, `${runAt}/metrics`, [
+      'maximumSpeed',
+      'maximumUtilization',
+      'distance',
+      'recoveries',
+    ]);
+    readNumber(metrics.recoveries, `${runAt}/metrics/recoveries`, { min: 0, integer: true });
+    // The race's own lines for the planned route: the order and laps a run must record.
+    const expected = expectedRaceLines(course, maxLaps);
+    const events = readArray(
+      run.events,
+      `${runAt}/events`,
+      (value, eventAt) => ({
+        eventAt,
+        event: readRecord(value, eventAt, ['landmarkId', 'lap', 'timeSeconds', 'intervalSeconds']),
+      }),
+      { length: expected.length },
+    );
+    let previous = 0;
+    events.forEach(({ eventAt, event }, index) => {
+      const point = expected[index]!;
+      requireAdmission(
+        readString(event.landmarkId, `${eventAt}/landmarkId`) === point.landmark.id &&
+          readNumber(event.lap, `${eventAt}/lap`, { integer: true }) === point.lap,
+        'invalid_value',
+        eventAt,
+        `Expected ${point.landmark.id} on lap ${point.lap}`,
+      );
+      const time = readNumber(event.timeSeconds, `${eventAt}/timeSeconds`, SECONDS),
+        duration = time - previous;
+      requireAdmission(
+        duration > 0 && readNumber(event.intervalSeconds, `${eventAt}/intervalSeconds`) === duration,
+        'invalid_value',
+        `${eventAt}/intervalSeconds`,
+        'Inconsistent interval time',
+      );
+      if (index === 0) initialSeconds = Math.max(initialSeconds, duration);
+      else {
+        const prior = expected[index - 1]!,
+          values = after.get(prior.landmark) ?? new Map<number, number>();
+        values.set(prior.lap, Math.max(values.get(prior.lap) ?? 0, duration));
+        after.set(prior.landmark, values);
+      }
+      previous = time;
+    });
+    requireAdmission(
+      readNumber(run.elapsedSeconds, `${runAt}/elapsedSeconds`) === previous,
+      'invalid_value',
+      `${runAt}/elapsedSeconds`,
+      'Completion time mismatch',
     );
     return Object.freeze({
       initialSeconds,

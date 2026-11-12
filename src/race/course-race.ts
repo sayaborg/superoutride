@@ -1,7 +1,6 @@
 import type { RunSetup, RunEntry } from './run-setup.js';
 import { createCheckpointClock, raceEventSeconds } from './checkpoint-clock.js';
 import { rankRaceProgress } from './race-ranking.js';
-import { enumerateCourseRoutes } from '../course/compiler/course-routes.js';
 import { createRankLimitJudge, createRunOutcome, type RunStatus } from './run-outcome.js';
 import { createRouteProgress, type RouteRaceEvent } from './route-progress.js';
 import { createRouteCrossSections } from './route-cross-sections.js';
@@ -121,8 +120,6 @@ export function createCourseRace(options: {
   const outcome = createRunOutcome();
   const startPhase = createStartPhase();
   const lines = createRouteCrossSections(runtime.route, course, configuration.lapCount);
-  // The course's routes as reference runs name them: each its Links in canonical order; a circuit's is empty.
-  const routes = enumerateCourseRoutes(course.entry, course.type);
   // The lanes and the racing line every driver and recovery reads.
   const forks = createCourseForkField(runtime.route, options.setup.racingLines);
   // A circuit's lap: its Sections around the cycle from the entry.
@@ -747,20 +744,6 @@ export function createCourseRace(options: {
         present.map((c) => ({ competitorId: c.id, s: c.progress.s, finishSeconds: c.finishSeconds })),
       );
       return { rank: standings.find((s) => s.competitorId === player.id)!.rank, count: present.length };
-    },
-    /**
-     * The course route the Route is taking, as reference runs and records name routes (its Link IDs in canonical
-     * order; empty on a CIRCUIT): the one enumerated route that holds every Link the Route has appended. Null while
-     * more than one still does.
-     */
-    get routeLinks(): readonly string[] | null {
-      const taken = runtime.route.occurrences.flatMap((occurrence) =>
-        occurrence.incoming ? [occurrence.incoming] : [],
-      );
-      const matching = routes.filter(
-        (route) => course.type === 'CIRCUIT' || taken.every((link, i) => route[i] === link),
-      );
-      return matching.length === 1 ? matching[0]!.map((link) => link.id) : null;
     },
     /**
      * The rank limit N of the player's next race gate: the player fails there when N other competitors cross it first.

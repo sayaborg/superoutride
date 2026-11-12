@@ -1,4 +1,5 @@
 import type { CourseIndex } from '../content/course-index.js';
+import { courseRouteLinks } from '../course/compiler/course-routes.js';
 import type { ContentDelivery } from '../content/content-delivery.js';
 import type { CameraDefinition, CameraState } from '../view/camera.js';
 import { SIM_DT } from '../race/fixed-step.js';
@@ -357,17 +358,14 @@ async function assembleCourseRun(
   if (track === undefined) throw new RangeError(`Unknown track ${request.track}`);
   const music = createRunMusic(shell, track);
   const effects = createRunEffects((effect) => shell.playRecording(`effects/${effect}`, 'effects'));
-  // The goal the run's Route reaches once the race has decided it (`race.routeLinks`): the last FINISH along it. The
-  // records read it when they need it.
+  // The goal the course's route reaches: the last FINISH along it. The records read it when they need it.
   const finishes = new Map(
     course.gates.intervals.flatMap((interval) => (interval.finish ? [[interval.section, interval.finish.id]] : [])),
   );
-  const routeGoal = (): string | null => {
-    const links = active.race.routeLinks;
-    if (links === null) return null;
-    const sections = [course.entry, ...links.map((id) => course.links.find((link) => link.id === id)!.to.section)];
-    return sections.reduce<string | null>((goal, section) => finishes.get(section) ?? goal, null);
-  };
+  const goal = [course.entry, ...courseRouteLinks(course.entry, course.type).map((link) => link.to.section)].reduce<
+    string | null
+  >((found, section) => finishes.get(section) ?? found, null);
+  const routeGoal = (): string | null => goal;
   // The record READY shows, with the name of the vehicle it was set with.
   const readyRecord = (): HudFacts['record'] => {
     const shown = active.records?.shown;

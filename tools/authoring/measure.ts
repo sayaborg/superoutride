@@ -1,6 +1,5 @@
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { createRunVehicle, runVehicleSha256, type RunVehicle } from '../../src/content/run-vehicle.js';
-import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { procedureSha256 } from '../course/procedure.js';
 import { referenceProcedure, runCourseReference } from '../course/reference-run.js';
 import { RACING_LINE_PROCEDURE } from '../course/racing-line.js';
@@ -47,7 +46,7 @@ export interface MeasureJob {
 
 export interface MeasureResult {
   readonly vehicleId: string;
-  readonly runs: readonly { readonly course: string; readonly runs: ReturnType<typeof runCourseReference>[] }[];
+  readonly runs: readonly { readonly course: string; readonly run: ReturnType<typeof runCourseReference> }[];
   /** The engine loudness (LUFS) when the job measured it, else null. */
   readonly lufs: number | null;
 }
@@ -85,9 +84,7 @@ export function runMeasureJob(
     const lines = requireLoaded(readRacingLines(course, job.racingLines[id]));
     return {
       course: id,
-      runs: enumerateCourseRoutes(course.entry, course.type).map((route) =>
-        runCourseReference(course, vehicle, catalog, route, course.rules.maxLaps, lines),
-      ),
+      run: runCourseReference(course, vehicle, catalog, course.rules.maxLaps, lines),
     };
   });
   if (job.loudness) progress('engine loudness');
@@ -280,15 +277,15 @@ export async function planMeasurement(
       const entries = fresh.get(course.id)!;
       let changed = everything || !entries.size;
       const vehiclesOut = candidates.map((vehicleId) => {
-        const runs = results.get(vehicleId)?.runs.find((r) => r.course === course.id)?.runs;
-        if (!runs) return entries.get(vehicleId)!;
+        const run = results.get(vehicleId)?.runs.find((r) => r.course === course.id)?.run;
+        if (!run) return entries.get(vehicleId)!;
         changed = true;
-        const next = savedReferenceVehicle(course, vehicleId, vehicles.get(vehicleId)!.sha256, referenceSha256, runs);
+        const next = savedReferenceVehicle(course, vehicleId, vehicles.get(vehicleId)!.sha256, referenceSha256, run);
         const before = ((saved as Partial<SavedReferenceTimes> | null)?.vehicles ?? []).find(
           (v) => v.vehicleId === vehicleId,
         );
         // A run that recovered still measures; the report counts its recoveries.
-        const recoveries = runs.reduce((sum, run) => sum + run.metrics.recoveries, 0);
+        const { recoveries } = run.metrics;
         report.push({ course: course.id, vehicle: vehicleId, recoveries, ...timeChanges(before ?? null, next) });
         return next;
       });

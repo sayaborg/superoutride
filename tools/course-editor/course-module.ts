@@ -543,7 +543,7 @@ export const courseModule: EditorModule = {
       ),
     );
 
-    /** The Sections, each with where its Links go: the entry, forks, merges and the circuit's return. */
+    /** The Sections, each with where its Links go: the entry, merges and the circuit's return. */
     const showSections = () => {
       if (!structure) {
         sections.replaceChildren();

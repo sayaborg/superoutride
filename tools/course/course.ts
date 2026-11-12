@@ -310,7 +310,6 @@ async function compiledCourseVerb(file: string) {
     sections: { id: string; length: number; sprites: number }[];
     type?: CompiledCourse['type'];
     entrySection?: string;
-    forks?: { section: string; lock: number; closure: number; exits: unknown[] }[];
     ground?: Record<string, number>;
     render?: RenderFrame | { frames: RenderFrame[] };
     report?: Awaited<ReturnType<typeof writeCourseReport>>;

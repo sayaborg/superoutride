@@ -1,5 +1,4 @@
 import { routeSectionS } from '../../src/course/course-route.js';
-type CompiledLink = CompiledCourse['links'][number];
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
 import type { RunVehicle } from '../../src/content/run-vehicle.js';
@@ -44,7 +43,6 @@ export function runCourseReference(
   course: CompiledCourse,
   vehicleConfiguration: RunVehicle,
   catalog: { readonly vehicles: readonly CompiledVehicleDefinition[]; readonly freePlay: FreePlayRules },
-  route: readonly CompiledLink[],
   lapCount: number,
   lines: RacingLines,
   capture = false,
@@ -138,7 +136,6 @@ export function runCourseReference(
   if (!lateralBounds.some(([left, right]) => finalL >= left && finalL < right))
     throw new RangeError('Reference FINISH lies outside pavement');
   return {
-    links: route.map((l) => l.id),
     lapCount,
     elapsedSeconds: race.clock.elapsedSeconds,
     events,

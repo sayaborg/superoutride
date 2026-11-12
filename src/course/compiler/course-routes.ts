@@ -1,25 +1,11 @@
-import { COURSE_DOCUMENT_LIMITS } from '../course-limits.js';
 import type { CompiledLink, CompiledSection } from './course-graph.js';
 
 /**
- * The one enumeration of a course graph's finite routes from its entry: each route is its Link list in canonical
- * outgoing order; a circuit has the single empty route. Enumeration stops after `COURSE_DOCUMENT_LIMITS.routes + 1`
- * routes so that compilation can reject a graph over the limit; an admitted course never reaches it.
+ * A course's one route from its entry: its Links in order to the terminal Section, each Section's one outgoing Link
+ * (K, 2026-11-12: courses do not branch); a circuit's is empty, its laps repeating the cycle.
  */
-export function enumerateCourseRoutes(
-  entry: CompiledSection,
-  type: 'CIRCUIT' | 'LINEAR',
-): readonly (readonly CompiledLink[])[] {
-  if (type === 'CIRCUIT') return Object.freeze([Object.freeze([])]);
-  const routes: (readonly CompiledLink[])[] = [];
-  const visit = (section: CompiledSection, links: readonly CompiledLink[]) => {
-    if (routes.length > COURSE_DOCUMENT_LIMITS.routes) return;
-    if (!section.outgoing.length) {
-      routes.push(Object.freeze(links));
-      return;
-    }
-    for (const link of section.outgoing) visit(link.to.section, [...links, link]);
-  };
-  visit(entry, []);
-  return Object.freeze(routes);
+export function courseRouteLinks(entry: CompiledSection, type: 'CIRCUIT' | 'LINEAR'): readonly CompiledLink[] {
+  const links: CompiledLink[] = [];
+  if (type === 'LINEAR') for (let link = entry.outgoing[0]; link; link = link.to.section.outgoing[0]) links.push(link);
+  return Object.freeze(links);
 }

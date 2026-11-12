@@ -176,7 +176,7 @@ the content compiled by the authoring core; it never reads `dist/`:
 npm run measure -- generate
 npm run measure -- regenerate
 npm run measure -- compare
-npm run measure -- trace --course tsukuba --vehicle TESTAROSSA --route 0 --out /tmp/reference.json
+npm run measure -- trace --course tsukuba --vehicle TESTAROSSA --out /tmp/reference.json
 ```
 
 `generate` solves again each course's stale or absent racing lines first (a line is also stale when a vehicle that times

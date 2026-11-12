@@ -130,26 +130,26 @@ export interface SavedReferenceTimes {
 }
 
 /**
- * One vehicle's saved reference times from its reference runs, one per route: they are admitted as a reference
- * report and reduced to the longest intervals.
+ * One vehicle's saved reference times from its reference run: it is admitted as a reference report and reduced to
+ * the longest intervals.
  */
 export function savedReferenceVehicle(
   course: CompiledCourse,
   vehicleId: string,
   vehicleSha256: string,
   procedureSha256: string,
-  runs: readonly ReferenceRun[],
+  run: ReferenceRun,
 ): SavedReferenceVehicle {
   const report = {
     format: 'superoutride.course-reference',
-    version: 5,
+    version: 6,
     courseBuildSha256: course.identity.buildSha256,
     procedureSha256,
-    vehicles: [{ vehicleId, vehicleSha256, runs }],
+    vehicles: [{ vehicleId, vehicleSha256, run }],
   };
   const admitted = readCourseReference(course, vehicleId, vehicleSha256, procedureSha256, report);
   if (!admitted.ok)
-    throw new Error(`Reference runs of ${vehicleId} on ${course.id}: ${admitted.diagnostics[0]!.message}`);
+    throw new Error(`Reference run of ${vehicleId} on ${course.id}: ${admitted.diagnostics[0]!.message}`);
   const times = admitted.value;
   return {
     vehicleId,

@@ -6,7 +6,6 @@ import { compileContent, type CompiledContent } from '../authoring/compile-conte
 import { createNodeContentStore, CONTENT_ROOT } from '../build/node-content-store.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { createRunVehicle, runVehicleSha256 } from '../../src/content/run-vehicle.js';
-import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
 import { atomicWrite, options, reportError, requireCompiled } from './authoring-io.js';
 import { requireInput } from '../authoring/authoring-error.js';
 import { procedureSha256 } from './procedure.js';
@@ -23,7 +22,7 @@ import { planMeasurement, type MeasureJob, type MeasureResult } from '../authori
  * `trace` writes one complete measurement or reference run to a disposable file.
  */
 const USAGE =
-  'Usage: npm run measure -- generate | regenerate | compare | trace --vehicle ID --course ID [--route N] [--laps N] --out file';
+  'Usage: npm run measure -- generate | regenerate | compare | trace --vehicle ID --course ID [--laps N] --out file';
 const store = createNodeContentStore();
 
 const [verb, ...args] = process.argv.slice(2);
@@ -113,7 +112,7 @@ async function runJobs(jobs: readonly MeasureJob[]): Promise<Map<string, Measure
 
 /** One complete reference run of a course a class runs, in a disposable file. */
 async function trace(args: readonly string[]) {
-  const opts = options(args, ['--vehicle', '--course', '--route', '--laps', '--out']);
+  const opts = options(args, ['--vehicle', '--course', '--laps', '--out']);
   requireInput(opts.has('--vehicle') && opts.has('--course') && opts.has('--out'), '/arguments', USAGE);
   const content: CompiledContent = requireCompiled(await compileContent(store, { measured: false }));
   const entry = content.definitions.vehicles.find((e) => e.compiledVehicle.id === opts.get('--vehicle'));
@@ -122,10 +121,7 @@ async function trace(args: readonly string[]) {
   const series = content.seriesClasses.find(({ course }) => course.id === opts.get('--course'));
   requireInput(series, '/course', 'Reference runs need a course a class runs');
   const { course } = series;
-  const routes = enumerateCourseRoutes(course.entry, course.type);
-  const lapCount = Number(opts.get('--laps') ?? series.settings.laps),
-    routeIndex = Number(opts.get('--route') ?? 0);
-  requireInput(Number.isInteger(routeIndex) && routes[routeIndex], '/route', 'Unknown route index');
+  const lapCount = Number(opts.get('--laps') ?? series.settings.laps);
   // The course's racing lines, solved as the measured product's are.
   const lineSha256 = await procedureSha256(RACING_LINE_PROCEDURE);
   const timing = [];
@@ -156,7 +152,6 @@ async function trace(args: readonly string[]) {
       course,
       vehicle,
       { vehicles: content.definitions.vehicles, freePlay: content.freePlay },
-      routes[routeIndex]!,
       lapCount,
       lines,
       true,

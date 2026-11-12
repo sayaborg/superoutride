@@ -427,7 +427,6 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Environment array and expanded Section `environmentKnots`               |                256 | (21 × 4 + 1) × 2, rounded up                                                                                            |
 | Section `boundaries`                                                    |                 32 | 16 road, median, shoulder and outer Boundaries × 2                                                                      |
 | Section `lanes` (lanes and medians)                                     |                 64 | Eight lanes each way with medians, with room for lanes that appear and end                                              |
-| Non-circuit finite `routes` from the entry                              |                256 | Author-chosen reference work bound, not derived: one reference run per route and vehicle                                |
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up; one sprite array, a repeat's too, may hold all of its Section's placements          |
 | Each Strip array `stripElements`                                        |               2048 | 21 × 30/km × 2, rounded up                                                                                              |
 | Section `walls` / each wall's Strips (`stripElements`)                  |        1024 / 2048 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; a wall's Strip array has the road's Strip array ceiling           |
@@ -492,11 +491,8 @@ when a revision can change the product of an accepted input, and a revision that
 admission keeps it, since every course accepted both before and after compiles to the same product. Existing inputs must still satisfy the current
 ceilings; no migration reader or grandfathered limit set is provided.
 
-Course compilation owns the route-count ceiling. `enumerateCourseRoutes` is the one enumeration of a course's
-finite routes from the entry, each its Link list in outgoing order (a circuit has one empty route); compilation
-rejects a non-circuit course with more than `routes` of them with a `resource_limit` diagnostic at the fork Section
-where the first route over the ceiling leaves the last admitted one. Reference generation and reference reading
-use the same enumeration.
+A course has one route (K, 2026-11-12): `courseRouteLinks` gives its Links in order from the entry to the terminal
+Section, empty on a circuit, whose laps repeat the cycle. Reference generation and reference reading use it.
 
 ## Geometry and bindings
 
@@ -892,9 +888,7 @@ present by `rankRaceProgress` and their count, which every display reads; the ra
 gate (null without one or after finishing); and, when the only present rival takes part in a stage interval holding
 the player's STAGE (one rival per stage), that rival's Route station less the player's, positive while it is ahead.
 For records the race also publishes each competitor's race time at every race line it has crossed (every
-checkpoint and FINISH line, every lap, in order) and the FINISH gate it finished at, and the route the Route is
-taking, named as reference runs name routes: the Link IDs of the one enumerated course route (`enumerateCourseRoutes`)
-that holds every Link the Route has appended, empty on a CIRCUIT, and null while more than one route still does.
+checkpoint and FINISH line, every lap, in order) and the FINISH gate it finished at.
 The run's other identities already exist: the compiled course's build identity and the run vehicle's identity
 (`runVehicleSha256`), which time budgets also carry. The race also counts simulation seconds, every advanced fixed step (READY and after the ending included), the time
 base for displays timed across the ending, and stamps each competitor observation's latest shift with it. The shell
@@ -988,11 +982,11 @@ clock's margin (positive, finite and at most 10), or null for a RACE without a c
 reference run cannot finish, ENDURO RACER's): it needs no reference times, and `fixedColors`, whether the player drives
 in its entry's color rather than its own chosen color. `entries` lists the whole field, 1 through 16 entries, each a
 catalog vehicle, a color its sprite set declares, `stages` (null for the whole run, or `{first, last}` with `last`
-at least `first` and no later than the stage count of every run of the course: its race gates per route, times the laps
+at least `first` and no later than the stage count of a run of the course: its race gates along its route, times the laps
 on a circuit) and one appearance. An entry taking part from STAGE 1 has a grid `slot` index (0 through 15) and `ahead:
 null`; grid entries are in grid order with strictly increasing slots. An entry whose first stage is later has `slot:
 null` and `ahead: {distance, lane}`: a positive distance in metres ahead of the player and its lane number, which every
-Section of the course has, so it is a lane on every route. On every route the distance falls short of the next race gate
+Section of the course has. The distance falls short of the next race gate
 after the gate opening that stage. Every candidate vehicle of the class has at least one grid
 entry, which the player can take. `playerSlot` is `own` (the player stands in
 its own entry's slot), `last` (in the rearmost of the grid entries' slots, the other grid entries in order in the slots
@@ -1113,8 +1107,8 @@ and TIME ATTACK alike, is its entry's when the class fixes colors, otherwise the
 player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
 vehicle, zero to fifteen rivals within the grid, a rival pool, a traffic level and permitted laps; it has no clock.
 TIME ATTACK resolves one of its class's vehicle candidates on the class's course; the player runs alone, without
-rivals, traffic or clock. On a LINEAR or
-BRANCH course it runs the class's laps to a finish; on a CIRCUIT it has no lap count (`lapCount` null): a run without
+rivals, traffic or clock. On a LINEAR
+course it runs the class's laps to a finish; on a CIRCUIT it has no lap count (`lapCount` null): a run without
 a finish, whose finish lines count laps and never finish it ([race time and events](#race-time-and-events)). One admission,
 `compileRunConfiguration`, derives these rules from a request and checks it against the course, its class and
 the vehicle catalog and the [FREE PLAY document](#free-play-document); the configuration carries the FREE PLAY rival pool.
@@ -1206,8 +1200,8 @@ Reference times are keyed by course, vehicle and route state, and time budgets b
 Each delivered reference-times file (`superoutride.course-reference-times` version 1: `courseBuildSha256`,
 `vehicleSha256`, `initialSeconds` and `after`, in seconds before any margin) belongs to one course and vehicle
 (`<course>/<vehicle>`), and each of its values belongs to one route state, a gate and lap. A value is the longest legal
-upcoming interval from that state over every route the course admits, so it never depends on the route already
-driven. A timed run admits its course's file for its vehicle (`readCourseTimeBudgets`) and derives each budget
+upcoming interval from that state along the course's route. A timed run admits its course's file for its vehicle
+(`readCourseTimeBudgets`) and derives each budget
 with its class's margin as above, so every class running that course and vehicle reads the same file.
 
 The margin and duration are positive finite values. START receives the initial budget. Each newly
@@ -1270,8 +1264,8 @@ class runs is timed by no vehicle (K, 2026-10-23): its lines are the minimum-cur
   are all but the shortest. Each solution is timed by each timing vehicle's standard driver (the planned driver at the
   standard utilization, 0.90): its own speed plan along the lines, stepping from each node of the plan to the next at
   the speeds the plan allows (`plannedLineSeconds`, the plan's forward and backward passes, no second speed model),
-  from rest at the last slot of the vehicle's grid. The time is the second lap on a CIRCUIT and the sum over every
-  route to its FINISH on a LINEAR or BRANCH course. The weight whose summed time is least is chosen, the smaller on a
+  from rest at the last slot of the vehicle's grid. The time is the second lap on a CIRCUIT and the time to its
+  FINISH on a LINEAR course. The weight whose summed time is least is chosen, the smaller on a
   tie.
 - **Bounds.** The lines are solved for a vehicle 2 m wide on every course (K's constant, 2026-10-26): a line keeps
   half of it plus 0.3 m (1.3 m) from the edges of the road it drives and half of it plus 0.5 m (1.5 m) from a fixed
@@ -1441,7 +1435,7 @@ The speed plan is bounded by `sqrt(2*a*d)`, with d reduced by the driver's respo
 2 m terminal clearance (`terminalClearance`, the distance left before a terminal or behind the vehicle ahead). The
 driver holds the brake when its target speed is within the speed deadzone of zero (a stopped vehicle ahead keeps a
 residual speed), using ordinary vehicle physics. It does not inspect finish status or introduce a finished-driving
-state. Thus a finished LINEAR/BRANCH rival decelerates and stops on the runout while the run
+state. Thus a finished LINEAR rival decelerates and stops on the runout while the run
 continues; a finished CIRCUIT rival keeps driving. The player's takeover after GOAL is the same driver with a stop
 station as its terminal.
 
