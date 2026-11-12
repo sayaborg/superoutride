@@ -1445,7 +1445,7 @@ ahead and stopping followers read the line plus its offset as they read any lane
 
 The speed plan reads a contiguous 5 m lattice ahead along the path, within the planning domain, up to the lookahead
 (`lookahead`, 480 m). It reaches as far as its answers need, with the same answers as a plan over the whole lookahead:
-first its stopping distance at its planning braking plus `REACH_MARGIN` (50 m), then twice as far, up to the lookahead,
+first its stopping distance at its planning braking plus `reachMargin` (50 m), then twice as far, up to the lookahead,
 until its speeds through the node the driver's input reads settle. They settle when, braked back from standstill at
 the last node (the strongest constraint anything beyond could set), some node from that one on keeps its forward
 speed: nothing beyond then reaches back past it, since the backward pass rises with the speed it brakes back from.
@@ -1463,7 +1463,11 @@ cell asks for. A driver's utilization is the fraction of its tires' limits it pl
 the plan corners at the limit itself (K, 2026-11-12). The steering rule's full input reaches the front tire's whole
 bound (100 %), so the utilization's remaining share of the limit is left for closing the path-following error. The load factor `n(v) = cos θ + v²·kv/g` enters every limit. The workspace caches a cell's geometry
 by road, path and interval (a path whose content changes is a new path: a change of lane or offset, and every present
-driver's path when a fork's choice is made, since the choice changes the line or lane the path follows beyond the fork), and a plan's cornering speeds cache a cell's cornering speed also by limits, planned utilization, speed cap, curvature and grip, so plans of several utilizations over one workspace's cells keep their own ([SLOW DOWN](browser.md#slow-down)). Each step the plan runs two passes over the cells' end nodes from the vehicle's station:
+driver's path when a fork's choice is made, since the choice changes the line or lane the path follows beyond the fork),
+and a plan's cornering speeds cache a cell's cornering speed also by limits, planned utilization, speed cap, curvature
+and grip, so plans of several utilizations over one workspace's cells keep their own ([SLOW
+DOWN](browser.md#slow-down)). Each plan runs two passes over the cells' end nodes
+from the vehicle's station:
 
 - Forward, from the vehicle's speed: each node the previous node's speed driven over the segment at the drive limit
   less drag, grade, rolling resistance and cornering drag, within the cell's cornering speed. Where the load factor at
@@ -1485,6 +1489,16 @@ its lateral error (read at most `pathErrorLimit`, 2 m, so a larger step closes a
 the vehicle's station; neutral while neither tire is loaded. Since the input sets the front tire's slip, the full input's
 yaw rate it inverts through is scaled by the front tire's effective load factor, read from its observed load (at least
 `leastFrontLoadFactor`, 0.25).
+
+A driver plans once in `replanSteps` (3) of its steps (K, 2026-11-13: the largest of 2, 3 and 4 steps at which every
+reference run finishes on the pavement): its speed plan and its decisions about other vehicles (the vehicle ahead, path
+offsets, merging), at its phase, the step in each three at which it plans. Phases go in a fixed order, so a run repeats:
+the player's run driver and the takeover at 0, each rival at its place on the entry list (the first at 1), each traffic
+vehicle at its Route position's index k, and a reference run's driver at 0, all modulo 3. Between its plans it drives
+its held plan every step: the pedals and the steering read the plan from where the vehicle is along it then, its target
+speed the held plan's (behind the vehicle ahead as it stood) interpolated in speed² along the path, and the steering
+closes its path error every step. It plans again early when the held plan no longer serves: none yet, another path (a
+merge, a new offset, a recovery's rejoin, the takeover), or the vehicle outside its nodes.
 
 No driver lowers its own utilization; a driver past the limit spins, as the player does (K, 2026-11-12).
 

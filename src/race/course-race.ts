@@ -276,7 +276,8 @@ export function createCourseRace(options: {
         driver,
         intent,
         offset,
-        workspace: createPlannedDriverWorkspace(),
+        // Drivers plan in turn: the player's at phase 0, each rival's at its place on the entry list.
+        workspace: createPlannedDriverWorkspace(rivalIndex + 1),
         target: (s: number) => forks.targetL(s, intent),
         standing: 0,
       },

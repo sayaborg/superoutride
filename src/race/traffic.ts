@@ -163,7 +163,8 @@ export function createTrafficField(options: {
           driver: candidate.driver,
           intent,
           offset,
-          workspace: createPlannedDriverWorkspace(),
+          // Traffic plans in turn by its position on the Route.
+          workspace: createPlannedDriverWorkspace(position),
           target: lane,
           standing: 0,
         };

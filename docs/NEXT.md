@@ -70,8 +70,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage RC](#stage-rc--one-recovery)'s RC-3, then [Stage
-AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-3 (AD-2 and RC-2 await K's word for main); in [Stage
+Next PR: [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-3, beside [Stage
+RC](#stage-rc--one-recovery)'s RC-3 (awaiting K's word for main); in [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -442,7 +442,7 @@ K's decisions of 2026-11-12. A driver's utilization is the true fraction of the 
 capacity correction (AD-1). No rival follows a pace schedule: a rival follows the player by utilization, 0.85 level,
 0.70 to 0.98, within 200 m and with a 6 s lag, at its vehicle's whole speed; the standard driver (0.90) drives the
 reference runs, the attract demo and the takeover; the roles are one table of rival, standard and traffic (AD-2). The
-driving is made lighter: a lookahead fitted to the speed, fewer lane-position reads, and a plan redone every sixth step
+driving is made lighter: a lookahead fitted to the speed, fewer lane-position reads, and a plan redone every few steps
 (AD-3; its lane-position part after RC-3). The protection solvers are only examined; simpler traffic and unseen rivals
 are not made now.
 
@@ -454,8 +454,9 @@ clearing path is open; lane drivers merge past it as now (AD-4, after AD-3). AD-
 them, why a pack of one model laps about 12 s slower than one alone at TSUKUBA, and reports what to change.
 
 The auditor's choices (reported to K): the stage's name and PRs; utilization read in steps of 0.01; a rival's
-utilization starting at its level. Provisional numbers K can change in DEV: the lag 6 s, the span 200 m, the replanning
-interval 6 steps.
+utilization starting at its level. Provisional numbers: the lag 6 s and the span 200 m, which K can change in DEV.
+The replanning interval is measured (K, 2026-11-13): the largest of 2, 3 and 4 steps at which every reference run
+finishes on the pavement, 3 (`PLANNED_DRIVER.replanSteps`).
 
 Order with Stage RC (K, 2026-11-12, revised 2026-11-13): RC-1, AD-1, AD-2 with the safety net, AD-2 and RC-2 into main,
 RC-3, AD-3, AD-4. RC-3 changes formats and waits as a PR until K lets it into main.

@@ -19,7 +19,7 @@ import type { VehicleLimits } from '../vehicle/vehicle-limits.js';
  * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
  */
 export const PLANNED_DRIVER = Object.freeze({
-  version: 5,
+  version: 6,
   /**
    * Every planned driver's one steering rule, a driver's aid and not physics: the centre reference, full steering
    * input reaching the front tire's whole lateral force bound. It is independent of the driver's utilization, which
@@ -30,6 +30,12 @@ export const PLANNED_DRIVER = Object.freeze({
   /** Metres: how far ahead the speed plan reaches at most, over cells of `spacing` metres. */
   lookahead: 480,
   spacing: 5,
+  /**
+   * Metres: how far beyond its stopping distance at its planning braking a plan first reaches. It reaches twice as far,
+   * up to the lookahead, until its speeds where the driver reads them are those of the plan over the whole lookahead
+   * (`settles`): it decides how much a plan reads, not what it answers.
+   */
+  reachMargin: 50,
   /** Seconds: the time in which the pedals close a speed error to the plan. */
   speedSeconds: 0.5,
   /** Seconds: how far ahead of the vehicle, at its speed, steering reads the path's curvature. */
@@ -78,6 +84,12 @@ export const PLANNED_DRIVER = Object.freeze({
    * the player's manual recovery: the AI's safety net, whatever holds it (K, 2026-11-13).
    */
   standingSeconds: 2,
+  /**
+   * Fixed steps from one plan to the next (K 2026-11-13: the largest of 2, 3 and 4 at which every reference run
+   * finishes on the pavement): a driver plans its speed and makes its decisions about other vehicles once in this many
+   * of its steps, at its phase, and drives its held plan between.
+   */
+  replanSteps: 3,
 });
 
 /** Wheel slip protection on both sides, TCS and MSR and ABS, with which every planned driver drives. */
@@ -189,12 +201,6 @@ export function drivingDomainBefore(
 
 const CELLS = Math.ceil(PLANNED_DRIVER.lookahead / PLANNED_DRIVER.spacing) + 2;
 
-/**
- * Metres: how far beyond its stopping distance at its planning braking a plan first reaches. It reaches twice as far,
- * up to the lookahead, until its speeds where the driver reads them are those of the plan over the whole lookahead
- * (`settles`). It decides how much a plan reads, not what it answers, so it is no part of the driver policy's record.
- */
-const REACH_MARGIN = 50;
 const cells = () => new Float64Array(CELLS);
 
 /**
@@ -216,10 +222,16 @@ export function createPlannedCornering() {
 }
 type Cornering = ReturnType<typeof createPlannedCornering>;
 
-/** A driver's plan workspace: its cell cache, its cornering speeds, its passes and its input, all reused. */
-export function createPlannedDriverWorkspace() {
+/**
+ * A driver's plan workspace: its cell cache, its cornering speeds, its passes and its input, all reused; and its
+ * replanning phase, the step in each `replanSteps` at which it plans (a whole number, taken modulo `replanSteps`).
+ */
+export function createPlannedDriverWorkspace(phase = 0) {
   const nodes = () => new Float64Array(CELLS + 1);
   return {
+    phase: phase % PLANNED_DRIVER.replanSteps,
+    /** The driver's steps so far, which time its plans. */
+    steps: 0,
     // A cell's geometry depends on the road, the path and its interval (its 5 m cell within the planning domain).
     road: null as DriverRoad | null,
     lane: null as Lane | null,
@@ -267,6 +279,7 @@ export function createPlannedDriverWorkspace() {
      */
     plan: { free: 0, target: 0, terminal: Infinity },
     input: { steering: 0, throttle: 0 as number | boolean, brake: 0 as number | boolean },
+    along: { distance: 0, node: 0 },
   };
 }
 type Workspace = ReturnType<typeof createPlannedDriverWorkspace>;
@@ -591,7 +604,7 @@ function plannedUtilization(driver: PlannedDriver) {
 /**
  * The speed plan at station `s` moving at `speed` along `lane` within `domain`: the forward pass, then the backward pass
  * from the terminal (free) and also from the vehicle ahead (target). Writes the plan's speeds now. It reaches its
- * stopping distance at its planning braking and `REACH_MARGIN` beyond, then twice as far up to the lookahead until its
+ * stopping distance at its planning braking and `reachMargin` beyond, then twice as far up to the lookahead until its
  * speeds through the node the driver's input reads (`segmentAt` half a cell) settle (`settles`): they are the plan's
  * over the whole lookahead.
  */
@@ -609,7 +622,7 @@ function plan(
 ) {
   const { limits } = driver;
   const u = plannedUtilization(driver);
-  const { terminalClearance, responseSeconds, followSeconds, lookahead, spacing } = PLANNED_DRIVER;
+  const { terminalClearance, responseSeconds, followSeconds, lookahead, spacing, reachMargin } = PLANNED_DRIVER;
   const response = speed * responseSeconds;
   const terminal = domain.terminal === null ? Infinity : domain.terminal - terminalClearance - response;
   // A vehicle ahead moving backward along the Route is planned for as a stopped one.
@@ -618,7 +631,7 @@ function plan(
     leader === null
       ? Infinity
       : leader.s - leader.clearance - Math.max(terminalClearance + ahead * followSeconds, leader.escape) - response;
-  for (let reach = (speed * speed) / (2 * driver.braking) + REACH_MARGIN; ; reach = Math.min(lookahead, 2 * reach)) {
+  for (let reach = (speed * speed) / (2 * driver.braking) + reachMargin; ; reach = Math.min(lookahead, 2 * reach)) {
     const ended = readCells(road, s, speed, offset, lane, smooth, ws, domain, reach);
     readCornering(driver, u, ws, ws.cornering);
     forwardPass(limits, ws, ws.cornering, speed, u);
@@ -877,9 +890,24 @@ function segmentAt(ws: Workspace, ahead: number) {
 }
 
 /**
+ * The path distance along the plan in `ws` from its first node to route station `s` (between its first and last
+ * nodes), and the node from which the segment holding it runs, written to `at`.
+ */
+function alongPlan(ws: Workspace, s: number, at: { distance: number; node: number }) {
+  let k = 1;
+  while (k < ws.count && ws.stations[k]! <= s) k++;
+  const a = ws.stations[k - 1]!,
+    t = Math.min(1, Math.max(0, (s - a) / (ws.stations[k]! - a)));
+  at.node = k - 1;
+  at.distance = ws.distances[k - 1]! + t * (ws.distances[k]! - ws.distances[k - 1]!);
+  return at;
+}
+
+/**
  * The driver's input along `lane` at its latest plan in `ws`, `target` its speed now: the pedals ask the plan's
  * acceleration to the node a cell ahead, closing the speed error to the plan; the steering follows the path, reading its
  * curvature a moment ahead, neutral in flight. A plan within the deadzone of standstill is a stop: the brake holds.
+ * It reads the plan from where the vehicle is along it now, the plan's first node in the step it was made.
  */
 export function plannedDrivingInput(
   road: DriverRoad,
@@ -889,22 +917,71 @@ export function plannedDrivingInput(
   ws: Workspace,
   target: number,
 ): DrivingInput {
+  // A target above the constrained plan (a lane the driver moved to) follows the free plan.
+  return drivingInput(road, car, driver, lane, ws, target > ws.plan.target ? ws.free : ws.constrained, target);
+}
+
+/**
+ * Whether the driver plans again this step: at its phase in every `replanSteps` of its steps, or when its held plan no
+ * longer serves it (none, along another path, or not holding the vehicle's station `s` between its nodes). It counts
+ * the step.
+ */
+export function replanDue(ws: Workspace, lane: Lane, s: number): boolean {
+  const due =
+    ws.steps % PLANNED_DRIVER.replanSteps === ws.phase ||
+    ws.count === 0 ||
+    ws.lane !== lane ||
+    s < ws.stations[0]! ||
+    s >= ws.stations[ws.count]!;
+  ws.steps++;
+  return due;
+}
+
+/**
+ * The driver's input between its plans: along its held plan in `ws` (`replanDue`), its target the held constrained
+ * plan's speed where the vehicle is now (its speed at the plan's first node the plan's speed then), interpolated in
+ * speed² along the path.
+ */
+export function heldDrivingInput(
+  road: DriverRoad,
+  car: VehicleDrivingRead,
+  driver: PlannedDriver,
+  lane: Lane,
+  ws: Workspace,
+): DrivingInput {
+  const { distance, node } = alongPlan(ws, car.course.s, ws.along);
+  const from = node === 0 ? ws.plan.target ** 2 : ws.constrained[node]!,
+    to = ws.constrained[node + 1]!;
+  const a = ws.distances[node]!,
+    t = (distance - a) / (ws.distances[node + 1]! - a);
+  return drivingInput(road, car, driver, lane, ws, ws.constrained, Math.sqrt(from + t * (to - from)));
+}
+
+/** The driver's input along its plan's speeds² `speeds`, `target` its speed now (`plannedDrivingInput`). */
+function drivingInput(
+  road: DriverRoad,
+  car: VehicleDrivingRead,
+  driver: PlannedDriver,
+  lane: Lane,
+  ws: Workspace,
+  speeds: Float64Array,
+  target: number,
+): DrivingInput {
   const { model, limits } = driver;
   const input = ws.input;
   const s = car.course.s;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
-  // A target above the constrained plan (a lane the driver moved to) follows the free plan.
-  const speeds = target > ws.plan.target ? ws.free : ws.constrained;
+  const along = ws.count === 0 ? 0 : alongPlan(ws, s, ws.along).distance;
   if (ws.count === 0 || target < PLANNED_DRIVER.speedDeadzone) {
     input.throttle = 0;
     input.brake = 1;
   } else {
-    const j = segmentAt(ws, PLANNED_DRIVER.spacing / 2);
-    const i = ws.segmentCells[1]!;
+    const j = segmentAt(ws, along + PLANNED_DRIVER.spacing / 2);
+    const i = ws.segmentCells[segmentAt(ws, along)]!;
     const n = loadFactor(ws, i, speed);
     const lateral = speed * speed * Math.abs(ws.curvatures[i]!);
     const acceleration =
-      (speeds[j]! - speed * speed) / (2 * Math.max(PLANNED_DRIVER.spacing / 2, ws.distances[j]!)) +
+      (speeds[j]! - speed * speed) / (2 * Math.max(PLANNED_DRIVER.spacing / 2, ws.distances[j]! - along)) +
       (target - speed) / PLANNED_DRIVER.speedSeconds;
     const resistance =
       VEHICLE_GRAVITY * (Math.sin(ws.grades[i]!) + ws.rollings[i]! * Math.max(0, n)) +
@@ -918,7 +995,9 @@ export function plannedDrivingInput(
     const next = road.coordinates.toWorld(s + 1, lateralOf(lane, s + 1), ws.b);
     const heading = Math.atan2(next.x - x, next.z - z);
     const curvature =
-      ws.count === 0 ? 0 : ws.curvatures[ws.segmentCells[segmentAt(ws, speed * PLANNED_DRIVER.curvatureSeconds)]!]!;
+      ws.count === 0
+        ? 0
+        : ws.curvatures[ws.segmentCells[segmentAt(ws, along + speed * PLANNED_DRIVER.curvatureSeconds)]!]!;
     const grip = road.surfaces.sample(s, car.course.l)?.gripFactor ?? 1;
     input.steering = plannedSteering(
       model,
@@ -933,7 +1012,10 @@ export function plannedDrivingInput(
   return input;
 }
 
-/** The driver's input, planning alone: no vehicle ahead constrains it (reference runs and scenario policies). */
+/**
+ * The driver's input, planning alone: no vehicle ahead constrains it (reference runs and scenario policies). It plans
+ * when `replanDue`, else drives its held plan.
+ */
 export function samplePlannedDrivingInput(
   road: DriverRoad,
   car: VehicleDrivingRead,
@@ -943,6 +1025,7 @@ export function samplePlannedDrivingInput(
   domain: DrivingDomain,
   smooth = false,
 ): DrivingInput {
+  if (!replanDue(ws, lane, car.course.s)) return heldDrivingInput(road, car, driver, lane, ws);
   const { target } = planDriving(road, car, driver, lane, ws, domain, null, smooth);
   return plannedDrivingInput(road, car, driver, lane, ws, target);
 }

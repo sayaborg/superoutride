@@ -5,10 +5,12 @@ import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { LINE, type createCourseForkField } from './course-fork-field.js';
 import {
   drivingDomainBefore,
+  heldDrivingInput,
   PLANNED_DRIVER,
   planDriving,
   plannedDrivingInput,
   plannedSpeed,
+  replanDue,
   routeSpeed,
   speedBehind,
   travelYaw,
@@ -209,7 +211,8 @@ export function createLaneDriving(options: {
     /**
      * A driver's input this step, for the present vehicle `driven` that its driver drives. A driver whose vehicle a
      * recovery placed first drives on from there (`rejoin`). Its intent is then carried to the occurrence it is in, a
-     * racing line driver's too, whose adjacent lanes are read there. Where its lane ends
+     * racing line driver's too, whose adjacent lanes are read there. Between its plans (`replanDue`) it drives its held
+     * plan and decides nothing more. Where its lane ends
      * within its lookahead — at a seam, or at a standing object in it — it first merges one lane toward the lane that
      * continues there (beside an object, an adjacent lane that does not end) when that lane is free; while its lane
      * still ends at a seam, the seam is its plan's terminal, so it slows to stop there short of `terminalClearance`
@@ -225,6 +228,9 @@ export function createLaneDriving(options: {
       const s = driven.vehicle.course.s;
       if (driven.recovered) rejoin(driven);
       forks.carry(intent, s);
+      // Between its plans a driver drives its held plan, deciding nothing about other vehicles.
+      if (!replanDue(driving.workspace, driving.target, s))
+        return heldDrivingInput(road, driven.vehicle, driver, driving.target, driving.workspace);
       if (driving.offset) return driveLine(driven, driving.offset, domain);
       const ahead = s + PLANNED_DRIVER.lookahead;
       // Where `lane` ends within the lookahead: at a seam across which it does not continue, or at a standing object in
