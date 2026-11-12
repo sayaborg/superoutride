@@ -4,7 +4,7 @@ import type { CameraDefinition } from '../view/camera.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import type { SlowDownUtilizations } from '../race/slow-down.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
-import type { createBrowserDrivingShell } from './driving-shell.js';
+import type { BrowserDrivingShell } from './driving-shell.js';
 import { mountRunDevControls } from './run-controls.js';
 import { createDrivingLifecycle } from './driving-lifecycle.js';
 import { createCameraRig } from '../view/camera.js';
@@ -71,7 +71,7 @@ export interface RunPage {
   readonly explosion: ContactExplosion;
   /** The puff records new puffs are thrown with: the delivered document's until DEV's PUFFS changes them. */
   puffRecords(): PuffDocument;
-  readonly shell: ReturnType<typeof createBrowserDrivingShell>;
+  readonly shell: BrowserDrivingShell;
   /** The DEV performance HUD; null without DEV. */
   readonly performanceHud: ReturnType<typeof createCoursePerformanceHud> | null;
   /** `dev=1`: the run builds its DEV controls and draws the bike lean indicator. */

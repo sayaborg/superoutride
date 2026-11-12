@@ -37,7 +37,9 @@ The driving composition root owns two lifetimes. The page lifetime is created on
 catalogs (materials, surface sounds, vehicle and driving definitions, series, text tiles, audio settings), the
 player record, the text layer, race sprites, the browser devices (canvas, framebuffer, input,
 audio), the screen host with its frame loop and, with `dev=1`, the performance HUD and the page's DEV
-controls (sound, camera, RESULT delay, SLOW DOWN). The run lifetime holds the selected course, its run
+controls (sound, camera, RESULT delay, SLOW DOWN). The frame, its presentation, the input and the screen host stand as
+soon as the text tiles are read and need no vehicle or sound catalog; the audio lifetime, the one owner of sound, is
+assembled once its catalogs are read and joins the devices, taking the route the host last set. The run lifetime holds the selected course, its run
 settings, the field's run vehicles, racing lines, time budgets and pace schedule, the run, scene and race,
 the player's sprites, the camera rig and lifecycle and, with `dev=1`, the course's performance-HUD
 values and the run's DEV controls (driving tuning, export, RECOVER). Page devices hold no run: each frame passes the

@@ -1,9 +1,7 @@
-import { createAudioLifecycle, type AudioTimingSource } from './audio-lifecycle.js';
-import type { AudioSettings } from '../audio/audio-document.js';
+import type { createAudioLifecycle, AudioTimingSource } from './audio-lifecycle.js';
 import { createLogicalFrame, LOGICAL_HEIGHT, LOGICAL_WIDTH } from '../view/display-scale.js';
 import { expandRgb555Pixels, scaleRgb555Pixels } from '../image/rgb555.js';
 import { SoftwareSurface } from '../view/software-surface.js';
-import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { InputManager } from '../input/input-manager.js';
 import { TouchPointers } from '../input/touch-pointers.js';
 import { GamepadReading } from '../input/gamepads.js';
@@ -13,13 +11,17 @@ import { createCornerButtons } from './corner-buttons.js';
 import { mustGet } from './dom.js';
 import { createTouchIndicators } from './touch-indicators.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
-import type { PlayerRecord, VolumeName } from './player-record.js';
+import type { VolumeName } from './player-record.js';
 import type { RecordingHandle } from './recording-player.js';
 import type { PlaybackOptions } from '../audio/recording-playback.js';
 import type { SoundBus } from '../audio/sound-graph.js';
 import type { EffectRecording, ImpactRecording } from '../audio/recordings.js';
 
-export interface BrowserDrivingShell {
+/**
+ * The page's display and input, which stand before its audio: the frame is presented and the input routed as soon as the
+ * text tiles are read ([Browser](../../docs/browser.md#display-and-scheduling)).
+ */
+export interface BrowserDevices {
   readonly framebuffer: SoftwareSurface;
   readonly inputManager: InputManager;
   /**
@@ -29,8 +31,6 @@ export interface BrowserDrivingShell {
   present(overlay?: (ctx: CanvasRenderingContext2D) => void): void;
   /** The brightness frames are presented at, in eighths: the screen host's black transition sets it. */
   setBrightness(eighths: number): void;
-  /** The run's vehicles for the audio scene. */
-  updateAudio(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void;
   /**
    * The one procedure that routes devices, called by the screen host when the route changes: driving input is live only
    * while driving and vehicle sound while a vehicle is driven; menu commands follow the route.
@@ -38,13 +38,30 @@ export interface BrowserDrivingShell {
   setRoute(route: InputRoute, vehicleSound: boolean): void;
   /** Read the devices for a fixed step and return the menu commands since the last call. */
   menuCommands(): MenuCommand[];
-  /** Play what a menu command did: `menu-move`, `series-slide`, `menu-confirm`, `menu-entry`, `menu-deny` or `menu-back`. */
+  /**
+   * Play what a menu command did: `menu-move`, `series-slide`, `menu-confirm`, `menu-entry`, `menu-deny` or `menu-back`;
+   * silent until the audio has joined.
+   */
   menuSound(response: MenuResponse): void;
   /**
-   * Called within a user gesture outside driving: prepare sound so runs sound from their start, and request
-   * fullscreen; a refusal is ignored.
+   * Called within a user gesture outside driving: prepare sound so runs sound from their start, once the audio has
+   * joined, and request fullscreen; a refusal is ignored.
    */
   activate(): void;
+  /**
+   * Join the page's audio, assembled once its catalogs are read: it takes the route the screen host last set at once,
+   * and menu sounds and activation reach it from then. It joins once.
+   */
+  joinAudio(audio: PageAudio): BrowserDrivingShell;
+}
+
+/** The page's audio lifetime, its one owner of sound. */
+export type PageAudio = ReturnType<typeof createAudioLifecycle>;
+
+/** The page's browser devices with its audio joined. */
+export interface BrowserDrivingShell extends Omit<BrowserDevices, 'joinAudio'> {
+  /** The run's vehicles for the audio scene. */
+  updateAudio(player: CompetitorObservation, rivals: readonly CompetitorObservation[]): void;
   /** Set a volume in percent: the player record keeps it and the sound follows at once. */
   setVolume(name: VolumeName, percent: number): void;
   /** A player contact that began: its counterpart's impact at a volume from its work (J). */
@@ -67,16 +84,10 @@ const MENU_SOUNDS: Readonly<Record<MenuResponse, EffectRecording>> = Object.free
 });
 
 /**
- * The page's browser devices: display, input and audio. They outlive every screen and run and hold no run. They
- * supply the player's input only; the race owns every competitor's mechanics.
+ * The page's browser devices: display and input, and audio once it joins. They outlive every screen and run and hold no
+ * run. They supply the player's input only; the race owns every competitor's mechanics.
  */
-export function createBrowserDrivingShell(
-  vehicles: readonly CompiledVehicleDefinition[],
-  sounds: Parameters<typeof createAudioLifecycle>[1],
-  audioSettings: AudioSettings,
-  player: PlayerRecord,
-  recordingBytes: (id: string) => Promise<Uint8Array>,
-): BrowserDrivingShell {
+export function createBrowserDevices(): BrowserDevices {
   const canvas = mustGet<HTMLCanvasElement>('game');
   canvas.width = LOGICAL_WIDTH;
   canvas.height = LOGICAL_HEIGHT;
@@ -96,15 +107,19 @@ export function createBrowserDrivingShell(
   const corners = createCornerButtons(document, (command) => menuInput.press(command));
   pointers.subscribe({ begin: () => corners.touched(), move: () => {}, end: () => {} });
   const touchIndicators = createTouchIndicators(document);
-  const audio = createAudioLifecycle(vehicles, sounds, audioSettings, player, recordingBytes);
+  // The audio once it joins, and the route the host last set, which it takes when it joins.
+  let audio: PageAudio | null = null;
+  let route: InputRoute = 'off',
+    vehicleSound = false;
   let brightness = 8;
-  return {
+  const shown: Omit<BrowserDevices, 'joinAudio'> = {
     setBrightness(eighths): void {
       brightness = eighths;
     },
-    setRoute(route, vehicleSound): void {
+    setRoute(next, sound): void {
+      [route, vehicleSound] = [next, sound];
       inputManager.setSuspended(route !== 'driving');
-      audio.setRoute(route, vehicleSound);
+      audio?.setRoute(route, vehicleSound);
       menuInput.setRoute(route);
       corners.setRoute(route);
     },
@@ -112,13 +127,9 @@ export function createBrowserDrivingShell(
       gamepads.read();
       return menuInput.poll();
     },
-    menuSound: (response) => void audio.playRecording(`effects/${MENU_SOUNDS[response]}`, 'effects'),
-    setVolume: (name, percent) => audio.setVolume(name, percent),
-    playRecording: (id, bus, options) => audio.playRecording(id, bus, options),
-    playImpact: (counterpart, work) => audio.playImpact(counterpart, work),
-    audioTiming: audio.timing,
+    menuSound: (response) => void audio?.playRecording(`effects/${MENU_SOUNDS[response]}`, 'effects'),
     activate(): void {
-      audio.enable();
+      audio?.enable();
       const page = document.documentElement;
       if (!document.fullscreenElement && page.requestFullscreen) void page.requestFullscreen().catch(() => {});
     },
@@ -133,8 +144,22 @@ export function createBrowserDrivingShell(
       touchIndicators.update(inputManager.touch);
       overlay?.(ctx);
     },
-    updateAudio(player, rivals): void {
-      audio.update(player, rivals);
-    },
   };
+  return Object.freeze({
+    ...shown,
+    joinAudio(joined: PageAudio): BrowserDrivingShell {
+      if (audio) throw new Error("The page's audio has already joined");
+      audio = joined;
+      audio.setRoute(route, vehicleSound);
+      const shell: BrowserDrivingShell = {
+        ...shown,
+        setVolume: (name, percent) => joined.setVolume(name, percent),
+        playRecording: (id, bus, options) => joined.playRecording(id, bus, options),
+        playImpact: (counterpart, work) => joined.playImpact(counterpart, work),
+        updateAudio: (player, rivals) => joined.update(player, rivals),
+        audioTiming: joined.timing,
+      };
+      return Object.freeze(shell);
+    },
+  });
 }

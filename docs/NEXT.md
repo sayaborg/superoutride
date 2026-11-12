@@ -573,6 +573,40 @@ borrow:
   rule in physics, ROTARY on screen, one exhaust per rotor per revolution in the engine sound) and whether its pictures
   are shared with OUTRUNNERS' RX-7 (FC3S), whose 1989 candidate would be the late model; its colors are decided then.
 
+## Stage BT — The startup's LOADING screen
+
+From opening the page to TITLE the frame stays black for long: every vehicle's pictures are read first as one file
+(`image/vehicles`), the small catalogs are fetched one after another, nothing can be drawn until the vehicle and sound
+catalogs are read, and the game's modules are fetched one by one as the browser follows their imports.
+
+K's decisions (2026-11-12):
+
+- While the page starts, the frame shows a LOADING screen: one full-screen picture of the controls, which K draws, with
+  the progress written over it, `LOADING 57%` centred in YELLOW on row 28 (TITLE's `PRESS START` row). The controls
+  are not written in text tiles. Until K's picture is delivered the progress shows on black.
+- Every vehicle's pictures are still read at startup; nothing is read when first needed (vehicles will hardly grow).
+- No change of screen uses black (2026-11-08): LOADING appears without brightening and gives way by line thinning.
+
+The work, in order; the game stays playable after each:
+
+1. **BT-2: the vehicle pictures by set.** `image/vehicles` gives way to one delivered file per set, each admitted by
+   its own rules when read; the build no longer assembles a library. Once read, the vehicles hold their pictures as
+   now, and the run identity (`runVehicleSha256`) and the pictures' format are unchanged.
+2. **BT-3: one counted startup load.** The files read at startup are decided from the manifest before reading starts;
+   the progress is the files read (fetched, verified, decoded and admitted) over them. Files of one kind are fetched
+   together, verified one by one and admitted in the same order; one form reads all files of a kind for every
+   catalog; the startup's work runs in the run assembly's 8 ms slices. Files read after startup (courses, music) are
+   not counted.
+3. **BT-4: the LOADING screen,** a `Screen` shown as soon as the text tiles and its picture are read, with
+   [Browser](browser.md)'s startup contract rewritten; a page that cannot start shows LOAD FAILED in the frame once it
+   can write text.
+4. **BT-5: the game's modules bundled,** so the files the browser fetches do not grow with the imports' depth; the
+   commit directory, the workbench's build, `../delivery/` and the AudioWorklet module keep their meaning. Type
+   checks, the layer check and the scenarios still read the sources. The stage's last PR removes this section.
+
+Each PR reports the time from opening the page to LOADING and to TITLE, with and without cache, before and after.
+Reading the vehicle pictures when first needed is not part of this stage: K decides on it from these times.
+
 ## Card UI
 
 The selection is rows of cards ([product](product.md#6-flow-and-screens)). GD-5 laid down their skeleton (K,

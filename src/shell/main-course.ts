@@ -7,7 +7,8 @@ import { mountSlowDownControls } from './slow-down-controls.js';
 import { SLOW_DOWN } from '../race/slow-down.js';
 import { mountCameraControls } from './camera-controls.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
-import { createBrowserDrivingShell } from './driving-shell.js';
+import { createBrowserDevices } from './driving-shell.js';
+import { createAudioLifecycle } from './audio-lifecycle.js';
 import { mustGet } from './dom.js';
 import { loadVehicleDefinitions } from '../content/vehicle-catalog.js';
 import { loadEngineSounds } from '../content/engine-sound-catalog.js';
@@ -82,13 +83,9 @@ async function startPage(): Promise<void> {
   };
 
   try {
-    // The page lifetime: delivered content, catalogs, settings and browser devices are created once.
+    // The page lifetime: delivered content, catalogs, settings and browser devices are created once. The frame and input
+    // stand as soon as the text tiles are read; the audio joins once its catalogs are.
     const content = await browserContent();
-    const materials = await loadSurfaceMaterials(content);
-    const materialIds = materials.source.materials.map((material) => material.id);
-    const engineSounds = await loadEngineSounds(content);
-    const definitions = await loadVehicleDefinitions(content, engineSounds);
-    const { vehicles, driving } = definitions;
     const parameters = new URLSearchParams(location.search);
     // `dev=1` is read here only. Without it no DEV panel, DEV HUD or DEV control is built.
     const dev = parameters.get('dev') === '1';
@@ -102,14 +99,29 @@ async function startPage(): Promise<void> {
     }
     // With DEV, a loading run and a failure's reason with Retry also show outside the frame.
     const status = dev ? createStatus() : null;
+    const textTiles = await loadTextTiles(content);
+    const textLayer = createTextLayer(textTiles);
+    const devices = createBrowserDevices();
+    const present = () => devices.present();
+    // The one owner of the current screen; it runs the frame loop while the page is visible.
+    // The page starts from black; the first screen, TITLE or a URL's run, brightens from it.
+    const host = createScreenHost(window, document, devices, {
+      live: false,
+      tick() {},
+      command() {},
+      render() {},
+    });
+    const materials = await loadSurfaceMaterials(content);
+    const materialIds = materials.source.materials.map((material) => material.id);
+    const engineSounds = await loadEngineSounds(content);
+    const definitions = await loadVehicleDefinitions(content, engineSounds);
+    const { vehicles, driving } = definitions;
     const courseIndex = await loadCourseIndex(content);
     const screenPictures = await loadScreenPictures(content);
     const music = await loadMusic(content, TEXT_COLUMNS);
     const series = await loadSeriesCatalog(content, vehicles, screenPictures, music);
     const freePlay = await loadFreePlayRules(content);
     const player = openPlayerRecord(browserStorage());
-    const textTiles = await loadTextTiles(content);
-    const textLayer = createTextLayer(textTiles);
     const frontEnd = await loadFrontEndSelection(content, series, screenPictures, music);
     const explosion = await loadContactExplosion(content);
     // A stopped vehicle is drawn on the frames its explosion's script draws it standing.
@@ -124,29 +136,22 @@ async function startPage(): Promise<void> {
     // The one run, which the current run screen shows.
     let run: Run | null = null;
     const audioSettings = await loadAudioSettings(content);
-    const shell = createBrowserDrivingShell(
-      vehicles,
-      {
-        materialIds,
-        surfaces: await loadSurfaceSounds(content),
-        engines: engineSounds,
-        engineLoudness: await loadEngineLoudness(content, vehicles, audioSettings.sha256),
-      },
-      audioSettings,
-      player,
-      (id) => content.bytes('recording', id),
+    const shell = devices.joinAudio(
+      createAudioLifecycle(
+        vehicles,
+        {
+          materialIds,
+          surfaces: await loadSurfaceSounds(content),
+          engines: engineSounds,
+          engineLoudness: await loadEngineLoudness(content, vehicles, audioSettings.sha256),
+        },
+        audioSettings,
+        player,
+        (id) => content.bytes('recording', id),
+      ),
     );
-    const present = () => shell.present();
     // The rows' music: a series' title track plays from SELECT SERIES until the run's READY.
     const menuMusic = createMenuMusic(shell);
-    // The one owner of the current screen; it runs the frame loop while the page is visible.
-    // The page starts from black; the first screen, TITLE or a URL's run, brightens from it.
-    const host = createScreenHost(window, document, shell, {
-      live: false,
-      tick() {},
-      command() {},
-      render() {},
-    });
     // The camera definition in use: the product's until a DEV adjustment replaces it.
     let cameraDefinition = CAMERA_DEFINITION;
     // DEV's measurement lines stack at the top of the page, clear of the HUD's lower rows.
