@@ -87,6 +87,13 @@ RUN](big-run.md)).
 
 ## Its road across
 
+- **Its colours.** The row word (R1 0x19DE, `$c1fae`, the row 0 slot of the rows' words at `$c1dae` + 0x200) is the
+  stripe's word plus the variant's low byte; variants 0x42 and 0x43 (kind 14) set its bit 6, read neither by the entry
+  nor otherwise. A6 is 0xF4C80 in the stage's palette object: its +0x20 (`$f4ca0`) steps through its list (M 0xDC7E),
+  its +0x2A (`$f4caa`) is M 0xDB3E's list of changes the stage's records make on along it (M 0xF00A to 0xF1A0, from
+  `$f025e`; not read), its +0x50 (`$f4cd0`) the sky's next set and its +0x5A the fade's start. A fade's tick queues a
+  copy of four longs (M 0x2E0A, run at M 0x2E22), its destination wrapping from 0xBBFE0 to 0xBBF20.
+
 - **Its nearest lines.** R1 0x198C to 0x19A6 (R2 the same, its table 4 bytes on): kinds 0 and 2 line 294, then 291 a
   kind step to kind 14's 2,040; kinds 20, 22 and 24 lines 2,041 (pen 0), 2,042 (pen 6) and 2,043 (clear); the record's
   +0x18 its entry and +0x1A its stripes' table (from R1 0x1018E by `$c0084`, 0x19AC to 0x19DE).

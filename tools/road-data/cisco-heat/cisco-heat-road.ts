@@ -72,7 +72,8 @@ export function stageCheckpoint(main: Uint8Array, stage: number): number | null 
 
 /**
  * Where CISCO HEAT's road CPUs read their tables: a stage's four pointers from a table 16 bytes a stage (R1 0x1652 for
- * road 1, R2 0x1642 for road 2); a plan record 28 bytes, a profile record 24; a turn of a heading or a grade 65,536.
+ * road 1, R2 0x1642 for road 2); a plan record 28 bytes, its stripes' word at +0x1A, a profile record 24; a turn of a
+ * heading or a grade 65,536.
  */
 export const CISCO_HEAT_TABLES: RoadTablesAt = Object.freeze({
   stages: STAGES,
@@ -80,6 +81,7 @@ export const CISCO_HEAT_TABLES: RoadTablesAt = Object.freeze({
   planBytes: 28,
   profileBytes: 24,
   turnUnits: 0x10000,
+  stripesAt: 0x1a,
 });
 
 /** The main program's lists of the roads' records: 20 bytes each. */

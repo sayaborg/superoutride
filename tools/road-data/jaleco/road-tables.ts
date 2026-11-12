@@ -21,6 +21,8 @@ export interface RoadTablesAt {
   readonly profileBytes: number;
   /** A turn of a heading or a grade, its units. */
   readonly turnUnits: number;
+  /** Where its plan records hold their stripes' word, where they hold one (CISCO HEAT's +0x1A). */
+  readonly stripesAt?: number;
 }
 
 /** Radians a unit of an original's heading or grade. */
@@ -42,6 +44,8 @@ export interface RoadPlanRecord {
   readonly y: number;
   readonly kind: number;
   readonly variant: number;
+  /** Its stripes' word, where its original's records hold one (`RoadTablesAt.stripesAt`). */
+  readonly stripes?: number;
 }
 
 /**
@@ -95,7 +99,8 @@ function starts(program: Uint8Array, at: number, end: number) {
 /**
  * Road `road`'s tables in stage `stage`, from `program`, its road CPU's, their records to the first
  * starting at `end` or later: a plan record's flag (+0), radius (+2), position (+6, +0xA), heading (+0xE), picture
- * (+0x16, +0x18); a profile record's flag (+0), radius (+2), height (+6) and grade (+0xE).
+ * (+0x16, +0x18) and, where the original's hold one, its stripes' word; a profile record's flag (+0), radius (+2),
+ * height (+6) and grade (+0xE).
  */
 export function roadTables(
   program: Uint8Array,
@@ -125,6 +130,7 @@ export function roadTables(
         y: long(program, r + 6) | 0,
         kind: word(program, r + 0x16),
         variant: word(program, r + 0x18),
+        ...(tables.stripesAt === undefined ? {} : { stripes: word(program, r + tables.stripesAt) }),
       };
     }),
     profile: starts(program, profileStarts, end).map((start, k) => {

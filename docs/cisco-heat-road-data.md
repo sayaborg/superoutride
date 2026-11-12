@@ -84,6 +84,25 @@ lane lines at 0 and ±142 units, edge lines at ±258 and its kerbs and verges ou
 and 116 units, the ground beyond 408; kinds 0 to 8 draw the same lanes, kind 12's and 14's lines are patterned, and
 kinds 20 to 24 are one line each, blank, all surface or clear.
 
+## Its colours
+
+A row's colours are an entry of its road layer's palette (`cisco-heat-road-colours`): road 1's layer's the first road
+CPU's, road 2's the second's, alike but for their sky's fade.
+
+- **A row's entry.** The word of its road CPU's stripes' table (R1 0x1018E, R2 0x10192; R1 and R2 0x19AC to 0x19DE) at
+  its plan record's stripes' word (+0x1A) plus its position's phase, the position modulo 510 (R1 0x161E, R2 0x160E), to
+  an even byte, plus its record's variant's low byte (+0x18): its bits 0 to 5 (`rowEntry`). Its records' stripes' words
+  are 0, 20,000, 40,000 and 60,000, each a table of a stripe's 255 words; road 1's rows take entries 1 to 28, road 2's 1
+  to 15 and 29 to 42, and the patterned road (kind 12) 43 to 55 and 63.
+- **Its palettes.** Each layer's 64 entries of 16 pens (0xBB800, 0xBC800) are the main program's palette (M 0x2730: from
+  M 0x1A27C to both) with its stage's colors at its start (M 0xEDCE, `stagePalettes`): the first address of its list (M
+  0xDC7E, a long a stage), 14 entries of 14 pens, made into entries 1 to 14 as they are, 15 to 28 with pens 9 to 13
+  their pen 6, and 29 to 42 with pens 2 to 5 and 7 their pen 6, pens 14 and 15 the palette's; STAGE 3 lays them as
+  entries 43 to 56 and makes entries 1 to 42 from M 0x13EF94's. So both layers are alike but for the sky's entries.
+- **Its sky's entries** 57 to 62 are its first set of 16 pens each (M 0xED9C, from M 0xDB2A's table, a long a stage);
+  from its stage's position (M 0xEFF6, a long a stage: 310,000 in STAGE 1, 560,000 in the others) its fade (M 0xEF62)
+  lays the eight sets after it over them 16 bytes a tick, 96 ticks, over layer 0, and in STAGE 5 over both (`skyFade`).
+
 ## Its camera
 
 Each road CPU draws its road's 92 rows up from the nearest at depths from its table (R1 0x3232, R2 0x3236; the `lea` at

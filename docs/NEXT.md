@@ -620,6 +620,10 @@ Defaults for K to confirm before the stage closes, each its PR's:
 - **Its lanes** (CS-3k). Its two roads keep the lanes of its most common picture, kind 2's, wherever they go, as BIG
   RUN's keep its town's: four lanes of 116, 142, 142 and 116 units, its lines' surface the pen they cover most, as the
   run at their centre is a lane line ([its road across](cisco-heat-road-data.md#its-road-across)).
+- **Its colours** (CS-3m). A row's entry its word's bits 0 to 5, its bit 6 (the striped deck's variants) not read; each
+  layer's palette as its stage loads it at its start, the changes its records make on along it not read; its sky's
+  entries their first set, then their last from where its fade begins ([its
+  colours](cisco-heat-road-data.md#its-colours)).
 - **Each way's slide** (CS-2). A plane slides by its slide's whole pixels, a pixel more one way than the other (the
   front 15 and 16, the back 7 and 8): their mean.
 - **The steps along a scene** (CS-2). Not laid, as BIG RUN's: a sky lays its scene's own row offset.
