@@ -482,11 +482,14 @@ its records draw (`arcPlan`, `arc-plan`) (K, 2026-11-09):
   Between two straights it is [a heading table's turn](#plan-from-a-heading-table).
 - **A second road** from its own table beside P's (`secondRoad`; BIG RUN's and CISCO HEAT's two roads, each a road
   CPU's): where the two tables hold one record, its start, arc, heading, position and end, the two roads are one. Where
-  they part, the second is laid by its own arcs from P's point and heading where they part, and where the tables are
-  one again its miss of P there is spread straight along the road over the parting, so that it meets P where they do;
-  one that never meets P again keeps its own arcs. Where the two start apart, the second is laid from its own first
-  point and heading, in the tables' plane as P is, its miss where they first meet spread the same way. Its lateral at
-  a station of P is taken across P, and is refused where it heads more than 60° from P (a road that leaves).
+  they part, the second is laid by its own arcs from P's point and heading where they part, and where the tables are one
+  again its miss of P there is spread straight along the road over the parting, so that it meets P where they do; one
+  that never meets P again keeps its own arcs. Where its table's record that meets P again departs beyond the limits
+  from what its record before reaches, it jumps back onto P (CISCO HEAT's first road): it keeps its own arcs over the
+  parting, its miss not spread, its plan starting again from that record, how far it jumps reported, and a Section is
+  cut there (K, 2026-11-09). Where the two start apart, the second is laid from its own first point and heading, in the
+  tables' plane as P is, its miss where they first meet spread the same way. Its lateral at a station of P is taken
+  across P, and is refused where it heads more than 60° from P (a road that leaves).
 - **Stops.** The conversion stops where a turn takes more than the records either side of it hold, two
   turns overlap, a turn reaches the table's start or end, or an arc turns tighter than its lanes' least radius, as a
   curve table's does.

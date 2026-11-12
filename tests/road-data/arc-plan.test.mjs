@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { arcPlan, secondRoad } from '../../tools/road-data/shared/arc-plan.ts';
+import { arcPlan, meetingsWithP, secondRoad } from '../../tools/road-data/shared/arc-plan.ts';
 
 const LIMITS = { heading: (0.03 * Math.PI) / 180, position: 14 };
 const METRES = 0.0132;
@@ -287,4 +287,46 @@ test('a second road that never meets P again keeps its own arcs', () => {
   const at = own.elements[1].to;
   assert.ok(Math.abs(road.pose(at).heading - own.elements[1].turn) < 1e-12);
   assert.ok(Math.abs(road.pose(2000).y) < 1e-9 && road.pose(2500).y > 0);
+});
+
+test('a second road that meets P again by a jump keeps its own arcs over its parting and starts again from P there', () => {
+  const p = table(
+    [
+      { start: 0, radius: 0, side: 'left' },
+      { start: 2000, radius: 0, side: 'left' },
+      { start: 6000, radius: 0, side: 'left' },
+    ],
+    8000,
+    0,
+  );
+  // From 2000 its own arc turns left of P; at 6000 its table's record is P's, far from where the arc reaches.
+  const own = table(
+    [
+      { start: 0, radius: 0, side: 'left' },
+      { start: 2000, radius: 5000, side: 'left' },
+    ],
+    6000,
+    0,
+  );
+  const q = [p[0], own[1], p[2]];
+  const meets = meetingsWithP(p, q, 8000);
+  assert.deepEqual(meets, [6000]);
+  const reached = [2000 + 5000 * Math.sin(0.8), 5000 * (1 - Math.cos(0.8))];
+  // Taken against the record before, it departs; where it meets P, it jumps back onto it.
+  assert.throws(() => arcPlan(q, 8000, METRES, LEAST, LIMITS), /departs/);
+  const qPlan = arcPlan(q, 8000, METRES, LEAST, LIMITS, meets);
+  assert.equal(qPlan.jumpsBack.length, 1);
+  const [back] = qPlan.jumpsBack;
+  assert.equal(back.at, 6000);
+  assert.ok(Math.abs(back.heading - 0.8) < 1e-12);
+  assert.ok(Math.abs(back.position - Math.hypot(reached[0] - 6000, reached[1])) < 1e-6);
+  assert.ok(qPlan.departure.position < 1e-6 && qPlan.fidelity.position < 1e-6);
+  // Its parting keeps its own arc, its miss not spread, and meets P where the tables are one again.
+  const road = secondRoad(p, arcPlan(p, 8000, METRES, LEAST, LIMITS), q, qPlan, 8000);
+  const [g] = road.partings;
+  assert.deepEqual([g.from, g.to, g.meets, g.jumps], [2000, 6000, true, true]);
+  assert.ok(Math.abs(g.miss - back.position) < 1e-6);
+  const at = road.pose(5000);
+  assert.ok(Math.hypot(at.x - (2000 + 5000 * Math.sin(0.6)), at.y - 5000 * (1 - Math.cos(0.6))) < 1e-6);
+  assert.equal(road.lateralAt(6000), 0);
 });

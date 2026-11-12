@@ -46,10 +46,11 @@ RUN](big-run.md)).
 ## Its roads
 
 - **Its tables read as BIG RUN's.** Laid by the shared plan within BIG RUN's limits (0.03°, 14 positions a record), road
-  2 lays in STAGES 1 to 4 (its heading within 0.014°, its position within 13.6 positions). Road 1 in STAGE 4 departs by
-  6,025 positions where it leaves road 2 again, and in STAGE 5 both roads' headings jump 20° at 351,908, after an arc of
-  65,000 positions, laid as a turn added to the arc's ([a jump beside an
-  arc](../original-road-data.md#plan-from-a-tables-arcs)).
+  2 lays in STAGES 1 to 4 (its heading within 0.014°, its position within 13.6 positions). Road 1's five departures
+  beyond them, the largest 6,025 positions in STAGE 4, are each where its record is road 2's again after it has headed
+  away or run beside it, a jump back onto road 2 ([its plan](../cisco-heat-road-data.md#its-plan)); in STAGE 5 both
+  roads' headings jump 20° at 351,908, after an arc of 65,000 positions, laid as a turn added to the arc's ([a jump
+  beside an arc](../original-road-data.md#plan-from-a-tables-arcs)).
 - **Its 3D road.** Read as BIG RUN's (its grade's sine a position, a vertical arc's grade changing evenly to the next
   record's), its heights depart from its records' by thousands of positions: each vertical arc's angle changes evenly
   along it (a record of radius 10,000 from −36° to level over 6,283 positions, 10,000 × 0.628), where BIG RUN's model

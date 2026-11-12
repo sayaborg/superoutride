@@ -27,6 +27,17 @@ position along and across. The main program holds the car on a road where its li
 record, its end at +4 and its flags at +8), a record whose flags' bit 1 is set holding the car on its road from the end
 of the record before to its own end; each list's first record ends at 0, before the road.
 
+## Its plan
+
+Each road's table is laid by [the plan from a table's arcs](original-road-data.md#plan-from-a-tables-arcs) within BIG
+RUN's limits (0.03° and 14 positions a record), road 2 P and road 1 beside it from its own table, as BIG RUN's are ([its
+plan](big-run-road-data.md#its-plan)): the most a record departs is 0.01° and 13.6 positions. Its headings jump by 4° to
+20° between straights in STAGES 1, 3, 4 and 5, and in STAGE 5 by 20° on both roads at 351,908, after an arc of 65,000
+positions, each laid as a turn. Five times its first road meets P again by a jump back onto it, its record there P's: in
+STAGE 4 at 143,120, 215,368 and 299,616 (by 20° and 6,025, 3,821 and 5,469 positions), in STAGE 5 at 78,497 (8°, 4,209)
+and 236,980 (1,743 positions), each after it heads 8° to 20° away from P or runs beside it; each parting keeps its own
+arcs and ends at a Section's cut. In STAGE 5 road 1 leaves P at 340,872 and never meets it again.
+
 ## Its 3D road
 
 A road's profile records (+0 its flag, the top bit rising; +2 its radius; +6 its height; +0xE its angle) are arcs as

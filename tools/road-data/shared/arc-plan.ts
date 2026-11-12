@@ -27,6 +27,13 @@ export interface ArcPlanLimits {
   readonly position: number;
 }
 
+/** A second road's jump back onto P where it meets it again: at `at`, by `heading` radians and `position` positions. */
+export interface ArcJumpBack {
+  readonly at: number;
+  readonly heading: number;
+  readonly position: number;
+}
+
 /** A heading's jump laid as a turn: over positions `[from, to]`, turning `turn` radians (left positive). */
 export interface ArcTurn {
   readonly from: number;
@@ -68,13 +75,16 @@ const poseOf = (r: ArcRecord): ArcPose => ({ x: r.x!, y: r.y!, heading: r.headin
  *   it is laid as a turn of the jump's angle, its curvature added to the records' either side, over the fewest whole
  *   positions alike either side of the record's start at which the curvature on each side keeps `least`, the distances
  *   along the road unchanged; between two straights, a turn of its angle alone;
+ * - a record where the road, a second road, meets P again (`meets`, its starts), departing beyond `limits` from what
+ *   its record before reaches, jumps back onto P: the plan starts again from it, neither a turn nor a departure, and
+ *   how far it jumps is reported;
  * - the plan is laid on from the first record's heading and position, and how far it departs from the table's headings
- *   and positions where each record starts is reported, a position since the last turn, with no limit.
+ *   and positions where each record starts is reported, a position since the last turn or jump back, with no limit.
  * Stops where a turn takes more than the records beside it hold, two turns overlap or reach the table's start or `end`,
  * an arc turns tighter than `least`, or a record departs from the table beyond `limits`.
  * Returns the plan's elements (positions), its start heading, its turns, the most a record departs from the table's next
- * heading and position (`fidelity`), the most the plan laid on departs from them (`departure`), and how far each turn
- * moves the plan from the table's positions after it.
+ * heading and position (`fidelity`), the most the plan laid on departs from them (`departure`), how far each turn
+ * moves the plan from the table's positions after it, and its jumps back onto P (`jumpsBack`).
  */
 export function arcPlan(
   records: readonly ArcRecord[],
@@ -82,6 +92,7 @@ export function arcPlan(
   metres: number,
   least: (from: number, to: number, side: 'left' | 'right') => number,
   limits: ArcPlanLimits,
+  meets: readonly number[] = [],
 ) {
   if (records.length === 0) throw contractUnmet('A table of arcs has no record');
   const endOf = (i: number) => (i + 1 < records.length ? records[i + 1]!.start : end);
@@ -100,12 +111,19 @@ export function arcPlan(
   // heading departing beyond the limit a jump.
   const jumps: { at: number; turn: number }[] = [];
   const fidelity = { heading: 0, position: 0 };
+  const meeting = new Set(meets);
+  const jumpsBack: ArcJumpBack[] = [];
   if (checked) {
     for (let i = 1; i < records.length; i++) {
       const reached = advanced(poseOf(records[i - 1]!), turnOf(i - 1), records[i]!.start - records[i - 1]!.start);
       const next = records[i]!;
-      fidelity.position = Math.max(fidelity.position, Math.hypot(next.x! - reached.x, next.y! - reached.y));
+      const departs = Math.hypot(next.x! - reached.x, next.y! - reached.y);
       const jump = wrapped(next.heading! - reached.heading);
+      if (meeting.has(next.start) && (Math.abs(jump) > limits.heading || departs > limits.position)) {
+        jumpsBack.push({ at: next.start, heading: Math.abs(jump), position: departs });
+        continue;
+      }
+      fidelity.position = Math.max(fidelity.position, departs);
       if (Math.abs(jump) <= limits.heading) {
         fidelity.heading = Math.max(fidelity.heading, Math.abs(jump));
         continue;
@@ -183,6 +201,11 @@ export function arcPlan(
       // A record whose start lies within a turn is the jump's own: the turn departs from it by design.
       if (i === undefined || turns.some((t) => t.from < p && p < t.to)) return;
       const r = records[i]!;
+      // A jump back onto P: the plan starts again from its record.
+      if (jumpsBack.some((b) => b.at === p)) {
+        [pose, ox, oy] = [poseOf(r), 0, 0];
+        return;
+      }
       if (turned < turns.length && turns[turned]!.to <= p) {
         // A turn's end: the plan from here is taken against the table's positions after it, its shift reported.
         [ox, oy] = [r.x! - pose.x, r.y! - pose.y];
@@ -211,6 +234,7 @@ export function arcPlan(
     fidelity,
     departure,
     shifts,
+    jumpsBack,
   };
 }
 
@@ -242,11 +266,15 @@ class PlanWalk {
   }
 }
 
-/** A parting of a second road from P: positions `[from, to)`, whether it meets P again at `to`, and its miss there. */
+/**
+ * A parting of a second road from P: positions `[from, to)`, whether it meets P again at `to`, whether by a jump back
+ * onto P, and its miss there.
+ */
 export interface ArcParting {
   readonly from: number;
   readonly to: number;
   readonly meets: boolean;
+  readonly jumps: boolean;
   readonly miss: number;
 }
 
@@ -260,6 +288,22 @@ const sameRecord = (a: ArcRecord, aEnd: number, b: ArcRecord, bEnd: number) =>
   a.x === b.x &&
   a.y === b.y;
 
+/** Whether each of the second's records `q` is one with P's `p`: one start, arc and pose, and one end. */
+function oneWithP(p: readonly ArcRecord[], q: readonly ArcRecord[], end: number) {
+  const endOf = (t: readonly ArcRecord[], i: number) => (i + 1 < t.length ? t[i + 1]!.start : end);
+  const pAt = new Map(p.map((r, i) => [r.start, i]));
+  return q.map((r, j) => {
+    const i = pAt.get(r.start);
+    return i !== undefined && sameRecord(p[i]!, endOf(p, i), r, endOf(q, j));
+  });
+}
+
+/** Where a second road `q` meets P's `p` again: the starts of its records one with P's after one that is not. */
+export function meetingsWithP(p: readonly ArcRecord[], q: readonly ArcRecord[], end: number): number[] {
+  const one = oneWithP(p, q, end);
+  return q.filter((_, j) => j > 0 && one[j] && !one[j - 1]).map((r) => r.start);
+}
+
 /** The least cosine between the two roads' headings at which a lateral across P is taken: 60°. */
 const ACROSS = 0.5;
 
@@ -269,7 +313,7 @@ const ACROSS = 0.5;
  * - where the two tables hold one record (start, arc, pose and end), the two roads are one;
  * - where they part, the second is laid by its own plan from P's pose where they part, and where they are one again its
  *   miss of P there is spread straight along the road over the parting, so that it meets P where they do; one that
- *   never meets P again keeps its own plan;
+ *   never meets P again, or meets it by a jump back (`qPlan`'s `jumpsBack`), keeps its own plan;
  * - where they start apart, the second is laid from its own first pose, taken in the tables' plane as P's is, its miss
  *   where they first meet spread the same way.
  * Returns its partings, its pose at its own station (`pose`), and its lateral at P's station (`lateralAt`, positions
@@ -285,11 +329,8 @@ export function secondRoad(
   if (![...p, ...q].every((r) => r.heading !== undefined && r.x !== undefined && r.y !== undefined))
     throw contractUnmet("A second road's tables hold no poses");
   const endOf = (t: readonly ArcRecord[], i: number) => (i + 1 < t.length ? t[i + 1]!.start : end);
-  const pAt = new Map(p.map((r, i) => [r.start, i]));
-  const one = q.map((r, j) => {
-    const i = pAt.get(r.start);
-    return i !== undefined && sameRecord(p[i]!, endOf(p, i), r, endOf(q, j));
-  });
+  const one = oneWithP(p, q, end);
+  const back = new Set(qPlan.jumpsBack.map((b) => b.at));
   const P = new PlanWalk(pPlan.elements, p[0]!.start, poseOf(p[0]!));
   // The partings: the runs of the second's records that are not P's, each its own plan laid from where it parts.
   const partings: (ArcParting & { readonly walk: PlanWalk; readonly dx: number; readonly dy: number })[] = [];
@@ -299,10 +340,12 @@ export function secondRoad(
     while (k + 1 < q.length && !one[k + 1]) k++;
     const [from, to] = [q[j]!.start, endOf(q, k)];
     const meets = k + 1 < q.length;
+    const jumps = meets && back.has(to);
     const walk = new PlanWalk(qPlan.elements, from, j === 0 ? poseOf(q[0]!) : P.pose(from));
     const [at, there] = [walk.pose(to), P.pose(to)];
-    const [dx, dy] = meets ? [at.x - there.x, at.y - there.y] : [0, 0];
-    partings.push({ from, to, meets, miss: Math.hypot(dx, dy), walk, dx, dy });
+    const miss = meets ? Math.hypot(at.x - there.x, at.y - there.y) : 0;
+    const [dx, dy] = meets && !jumps ? [at.x - there.x, at.y - there.y] : [0, 0];
+    partings.push({ from, to, meets, jumps, miss, walk, dx, dy });
     j = k;
   }
   const partingAt = (s: number) => partings.find((g) => g.from <= s && s < g.to);
@@ -330,7 +373,7 @@ export function secondRoad(
     return (o.x - at.x) * uy - (o.y - at.y) * ux;
   };
   return {
-    partings: partings.map(({ from, to, meets, miss }): ArcParting => ({ from, to, meets, miss })),
+    partings: partings.map(({ from, to, meets, jumps, miss }): ArcParting => ({ from, to, meets, jumps, miss })),
     pose,
     lateralAt,
   };

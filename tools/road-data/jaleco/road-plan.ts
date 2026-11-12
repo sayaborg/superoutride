@@ -4,7 +4,7 @@
  * data](../../../docs/big-run-road-data.md#its-plan)): each road's table of arcs laid by the shared rule, road 2 P and
  * road 1 beside it from its own table.
  */
-import { arcPlan, secondRoad, type ArcPlanLimits, type ArcRecord } from '../shared/arc-plan.js';
+import { arcPlan, meetingsWithP, secondRoad, type ArcPlanLimits, type ArcRecord } from '../shared/arc-plan.js';
 import { angleRadians, type RoadPlanRecord, type RoadTablesAt } from './road-tables.js';
 
 /**
@@ -22,7 +22,8 @@ export const arcRecord = (tables: RoadTablesAt, r: RoadPlanRecord): ArcRecord =>
 
 /**
  * A stage's plan to `end`: road 2's table laid as P (K, 2026-11-09), and road 1 beside it from its own table, each
- * record checked within `limits`, no arc tighter than `least` (metres, `leastLaneRadius`) at `metres` a position.
+ * record checked within `limits` but where road 1 jumps back onto P, no arc tighter than `least` (metres,
+ * `leastLaneRadius`) at `metres` a position.
  */
 export function twoRoadPlan(
   tables: RoadTablesAt,
@@ -34,9 +35,7 @@ export function twoRoadPlan(
   limits: ArcPlanLimits,
 ) {
   const [p, q] = [road2, road1].map((records) => records.map((r) => arcRecord(tables, r)));
-  const [pPlan, qPlan] = [p!, q!].map((t) => arcPlan(t, end, metres, least, limits)) as [
-    ReturnType<typeof arcPlan>,
-    ReturnType<typeof arcPlan>,
-  ];
+  const pPlan = arcPlan(p!, end, metres, least, limits);
+  const qPlan = arcPlan(q!, end, metres, least, limits, meetingsWithP(p!, q!, end));
   return { p: pPlan, road1: qPlan, beside: secondRoad(p!, pPlan, q!, qPlan, end) };
 }
