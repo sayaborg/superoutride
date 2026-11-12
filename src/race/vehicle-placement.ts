@@ -79,6 +79,12 @@ export function createVehiclePlacement(options: {
     occupied: (model: VehicleModel, s: number, l: number) => occupant(model, s, l) !== null,
     vacantPlace,
     /**
+     * Where a recovery from route station `s` places `self`, every vehicle alike: the centre of the lane nearest it
+     * there (`recoveryL`), behind any vehicle or standing object in the way; null when no place is free.
+     */
+    recoveryPlace: (self: PresentVehicle, s: number) =>
+      vacantPlace(self, s, (at) => forks.recoveryL(at, self.vehicle.course.l, self.model.compiledVehicle.footprint)),
+    /**
      * Return `body` to the selected road when it has left the route its locked fork allows: behind a vehicle in the
      * way, the selected road's centre. A return marks the body recovered; with no free place it waits for a later step.
      */
@@ -87,7 +93,7 @@ export function createVehiclePlacement(options: {
       const target = forks.legalTarget(body.vehicle.course.s, body.vehicle.course.l);
       if (!target) return;
       const width = body.model.compiledVehicle.footprint;
-      const place = vacantPlace(body, target.s, (s) => forks.recoveryL(s, null, target.l, width), target.l);
+      const place = vacantPlace(body, target.s, (s) => forks.recoveryL(s, target.l, width), target.l);
       if (!place) return;
       recoverVehicleToPlanCoordinate(readers, body.vehicle, body.model, {
         state: body.step.state,

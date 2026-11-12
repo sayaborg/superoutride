@@ -2,7 +2,7 @@
   "format": "superoutride.reference-times",
   "version": 2,
   "courseBuildSha256": "842463f8fe5be805b78f181258508c0ff35907240e92d649a706916ca18ee901",
-  "procedureSha256": "1ef835ad3128588d3554d1151a920ecd19e06b29b43a2df87ae3457066cb6eb6",
+  "procedureSha256": "d184ee1cd1f26f1bdbb8f06c65186d34d779617805a62617f8701df158cdfdd9",
   "vehicles": [
     {
       "vehicleId": "MCLAREN_MP4_4",

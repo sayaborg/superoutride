@@ -157,7 +157,7 @@ for (const [id, gears] of identities) {
     recoverVehicleToPlanCoordinate(scene.world, actor.vehicle, actor.model, {
       state: actor.recovery,
       target: { s: other.vehicle.course.s, l: other.vehicle.course.l },
-      reason: 'blocked',
+      reason: 'stuck',
     });
     race.advance(idle);
     assert.ok(race.playerContacts.starts.some((contact) => contact.counterpart === 'vehicle'));

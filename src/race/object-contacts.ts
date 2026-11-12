@@ -121,8 +121,6 @@ export function createRoadsideObjects(options: {
     force = createContactPush(),
     sample = createPlanCoordinateSample();
   const knocked = new Map<string, KnockedObject>();
-  // The ids of the bodies a fixed object pushes this step.
-  const pressed = new Set<string>();
   const observations: KnockedObject[] = [];
   /** Whether the object at `index` of an occurrence still stands. */
   const standing = (occurrence: RouteOccurrence, index: number) => !knocked.has(objectKey(occurrence.section, index));
@@ -190,7 +188,6 @@ export function createRoadsideObjects(options: {
     const pushed = force.x !== 0 || force.z !== 0;
     if (!movable && force.began)
       log.start(body.id, source.sprite === null ? 'wall' : 'object', force.dampingPower * step);
-    if (!movable && pushed) pressed.add(body.id);
     if (movable && pushed) {
       log.start(body.id, 'movable', force.dampingPower * step);
       knock(occurrence, index, movable.mass, movable.launchRadians);
@@ -216,11 +213,8 @@ export function createRoadsideObjects(options: {
     knocked: observations as readonly KnockedObjectObservation[],
     /** Whether the object at `index` of an occurrence still stands (fixed objects always do). */
     standing,
-    /** Whether a fixed object (a solid sprite or a wall's free end) pushes the body with id `id` this step. */
-    blocks: (id: string) => pressed.has(id),
     /** The standing objects' contacts for one step, from the state at its start, added to each body's contact force. */
     contacts(bodies: readonly ContactBody[]) {
-      pressed.clear();
       const reach = objectReach();
       for (const body of bodies) {
         writeVehicleParty(vehicle, body);

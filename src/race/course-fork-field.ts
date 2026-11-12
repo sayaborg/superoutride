@@ -324,18 +324,23 @@ export function createCourseForkField(
         .map((lane) => lanes.indexOf(lane));
     },
     /**
-     * The recovery l at route station `s`: a driven competitor's target l for its intent; the player, which has no
-     * driver intent, recovers to the centre of the lane nearest route lateral `l` of the roads it may drive (at a
-     * decided fork, the selected Link's road where that road is), of those there for its vehicle, `vehicle` wide.
+     * The recovery lane at route station `s` of a vehicle `vehicle` wide at route lateral `l`, every vehicle's alike:
+     * the lane nearest `l` of the roads it may drive there (at a decided fork, the selected Link's road where that road
+     * is), of those there for its vehicle; a lane index.
      */
-    recoveryL(s: number, intent: DriverIntent | null, l = 0, vehicle = 0) {
-      if (intent) return forkField.targetL(s, intent);
+    recoveryLane(s: number, l: number, vehicle = 0) {
       const { occurrence, at } = place(s);
       const selected = selectedSuccessor(route, occurrence);
       const road = selected && occurrence.section.fork ? roadOf(occurrence.section, selected.from.lane, at) : undefined;
       const lanes = lanesOf(occurrence.section);
       const candidates = road ? road.lanes.map((lane) => lanes.indexOf(lane)) : there(occurrence, at, vehicle);
-      return courseBoundaryAt(lanes[nearestLane(occurrence, at, l, candidates)]!.center, at) - occurrence.lateralOrigin;
+      return nearestLane(occurrence, at, l, candidates);
+    },
+    /** The recovery l at route station `s`: the centre of the recovery lane (`recoveryLane`) there, route lateral. */
+    recoveryL(s: number, l: number, vehicle = 0) {
+      const { occurrence, at } = place(s);
+      const lane = lanesOf(occurrence.section)[forkField.recoveryLane(s, l, vehicle)]!;
+      return courseBoundaryAt(lane.center, at) - occurrence.lateralOrigin;
     },
     /**
      * After a decided fork's closure, a position on a road the selected Link does not leave by is on a closed road: its

@@ -177,7 +177,7 @@ export function createTrafficField(options: {
             },
             driving,
             candidate.driver.steering,
-            (self, station) => placement.vacantPlace(self, station, (at) => forks.recoveryL(at, intent)),
+            placement.recoveryPlace,
           ),
           {
             driving,

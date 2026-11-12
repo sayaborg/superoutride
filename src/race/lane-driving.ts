@@ -42,8 +42,10 @@ export function createLaneDriving(options: {
   readonly bodies: readonly PresentVehicle[];
   /** A circuit's lap length, by which drivers tell a competitor's lead in laps; null on other courses. */
   readonly lapLength: number | null;
+  /** Takes the racing line at station s from lateral l into `offset`, as a driver on the grid does. */
+  readonly takeLine: (intent: LaneIntent, s: number, l: number, offset: PathOffset) => PathOffset;
 }) {
-  const { road, window, forks, roadsideObjects, bodies, lapLength } = options;
+  const { road, window, forks, roadsideObjects, bodies, lapLength, takeLine } = options;
   // Drivers follow and change lanes over the race's sightings of the present vehicles.
   const following = createLaneFollowing(forks, window);
   const sightings: VehicleSighting[] = [];
@@ -184,12 +186,30 @@ export function createLaneDriving(options: {
     }
     return plannedDrivingInput(road, driven.vehicle, driver, driving.target, driving.workspace, plan.target);
   };
+  /*
+   * A driver whose vehicle the previous step's recovery placed (or a recovery since) drives on from the lane it was
+   * placed in: a lane driver takes that lane as its own, a racing line driver takes the line from there, as on the
+   * grid.
+   */
+  const rejoin = (driven: PresentVehicle) => {
+    const driving = driven.driving!;
+    const { intent } = driving;
+    const { s, l } = driven.vehicle.course;
+    if (driving.offset) takeLine(intent, s, l, driving.offset);
+    else {
+      intent.lane = forks.recoveryLane(s, l, intent.width);
+      intent.at = s;
+    }
+    driving.target = (station: number) => forks.targetL(station, intent);
+    driven.sighting.target = driving.target(driven.sighting.s);
+  };
   return Object.freeze({
     /** Drivers see the present vehicles and the standing objects ahead as they stand at the step's start. */
     observe: () => observe(),
     /**
-     * A driver's input this step, for the present vehicle `driven` that its driver drives. Its intent is first carried
-     * to the occurrence it is in, a racing line driver's too, whose adjacent lanes are read there. Where its lane ends
+     * A driver's input this step, for the present vehicle `driven` that its driver drives. A driver whose vehicle a
+     * recovery placed first drives on from there (`rejoin`). Its intent is then carried to the occurrence it is in, a
+     * racing line driver's too, whose adjacent lanes are read there. Where its lane ends
      * within its lookahead — at a seam, or at a standing object in it — it first merges one lane toward the lane that
      * continues there (beside an object, an adjacent lane that does not end) when that lane is free; while its lane
      * still ends at a seam, the seam is its plan's terminal, so it slows to stop there short of `terminalClearance`
@@ -203,6 +223,7 @@ export function createLaneDriving(options: {
       const driving = driven.driving!;
       const { intent, driver } = driving;
       const s = driven.vehicle.course.s;
+      if (driven.recovered) rejoin(driven);
       forks.carry(intent, s);
       if (driving.offset) return driveLine(driven, driving.offset, domain);
       const ahead = s + PLANNED_DRIVER.lookahead;

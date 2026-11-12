@@ -2,7 +2,7 @@
   "format": "superoutride.reference-times",
   "version": 2,
   "courseBuildSha256": "e66c7811445c02219f94926ba9054070c384f606cc98da4be5a3facb5aec377c",
-  "procedureSha256": "1ef835ad3128588d3554d1151a920ecd19e06b29b43a2df87ae3457066cb6eb6",
+  "procedureSha256": "d184ee1cd1f26f1bdbb8f06c65186d34d779617805a62617f8701df158cdfdd9",
   "vehicles": [
     {
       "vehicleId": "LOTUS_79_SPECIAL",

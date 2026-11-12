@@ -132,6 +132,8 @@ test('stationary solid contact explodes once, blocks controls and manual escape,
     assert.equal(control.throttle, 0);
     assert.ok(control.brake > 0);
     assert.ok(actor.vehicle.speed < 2, `${actor.vehicle.speed} m/s`);
+    // Stopped with the throttle asked for, it is not stuck: the explosion's steps are not counted.
+    assert.equal(actor.recovery.stuckSteps, 0);
   }
   assert.ok(Math.abs(actor.vehicle.course.s - start) < 1);
   assert.equal(actor.contactResponse.phase, 'recovering');

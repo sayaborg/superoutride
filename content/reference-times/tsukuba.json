@@ -2,7 +2,7 @@
   "format": "superoutride.reference-times",
   "version": 2,
   "courseBuildSha256": "4975d5a4f0c6425938f7b4b448f9e3e28c995396b447cc4669b3295f17cd4c2f",
-  "procedureSha256": "1ef835ad3128588d3554d1151a920ecd19e06b29b43a2df87ae3457066cb6eb6",
+  "procedureSha256": "d184ee1cd1f26f1bdbb8f06c65186d34d779617805a62617f8701df158cdfdd9",
   "vehicles": [
     {
       "vehicleId": "911_TURBO_3_3",

@@ -70,7 +70,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
+Next PR: Stage AD's AD-1 (K, 2026-11-12), then AD-2, [Stage RC](#stage-rc--one-recovery)'s RC-2 and RC-3, and AD-3;
+in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
 CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -402,6 +403,38 @@ The road data tool raises an original whose road layer draws its road surface li
 whose road surface is drawn with sprites waits for a future model of its own, provisionally SUPER OUTRIDE 2: its
 boundary, SUPER MONACO GP frozen at `8beb28f7` (conversion version 36), what was learned, the candidates, what the
 model needs and how to start it are in [The sprite-road model](sprite-road-model.md).
+
+## Stage RC — One recovery
+
+K's decisions of 2026-11-12. A vehicle does not leave its course: the course limits are closed everywhere, along both
+sides and across the road at the Route's start and at its end; a place to fall is material-free ground inside the
+limits, and `openLimits`, `road-end` and the lateral `outside-domain` go. A vehicle whose CG is 3 m below the ground
+recovers, supported or not (`fallen`, replacing `surface-penetration`); `overturned`, `explosion` and `manual` stay; a
+vehicle to whose wheels drive reaches while below 0.15 m/s for 44 steps recovers whatever holds it, its input unread
+(`stuck`, replacing `blocked`; K's revision of 2026-11-12); BRANCH goes, and `wrong-course` with it. Every recovery is
+one: at rest, at the centre of the lane nearest the vehicle, 8 m behind the farther of where it is and where it was last
+safe.
+
+The auditor's choices (reported to K): the stage's name and its three PRs; a centre outside the coordinate domain (which
+should not happen once the limits close) recovers the same way in its step and is logged for development, not listed as
+a condition; the limits across the road are limits as the side ones are, for contact records, sound and explosion.
+
+- **RC-1, the conditions and the one recovery (no format change).** A driver whose vehicle a recovery placed drives on
+  from there: a lane driver takes that lane as its own, a racing line driver takes the line from that lane's centre,
+  as on the grid (the implementer's reading of "drives that lane again" for racing line drivers).
+- **RC-2, limits always closed (format change; K confirms before main).** Limits across the road at the Route's start
+  and terminal, pushing back along the road with the side limits' spring-damper on half the footprint; `openLimits`
+  removed from the format, the compilers, the tools, road data and `content/`; `outside-domain` and `road-end`
+  removed.
+- **RC-3, BRANCH removed (format change; K confirms before main).** Gates, multi-exit Sections, fork signs, closed
+  roads, `wrong-course`, `legalRecovery`, `legalTarget`, target exits and `rivalExit` go; lanes, merges and one Link
+  per Section stay. Its lists of what goes and what stays are written in its PR first, split if that reads better.
+
+Not decided, for later: after a recovery a vehicle stands at rest with its engine at idle, and the slipping clutch
+delivers nothing until the engine has risen (NSR500 stands about 0.7 s); K judges it in DEV. A course with holes needs
+its recovery places on material (`supportedTargetSurface` stops a recovery there now); what AI drivers do before the
+limit at the road's end (the AI review); and what `stuck` leaves out: creeping on faster than 0.15 m/s, and a driver
+braked to rest.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 

@@ -18,6 +18,11 @@ interface VehicleControlObservation {
   /** The share of each station's requested brake torque that the torque protections apply, in [0, 1]; 1 without a request. */
   frontBrakeApplied: number;
   rearBrakeApplied: number;
+  /**
+   * N m: the most drive torque the powertrain delivered to the driven wheels in any substep of the step, after the
+   * protections bound it; 0 or less when none reached them (engine braking is negative), and 0 while held.
+   */
+  driveTorque: number;
 }
 
 /** Shared public world-state fields. `course` is a derived plan coordinate cache, never world authority. */
@@ -51,7 +56,14 @@ export interface BodyKinematics {
 }
 
 export function createVehicleControlObservation(): VehicleControlObservation {
-  return { steeringActuator: 0, throttleActuator: 0, brakeActuator: 0, frontBrakeApplied: 1, rearBrakeApplied: 1 };
+  return {
+    steeringActuator: 0,
+    throttleActuator: 0,
+    brakeActuator: 0,
+    frontBrakeApplied: 1,
+    rearBrakeApplied: 1,
+    driveTorque: 0,
+  };
 }
 
 export function resetVehicleControlObservation(vehicle: VehicleDynamicsState): void {

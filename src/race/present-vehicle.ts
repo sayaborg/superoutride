@@ -56,8 +56,6 @@ export interface PresentVehicle {
     steering: DriverSteering;
     readonly place: (s: number) => RecoveryTarget | null;
     readonly externalForce: Readonly<Vec3>;
-    /** Whether a fixed object holds the vehicle this step; the race writes it for recovery. */
-    blocked: boolean;
   };
 }
 
@@ -110,7 +108,6 @@ export function createPresentVehicle(
       steering,
       place: (s: number) => place(present, s),
       externalForce: contactForce,
-      blocked: false,
     },
   };
   return present;

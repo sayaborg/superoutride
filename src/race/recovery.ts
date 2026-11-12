@@ -27,35 +27,21 @@ import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
 import { initializeVehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 
 type RecoveryReason =
-  | 'surface-penetration'
-  | 'outside-domain'
-  | 'road-end'
-  | 'blocked'
-  | 'overturned'
-  | 'manual'
-  | 'wrong-course'
-  | 'explosion';
-
-// Metres: 1 mm contact/recovery deadband, not floating-point epsilon.
-// At a 1/720 s vehicle substep, gravity alone contributes about 0.019 mm of displacement.
-const SURFACE_PENETRATION_TOLERANCE_METERS = 1e-3;
+  'fallen' | 'outside-domain' | 'road-end' | 'stuck' | 'overturned' | 'manual' | 'wrong-course' | 'explosion';
 
 /** The fixed recovery policy: rules only, shared by every competitor; no live state or target resolution. */
 export interface RecoveryPolicy {
   /**
    * Consecutive fixed steps a recovery condition holds before the vehicle recovers: outside the coordinate domain, or
-   * held against a fixed object below `blockedSpeed`.
+   * stuck (drive reaching its wheels below `stuckSpeed`).
    */
   readonly holdSteps: number;
-  /** m/s: the speed below which a vehicle held against a fixed object counts as stopped there. */
-  readonly blockedSpeed: number;
+  /** m/s: the speed below which a vehicle whose wheels drive counts as not moving. */
+  readonly stuckSpeed: number;
+  /** Metres: how far below the ground along its normal a vehicle's centre of gravity has fallen when it recovers. */
+  readonly fallDepth: number;
   /** Metres recovery backs off along the Route. */
   readonly backtrackDistance: number;
-  /** Recovery speed bounds in m/s; a vehicle recovered from being blocked recovers at rest. */
-  readonly minRecoverySpeed: number;
-  readonly maxRecoverySpeed: number;
-  /** Share of the forward speed kept through recovery, before the bounds. */
-  readonly speedRetention: number;
   /** Metres left between a recovered vehicle's footprint and the competitor it is placed behind. */
   readonly placementClearance: number;
 }
@@ -63,11 +49,10 @@ export interface RecoveryPolicy {
 export const RECOVERY_POLICY: RecoveryPolicy = Object.freeze({
   // 44 fixed steps of 1/60 s, about 0.733 s.
   holdSteps: 44,
-  blockedSpeed: 0.15,
+  stuckSpeed: 0.15,
+  // K, 2026-11-12.
+  fallDepth: 3,
   backtrackDistance: 8,
-  minRecoverySpeed: 18,
-  maxRecoverySpeed: 32,
-  speedRetention: 0.58,
   placementClearance: 1,
 });
 
@@ -81,8 +66,8 @@ export interface RecoveryState {
   lastSafeS: number;
   /** Consecutive fixed steps the vehicle center has been outside the coordinate domain. */
   outsideDomainSteps: number;
-  /** Consecutive fixed steps the vehicle has been held against a fixed object below `blockedSpeed`. */
-  blockedSteps: number;
+  /** Consecutive fixed steps drive has reached its wheels with the vehicle below `stuckSpeed`. */
+  stuckSteps: number;
   recoveries: number;
   lastReason: RecoveryReason | null;
 }
@@ -96,7 +81,7 @@ export function createRecoveryState(vehicle: VehicleState): RecoveryState {
   return {
     lastSafeS: vehicle.course.s,
     outsideDomainSteps: 0,
-    blockedSteps: 0,
+    stuckSteps: 0,
     recoveries: 0,
     lastReason: null,
   };
@@ -108,9 +93,8 @@ interface RecoveryOptions {
 }
 
 /**
- * One fixed gameplay step under the step's input, its driver's steering rule and external force (N, world). `blocked` says whether a fixed object
- * (a solid sprite or a wall's free end) pushes the vehicle this step. Recovery observes the completed step; physics
- * faults stay visible.
+ * One fixed gameplay step under the step's input, its driver's steering rule and external force (N, world). Recovery
+ * observes the completed step; physics faults stay visible.
  */
 export function advanceVehicleWithRecovery(
   world: VehicleWorld,
@@ -122,16 +106,14 @@ export function advanceVehicleWithRecovery(
     steering,
     place,
     externalForce,
-    blocked = false,
   }: RecoveryOptions & {
     input: DrivingInput;
     steering: DriverSteering;
     externalForce: Readonly<Vec3>;
-    blocked?: boolean;
   },
 ): RecoveryReason | null {
   updateVehicle(world, vehicle, model, input, steering, false, externalForce);
-  return updateRecovery(world, vehicle, model, { state, place }, blocked);
+  return updateRecovery(world, vehicle, model, { state, place });
 }
 
 const observationWorkspaces = new WeakMap<
@@ -148,9 +130,9 @@ function updateRecovery(
   vehicle: VehicleState,
   model: VehicleModel,
   { state, place }: RecoveryOptions,
-  blocked: boolean,
 ): RecoveryReason | null {
   if (!vehicle.course.inDomain) {
+    state.stuckSteps = 0;
     state.outsideDomainSteps += 1;
     if (state.outsideDomainSteps < RECOVERY_POLICY.holdSteps) return null;
     // Out past the road's end (the Route's start, or the end of a Section no Link leaves) as against a fixed object;
@@ -161,12 +143,12 @@ function updateRecovery(
     return recoverVehicle(world, vehicle, model, { state, reason, place }) ? reason : null;
   }
   state.outsideDomainSteps = 0;
-  // Held against a fixed object it cannot leave, with no reverse gear: as long as outside the domain, then recovery.
-  if (blocked && Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed) < RECOVERY_POLICY.blockedSpeed) {
-    state.blockedSteps += 1;
-    if (state.blockedSteps >= RECOVERY_POLICY.holdSteps)
-      return recoverVehicle(world, vehicle, model, { state, reason: 'blocked', place }) ? 'blocked' : null;
-  } else state.blockedSteps = 0;
+  // Drive reaches its wheels and it does not move, whatever holds it: an object, a limit, a wall or another vehicle
+  // (K, 2026-11-12). No input is read: an engine still rising from idle through the slipping clutch delivers none.
+  const stuck =
+    vehicle.control.driveTorque > 0 &&
+    Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed) < RECOVERY_POLICY.stuckSpeed;
+  state.stuckSteps = stuck ? state.stuckSteps + 1 : 0;
   const { coordinates, height, surfaces } = world;
   let workspace = observationWorkspaces.get(vehicle);
   if (!workspace) {
@@ -175,13 +157,6 @@ function updateRecovery(
   }
   const surface = sampleSurfaceGeometryAtCoordinate(coordinates, height, surfaces, vehicle.course, workspace.surface);
   const inverted = dot3(vehicleBodyKinematics(vehicle, workspace.body).up, surface.normal) <= 0;
-  // Single-wheel support is allowed. Stale contact telemetry must not make an inverted vehicle a new
-  // safe recovery checkpoint.
-  if (!inverted && vehicle.supported) {
-    state.lastSafeS = vehicle.course.s;
-    return null;
-  }
-
   // CG distance above the rendered heightfield along its normal; material-free ground included.
   const surfaceDistance =
     (vehicle.x - surface.point.x) * surface.normal.x +
@@ -191,10 +166,14 @@ function updateRecovery(
   // No collision shape meets the ground. An inverted body counts as landed once its CG is within the
   // ride CG height of the surface; higher up it is still rotating in the air and may recover itself.
   if (inverted && surfaceDistance <= model.compiledVehicle.desiredCgHeight) reason = 'overturned';
-  // A CG below the heightfield has fallen into a hole or through material-free ground.
-  else if (surfaceDistance < -SURFACE_PENETRATION_TOLERANCE_METERS) reason = 'surface-penetration';
-
-  return reason !== null && recoverVehicle(world, vehicle, model, { state, reason, place }) ? reason : null;
+  // A CG the fall depth below the ground has fallen, supported or not.
+  else if (surfaceDistance < -RECOVERY_POLICY.fallDepth) reason = 'fallen';
+  else if (state.stuckSteps >= RECOVERY_POLICY.holdSteps) reason = 'stuck';
+  if (reason !== null) return recoverVehicle(world, vehicle, model, { state, reason, place }) ? reason : null;
+  // Single-wheel support is allowed. Stale contact telemetry must not make an inverted vehicle a new
+  // safe recovery checkpoint.
+  if (!inverted && vehicle.supported) state.lastSafeS = vehicle.course.s;
+  return null;
 }
 
 /**
@@ -240,34 +219,22 @@ export function recoverVehicleToPlanCoordinate(
 ): void {
   const surface = supportedTargetSurface(world, target.s, target.l);
 
-  // A vehicle a fixed object held had stopped against it, and one out past the road's end has no road ahead: each
-  // recovers at rest behind it, since a recovery speed would carry it back into the same object or over the same end.
-  // Every other recovery keeps a bounded share of its forward speed.
-  const speed =
-    reason === 'blocked' || reason === 'explosion' || reason === 'road-end'
-      ? 0
-      : clamp(
-          Math.max(0, vehicle.longitudinalSpeed) * RECOVERY_POLICY.speedRetention,
-          RECOVERY_POLICY.minRecoverySpeed,
-          RECOVERY_POLICY.maxRecoverySpeed,
-        );
-
+  // Every recovery is one, whatever its reason: at rest (K, 2026-11-12).
   vehicle.longitudinalAcceleration = 0;
   vehicle.lateralAcceleration = 0;
   resetVehicleControlObservation(vehicle);
 
   const yaw = Math.atan2(surface.horizontalTangent.x, surface.horizontalTangent.z);
-  const velocity = scale3(surface.tangent, speed);
-  vehicle.velocityX = velocity.x;
-  vehicle.velocityY = velocity.y;
-  vehicle.velocityZ = velocity.z;
+  vehicle.velocityX = 0;
+  vehicle.velocityY = 0;
+  vehicle.velocityZ = 0;
 
-  reconstructVehicle(vehicle, model, surface.point, surface.normal, yaw, surface.gradeAngle, speed);
+  reconstructVehicle(vehicle, model, surface.point, surface.normal, yaw, surface.gradeAngle);
   vehicle.course = initializePlanCoordinateObservation(world.coordinates, vehicle.x, vehicle.z, target.s);
 
   state.lastSafeS = target.s;
   state.outsideDomainSteps = 0;
-  state.blockedSteps = 0;
+  state.stuckSteps = 0;
   state.recoveries += 1;
   state.lastReason = reason;
 }
@@ -279,7 +246,6 @@ function reconstructVehicle(
   surfaceNormal: { readonly x: number; readonly y: number; readonly z: number },
   yaw: number,
   pitch: number,
-  speed: number,
 ): void {
   const p = model.compiledVehicle;
   const wheelbase = p.frontAxle + p.rearAxle;
@@ -293,8 +259,8 @@ function reconstructVehicle(
   vehicle.pitchRate = 0;
   vehicle.frontSteerAngle = 0;
   resetDrivingActuatorState(vehicle.actuator);
-  vehicle.frontWheelOmega = speed / p.frontStation.rollingRadius;
-  vehicle.rearWheelOmega = speed / p.rearStation.rollingRadius;
+  vehicle.frontWheelOmega = 0;
+  vehicle.rearWheelOmega = 0;
   initializeVehicleTireObservation(
     vehicle.tires,
     (p.mass * VEHICLE_GRAVITY * p.rearAxle) / wheelbase,

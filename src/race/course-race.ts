@@ -180,12 +180,8 @@ export function createCourseRace(options: {
     pacing: RivalPacing | null,
     stages: RunEntry['stages'],
   ) => {
-    // The race's recovery lane resolver: a rival's lane; the player recovers to the centre of the lane nearest it.
-    const recoveryIntent = driving?.intent ?? null;
-    const width = actor.model.compiledVehicle.footprint;
-    const recoveryLane = (s: number) => forks.recoveryL(s, recoveryIntent, body.vehicle.course.l, width);
     const body = createPresentVehicle(id, actor, driving, defaultSteering(actor.model), (self, s) =>
-      vacantPlace(self, s, recoveryLane),
+      placement.recoveryPlace(self, s),
     );
     return {
       id,
@@ -339,7 +335,6 @@ export function createCourseRace(options: {
     roadsideObjects,
     bodies,
   });
-  const { vacantPlace } = placement;
   const laneDriving = createLaneDriving({
     road: runtime.readers,
     window: runtime.window,
@@ -347,6 +342,7 @@ export function createCourseRace(options: {
     roadsideObjects,
     bodies,
     lapLength,
+    takeLine,
   });
   // The race gates the player has crossed since GO, across laps: the player is in STAGE playerGates + 1.
   let playerGates = 0;
@@ -584,8 +580,6 @@ export function createCourseRace(options: {
           explosionSeed(options.setup.seed, body.id, sequence),
         );
     contactStarts.clear();
-    // A vehicle a fixed object holds may recover; the step's recovery reads it.
-    for (const body of bodies) body.step.blocked = roadsideObjects.blocks(body.id);
     move(activeBodies[0]!, playerInput, playerSteeringOf(input, stepStart !== null));
     for (let i = 1; i < active.length; i += 1) {
       const { body, pacing } = active[i]!;

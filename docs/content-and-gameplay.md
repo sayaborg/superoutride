@@ -1116,7 +1116,7 @@ ARCADE TRIBUTE - TURBO OUTRUN is delivered on the same terms (K, 2026-11-10), on
 run with a margin of 1.35. The player drives the F40, in red, beside its one rival, a white 911 Turbo 3.3 of pace 1
 (the original's Porsche), both on the grid's first two slots (`own`); the traffic drives its lanes, five vehicles of
 equal weight standing for the original's (the C4 Corvette, the Nova 250, the Mini 850, the Wrangler and a 911 Turbo
-3.3), at 4 a kilometre and up to 90 km/h (provisional). The F40's reference runs recover 4 to 12 times a section.
+3.3), at 4 a kilometre and up to 90 km/h (provisional). The F40's reference runs recover 3 to 12 times a section.
 
 ARCADE TRIBUTE - FINAL LAP 2 is delivered on the same terms (K, 2026-11-10), on its original JAPAN, MONACO, ITALY and
 USA, 4 laps each with a margin of 1.35, without rank limits. The player drives the MP4/4, for now, from the last of
@@ -1215,7 +1215,7 @@ browser picks a new seed for every run assembly ([Browser](browser.md#display-an
 FREE PLAY runs without rivals, use 0, and scenarios and tests fix theirs. The race builds each
 competitor's mechanics and each rival's driver from its entry's vehicle; the player's composition supplies input only.
 A course need not leave every vehicle room to stop past its FINISH (K, 2026-10-24): a vehicle that cannot stop
-before the road ends leaves the coordinate domain there and recovers at rest, as one held by a fixed object does
+before the road ends leaves the coordinate domain there and recovers, at rest as every recovery
 ([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)), so it does not cross the end again.
 A circuit FINISH and an undecided fork are not terminal stopping points.
 
@@ -1252,7 +1252,7 @@ Each procedure that produces a measured product has one record, its name, versio
 results, and one identity: the SHA-256 of the record's JSON ([procedure](../tools/course/procedure.ts)), as the course
 compiler's record is part of a course build identity. A code change that changes a procedure's results raises that
 procedure's version. The reference run (`REFERENCE_RUN`,
-`superoutride.reference-driving` version 9) records the race's fixed step, the run seed, the reference driver (the
+`superoutride.reference-driving` version 11) records the race's fixed step, the run seed, the reference driver (the
 driver policy `PLANNED_DRIVER` at utilization 0.9, steering by its rule) and the pace schedule's station spacing; its identity is that of the
 record with the racing line procedure's record (`racingLine`), whose lines it drives. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
 vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`
@@ -1815,7 +1815,7 @@ POLE POSITION.
 ## Recovery
 
 Airborne driving is ordinary; recovery applies only when driving cannot continue: coordinate-domain
-exit, an inverted landing, falling through the heightfield, being held against a fixed object (blocked), leaving the
+exit, an inverted landing, a fall 3 m below the ground, not moving while drive reaches the wheels (stuck), leaving the
 locked fork route (wrong course) or a manual request. The authored contact response above also requests recovery after
 its stopped interval. [Vehicle physics](vehicle-physics.md#airborne-state-and-recovery) owns the ordinary conditions. Recovery reconstructs
 pose, velocities, wheels, actuators, powertrain and observations at known supported coordinates while
@@ -1829,27 +1829,28 @@ rules only, no live state or target resolution:
 | Policy value         | Value    | Meaning                                                                           |
 | -------------------- | -------- | --------------------------------------------------------------------------------- |
 | `holdSteps`          | 44       | Consecutive fixed steps a condition holds before recovery (44 × 1/60 s ≈ 0.733 s) |
-| `blockedSpeed`       | 0.15 m/s | Speed below which a vehicle held against a fixed object counts as stopped         |
+| `stuckSpeed`         | 0.15 m/s | Speed below which a vehicle whose wheels drive counts as not moving               |
+| `fallDepth`          | 3 m      | Depth of the CG below the ground at which a vehicle has fallen                    |
 | `backtrackDistance`  | 8 m      | Route distance recovery backs off; loading coverage reads it                      |
-| `minRecoverySpeed`   | 18 m/s   | Lower bound of the recovery speed (none for `blocked` and `road-end`, at rest)    |
-| `maxRecoverySpeed`   | 32 m/s   | Upper bound of the recovery speed                                                 |
-| `speedRetention`     | 0.58     | Share of forward speed kept, before the bounds                                    |
 | `placementClearance` | 1 m      | Gap left behind the competitor a recovered vehicle is placed behind               |
 
-The policy values are author values, neither derived from a model nor DEV settings: the wait (`holdSteps`), the speed
-bounds and the retention among them.
+The policy values are author values, neither derived from a model nor DEV settings: the wait (`holdSteps`), the stuck
+speed and the fall depth among them (the fall depth K's, 2026-11-12). Recovery is not a run rule.
 
-The race reports, for every vehicle present, whether a fixed object pushed it in the step's contacts; the `blocked`
-condition reads that report. Recovery is not a run rule.
+Every recovery is one: at rest, at the centre of the lane nearest the vehicle, 8 m behind the farther of where it is
+and where it was last safe (K, 2026-11-12). Its reason (a condition, the contact response, wrong course or a manual
+request) changes neither its speed nor its place.
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage
 ([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)). The race owns target resolution: its
-recovery placement (its target lateral from the fork field's `recoveryL`, behind any vehicle or standing object in the
-way, see [Body contact](#body-contact)) is passed to recovery separately from the policy: a driven
-competitor recovers to its driving target (`targetL`, the centre of its lane); the player, which has no driver intent,
-recovers to the centre of the lane nearest it of the roads it may drive: at a decided fork, the selected Link's road
-where that road is, else every lane there for its vehicle (every lane wider than zero where none is). Wrong-route recovery goes to the nearest lane centre of the selected road at
-the observed station (`legalTarget`).
+recovery placement (`recoveryPlace`: its target lateral from the fork field's `recoveryL`, behind any vehicle or
+standing object in the way, see [Body contact](#body-contact)) is passed to recovery separately from the policy. Every
+vehicle, driven or not, recovers to the centre of the lane nearest it (`recoveryLane`) of the roads it may drive: at a
+decided fork, the selected Link's road where that road is, else every lane there for its vehicle (every lane wider than
+zero where none is). Wrong-route recovery goes to the nearest lane centre of the selected road at
+the observed station (`legalTarget`). A driver whose vehicle a recovery placed drives on from there in its next step: a
+lane driver (traffic keeping its lanes) takes the lane it was placed in as its own, and a racing line driver (a rival,
+racing line traffic, the player's run driver or the takeover) takes the line from that lane's centre, as on the grid.
 Every spawn and recovery target, route-derived or explicit, passes one check (`supportedTargetSurface`): its l
 lies within the coordinate domain (`lateralAt`) and its surface has a material. Targets are race-made, so a
 violation is an internal invariant failure (`Error`).

@@ -2,7 +2,7 @@
   "format": "superoutride.reference-times",
   "version": 2,
   "courseBuildSha256": "4a1bf31b76cd3ca0afd30ef3e787cafa2e94b82a6088abce70a503fa4af56191",
-  "procedureSha256": "1ef835ad3128588d3554d1151a920ecd19e06b29b43a2df87ae3457066cb6eb6",
+  "procedureSha256": "d184ee1cd1f26f1bdbb8f06c65186d34d779617805a62617f8701df158cdfdd9",
   "vehicles": [
     {
       "vehicleId": "VFR750R",

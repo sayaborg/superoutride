@@ -207,40 +207,53 @@ stop. No time limit applies to unsupported flight, and body rotation in the air 
 Pitch protection is inactive in the air; see [Torque protection](#torque-protection).
 
 Recovery applies only when driving cannot continue. After each gameplay step, recovery checks the
-first four conditions in order; race composition and the player request the last two:
+first five conditions in order; race composition and the player request the last three:
 
-| Reason                | Condition                                                                                                                                                                       |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `outside-domain`      | The vehicle center's projected `inDomain` is false for 44 consecutive fixed steps (about 0.733 s)                                                                               |
-| `blocked`             | The race reports a fixed object (a solid sprite or a wall's free end) pushing the vehicle and its speed is below `RECOVERY_POLICY.blockedSpeed`, for 44 consecutive fixed steps |
-| `overturned`          | Body up points at or below the surface plane (`up dot normal <= 0`) and the CG is within `desiredCgHeight` of the surface along its normal                                      |
-| `surface-penetration` | Unsupported, and the CG lies more than 1 mm below the heightfield along its normal (a hole or material-free ground)                                                             |
-| `wrong-course`        | Race composition: the vehicle left the route its locked fork allows; it returns to the selected road                                                                            |
-| `manual`              | The player's request                                                                                                                                                            |
+| Reason           | Condition                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `outside-domain` | The vehicle center's projected `inDomain` is false for 44 consecutive fixed steps (about 0.733 s)                                          |
+| `overturned`     | Body up points at or below the surface plane (`up dot normal <= 0`) and the CG is within `desiredCgHeight` of the surface along its normal |
+| `fallen`         | The CG lies more than `RECOVERY_POLICY.fallDepth` (3 m) below the heightfield along its normal, supported or not                           |
+| `stuck`          | Drive reaches the driven wheels and the vehicle's speed is below `RECOVERY_POLICY.stuckSpeed` (0.15 m/s), for 44 consecutive fixed steps   |
+| `wrong-course`   | Race composition: the vehicle left the route its locked fork allows; it returns to the selected road                                       |
+| `explosion`      | Race composition: the authored contact response's stopped interval has ended                                                               |
+| `manual`         | The player's request                                                                                                                       |
 
-The blocked step count resets when the contact ends or the speed reaches `blockedSpeed`: there is no reverse gear, so a
-vehicle held against a fixed object returns to the road this way, while one that steers or rolls away does not
-recover. Movable objects, barrier lines and other vehicles never count. A blocked vehicle recovers at rest, since a
-recovery speed would carry it back into the same object. An outside-domain exit past the Route's start (the start of the
-first Section it runs, the course's entry or, on a circuit starting before its line, the Section returning to it) or its terminal (the end of a Section no Link leaves) is `road-end`: a road's end holds a vehicle as a fixed
-object does, so it too recovers at rest, and no course needs room past its FINISH for a vehicle to stop. The outside-domain step count resets when the center returns inside; the same condition covers lateral
+A vehicle whose centre of gravity is more than 3 m below the ground's height there recovers, supported or not
+(K, 2026-11-12). The heightfield is the one at the center's route coordinate, material-free ground included, so a
+vehicle that falls through material-free ground recovers in the step its CG passes 3 m below it, and a vehicle the
+ground supports from below (its suspension reaching up to it) recovers there as well.
+
+A vehicle to whose wheels drive reaches while its speed stays below 0.15 m/s for 44 fixed steps recovers, whatever
+holds it (K, 2026-11-12): an object, a course limit, a wall or another vehicle, or nothing. Recovery reads the
+vehicle's state alone, not its driving input. Drive reaches the wheels in a step when any of its substeps delivers
+positive drive torque to the driven wheels after the protections bound it (`control.driveTorque`, the step's largest
+delivered torque, an observation physics writes and never reads); the speed is `hypot(longitudinalSpeed,
+lateralSpeed)`. The count starts again whenever either fails. So an engine still rising from idle through the slipping
+clutch, which delivers no torque until it nears peak-torque speed, counts nothing however long it takes, nor does a
+throttle too small to lift the engine above idle; a vehicle let go or braked to rest, or one sliding or spinning at
+0.15 m/s or more, does not recover. READY holds every vehicle without recovery, and an exploding or recovering vehicle
+is let go and braked.
+
+An outside-domain exit past the Route's start (the start of the first Section it runs, the course's entry or, on a
+circuit starting before its line, the Section returning to it) or its terminal (the end of a Section no Link leaves) is
+`road-end`. The outside-domain step count resets when the center returns inside; the same condition covers lateral
 exits and either end of the resident window. Course limits keep vehicles inside the lateral domain except past an open
-edge ([Content and gameplay](content-and-gameplay.md#walls)), so lateral exits happen only there. The 44 steps let a short excursion return and an
-unsupported vehicle visibly fall (about 2.64 m from rest) before reconstruction. Outside the domain,
-recovery does not query a fictitious surface normal or penetration plane. Inside it, the surface is
-the heightfield at the center's route coordinate, material-free ground included.
+edge ([Content and gameplay](content-and-gameplay.md#walls)), so lateral exits happen only there. Outside the domain,
+recovery does not query a fictitious surface normal or penetration plane, and counts no stuck steps.
 
 No collision shape meets the ground (body contact footprints act only between vehicles, walls and objects), so
 overturning is judged by pose and height: an inverted body
 higher than its ride CG height above the surface is still rotating in the air and may right itself
 before landing; at or below that height it has landed inverted. Any inverted CG below the surface
-therefore reports `overturned`. A supported, upright vehicle is never checked further; an upright
-unsupported vehicle recovers only after falling through the heightfield.
+therefore reports `overturned`, before it counts as fallen.
 
-The last safe station is the route s of the latest step that was supported and not inverted.
+The last safe station is the route s of the latest step that was supported, not inverted and met no condition.
 Recovery clamps the farther of current and last-safe route s to the retained extent, then backs up
 by the policy's backtrack distance within it; from that station the race resolves the place: the lane there, and
-further back behind any vehicle or standing object in the way ([Recovery](content-and-gameplay.md#recovery)). Reset steps award no crossing credit.
+further back behind any vehicle or standing object in the way ([Recovery](content-and-gameplay.md#recovery)). Every
+recovery reconstructs the vehicle at rest, whatever its reason: zero velocity, wheels and engine as at a standing
+start. Reset steps award no crossing credit.
 
 ## Tire law
 

@@ -192,6 +192,7 @@ export function updateHeldVehicle(vehicle: HeldVehicleState, model: VehicleModel
   vehicle.control.brakeActuator = vehicle.actuator.brake;
   vehicle.control.frontBrakeApplied = 1;
   vehicle.control.rearBrakeApplied = 1;
+  vehicle.control.driveTorque = 0;
 }
 
 const NO_EXTERNAL_FORCE: Readonly<Vec3> = Object.freeze({ x: 0, y: 0, z: 0 });
@@ -226,6 +227,8 @@ export function updateVehicle(
   const { lever, utilization } = steering;
   let shiftAvailable = true;
 
+  // The most drive torque any substep delivers, the step's drive observation.
+  let delivered = -Infinity;
   for (let step = 0; step < VEHICLE_SUBSTEPS; step += 1) {
     updateDrivingActuators(vehicle.actuator, input, substep, model.actuator);
     const body = vehicleBodyKinematics(vehicle, workspace.body);
@@ -348,6 +351,7 @@ export function updateVehicle(
       requestedOpening,
       driveTorqueBounds,
     );
+    delivered = Math.max(delivered, driveTorque);
     // Signed drive torque, engine braking included, reaches the wheels untrimmed, the locked engine's inertia with it.
     const resolved = solveProtectedWheelPair(
       compiledVehicle,
@@ -387,6 +391,7 @@ export function updateVehicle(
       vehicle.control.brakeActuator = vehicle.actuator.brake;
       vehicle.control.frontBrakeApplied = appliedShare(resolved.frontInput.brakeTorque, frontRequest.brakeTorque);
       vehicle.control.rearBrakeApplied = appliedShare(resolved.rearInput.brakeTorque, rearRequest.brakeTorque);
+      vehicle.control.driveTorque = delivered;
       recordVehicleTireObservation(vehicle.tires, model.tire.rhoKnee, front, frontWheel, rear, rearWheel);
     }
   }
