@@ -2,15 +2,15 @@
   "format": "superoutride.racing-line",
   "version": 2,
   "courseBuildSha256": "0d9c420e1b0decf4c07e005aa80038a55348d5d070f872592b0d159e8130c3a3",
-  "procedureSha256": "83478b4c83267cbf6f9ee21ad794c03b3c117a304e7cc9deced2b6faf87b8601",
+  "procedureSha256": "295b712c4a507a9c8b6e5c5ee8c63618c99595b0354621fdcf6045648c5d6385",
   "spacing": 5,
   "lengthWeight": 0.000178,
   "vehicles": [
     {
       "vehicleId": "LOTUS_79_SPECIAL",
       "vehicleSha256": "8959481e9b12322af2bd562975c3e9a94d6aec9b518b08d1ad342f376d563d88",
-      "seconds": 99.607,
-      "minimumCurvatureSeconds": 100.078
+      "seconds": 97.965,
+      "minimumCurvatureSeconds": 98.451
     }
   ],
   "lines": [
