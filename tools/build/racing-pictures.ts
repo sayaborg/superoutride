@@ -11,7 +11,7 @@ import { readVehicleSpriteSet } from '../../src/vehicle/vehicle-sprite-library.j
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { drawVehicleSpriteSet } from '../graphics/vehicle-pictures.js';
 import { vehiclePictureSheet } from '../graphics/vehicle-picture-sheet.js';
-import { VEHICLE_SPRITE_SET_FORMAT, VEHICLE_SPRITE_SET_VERSION } from '../graphics/vehicle-sprite-sets.js';
+import { VEHICLE_SPRITE_SET_FORMAT, VEHICLE_SPRITE_SET_VERSION } from '../../src/vehicle/vehicle-sprite-library.js';
 import {
   RACING_PICTURES,
   RACING_PICTURE_STYLE,

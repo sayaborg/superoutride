@@ -3,7 +3,6 @@ import {
   readArray,
   readDictionary,
   readDocument,
-  readEmbedded,
   readNumber,
   readRecord,
   requireAdmission,
@@ -19,9 +18,10 @@ import type { VehiclePicture, VehiclePictureSize, VehicleSpriteSet } from './veh
  */
 export const VEHICLE_PICTURE_SIZES = 6;
 
-/** The number of colors every vehicle sprite set declares ([Image assets](../../docs/image-assets.md#vehicle-sprite-library)). */
+/** The number of colors every vehicle sprite set declares ([Image assets](../../docs/image-assets.md#vehicle-sprite-sets)). */
 export const VEHICLE_COLORS = 4;
 
+/** The admitted vehicle sprite sets by name; each set was admitted by its own rules, and none refers to another. */
 export interface SpriteAssets {
   readonly sets: Readonly<Record<string, VehicleSpriteSet>>;
 }
@@ -52,7 +52,11 @@ export interface VehicleSpriteSetDocument {
   }[];
 }
 
-/** The fields of a set, in a set document and in the library alike. */
+/** One vehicle sprite set's saved format: `content/sprites/<set>.json`, delivered as authored, the set named by its file. */
+export const VEHICLE_SPRITE_SET_FORMAT = 'superoutride.vehicle-sprite-set';
+export const VEHICLE_SPRITE_SET_VERSION = 3;
+
+/** The fields of a set, at its document's root after the format and version. */
 export const VEHICLE_SPRITE_SET_FIELDS = [
   'yawVariants',
   'bankVariants',
@@ -62,13 +66,6 @@ export const VEHICLE_SPRITE_SET_FIELDS = [
   'assets',
   'pictures',
 ] as const;
-
-/** The vehicle sprite library document: every set by name. */
-export interface VehicleSpriteLibraryDocument {
-  readonly format: 'superoutride.vehicle-sprites';
-  readonly version: 6;
-  readonly sets: Readonly<Record<string, VehicleSpriteSetDocument>>;
-}
 
 const EXTENT = { min: 1, max: 1 << 16, integer: true };
 
@@ -196,21 +193,20 @@ export function readVehicleSpriteSet(value: unknown, name: string): VehicleSprit
 }
 
 /**
- * Admission of the vehicle sprite library: its sets by name, each admitted by its own rules with its pointers under
- * `/sets/<name>`. Besides the sets, it publishes the admitted document.
+ * Admit one vehicle sprite set document, as authored and as delivered: its format and version, then its set by
+ * `readVehicleSpriteSet`. Besides the set, it publishes the admitted document's set fields.
  */
-export function readVehicleSpriteLibrary(value: unknown) {
-  const library = readDocument(value, ['format', 'version', 'sets'], 'superoutride.vehicle-sprites', 6);
-  const sets = readDictionary(library.sets, '/sets', (value, path, name) =>
-    readEmbedded(path, () => readVehicleSpriteSet(value, name)),
+export function readVehicleSpriteSetDocument(value: unknown, name: string) {
+  const banked = typeof value === 'object' && value !== null && Object.hasOwn(value, 'bankDegrees');
+  const fields = VEHICLE_SPRITE_SET_FIELDS.filter((field) => banked || field !== 'bankDegrees');
+  const document = readDocument(
+    value,
+    ['format', 'version', ...fields],
+    VEHICLE_SPRITE_SET_FORMAT,
+    VEHICLE_SPRITE_SET_VERSION,
   );
-  // Each set passed its admission above, which establishes its document shape.
-  const document = deepFreeze(value as VehicleSpriteLibraryDocument);
-  const assets: SpriteAssets = Object.freeze({ sets });
-  return Object.freeze({ assets, document });
-}
-
-/** Delivery admission of the vehicle sprite library. */
-export function readSpriteAssets(value: unknown): SpriteAssets {
-  return readVehicleSpriteLibrary(value).assets;
+  const fieldValues = Object.fromEntries(fields.map((field) => [field, document[field]]));
+  const set = readVehicleSpriteSet(fieldValues, name);
+  // The set passed its admission above, which establishes its document's shape.
+  return Object.freeze({ set, document: deepFreeze(fieldValues as unknown as VehicleSpriteSetDocument) });
 }

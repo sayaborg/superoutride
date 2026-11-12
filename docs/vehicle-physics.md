@@ -785,7 +785,7 @@ selection-order uniqueness, then exposes the sorted immutable
 collection. Surface-material diagnostics likewise carry the source document and exact JSON Pointer;
 course references to unknown material IDs report the authored Strip `/material` path.
 
-Listing admission receives the completed sprite library with the listing document. It resolves the
+Listing admission receives the admitted sprite sets with the listing document. It resolves the
 named set and the default color for every image once. Cars require exactly one bank image per yaw;
 bikes require an odd bank count of at least three, including neutral. Image admission guarantees
 exactly four named color choices across the set and one shared brake-lamp off/on declaration

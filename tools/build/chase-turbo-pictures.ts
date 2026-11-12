@@ -8,15 +8,16 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { compileVehicleMechanicsDocument } from '../../src/vehicle/definition-document.js';
-import { readVehicleSpriteSet } from '../../src/vehicle/vehicle-sprite-library.js';
+import {
+  readVehicleSpriteSet,
+  readVehicleSpriteSetDocument,
+  VEHICLE_SPRITE_SET_FORMAT,
+  VEHICLE_SPRITE_SET_VERSION,
+} from '../../src/vehicle/vehicle-sprite-library.js';
+import { admit } from '../../src/core/admission.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { drawVehicleSpriteSet } from '../graphics/vehicle-pictures.js';
 import { vehiclePictureSheet } from '../graphics/vehicle-picture-sheet.js';
-import {
-  assembleVehicleSpriteLibrary,
-  VEHICLE_SPRITE_SET_FORMAT,
-  VEHICLE_SPRITE_SET_VERSION,
-} from '../graphics/vehicle-sprite-sets.js';
 import {
   CHASE_TURBO_PICTURES,
   chaseTurboPictureStyle,
@@ -84,10 +85,9 @@ try {
     let document, output;
     if (requested === 'review') {
       output = await readFile(spriteFile, 'utf8');
-      document = assembleVehicleSpriteLibrary(
-        [{ name, document: spriteFile.pathname, value: JSON.parse(output) }],
-        directory.pathname,
-      ).library.sets[name]!;
+      document = requireLoaded(
+        admit(spriteFile.pathname, () => readVehicleSpriteSetDocument(JSON.parse(output!), name)),
+      ).document;
     } else {
       const file = new URL(`../../content/vehicles/${id}.json`, import.meta.url),
         bytes = await readFile(file);

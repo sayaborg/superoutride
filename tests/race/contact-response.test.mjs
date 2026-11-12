@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
-import { loadVehicleDefinitions, loadVehicleSpriteLibrary } from '../../src/content/vehicle-catalog.js';
+import { loadVehicleDefinitions, loadVehicleSpriteSets } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
@@ -25,7 +25,7 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 const content = await readDeliveredContent();
 const sounds = await loadEngineSounds(content);
 const definitions = await loadVehicleDefinitions(content, sounds);
-const sprites = await loadVehicleSpriteLibrary(content);
+const sprites = await loadVehicleSpriteSets(content);
 const materials = await loadSurfaceMaterials(content);
 const freePlay = await loadFreePlayRules(content);
 const course = await loadDeliveredCourse(content, 'tsukuba', materials);

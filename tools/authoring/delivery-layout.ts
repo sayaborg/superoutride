@@ -9,6 +9,8 @@ function contentPath(kind: ContentKind, id: string, sha256: string): string {
       return `vehicles/${id}.json`;
     case 'vehicle-listing':
       return `vehicle-listings/${id}.json`;
+    case 'vehicle-sprite-set':
+      return `sprites/${id}.json`;
     case 'driving':
       return `driving/${id}.json`;
     case 'material':

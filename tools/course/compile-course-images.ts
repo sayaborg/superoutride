@@ -8,7 +8,7 @@ import { spriteLodLayout, type SpriteLodAsset } from '../../src/image/sprite.js'
 import { requireLoaded } from '../../src/content/content-load-error.js';
 
 /** Delivered image IDs that are not course images: a course cannot name an image so. */
-export const RESERVED_IMAGE_NAMES: readonly string[] = ['vehicles', 'text-tiles'];
+export const RESERVED_IMAGE_NAMES: readonly string[] = ['text-tiles'];
 
 /**
  * Build-only image delivery: the delivered bytes of each image a course names, by that name, each its saved document as

@@ -7,15 +7,16 @@ import { contentDigest } from '../../src/core/content-digest.js';
 import { requireLoaded } from '../../src/content/content-load-error.js';
 import { formatSavedJson } from '../../src/content/saved-json.js';
 import { compileVehicleMechanicsDocument } from '../../src/vehicle/definition-document.js';
-import { readVehicleSpriteSet } from '../../src/vehicle/vehicle-sprite-library.js';
+import {
+  readVehicleSpriteSet,
+  readVehicleSpriteSetDocument,
+  VEHICLE_SPRITE_SET_FORMAT,
+  VEHICLE_SPRITE_SET_VERSION,
+} from '../../src/vehicle/vehicle-sprite-library.js';
+import { admit } from '../../src/core/admission.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { drawVehicleSpriteSet } from '../graphics/vehicle-pictures.js';
 import { vehiclePictureSheet } from '../graphics/vehicle-picture-sheet.js';
-import {
-  assembleVehicleSpriteLibrary,
-  VEHICLE_SPRITE_SET_FORMAT,
-  VEHICLE_SPRITE_SET_VERSION,
-} from '../graphics/vehicle-sprite-sets.js';
 import {
   ROAD_BIKE_BANK_DEGREES,
   ROAD_BIKE_PICTURES,
@@ -117,11 +118,9 @@ try {
       reviews = [];
     for (const [id, name] of Object.entries(ROAD_BIKE_PICTURES)) {
       const bytes = await readFile(new URL(`../../content/sprites/${name}.json`, import.meta.url));
-      const { library } = assembleVehicleSpriteLibrary(
-        [{ name, document: `sprites/${name}.json`, value: JSON.parse(bytes.toString()) }],
-        directory.pathname,
+      const { document } = requireLoaded(
+        admit(`sprites/${name}.json`, () => readVehicleSpriteSetDocument(JSON.parse(bytes.toString()), name)),
       );
-      const document = library.sets[name]!;
       const sampled = document.assets.filter((_, yaw) => yaw % 8 === 0);
       const neutral = sampled.map((row) => document.pictures[row[(document.bankVariants - 1) / 2]!]!.sizes[0]!);
       const stock = [0, ...document.palettes.stock!, document.brakeLamp.off];

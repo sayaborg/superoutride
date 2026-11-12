@@ -41,6 +41,7 @@ const CONTENT_KINDS: readonly ContentKind[] = [
   'engine-loudness',
   'vehicle',
   'vehicle-listing',
+  'vehicle-sprite-set',
   'driving',
   'material',
   'engine-sound',

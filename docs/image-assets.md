@@ -8,9 +8,9 @@ logical sprite extent and anchors; [Content and gameplay](content-and-gameplay.m
 Indexed sprites and BG tiles pack two 4-bit indices per byte, high nibble first. Index zero is
 transparent (BG patterns cannot use it; see below); indices 1 through 15 are opaque. Resolved palettes have exactly 16 RGB555 entries, with slot zero
 unused. RGB555 zero in an opaque slot is black. Source JSON stores row-major index arrays, except the vehicle
-pictures' hexadecimal rows ([Vehicle sprite library](#vehicle-sprite-library)).
+pictures' hexadecimal rows ([Vehicle sprite sets](#vehicle-sprite-sets)).
 Tile palettes begin at `paletteId << 4`; the format has no separate palette-count limit. Course images use this
-format; vehicle pictures use the [vehicle sprite library](#vehicle-sprite-library)'s.
+format; vehicle pictures use the [vehicle sprite sets](#vehicle-sprite-sets)'s.
 
 ```text
 {
@@ -367,7 +367,7 @@ saved editable value; mask/crop edits leave it in place until explicit regenerat
 The sprite operations are functions over the content store, free of Node and the DOM; the sprite editor's Sprites
 module ([Development](development.md#sprite-editor)) and the sprite command (`npm run sprite`) call them. Each reads
 documents and returns new ones, which the caller saves as one edit. They make course images; vehicle pictures come from
-their own generator ([Vehicle sprite library](#vehicle-sprite-library)).
+their own generator ([Vehicle sprite sets](#vehicle-sprite-sets)).
 
 **Sources and recipes.** A source image and its recipe are production-only data: `content/sprite-sources/<name>.png`
 (the PNG's own bytes) and `content/sprite-sources/<name>.json`. The build delivers neither; the authored files are
@@ -571,7 +571,7 @@ generator follow this contract; this section is its only statement:
 Course images are saved with their pyramids, compiled from the master when written ([Completed sprite
 images](#completed-sprite-images)): a level is a reduction of the master, not a picture of its own; the movable objects' shadows follow the size-0 camera.
 
-## Vehicle sprite library
+## Vehicle sprite sets
 
 Each vehicle sprite set is authored as one document, `content/sprites/<set>.json`, using
 `superoutride.vehicle-sprite-set` version 3. The set's name is its file name without `.json`; the document carries
@@ -593,21 +593,18 @@ bottom, each `width` lowercase hexadecimal digits, one index per texel: `0` tran
 image: the lean from vertical, in degrees in (0, 90], of the rider-and-machine centre-of-mass line that its outermost
 bank images depict. Bank selection divides the vehicle's displayed lean by it.
 
-Admission ([`vehicle-sprite-library.ts`](../src/vehicle/vehicle-sprite-library.ts)) checks each set once: it names at
-four palettes of 14 colors and both lamp colors; every picture has every size; every size has its shadow, whose
-anchor differs from the picture's by whole texels; and every grid cell names a picture, every picture filling one. Vehicle admission checks form-specific bank dimensions and default-color references
-([Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)). The authoring core
-([`vehicle-sprite-sets.ts`](../tools/graphics/vehicle-sprite-sets.ts)) admits each set document by the same rules,
-with diagnostics at the set document's own pointers, and assembles the delivered library (manifest `image` /
-`vehicles`), one document of the sets by name, `superoutride.vehicle-sprites` version 6:
+Admission ([`vehicle-sprite-library.ts`](../src/vehicle/vehicle-sprite-library.ts)) checks each set once, by its own
+rules: its format and version; four palettes of 14 colors and both lamp colors; every picture has every size; every
+size has its shadow, whose anchor differs from the picture's by whole texels; and every grid cell names a picture, every
+picture filling one. No rule spans two sets. Vehicle admission checks form-specific bank dimensions and default-color
+references ([Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)).
 
-```text
-{format, version, sets: {testarossa: {yawVariants, bankVariants, palettes, brakeLamp, assets, pictures},
-                         vfr750r: {yawVariants, bankVariants, bankDegrees: 60, palettes, brakeLamp, assets, pictures}}}
-```
-
-The vehicle domain admits the library and owns its sets at run time: for a vehicle's color and lamp state it makes the
-set's one 16-slot palette once and draws every picture with it, and it selects yaw/bank pictures. The image domain supplies only the generic sprite reader.
+Each set is delivered as authored, one file per set (manifest `vehicle-sprite-set`, its ID the set's name), and admitted
+when it is read, in the build with diagnostics at the set document's own pointers and in the page as its file arrives.
+The page reads every set at startup, before any vehicle is defined, so a vehicle always holds its pictures. The vehicle
+domain owns the admitted sets at run time: for a vehicle's color and lamp state it makes the set's one 16-slot palette
+once and draws every picture with it, and it selects yaw/bank pictures. The image domain supplies only the generic
+sprite reader.
 
 `testarossa`, `911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)). The other sets are provisional,
 one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by code, original, for an

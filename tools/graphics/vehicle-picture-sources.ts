@@ -14,7 +14,7 @@ import {
   type VehicleView,
 } from './vehicle-picture-recipe.js';
 import { drawVehicleSpriteSet } from './vehicle-pictures.js';
-import { VEHICLE_SPRITE_SET_FORMAT, VEHICLE_SPRITE_SET_VERSION } from './vehicle-sprite-sets.js';
+import { VEHICLE_SPRITE_SET_FORMAT, VEHICLE_SPRITE_SET_VERSION } from '../../src/vehicle/vehicle-sprite-library.js';
 import { buildVehicleSolid, readViewPicture, type ViewPicture } from './vehicle-solid.js';
 
 /**

@@ -575,8 +575,8 @@ borrow:
 
 ## Stage BT — The startup's LOADING screen
 
-From opening the page to TITLE the frame stays black for long: every vehicle's pictures are read first as one file
-(`image/vehicles`), the small catalogs are fetched one after another, nothing can be drawn until the vehicle and sound
+From opening the page to TITLE the frame stays black for long: every vehicle's pictures are read before the first
+screen, the small catalogs are fetched one after another, nothing can be drawn until the vehicle and sound
 catalogs are read, and the game's modules are fetched one by one as the browser follows their imports.
 
 K's decisions (2026-11-12):
@@ -589,9 +589,6 @@ K's decisions (2026-11-12):
 
 The work, in order; the game stays playable after each:
 
-1. **BT-2: the vehicle pictures by set.** `image/vehicles` gives way to one delivered file per set, each admitted by
-   its own rules when read; the build no longer assembles a library. Once read, the vehicles hold their pictures as
-   now, and the run identity (`runVehicleSha256`) and the pictures' format are unchanged.
 2. **BT-3: one counted startup load.** The files read at startup are decided from the manifest before reading starts;
    the progress is the files read (fetched, verified, decoded and admitted) over them. Files of one kind are fetched
    together, verified one by one and admitted in the same order; one form reads all files of a kind for every

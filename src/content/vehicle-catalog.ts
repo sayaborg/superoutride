@@ -1,5 +1,5 @@
 import { admit, requireAdmission, type AdmissionResult } from '../core/admission.js';
-import { readSpriteAssets, type SpriteAssets } from '../vehicle/vehicle-sprite-library.js';
+import { readVehicleSpriteSetDocument, type SpriteAssets } from '../vehicle/vehicle-sprite-library.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 import {
   compileDrivingDocument,
@@ -9,16 +9,22 @@ import {
   type CompiledVehicleDefinition,
 } from '../vehicle/definition-document.js';
 import type { ContentDelivery } from './content-delivery.js';
-import { missingContent, requireLoaded } from './content-load-error.js';
+import { requireLoaded } from './content-load-error.js';
+import type { VehicleSpriteSet } from '../vehicle/vehicle-sprite-set.js';
 import { admitSingleDocument, type DocumentSource } from './document-catalog.js';
 import type { EngineSoundCatalog } from './engine-sound-catalog.js';
 
-/** Image syntax and set-wide invariants are admitted once, before vehicle references. */
-export async function loadVehicleSpriteLibrary(content: ContentDelivery): Promise<SpriteAssets> {
-  const file = content.manifest.files.find((file) => file.kind === 'image' && file.id === 'vehicles');
-  if (!file) throw missingContent('image', 'vehicles');
-  const value = await content.json('image', 'vehicles');
-  return requireLoaded(admit(file.path, () => readSpriteAssets(value)));
+/**
+ * The vehicle sprite sets, one delivered file each, the set named by its manifest ID; each is admitted by its own rules
+ * as it is read.
+ */
+export async function loadVehicleSpriteSets(content: ContentDelivery): Promise<SpriteAssets> {
+  const sets: Record<string, VehicleSpriteSet> = {};
+  for (const file of content.manifest.files.filter((file) => file.kind === 'vehicle-sprite-set')) {
+    const value = await content.json('vehicle-sprite-set', file.id);
+    sets[file.id] = requireLoaded(admit(file.path, () => readVehicleSpriteSetDocument(value, file.id).set));
+  }
+  return Object.freeze({ sets: Object.freeze(sets) });
 }
 
 /** The single driving definition's identifier: its file name and manifest ID. */
@@ -28,7 +34,7 @@ export const DRIVING_DEFINITION_ID = 'default';
  * Admit the catalog from its sources, from the build's files or delivery's manifest alike: exactly one
  * driving definition, named `default`, and at least one vehicle. A vehicle is a mechanics document and
  * a listing document with the same identifier, its file name; either one alone is rejected. Listings
- * resolve against an admitted sprite library and engine-sound catalog, and selection orders are unique.
+ * resolve against the admitted sprite sets and engine-sound catalog, and selection orders are unique.
  */
 export function compileVehicleDefinitions(
   sprites: SpriteAssets,
@@ -86,7 +92,7 @@ export async function loadVehicleDefinitions(
   content: ContentDelivery,
   sounds: EngineSoundCatalog,
 ): Promise<VehicleDefinitions> {
-  const sprites = await loadVehicleSpriteLibrary(content);
+  const sprites = await loadVehicleSpriteSets(content);
   const read = async (kind: 'driving' | 'vehicle' | 'vehicle-listing') => {
     const sources: DocumentSource[] = [];
     for (const file of content.manifest.files.filter((file) => file.kind === kind))

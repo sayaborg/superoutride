@@ -24,6 +24,13 @@ import { compileFreePlayRules, type FreePlayRules } from '../../src/content/free
 import { admitPuffPicture, compilePuffs, puffPictureNames } from '../../src/content/puff-catalog.js';
 import { readSpriteLodAsset, type SpriteLodAsset } from '../../src/image/sprite.js';
 import {
+  readVehicleSpriteSetDocument,
+  type SpriteAssets,
+  type VehicleSpriteSetDocument,
+} from '../../src/vehicle/vehicle-sprite-library.js';
+import type { VehicleSpriteSet } from '../../src/vehicle/vehicle-sprite-set.js';
+import type { AdmissionDiagnostic } from '../../src/core/admission.js';
+import {
   CONTACT_EXPLOSION_SCRIPT,
   explosionPictureNames,
   readExplosionScript,
@@ -39,7 +46,6 @@ import { compileFrontEndSelectionSources, FRONT_END_DIRECTORY } from '../../src/
 import { RECORDING_GROUPS, recordingId } from '../../src/audio/recordings.js';
 import { compileMusicCatalog, compileRecordings, type RecordingSource } from '../../src/content/recording-catalog.js';
 import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
-import { assembleVehicleSpriteLibrary } from '../graphics/vehicle-sprite-sets.js';
 import { compileCourseImages } from '../course/compile-course-images.js';
 import { readCourseImages } from '../course/read-course-images.js';
 import { courseFileSha256 } from '../course/course-file-id.js';
@@ -76,7 +82,11 @@ export interface DeliveredFile {
 /** The delivered files in delivery order, with the compiled products later stages and tools consume. */
 export interface CompiledContent {
   readonly files: readonly DeliveredFile[];
-  readonly library: ReturnType<typeof assembleVehicleSpriteLibrary>;
+  /** The vehicle sprite sets: admitted, and each set's admitted document by name. */
+  readonly sprites: {
+    readonly assets: SpriteAssets;
+    readonly documents: Readonly<Record<string, VehicleSpriteSetDocument>>;
+  };
   readonly materials: SurfaceMaterialCatalog;
   readonly freePlay: FreePlayRules;
   readonly definitions: VehicleDefinitions;
@@ -104,7 +114,7 @@ export type ContentCompilation = (
 
 /**
  * The authoring core: compile the authored documents of `store` into every delivered file, in dependency order and in
- * one pass: vehicle sprite library, text tiles, materials, surface sounds, puffs, audio settings, recordings and
+ * one pass: vehicle sprite sets, text tiles, materials, surface sounds, puffs, audio settings, recordings and
  * music, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses (their walls' sounds admitted against
  * the wall sounds) and their images, the course index, series, the front end's selection, then the measured
  * products: each course's racing lines and each series course's time budgets and pace schedules from the saved
@@ -199,18 +209,33 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   const delivered = (kind: ContentKind, documents: readonly DocumentSource[]) =>
     documents.map((source) => deliveredFile(kind, source.id, encodeContentJson(source.value)));
 
-  // The vehicle sprite library, assembled from one document per set.
+  // The vehicle sprite sets, one document each, each admitted on its own and delivered as authored.
   const spriteFiles = await read('sprites');
   const sprites = await stage('sprites', inputs(spriteFiles), () => {
-    const library = assembleVehicleSpriteLibrary(
-      spriteFiles.map((file) => ({
-        name: file.id,
-        document: `content/sprites/${file.name}`,
-        value: parseJson(file.bytes, `content/sprites/${file.name}`),
-      })),
-      'content/sprites',
-    );
-    return { library, files: [deliveredFile('image', 'vehicles', encodeContentJson(library.library))] };
+    const diagnostics: AdmissionDiagnostic<string>[] = [];
+    const sets: Record<string, VehicleSpriteSet> = {},
+      documents: Record<string, VehicleSpriteSetDocument> = {};
+    const files: DeliveredFile[] = [];
+    for (const file of spriteFiles) {
+      const document = `content/sprites/${file.name}`,
+        value = parseJson(file.bytes, document);
+      const admitted = admit(document, () => readVehicleSpriteSetDocument(value, file.id));
+      if (!admitted.ok) {
+        diagnostics.push(...admitted.diagnostics);
+        continue;
+      }
+      sets[file.id] = admitted.value.set;
+      documents[file.id] = admitted.value.document;
+      files.push(deliveredFile('vehicle-sprite-set', file.id, encodeContentJson(value)));
+    }
+    if (diagnostics.length) throw new ContentLoadError(diagnostics);
+    return {
+      sprites: Object.freeze({
+        assets: Object.freeze({ sets: Object.freeze(sets) }),
+        documents: Object.freeze(documents),
+      }),
+      files,
+    };
   });
 
   // The text tiles are delivered as authored once admitted.
@@ -356,7 +381,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
         listings = await sources('vehicle-listings', listingFiles),
         driving = await sources('driving', drivingFiles);
       const value = requireLoaded(
-        compileVehicleDefinitions(sprites.value.library.sprites, sounds.value.catalog, driving, vehicles, listings),
+        compileVehicleDefinitions(sprites.value.sprites.assets, sounds.value.catalog, driving, vehicles, listings),
       );
       return {
         definitions: value,
@@ -568,7 +593,7 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
   }
   return Object.freeze({
     files: Object.freeze(files),
-    library: sprites.value.library,
+    sprites: sprites.value.sprites,
     materials: materials.value.catalog,
     freePlay: freePlay.value.rules,
     definitions: definitions.value.definitions,

@@ -20,13 +20,15 @@ if (!compiled.ok) {
   process.exit(1);
 }
 const content = compiled.value;
-const { sets } = content.library.library;
-const sizes = Object.values(sets).flatMap((set) => set.pictures.flatMap((picture) => picture.sizes));
+const sets = Object.values(content.sprites.documents);
+const sizes = sets.flatMap((set) => set.pictures.flatMap((picture) => picture.sizes));
 console.log(
   JSON.stringify({
-    vehiclePictures: Object.values(sets).reduce((n, set) => n + set.pictures.length, 0),
+    vehiclePictures: sets.reduce((n, set) => n + set.pictures.length, 0),
     vehiclePictureSizes: sizes.length,
-    deliveredJsonBytes: Buffer.byteLength(JSON.stringify(content.library.library) + '\n'),
+    deliveredJsonBytes: content.files
+      .filter((file) => file.kind === 'vehicle-sprite-set')
+      .reduce((n, file) => n + file.bytes.length, 0),
     patternBytes: sizes.reduce((n, size) => n + Math.ceil((size.width * size.height) / 2), 0),
     shadowPatternBytes: sizes.reduce((n, size) => n + Math.ceil((size.shadow.width * size.shadow.height) / 2), 0),
   }),
