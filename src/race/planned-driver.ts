@@ -27,7 +27,7 @@ export const PLANNED_DRIVER = Object.freeze({
    * input side.
    */
   steering: createSteeringRule('center', 1),
-  /** Metres: how far ahead the speed plan reaches, over cells of `spacing` metres. */
+  /** Metres: how far ahead the speed plan reaches at most, over cells of `spacing` metres. */
   lookahead: 480,
   spacing: 5,
   /** Seconds: the time in which the pedals close a speed error to the plan. */
@@ -187,6 +187,13 @@ export function drivingDomainBefore(
 }
 
 const CELLS = Math.ceil(PLANNED_DRIVER.lookahead / PLANNED_DRIVER.spacing) + 2;
+
+/**
+ * Metres: how far beyond its stopping distance at its planning braking a plan first reaches. It reaches twice as far,
+ * up to the lookahead, until its speeds where the driver reads them are those of the plan over the whole lookahead
+ * (`settles`). It decides how much a plan reads, not what it answers, so it is no part of the driver policy's record.
+ */
+const REACH_MARGIN = 50;
 const cells = () => new Float64Array(CELLS);
 
 /**
@@ -261,8 +268,9 @@ export function createPlannedDriverWorkspace() {
 type Workspace = ReturnType<typeof createPlannedDriverWorkspace>;
 
 /**
- * Write the cells from the one holding station `s` through the lookahead, within `domain`: geometry where the cache
- * misses, then curvatures, the grips planned on and the plan's segments.
+ * Write the cells from the one holding station `s` through `reach` metres beyond it (at most the lookahead), within
+ * `domain`: geometry where the cache misses, then curvatures, the grips planned on and the plan's segments. True when
+ * the cells reach the domain's end, beyond which no reach reads more.
  */
 function readCells(
   road: DriverRoad,
@@ -273,7 +281,8 @@ function readCells(
   smooth: boolean,
   ws: Workspace,
   domain: DrivingDomain,
-) {
+  reach: number,
+): boolean {
   const { spacing } = PLANNED_DRIVER;
   const { coordinates, height, surfaces } = road;
   if (ws.road !== road || ws.lane !== lane) {
@@ -291,8 +300,9 @@ function readCells(
     previousChord = NaN,
     previousLength = 0;
   let count = 0;
+  const last = first + Math.min(CELLS - 1, Math.ceil(reach / spacing) + 1);
   // The cell before the vehicle's gives a smooth path's first chord.
-  for (let cell = first - 1; cell < first + CELLS - 1; cell++) {
+  for (let cell = first - 1; cell < last; cell++) {
     const aS = Math.max(domain.start, cell * spacing);
     const bS = Math.min(domain.end, (cell + 1) * spacing);
     if (bS <= aS) {
@@ -361,6 +371,7 @@ function readCells(
   ws.stations[0] = s;
   ws.distances[0] = 0;
   ws.count = count;
+  return last * spacing >= domain.end;
 }
 
 /**
@@ -477,6 +488,49 @@ function endWithin(
  * a segment crossed in flight carries speed back to its take-off. Returns the speed the plan allows now: the backward
  * bound at the vehicle's station, which its own speed does not limit.
  */
+/** Speed² `value` at node `j` within the end constraints: at most `endA` at or beyond `stopA`, `endB` beyond `stopB`. */
+function bounded(ws: Workspace, j: number, value: number, stopA: number, endA: number, stopB: number, endB: number) {
+  let v2 = value;
+  if (ws.stations[j]! >= stopA) v2 = Math.min(v2, endA);
+  if (ws.stations[j]! >= stopB) v2 = Math.min(v2, endB);
+  return v2;
+}
+
+/**
+ * One segment of the backward pass: the speed² node `j - 1` allows braking back from speed² `next` at node `j`, within
+ * the end constraints inside the segment, before the forward speed there limits it.
+ */
+function backwardStep(
+  limits: VehicleLimits,
+  ws: Workspace,
+  u: number,
+  j: number,
+  next: number,
+  stopA: number,
+  endA: number,
+  stopB: number,
+  endB: number,
+) {
+  const i = ws.segmentCells[j]!;
+  if (ws.flight[j]) return next;
+  if (
+    j > 1 &&
+    ws.forward[j - 1]! <= next &&
+    limits.drag(Math.sqrt(next)) + VEHICLE_GRAVITY * Math.sin(ws.grades[i]!) >= 0
+  )
+    // Braking only raises the speed back from here, and the forward speed is no more: it holds.
+    return next;
+  const segment = ws.distances[j]! - ws.distances[j - 1]!;
+  // A segment where even braking speeds the vehicle up allows no more than standstill at its start.
+  let v2 = Math.max(0, next + 2 * segment * cellAcceleration(limits, ws, i, Math.sqrt(next), u, false));
+  // An end inside the segment brakes from its own station.
+  const from = ws.stations[j - 1]!,
+    to = ws.stations[j]!;
+  if (stopA > from && stopA < to) v2 = Math.min(v2, endWithin(limits, ws, i, u, segment, from, to, stopA, endA));
+  if (stopB > from && stopB < to) v2 = Math.min(v2, endWithin(limits, ws, i, u, segment, from, to, stopB, endB));
+  return v2;
+}
+
 function backwardPass(
   limits: VehicleLimits,
   ws: Workspace,
@@ -487,40 +541,41 @@ function backwardPass(
   stopB: number,
   endB: number,
 ) {
-  const bound = (j: number, value: number) => {
-    let v2 = value;
-    if (ws.stations[j]! >= stopA) v2 = Math.min(v2, endA);
-    if (ws.stations[j]! >= stopB) v2 = Math.min(v2, endB);
-    return v2;
-  };
   const n = ws.count;
-  out[n] = bound(n, ws.forward[n]!);
+  out[n] = bounded(ws, n, ws.forward[n]!, stopA, endA, stopB, endB);
   let allowed = out[0]!;
   for (let j = n; j >= 1; j--) {
-    const i = ws.segmentCells[j]!;
-    let v2: number;
-    if (ws.flight[j]) v2 = out[j]!;
-    else if (
-      j > 1 &&
-      ws.forward[j - 1]! <= out[j]! &&
-      limits.drag(Math.sqrt(out[j]!)) + VEHICLE_GRAVITY * Math.sin(ws.grades[i]!) >= 0
-    )
-      // Braking only raises the speed back from here, and the forward speed is no more: it holds.
-      v2 = out[j]!;
-    else {
-      const segment = ws.distances[j]! - ws.distances[j - 1]!;
-      // A segment where even braking speeds the vehicle up allows no more than standstill at its start.
-      v2 = Math.max(0, out[j]! + 2 * segment * cellAcceleration(limits, ws, i, Math.sqrt(out[j]!), u, false));
-      // An end inside the segment brakes from its own station.
-      const from = ws.stations[j - 1]!,
-        to = ws.stations[j]!;
-      if (stopA > from && stopA < to) v2 = Math.min(v2, endWithin(limits, ws, i, u, segment, from, to, stopA, endA));
-      if (stopB > from && stopB < to) v2 = Math.min(v2, endWithin(limits, ws, i, u, segment, from, to, stopB, endB));
-    }
-    if (j === 1) allowed = bound(0, v2);
-    out[j - 1] = bound(j - 1, Math.min(ws.forward[j - 1]!, v2));
+    const v2 = backwardStep(limits, ws, u, j, out[j]!, stopA, endA, stopB, endB);
+    if (j === 1) allowed = bounded(ws, 0, v2, stopA, endA, stopB, endB);
+    out[j - 1] = bounded(ws, j - 1, Math.min(ws.forward[j - 1]!, v2), stopA, endA, stopB, endB);
   }
   return Math.sqrt(allowed);
+}
+
+/**
+ * Whether the backward pass's speeds through node `m` are those of a plan reaching any farther: braked back from
+ * standstill at the last node, the strongest constraint anything beyond it could set, some node from `m` on keeps its
+ * forward speed, so nothing beyond reaches back past it. The backward pass rises with the speed it brakes back from.
+ */
+function settles(
+  limits: VehicleLimits,
+  ws: Workspace,
+  u: number,
+  m: number,
+  stopA: number,
+  endA: number,
+  stopB: number,
+  endB: number,
+) {
+  const n = ws.count;
+  if (n >= m && ws.forward[n]! <= 0) return true;
+  let next = 0;
+  for (let j = n; j > m; j--) {
+    const v2 = backwardStep(limits, ws, u, j, next, stopA, endA, stopB, endB);
+    if (v2 >= ws.forward[j - 1]!) return true;
+    next = bounded(ws, j - 1, v2, stopA, endA, stopB, endB);
+  }
+  return false;
 }
 
 /** The utilization `driver`'s plan reads: its own, in steps of `utilizationResolution`. */
@@ -531,7 +586,10 @@ function plannedUtilization(driver: PlannedDriver) {
 
 /**
  * The speed plan at station `s` moving at `speed` along `lane` within `domain`: the forward pass, then the backward pass
- * from the terminal (free) and also from the vehicle ahead (target). Writes the plan's speeds now.
+ * from the terminal (free) and also from the vehicle ahead (target). Writes the plan's speeds now. It reaches its
+ * stopping distance at its planning braking and `REACH_MARGIN` beyond, then twice as far up to the lookahead until its
+ * speeds through the node the driver's input reads (`segmentAt` half a cell) settle (`settles`): they are the plan's
+ * over the whole lookahead.
  */
 function plan(
   road: DriverRoad,
@@ -546,24 +604,34 @@ function plan(
   smooth: boolean,
 ) {
   const { limits } = driver;
-  readCells(road, s, speed, offset, lane, smooth, ws, domain);
   const u = plannedUtilization(driver);
-  readCornering(driver, u, ws, ws.cornering);
-  forwardPass(limits, ws, ws.cornering, speed, u);
-  const { terminalClearance, responseSeconds, followSeconds } = PLANNED_DRIVER;
+  const { terminalClearance, responseSeconds, followSeconds, lookahead, spacing } = PLANNED_DRIVER;
   const response = speed * responseSeconds;
   const terminal = domain.terminal === null ? Infinity : domain.terminal - terminalClearance - response;
+  // A vehicle ahead moving backward along the Route is planned for as a stopped one.
+  const ahead = leader === null ? 0 : Math.max(0, leader.speed);
+  const stop =
+    leader === null
+      ? Infinity
+      : leader.s - leader.clearance - Math.max(terminalClearance + ahead * followSeconds, leader.escape) - response;
+  for (let reach = (speed * speed) / (2 * driver.braking) + REACH_MARGIN; ; reach = Math.min(lookahead, 2 * reach)) {
+    const ended = readCells(road, s, speed, offset, lane, smooth, ws, domain, reach);
+    readCornering(driver, u, ws, ws.cornering);
+    forwardPass(limits, ws, ws.cornering, speed, u);
+    const m = segmentAt(ws, spacing / 2);
+    if (
+      ended ||
+      reach >= lookahead ||
+      (settles(limits, ws, u, m, terminal, 0, Infinity, Infinity) &&
+        (leader === null || settles(limits, ws, u, m, terminal, 0, stop, ahead * ahead)))
+    )
+      break;
+  }
   ws.plan.free = backwardPass(limits, ws, u, ws.free, terminal, 0, Infinity, Infinity);
   if (leader === null) {
     ws.constrained.set(ws.free);
     ws.plan.target = ws.plan.free;
-  } else {
-    // A vehicle ahead moving backward along the Route is planned for as a stopped one.
-    const ahead = Math.max(0, leader.speed);
-    const gap = Math.max(terminalClearance + ahead * followSeconds, leader.escape);
-    const stop = leader.s - leader.clearance - gap - response;
-    ws.plan.target = backwardPass(limits, ws, u, ws.constrained, terminal, 0, stop, ahead * ahead);
-  }
+  } else ws.plan.target = backwardPass(limits, ws, u, ws.constrained, terminal, 0, stop, ahead * ahead);
   return ws.plan;
 }
 
@@ -600,7 +668,7 @@ export function readRoadAhead(
 ): void {
   const { s, l } = car.course;
   const speed = Math.hypot(car.longitudinalSpeed, car.lateralSpeed);
-  readCells(road, s, speed, l - lateralOf(lane, s), lane, false, ws, domain);
+  readCells(road, s, speed, l - lateralOf(lane, s), lane, false, ws, domain, PLANNED_DRIVER.lookahead);
 }
 
 /**

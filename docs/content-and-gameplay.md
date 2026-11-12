@@ -1438,7 +1438,13 @@ the `LINE` lane, and traffic its lane. A driver of the line drives the line plus
 slot, the lane an ahead entry appears in, or where the player's run driver takes over). Occupancy, the vehicle
 ahead and stopping followers read the line plus its offset as they read any lane's centre. [Calibration](calibration.md) lists utilization values and states the utilization's meaning.
 
-The speed plan reads a contiguous 5 m lattice up to 480 m ahead along the path, within the planning domain. Each cell
+The speed plan reads a contiguous 5 m lattice ahead along the path, within the planning domain, up to the lookahead
+(`lookahead`, 480 m). It reaches as far as its answers need, with the same answers as a plan over the whole lookahead:
+first its stopping distance at its planning braking plus `REACH_MARGIN` (50 m), then twice as far, up to the lookahead,
+until its speeds through the node the driver's input reads settle. They settle when, braked back from standstill at
+the last node (the strongest constraint anything beyond could set), some node from that one on keeps its forward
+speed: nothing beyond then reaches back past it, since the backward pass rises with the speed it brakes back from.
+SLOW DOWN's plans read the whole lookahead. Each cell
 reads the path's signed curvature: on the racing line, a smooth path, its own (its chord's heading change from the cell
 before over their mean length); on a lane, the road's heading change along the cell over the path's chord, so a path at
 a steady lateral turns with the road and a change of lane adds none. Each also reads the profile's grade angle `θ` and vertical curvature
