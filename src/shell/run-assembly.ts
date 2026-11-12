@@ -43,9 +43,13 @@ import type { WorkSlices } from '../core/work-slices.js';
 import { createContactExplosionSprites, explosionShowsVehicle } from '../view/contact-explosion-sprites.js';
 import type { ContactExplosion } from '../content/contact-explosion-pictures.js';
 import { contactResponseStopped } from '../race/contact-response.js';
+import { createDemoDirector, DEMO_THIN_STEPS, tickerSteps } from './demo-director.js';
+import { lineThinningRanks, newLineCount } from '../view/line-thinning.js';
 
 /** The one run the page drives: its fixed step, its frame, its result and its disposal. */
 export interface Run extends RunFrame {
+  /** The attract demo's view of its run: whether its intro is shown, the race waiting; null for any other run. */
+  readonly demo: { readonly introducing: boolean } | null;
   dispose(): void;
 }
 /** The page-lifetime objects a run is assembled from and drives; the composition root supplies them. */
@@ -280,6 +284,19 @@ async function assembleCourseRun(
     observation: () => active.race.observe().player,
     yawSource: page.player.settings.cameras[entry.listing.form],
   });
+  // The attract demo's camera director: its intro over the course's description, then its shots of the race (K,
+  // 2026-11-12); null for any other run.
+  const director = demo
+    ? createDemoDirector(
+        course,
+        vehicles,
+        page.cameraDefinition(),
+        tickerSteps(page.courses.find((entry) => entry.id === course.id)!.description),
+      )
+    : null;
+  // The frame a cut leaves, which the shot it cuts to thins over, and the frame's rows in line thinning's order.
+  const thinned = director ? new Uint16Array(shell.framebuffer.pixels.length) : null;
+  const ranks = director ? lineThinningRanks(shell.framebuffer.height) : null;
   // The run's DEV controls, only with DEV and never in the attract demo.
   const devControls =
     page.dev && !demo
@@ -362,7 +379,16 @@ async function assembleCourseRun(
   const measurements = page.dev ? createRenderMeasurements() : null;
   // Every vehicle of a step, reused step to step.
   const stepVehicles: CompetitorObservation[] = [];
+  // A cut keeps the frame it leaves, which the next shot thins over.
+  const keepCut = () => {
+    if (director?.cutSteps === 0) thinned!.set(shell.framebuffer.pixels);
+  };
   const tick = () => {
+    // The demo's intro travels its own scene while the run waits.
+    if (director?.introducing) {
+      director.step(null);
+      return keepCut();
+    }
     const started = performanceHud ? performance.now() : 0;
     const { race } = active;
     // The attract demo takes no input: the player's run driver drives, and nothing sounds or is recorded.
@@ -372,7 +398,19 @@ async function assembleCourseRun(
     const observed = race.observe();
     stepVehicles.length = 0;
     stepVehicles.push(observed.player, ...observed.rivals, ...observed.traffic);
-    active.puffs.advance(stepVehicles, lifecycle.camera, active.scene);
+    if (director) {
+      director.step({
+        status: race.outcome.status,
+        shown: observed.player,
+        next: race.player.progress.next,
+        rearmost: Math.min(observed.player.course.s, ...observed.rivals.map((rival) => rival.course.s)),
+        world: active.scene.world,
+        retainedFrom: active.scene.runtime.window.occurrences[0]!.start,
+        chase: lifecycle.camera,
+      });
+      keepCut();
+    }
+    active.puffs.advance(stepVehicles, director?.camera ?? lifecycle.camera, active.scene);
     // A lap that set a record sounds NEW RECORD as it completes.
     if (active.records?.step(race.events, race.player.id, routeGoal)) effects.newRecord();
     if (!demo) {
@@ -421,14 +459,32 @@ async function assembleCourseRun(
   // The other vehicles' pictures and the puffs', reused frame to frame.
   const others: CourseSprite[] = [],
     puffSprites: CourseSprite[] = [];
+  // The frame thinned from the one the latest cut left, over the cut's first steps.
+  const thin = () => {
+    if (!director || director.cutSteps >= DEMO_THIN_STEPS) return;
+    const { pixels, width, height } = shell.framebuffer;
+    const shown = newLineCount(height, (director.cutSteps + 1) / DEMO_THIN_STEPS);
+    for (let row = 0; row < height; row++)
+      if (ranks![row]! >= shown) pixels.set(thinned!.subarray(row * width, (row + 1) * width), row * width);
+  };
   const draw = () => {
+    if (director?.introducing) {
+      director.introScene!.render(shell.framebuffer, null, director.camera, [], [], [], null);
+      thin();
+      return { writeHud: () => {}, present: () => shell.present() };
+    }
     const { scene, race, puffs } = active;
     const started = performanceHud ? performance.now() : 0,
       observations = race.observe();
+    // The demo's shots but CHASE draw the player as any other vehicle, from where their camera stands.
+    const camera = director?.camera ?? lifecycle.camera,
+      playerAsOther = director !== null && !director.chasing;
     otherVehicles.length = 0;
     otherVehicles.push(...observations.rivals, ...observations.traffic);
     others.length = 0;
-    others.push(...raceSprites(otherVehicles, lifecycle.camera, scene.world));
+    others.push(
+      ...raceSprites(playerAsOther ? [observations.player, ...otherVehicles] : otherVehicles, camera, scene.world),
+    );
     puffSprites.length = 0;
     puffSprites.push(...puffs.sprites(scene.world.coordinates));
     puffSprites.push(...explosionSprites([observations.player, ...otherVehicles], scene.world.coordinates));
@@ -436,18 +492,19 @@ async function assembleCourseRun(
     const renderStarted = performanceHud ? performance.now() : 0;
     scene.render(
       shell.framebuffer,
-      !explosionShowsVehicle(page.explosion.script, observations.player.contactResponse)
+      playerAsOther || !explosionShowsVehicle(page.explosion.script, observations.player.contactResponse)
         ? null
         : {
             vehicle: observations.player,
             set: observations.player.brakeLampOn ? sprites.on : sprites.off,
           },
-      lifecycle.camera,
+      camera,
       others,
       puffSprites,
       observations.knocked,
       measurements,
     );
+    thin();
     const renderMilliseconds = performanceHud ? performance.now() - renderStarted : 0;
     return {
       writeHud: (text: TextLayer, menu: boolean) =>
@@ -494,6 +551,11 @@ async function assembleCourseRun(
   return {
     tick,
     draw,
+    demo: director && {
+      get introducing() {
+        return director.introducing;
+      },
+    },
     result: () => runResult(active.race, active.records?.outcome() ?? null),
     end() {
       // The attract demo is never ended so; it takes no menu commands.
@@ -505,6 +567,7 @@ async function assembleCourseRun(
       music.stop();
       effects.stop();
       devControls?.dispose();
+      director?.dispose();
     },
   };
 }

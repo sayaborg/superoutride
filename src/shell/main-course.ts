@@ -302,7 +302,7 @@ async function startPage(): Promise<void> {
     // The attract demo behind TITLE: at most the shown and the next class's runs, each holding its course's
     // compilation, which the classes of one course share; released with the page.
     const demoCourses = createDemoCourses();
-    const attractDemo = createAttractDemo(attractClasses(series.series), vehicles, async (next) => {
+    const attractDemo = createAttractDemo(attractClasses(series.series), vehicles, courseIndex, async (next) => {
       const state = createRunScreenState(() => {});
       const run = await assembleRun(page, next, state, undefined, demoCourses);
       return { run, finished: () => state.finished };

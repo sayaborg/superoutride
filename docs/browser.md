@@ -285,21 +285,46 @@ K saw, "for now"):
 Positions in motion are rounded to whole pixels. A command during a motion waits, the last one alone, and acts when the
 motion ends. The attract demo runs from TITLE until a run starts (K, 2026-11-08) and pauses while a series' picture
 covers the frame. Its series, class, vehicle and color are written on TITLE alone (K, 2026-11-09), in WHITE on rows 21,
-22, 24 and 25, right-aligned to column 38.
+22, 24 and 25, right-aligned to column 38, and its ticker runs on row 27 (below).
 
 The [attract demo](../src/shell/attract-demo.ts) is the one owner of the demo runs and their turns. It runs the RACE
-sessions of the product classes (never DEV ones) in series and class order, looping, one 30 s turn each. It holds at
-most two runs, the shown class's and the next class's, each assembled as a run with no player input (the player's run
-driver drives the class's first vehicle in its first color), with no HUD, no sound and no record, and touches no page
-state (driving input, DEV displays). Each holds its course's compilation, which held runs of one course share; a
-compilation no held run uses is released. A run is stepped in the race's fixed step, through the frame loop as a run
-is, only while its turn is shown, from READY. When a turn ends its run is released, so a class shown again starts a new
-run from READY with the next seed. Each turn brightens from black over 8 steps and darkens over 8 more; the logo and
-lines stay bright. When a run ends (the player's GOAL or GAME OVER) it is shown to the end of its RESULT delay without
-RESULT and its turn darkens early. The first class loads behind the logo over black and its turn begins once it is
-loaded; each turn has the next class's run loaded (loading only, standing in READY), so no later turn waits on a load.
-A class that cannot load is passed over; with no product class the main world stays black. A run's start ends the shown
-turn and releases its run; returning resumes with the next class's turn. The runs are released when the page is left.
+sessions of the product classes (never DEV ones) in series and class order, looping, a turn each. It holds at most two
+runs, the shown class's and the next class's, each assembled as a run with no player input (the player's run driver
+drives the class's first vehicle in its first color), with no HUD, no sound and no record, and touches no page state
+(driving input, DEV displays). Each holds its course's compilation, which held runs of one course share; a compilation
+no held run uses is released. A run is stepped in the race's fixed step, through the frame loop as a run is, only while
+its turn is shown. A turn lasts until its run ends (the player's GOAL or GAME OVER) and has stood its RESULT delay
+without RESULT, or 300 s, whichever comes first; it thins in over the frame the turn before left (the first over black)
+over 16 fixed steps. When a turn ends its run is released, so a class shown again starts a new run with the next seed.
+The first class loads behind the logo over black and its turn begins once it is loaded; each turn has the next class's
+run loaded (loading only, standing in READY), so no later turn waits on a load. A class that cannot load is passed
+over; with no product class the main world stays black. A run's start ends the shown turn and releases its run;
+returning resumes with the next class's turn. The runs are released when the page is left.
+
+A demo run is filmed as its [director](../src/shell/demo-director.ts) takes it (K, 2026-11-12), its shots cut by line
+thinning over 16 fixed steps from the frame the cut left:
+
+| Shot   | Camera                                                                                                                                                          | Ends                                                                                     |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| INTRO  | Travels the road's centre at 100 km/h, 4 m over it, from the front of the grid, over a course scene of its own with no vehicle, each fork taking its first exit | When the course's description has run once on the ticker, or 50 m short of a route's end |
+| START  | Stands 10 m behind the rearmost vehicle on the grid, 3 m over the road's centre, through READY and GO                                                           | When the shown vehicle is 150 m away                                                     |
+| FIXED  | Stands 30 m ahead of the shown vehicle, 3.5 m toward the road's centre from its line, 1.5 m over the road; the vehicle passes it and goes on                    | At 150 m the next point ahead of it; after 15 s, at its next point                       |
+| PASSED | Starts 25 m ahead of it, 2.5 m toward the centre, 1.2 m over the road, travelling at 70 % of its speed; it overtakes the camera                                 | When it is 120 m away, or after 15 s                                                     |
+| LEFT   | Starts 6 m right behind it, 2 m over the road, travelling at 80 % of its speed; it draws away                                                                   | At 60 m back right behind it; after 15 s                                                 |
+| CHASE  | The player's camera                                                                                                                                             | After 15 s                                                                               |
+| GOAL   | Stands 15 m before the line it finishes at, 3.5 m toward the centre, 1.5 m over the road, from when it has 150 m to go and is still 20 m short of the camera    | With the turn                                                                            |
+
+After START the race's shots take turns in the order FIXED, PASSED, LEFT, CHASE; GOAL takes over any of them. A camera
+of the director's stands on the route by itself ([route camera](../src/view/route-camera.ts)): over the road's height
+at its station, level, looking at the road 40 m ahead along its line (the intro's and START's the road's centre, the
+others the shown vehicle's), within 45° of the road's heading where it stands; its sky is its own place's. Every shot
+but CHASE draws the player as any other vehicle, seen from where the camera stands. A camera the run's resident route
+no longer holds behind it stands at the route's first resident station, and the shot that needs it ends. A run waits
+in READY while its intro is shown.
+
+The ticker runs the turn's words along row 27 from the right edge, a character every 3 fixed steps, until their last
+has left at the left, then again after four spaces: the course's description over the intro, the series' over the
+race (K, 2026-11-12; a vehicle's description joins it once vehicles have one).
 
 Music ([product](product.md#13-music-and-sound-effects)): on SELECT SERIES, once the row has rested 30 fixed steps, the
 series in focus plays its title track from its start, looped; a move fades it out over 0.25 s, and so does BACK to MAIN

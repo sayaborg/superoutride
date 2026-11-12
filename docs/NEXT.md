@@ -1075,9 +1075,9 @@ Choices made where Stage FE left them open, each recorded in its PR:
 - PRE-RACE: the start bar stands at the entry Section's origin; a BRANCH map takes each fork's first exit; FREE PLAY has
   no BEST line; RETRY passes the card too; the course format change changed every course identity, so records saved
   in browsers no longer count (reference times were re-measured, unchanged).
-- Attract demo (FE-8b): the demo picture brightens and darkens over the transition's steps while the logo and lines
-  stay; a turn's 30 s include its brightening and darkening; the classes of one course share one compiled course; the
-  demo holds only the shown and the next class's runs.
+- Attract demo (FE-8b; filmed since 2026-11-12, [browser](browser.md#card-rows)): the classes of one course share one
+  compiled course; the demo holds only the shown and the next class's runs. To confirm on a device: the shots'
+  distances, heights and speeds, the 15 s turns, the ticker's speed and row, and a turn's 300 s.
 - FE-10 (decided in Stage OT): a wallpaper change asked for while a black transition runs still finishes through black;
   only a steady screen cuts.
 

@@ -1,5 +1,7 @@
 import { TEXT_PALETTES } from '../image/text-tiles.js';
-import { scaleRgb555Pixels } from '../image/rgb555.js';
+import type { CourseIndex } from '../content/course-index.js';
+import { lineThinningRanks, newLineCount } from '../view/line-thinning.js';
+import { DEMO_THIN_STEPS, DEMO_TICKER } from './demo-director.js';
 import { spriteSetColors } from '../vehicle/vehicle-sprite-set.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import type { SeriesClass } from '../content/series-catalog.js';
@@ -8,13 +10,14 @@ import type { TextLayer } from '../view/text-layer.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { RunRequest } from './run-request.js';
 import type { Run } from './run-assembly.js';
-import { TRANSITION_STEPS } from './screen-host.js';
 import type { MainWorld } from './card-rows.js';
 
-/** How long each turn of a class is shown. */
-export const ATTRACT_SECONDS = 30;
-/** The overlay's last column and rows: series, class, vehicle and color. */
-const OVERLAY = Object.freeze({ lastColumn: 38, series: 21, class: 22, vehicle: 24, color: 25 });
+/** The longest turn of a class: a race longer than this is left before its goal. */
+export const ATTRACT_SECONDS = 300;
+/** The overlay's last column and rows: series, class, vehicle and color; and the ticker's row. */
+const OVERLAY = Object.freeze({ lastColumn: 38, series: 21, class: 22, vehicle: 24, color: 25, ticker: 27 });
+/** The space between the ticker's words and their next run. */
+const TICKER_GAP = '    ';
 
 /** A demo run as a run, and whether it has ended and stood its RESULT delay. */
 export interface DemoRun {
@@ -22,38 +25,43 @@ export interface DemoRun {
   finished(): boolean;
 }
 
-/** One class of the demo: its request, its overlay and its live run, while it holds one. */
+/** One class of the demo: its request, its overlay, its words and its live run, while it holds one. */
 interface DemoClass {
   readonly request: RunRequest;
   readonly lines: readonly (readonly [row: number, text: string])[];
+  /** The ticker's words: the course's description over the intro, the series' over the race. */
+  readonly words: { readonly intro: string; readonly race: string };
   demo: DemoRun | null;
   loading: boolean;
   failed: boolean;
 }
 
-/** The class shown and how far its turn has gone: fixed steps shown, and steps into its darkening. */
+/** The class shown and how far its turn has gone: fixed steps shown, and the ticker's words and their start. */
 interface Turn {
   readonly shown: DemoClass;
   steps: number;
-  darkening: number | null;
+  words: string;
+  wordsFrom: number;
 }
 
 /**
  * The attract demo behind the main picture, from TITLE until a run starts (K, 2026-11-08), the one owner of the demo
- * runs and their turns: the product classes' RACEs, in
- * series and class order, looping. It holds at most two runs, the shown class's and the next class's, each a run
- * with no player input in which the class's first vehicle in its first color drives by its run driver, stepped in
- * the race's fixed step only while its turn is shown. A turn lasts `ATTRACT_SECONDS`, with no HUD and no sound,
- * brightening from black and darkening to black over the transition's steps, its series, class, vehicle and color
- * written at the right on TITLE alone (when `draw` is given the text layer). A run that ends (GOAL or GAME OVER) is shown to the end of its RESULT delay and its turn
- * ends there. When a turn ends its run is released; each turn has the next class's run loaded, standing in
- * READY, so only the first turn waits on a load, over black, and a class shown again starts a new run. A class
- * that cannot load is passed over. `leave` ends the shown turn; the next `enter` resumes with the next class's turn.
- * `dispose` releases every run.
+ * runs and their turns: the product classes' RACEs, in series and class order, looping. It holds at most two runs, the
+ * shown class's and the next class's, each a run with no player input in which the class's first vehicle in its first
+ * color drives by its run driver, stepped in the race's fixed step only while its turn is shown. A run shows its course
+ * first and then its race as the demo's director takes them (K, 2026-11-12; [demo director](./demo-director.ts)); its
+ * turn lasts until its run ends (GOAL or GAME OVER) and has stood its RESULT delay, or `ATTRACT_SECONDS`, with no HUD
+ * and no sound. A turn thins in over the turn before it, and the first over black. On TITLE alone (when `draw` is given
+ * the text layer) its series, class, vehicle and color are written at the right, and the ticker runs its words: the
+ * course's description over the intro, the series' over the race, again and again. When a turn ends its run is
+ * released; each turn has the next class's run loaded, standing in READY, so only the first turn waits on a load, and
+ * a class shown again starts a new run. A class that cannot load is passed over. `leave` ends the shown turn; the next
+ * `enter` resumes with the next class's turn. `dispose` releases every run.
  */
 export function createAttractDemo(
   classes: readonly SeriesClass[],
   vehicles: readonly CompiledVehicleDefinition[],
+  courses: CourseIndex,
   assemble: (request: RunRequest) => Promise<DemoRun>,
 ): Omit<MainWorld, 'logo'> & { dispose(): void } {
   const demo = classes.map((chosen): DemoClass => {
@@ -75,6 +83,10 @@ export function createAttractDemo(
         [OVERLAY.vehicle, `${manufacturer} ${model}`.toUpperCase()],
         [OVERLAY.color, vehicle.listing.visuals.colorNames[color]!],
       ],
+      words: {
+        intro: courses.find((course) => course.id === chosen.course)?.description ?? '',
+        race: chosen.series.description,
+      },
       demo: null,
       loading: false,
       failed: false,
@@ -84,7 +96,11 @@ export function createAttractDemo(
   let index = 0,
     turn: Turn | null = null,
     entered = false,
-    disposed = false;
+    disposed = false,
+    // The frame the turn before left, which the next thins over, and how far that thinning has gone.
+    left: Uint16Array | null = null,
+    thinning = DEMO_THIN_STEPS,
+    ranks: Uint16Array | null = null;
   // Load a class's run (loading only: it stands in READY until its turn), unless it has one or is loading.
   const ensure = (at: number) => {
     const entry = demo[at % demo.length];
@@ -115,7 +131,8 @@ export function createAttractDemo(
     if (!entry || entry.failed) return;
     ensure(index);
     if (!entry.demo) return;
-    turn = { shown: entry, steps: 0, darkening: null };
+    turn = { shown: entry, steps: 0, words: entry.words.intro, wordsFrom: 0 };
+    thinning = 0;
     ensure(index + 1);
   };
   // A turn has ended: its run is released, and a class shown again starts a new one.
@@ -148,19 +165,39 @@ export function createAttractDemo(
       const { demo } = turn.shown;
       if (!demo!.finished()) demo!.run.tick();
       turn.steps++;
-      if (turn.darkening !== null) {
-        if (++turn.darkening >= TRANSITION_STEPS) end();
-      } else if (turn.steps >= showSteps - TRANSITION_STEPS || demo!.finished()) turn.darkening = 0;
+      thinning++;
+      // The ticker turns to the race's words when the intro ends.
+      const words = demo!.run.demo?.introducing ? turn.shown.words.intro : turn.shown.words.race;
+      if (words !== turn.words) [turn.words, turn.wordsFrom] = [words, turn.steps];
+      if (turn.steps >= showSteps || demo!.finished()) end();
     },
     draw(frame: SoftwareSurface, text: TextLayer | null) {
       if (!turn) return false;
       turn.shown.demo!.run.draw();
-      const brightness =
-        turn.darkening !== null ? TRANSITION_STEPS - turn.darkening : Math.min(TRANSITION_STEPS, turn.steps);
-      scaleRgb555Pixels(frame.pixels, brightness);
-      if (text && brightness === TRANSITION_STEPS)
+      // The turn thins in over the frame the turn before left.
+      if (thinning < DEMO_THIN_STEPS) {
+        ranks ??= lineThinningRanks(frame.height);
+        const shown = newLineCount(frame.height, (thinning + 1) / DEMO_THIN_STEPS);
+        for (let row = 0; row < frame.height; row++)
+          if (ranks[row]! >= shown) {
+            if (left) frame.pixels.set(left.subarray(row * frame.width, (row + 1) * frame.width), row * frame.width);
+            else frame.pixels.fill(0, row * frame.width, (row + 1) * frame.width);
+          }
+      }
+      (left ??= new Uint16Array(frame.pixels.length)).set(frame.pixels);
+      if (text) {
         for (const [row, line] of turn.shown.lines)
           text.write(OVERLAY.lastColumn + 1 - line.length, row, line, TEXT_PALETTES.WHITE);
+        // The ticker: its words, then a gap, from the right edge, a character every few steps.
+        const run = `${turn.words}${TICKER_GAP}`,
+          moved = Math.floor((turn.steps - turn.wordsFrom) / DEMO_TICKER.stepsPerColumn),
+          length = run.length + DEMO_TICKER.columns,
+          at = DEMO_TICKER.columns - (moved % length);
+        for (let column = Math.max(0, at); column < DEMO_TICKER.columns; column++) {
+          const character = run[column - at];
+          if (character && character !== ' ') text.write(column, OVERLAY.ticker, character, TEXT_PALETTES.WHITE);
+        }
+      }
       return true;
     },
     dispose() {

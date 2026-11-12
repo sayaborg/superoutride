@@ -249,11 +249,14 @@ of the [background transitions](image-assets.md#background-transitions), and onl
 (K, 2026-11-09). Until the main picture is made, the title logo over the attract demo stands for it.
 
 Behind the main picture the attract demo runs from TITLE until a run starts (K, 2026-11-08): the RACE sessions of the
-product classes in series and class order, looping, 30 seconds a turn with no HUD and no sound, its series, class,
-vehicle and color written on TITLE alone. A turn shows a real RACE of its class and field, its first vehicle in its
-first color driven by the player's run driver. The demo holds only the shown class's race and the next class's, and
-every turn starts its race from READY: a class shown again starts a new race. A race that ends is shown to the end of
-its RESULT delay, and its turn ends early.
+product classes in series and class order, looping, with no HUD and no sound, its series, class, vehicle and color
+written on TITLE alone. A turn shows a real RACE of its class and field, its first vehicle in its first color driven
+by the player's run driver, filmed like television (K, 2026-11-12): a camera travels the course alone while a ticker
+runs the course's description, a camera behind the grid watches the start, the race is shown in turns by a camera
+beside the road, one the vehicle overtakes, one it leaves behind and the player's, and a camera before the line
+watches it finish, while the ticker runs the series' description; every cut is line thinning. A turn lasts to the race's
+end and its RESULT delay, or five minutes. The demo holds only the shown class's race and the next class's, and every
+turn starts its race anew: a class shown again starts a new race.
 
 This game changes screens by line thinning alone, with no black (K, 2026-11-08). The changes outside the rows (from
 FREE PLAY's SELECT VEHICLE to the PRE-RACE card, from the PRE-RACE card to READY, and from RESULT back to a row) still

@@ -4,8 +4,9 @@ import { ATTRACT_SECONDS, createAttractDemo } from '../../src/shell/attract-demo
 import { SIM_DT } from '../../src/race/fixed-step.js';
 
 const TURN = Math.round(ATTRACT_SECONDS / SIM_DT);
-const series = { id: 'series', title: 'SERIES' };
-const classes = ['a', 'b', 'c'].map((id) => ({ series, id, title: id.toUpperCase(), vehicles: ['V'] }));
+const series = { id: 'series', title: 'SERIES', description: 'THE SERIES' };
+const classes = ['a', 'b', 'c'].map((id) => ({ series, id, title: id.toUpperCase(), course: id, vehicles: ['V'] }));
+const courses = ['a', 'b', 'c'].map((id) => ({ id, description: `COURSE ${id.toUpperCase()}` }));
 const vehicles = [
   {
     compiledVehicle: { id: 'V' },
@@ -15,13 +16,23 @@ const vehicles = [
 ];
 
 // A demo whose runs count their fixed steps; `endAfter` steps of a class end its run.
-function demoOf(endAfter = Infinity) {
+// Each run's intro lasts `intro` steps.
+function demoOf(endAfter = Infinity, intro = 0) {
   const runs = [];
-  const demo = createAttractDemo(classes, vehicles, async (request) => {
+  const demo = createAttractDemo(classes, vehicles, courses, async (request) => {
     const run = { classId: request.classId, steps: 0, disposed: false };
     runs.push(run);
     return {
-      run: { tick: () => run.steps++, draw() {}, dispose: () => (run.disposed = true) },
+      run: {
+        tick: () => run.steps++,
+        draw() {},
+        demo: {
+          get introducing() {
+            return run.steps < intro;
+          },
+        },
+        dispose: () => (run.disposed = true),
+      },
       finished: () => run.steps >= endAfter,
     };
   });
@@ -82,8 +93,8 @@ test('a run that ends ends its turn early and is released', async () => {
   const { demo, runs } = demoOf(100);
   demo.enter();
   await settle();
-  // The ended run stops stepping and its turn darkens; the next class follows.
-  steps(demo, 100 + 8);
+  // The ended run's turn ends there; the next class follows.
+  steps(demo, 100);
   await settle();
   assert.equal(runs[0].steps, 100);
   assert.ok(runs[0].disposed);
@@ -91,4 +102,26 @@ test('a run that ends ends its turn early and is released', async () => {
   assert.equal(runs[1].classId, 'b');
   assert.equal(runs[1].steps, 1);
   assert.deepEqual(held(runs), ['b', 'c']);
+});
+
+test("a turn thins in over the turn before, and the ticker runs the course's words, then the series'", async () => {
+  const { demo } = demoOf(100, 40);
+  demo.enter();
+  await settle();
+  const written = [];
+  const text = { write: (column, row, line) => written.push([column, row, line]) };
+  const frame = { width: 4, height: 4, pixels: new Uint16Array(16) };
+  // The first turn thins in over black.
+  demo.draw(frame, text);
+  // The ticker's row: one character entering at the right edge after its first steps.
+  const tickerOf = () => written.filter(([, row]) => row === 27);
+  steps(demo, 3);
+  written.length = 0;
+  demo.draw(frame, text);
+  assert.deepEqual(tickerOf(), [[39, 27, 'C']]);
+  // When the intro ends the ticker starts again with the series' words.
+  steps(demo, 40);
+  written.length = 0;
+  demo.draw(frame, text);
+  assert.deepEqual(tickerOf(), [[39, 27, 'T']]);
 });
