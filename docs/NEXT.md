@@ -608,6 +608,11 @@ Defaults for K to confirm before the stage closes, each its PR's:
   skies](cisco-heat-road-data.md#its-skies)): 5.73 pixels a degree for the back and 11.84 for the front, its back
   plane's pictures laid about 1.4 times narrower than the original draws them, as BIG RUN's 1.9; the radius its roads
   turn through longest, 40,000, would lay them 7.8 times narrower.
+- **A jump beside an arc** (CS-3g). [The plan from a table's arcs](original-road-data.md#plan-from-a-tables-arcs)
+  lays a heading's jump as a turn added to the records either side, straight or arc, over the fewest whole positions
+  alike either side at which the curvature they add up to keeps the lanes' least radius; a jump between straights is
+  the case of it the rule laid before. It lays STAGE 5's 20° jump of both roads at 351,908, after an arc of 65,000
+  positions; no other original's reading changes.
 - **Each way's slide** (CS-2). A plane slides by its slide's whole pixels, a pixel more one way than the other (the
   front 15 and 16, the back 7 and 8): their mean.
 - **The steps along a scene** (CS-2). Not laid, as BIG RUN's: a sky lays its scene's own row offset.

@@ -117,6 +117,45 @@ test("a heading's jump between straights is a turn over the fewest whole positio
   assert.equal(plan.shifts.length, 1);
 });
 
+test("a heading's jump beside an arc is a turn added to it, over the fewest whole positions keeping the lanes on each side", () => {
+  const jump = 0.2;
+  const records = table(
+    [
+      { start: 0, radius: 0, side: 'left' },
+      { start: 1000, radius: 3000, side: 'left' },
+      { start: 2000, radius: 0, side: 'left' },
+    ],
+    4000,
+    0.3,
+    { 2: jump },
+  );
+  const plan = arcPlan(records, 4000, METRES, LEAST, LIMITS);
+  // The arc's side keeps 10 m with the turn's curvature added to the arc's; the straight's with the turn's alone.
+  const keeps = (n, curvature) => METRES / (jump / (2 * n) + curvature) >= 10;
+  let n = 1;
+  while (!(keeps(n, 1 / 3000) && keeps(n, 0))) n++;
+  assert.ok(!keeps(n - 1, 1 / 3000) && keeps(n - 1, 0), 'the arc decides the turn');
+  assert.deepEqual([plan.turns[0].from, plan.turns[0].to], [2000 - n, 2000 + n]);
+  assert.deepEqual(
+    plan.elements.map((e) => [e.from, e.to]),
+    [
+      [0, 1000],
+      [1000, 2000 - n],
+      [2000 - n, 2000],
+      [2000, 2000 + n],
+      [2000 + n, 4000],
+    ],
+  );
+  const curvature = (e) => e.turn / (e.to - e.from);
+  assert.ok(Math.abs(curvature(plan.elements[1]) - 1 / 3000) < 1e-12);
+  assert.ok(Math.abs(curvature(plan.elements[2]) - (jump / (2 * n) + 1 / 3000)) < 1e-12);
+  assert.ok(Math.abs(curvature(plan.elements[3]) - jump / (2 * n)) < 1e-12);
+  // The heading after it the next record's, the distance along the road the table's.
+  const after = plan.start + plan.elements.reduce((sum, e) => sum + e.turn, 0);
+  assert.ok(Math.abs(after - records[2].heading) < 1e-12);
+  assert.equal(plan.elements.at(-1).to - plan.elements[0].from, 4000);
+});
+
 test('a plan from arcs stops where its table cannot be laid by the rule', () => {
   const stops = (records, end, re, limits = LIMITS, least = LEAST) =>
     assert.throws(() => arcPlan(records, end, METRES, least, limits), re);
@@ -127,23 +166,8 @@ test('a plan from arcs stops where its table cannot be laid by the rule', () => 
       0.3,
       jumps,
     );
-  // A jump beside an arc.
-  stops(
-    table(
-      [
-        { start: 0, radius: 0, side: 'left' },
-        { start: 1000, radius: 3000, side: 'left' },
-        { start: 2000, radius: 0, side: 'left' },
-      ],
-      3000,
-      0.3,
-      { 2: 0.2 },
-    ),
-    3000,
-    /beside an arc/,
-  );
-  // A turn taking more than the straight before it holds.
-  stops(straights([0, 1000, 1050, 3000], 4000, { 2: 0.2 }), 4000, /more than the straights/);
+  // A turn taking more than the record before it holds.
+  stops(straights([0, 1000, 1050, 3000], 4000, { 2: 0.2 }), 4000, /more than the records/);
   // Two turns that overlap.
   stops(straights([0, 1000, 1150, 3000], 4000, { 1: 0.2, 2: 0.2 }), 4000, /overlap/);
   // A turn reaching the table's start.

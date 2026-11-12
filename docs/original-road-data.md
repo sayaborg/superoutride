@@ -475,10 +475,11 @@ its records draw (`arcPlan`, `arc-plan`) (K, 2026-11-09):
   add up along it. After a turn (below) a position is taken from where that turn ends, and each turn's shift, how far
   it moves the plan from the table's positions after it, is reported too.
 - **A heading's jump.** A record whose heading departs by more than the limit from the one its record before reaches,
-  laid from its own, is a jump. Between two straights it is laid as a turn of the jump's angle, as [a heading table's
-  turn](#plan-from-a-heading-table) is: over the fewest whole positions alike either side of the record's start at
-  which its radius keeps the least radius its lanes on the inside keep (`leastLaneRadius`), taken from the straights
-  either side, so that the distance along the road is the table's and the heading after it the next record's.
+  laid from its own, is a jump. It is laid as a turn of the jump's angle, its curvature added to that of the records
+  either side, straight or arc: over the fewest whole positions alike either side of the record's start at which the
+  curvature they add up to keeps, at every position, the least radius its lanes on the inside keep
+  (`leastLaneRadius`), so that the distance along the road is the table's and the heading after it the next record's.
+  Between two straights it is [a heading table's turn](#plan-from-a-heading-table).
 - **A second road** from its own table beside P's (`secondRoad`; BIG RUN's and CISCO HEAT's two roads, each a road
   CPU's): where the two tables hold one record, its start, arc, heading, position and end, the two roads are one. Where
   they part, the second is laid by its own arcs from P's point and heading where they part, and where the tables are
@@ -486,7 +487,7 @@ its records draw (`arcPlan`, `arc-plan`) (K, 2026-11-09):
   one that never meets P again keeps its own arcs. Where the two start apart, the second is laid from its own first
   point and heading, in the tables' plane as P is, its miss where they first meet spread the same way. Its lateral at
   a station of P is taken across P, and is refused where it heads more than 60° from P (a road that leaves).
-- **Stops.** The conversion stops where a jump has an arc either side, a turn takes more than a straight holds, two
+- **Stops.** The conversion stops where a turn takes more than the records either side of it hold, two
   turns overlap, a turn reaches the table's start or end, or an arc turns tighter than its lanes' least radius, as a
   curve table's does.
 

@@ -1,8 +1,8 @@
 /**
  * A plan from a table's arcs ([Plan from a table's arcs](../../../docs/original-road-data.md#plan-from-a-tables-arcs)):
  * each record a straight or an arc to the next record's start, an arc's angle its length over its radius, the table's
- * headings and positions checking it, and a heading's jump between two straights laid as a turn at the lanes' least
- * radius, as a heading table's turn is.
+ * headings and positions checking it, and a heading's jump laid as a turn added to the records beside it, as a heading
+ * table's turn is between straights, keeping the lanes' least radius.
  */
 import { contractUnmet, romDiffers } from './conversion-errors.js';
 import type { PlanElement } from './heading-plan.js';
@@ -65,13 +65,13 @@ const poseOf = (r: ArcRecord): ArcPose => ({ x: r.x!, y: r.y!, heading: r.headin
  * - where the table holds headings and positions, each record is laid from its own heading and position and taken
  *   against the next record's within `limits`, record by record;
  * - a record's heading that departs by more than the limit from the one its record before reaches, so laid, is a jump;
- *   between two straights it is laid as a turn of the jump's angle over the fewest whole positions alike either side of
- *   the record's start at which its radius keeps `least`, taken from the straights, the distances along the road
- *   unchanged;
+ *   it is laid as a turn of the jump's angle, its curvature added to the records' either side, over the fewest whole
+ *   positions alike either side of the record's start at which the curvature on each side keeps `least`, the distances
+ *   along the road unchanged; between two straights, a turn of its angle alone;
  * - the plan is laid on from the first record's heading and position, and how far it departs from the table's headings
  *   and positions where each record starts is reported, a position since the last turn, with no limit.
- * Stops where a jump has an arc either side, a turn takes more than a straight holds, two turns overlap or reach the
- * table's start or `end`, an arc turns tighter than `least`, or a record departs from the table beyond `limits`.
+ * Stops where a turn takes more than the records beside it hold, two turns overlap or reach the table's start or `end`,
+ * an arc turns tighter than `least`, or a record departs from the table beyond `limits`.
  * Returns the plan's elements (positions), its start heading, its turns, the most a record departs from the table's next
  * heading and position (`fidelity`), the most the plan laid on departs from them (`departure`), and how far each turn
  * moves the plan from the table's positions after it.
@@ -93,6 +93,8 @@ export function arcPlan(
     const r = records[i]!;
     return r.radius === 0 ? 0 : ((r.side === 'left' ? 1 : -1) * (endOf(i) - r.start)) / r.radius;
   };
+  /** A record's curvature: radians a position, left positive. */
+  const curvatureOf = (i: number) => turnOf(i) / (endOf(i) - records[i]!.start);
   const checked = records.every((r) => r.heading !== undefined && r.x !== undefined && r.y !== undefined);
   // Record by record: each laid from its own heading and position to the next's start and taken against the next's; a
   // heading departing beyond the limit a jump.
@@ -108,21 +110,26 @@ export function arcPlan(
         fidelity.heading = Math.max(fidelity.heading, Math.abs(jump));
         continue;
       }
-      if (records[i - 1]!.radius !== 0 || next.radius !== 0)
-        throw romDiffers(`A table's heading jumps at ${next.start} beside an arc`);
       jumps.push({ at: i, turn: jump });
     }
     if (fidelity.position > limits.position)
       throw romDiffers(`A record departs from its table by ${fidelity.position} positions`);
   }
-  // Each jump a turn over the fewest whole positions either side of it that keep the lanes' least radius.
+  // Each jump a turn added to the records either side, over the fewest whole positions alike either side of it at which
+  // the curvature on each side keeps the lanes' least radius: between straights, the turn's own over both sides.
   const turns: ArcTurn[] = jumps.map(({ at, turn }) => {
     const s = records[at]!.start;
-    const side = turn > 0 ? 'left' : 'right';
+    const [before, after] = [curvatureOf(at - 1), curvatureOf(at)];
+    const keeps = (from: number, to: number, curvature: number) =>
+      curvature === 0 || metres / Math.abs(curvature) >= least(from, to, curvature > 0 ? 'left' : 'right');
+    const kept = (n: number) =>
+      before === after
+        ? keeps(s - n, s + n, turn / (2 * n) + before)
+        : keeps(s - n, s, turn / (2 * n) + before) && keeps(s, s + n, turn / (2 * n) + after);
+    const holds = (n: number) => s - n >= records[at - 1]!.start && s + n <= endOf(at);
     let n = 1;
-    while ((2 * n * metres) / Math.abs(turn) < least(s - n, s + n, side)) n++;
-    if (s - n < records[at - 1]!.start || s + n > endOf(at))
-      throw contractUnmet(`The turn at ${s} takes more than the straights beside it hold`);
+    while (holds(n) && !kept(n)) n++;
+    if (!holds(n)) throw contractUnmet(`The turn at ${s} takes more than the records beside it hold`);
     if (s - n <= records[0]!.start || s + n >= end) throw contractUnmet(`The turn at ${s} reaches the table's ends`);
     return { from: s - n, to: s + n, turn };
   });
@@ -130,7 +137,8 @@ export function arcPlan(
     if (k > 0 && t.from < turns[k - 1]!.to)
       throw contractUnmet(`The turns at ${turns[k - 1]!.from} and ${t.from} overlap`);
   });
-  // The elements: the records' arcs and straights, the straights beside a turn shortened by it.
+  // The elements: the records' arcs and straights, each turn added to the records it lies over, a turn between two
+  // straights one element.
   const pieces: PlanElement[] = [];
   records.forEach((r, i) => {
     const [from, to] = [r.start, endOf(i)];
@@ -139,21 +147,28 @@ export function arcPlan(
       throw contractUnmet(`The arc at ${from} turns tighter than its lanes' least radius`);
     pieces.push({ from, to, turn });
   });
-  const cut: PlanElement[] = [];
+  const cut: (PlanElement & { readonly of?: ArcTurn; readonly own?: number })[] = [];
   for (const p of pieces) {
     let from = p.from;
+    // A record's turn over `[a, b]` of it: its whole turn over the whole of it.
+    const share = (a: number, b: number) =>
+      a === p.from && b === p.to ? p.turn : (p.turn * (b - a)) / (p.to - p.from);
     for (const t of turns) {
       if (t.to <= from || t.from >= p.to) continue;
-      if (t.from > from) cut.push({ from, to: t.from, turn: 0 });
-      if (t.from >= p.from) cut.push({ from: t.from, to: t.to, turn: t.turn });
-      from = t.to;
+      if (t.from > from) cut.push({ from, to: t.from, turn: share(from, t.from) });
+      const [a, b] = [Math.max(t.from, from), Math.min(t.to, p.to)];
+      cut.push({ from: a, to: b, turn: (t.turn * (b - a)) / (t.to - t.from) + share(a, b), of: t, own: share(a, b) });
+      from = b;
     }
-    if (from < p.to) cut.push({ from, to: p.to, turn: p.turn });
+    if (from < p.to) cut.push({ from, to: p.to, turn: share(from, p.to) });
   }
   const elements: PlanElement[] = [];
-  for (const e of cut) {
+  for (const [k, { of, own, ...e }] of cut.entries()) {
     const before = elements.at(-1);
-    if (e.turn === 0 && before?.turn === 0) elements[elements.length - 1] = { ...before, to: e.to };
+    // A turn's halves over two straights: one element, its turn the jump's.
+    const halves = of !== undefined && cut[k - 1]?.of === of && own === 0 && cut[k - 1]!.own === 0;
+    if (halves) elements[elements.length - 1] = { from: before!.from, to: e.to, turn: of.turn };
+    else if (e.turn === 0 && before?.turn === 0) elements[elements.length - 1] = { ...before, to: e.to };
     else elements.push(e);
   }
   // The plan laid on from the first record, taken against the table where each record starts.
