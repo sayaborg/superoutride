@@ -71,7 +71,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-BR](#stage-br--big-run-from-the-roms)'s raising, BR-8 next; later [Stage CS](#stage-cs--cisco-heat-from-the-roms);
+CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -409,145 +409,12 @@ Stage RM makes what Stage PG left to later stages in [Courses of the originals](
 and the walls go, so their follow-ups (forks' transfer, a fork's conditional bodies, wall Strips and the walls'
 open decisions) are not kept.
 
-## Stage BR — BIG RUN from the ROMs
-
-Stage BR raises JALECO's BIG RUN (1989; `bigrun`) from its ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), and [Stage CS](#stage-cs--cisco-heat-from-the-roms)
-CISCO HEAT (1990; `cischeat`) after it, each from its MAME parent set (K, 2026-11-05). The two share one board and were
-studied together beside Stage TA's raising (K, 2026-11-08), as every stage raising an original starts ([How a stage
-starts](original-road-data.md#0-rules)); K decided from the studies (2026-11-09).
-
-The study read the board against MAME's driver (MAME's master `179cfab5`): four 68000s, the main, two road CPUs and the
-sound's, whose program MAME decrypts and which is not read, as no road needs it ([No
-decryption](original-road-data.md#rules-of-the-originals)); the main's and the road CPUs' are plain. Each road CPU
-writes one road layer, a line of the road ROMs' pictures to each line of the screen, scrolled and colored, so the two
-are inside the boundary. Each road CPU's ROM holds every stage's two roads, each a table of straights and arcs, an arc
-its radius and side, with the position and heading in the plane where each starts, and a 3D road of vertical arcs and
-straights, both by the distance along the road. Each road CPU draws one of them, and the car is on the one whose centre
-is nearer. K has no MAME (K, 2026-11-05): what was to be seen running is read statically, or run on `cpu-68000` where
-one CPU's routine suffices, and no research tool runs the four CPUs together (K, 2026-11-09).
-
-K's decisions (2026-11-09):
-
-- **BIG RUN's courses** are its six stages, as the [course texts](#course-names-and-descriptions) name them: STARTING
-  RUN, SPECIAL STAGE 1 to 4 and VICTORY RUN (`big-run-starting-run` and so on), each from its start to its goal, 2.84 km
-  in the first and the last and 4.89 km in the others.
-- **Its two roads** are drawn and driven together where both go on, as OUTRUN's are before its forks: [two
-  roads](original-road-data.md#two-roads) whose centres each lie at their own lateral from P, not w either side of their
-  middle, P the second road CPU's road (K, 2026-11-09). Each object stands by the road its record's flag names, its
-  lateral measured from that road's centre: P for the second road's, P plus the first road's lateral for the first's.
-  They part and meet again in SPECIAL STAGES 1, 2 and 4, and STARTING RUN starts with them side by side. Where one
-  leaves and does not come back, VICTORY RUN's first road going on straight where the second turns 90° from 2.47 km, the
-  course holds the other and draws the one that leaves as the road not taken, its objects with it, as far as the
-  original draws it; VICTORY RUN stays one course, as the course texts have it.
-- **Its scale across** is its own car's (K, 2026-11-09): at the depth the original draws it, its straight picture is as
-  wide as a real car of its kind in 1989, 1.76 m, the Peugeot 405 Turbo 16 Grand Raid's, its chapter citing
-  Ultimatecarpage. The study measured the picture 71.7 units wide, so a unit across is 24.5 mm, 1.86 times a unit along
-  (13.2 mm). Its courses' PR measures the picture again, and K adjusts the scale at the end, as every original's scale
-  across. Up is the plan's own scale: its heights are a 3D road in the plan's units, and its screen draws a unit up as a
-  unit across, its 256 × 224 shown at 4:3.
-- **Its plan** is its tables' own arcs ([Plan, profile,
-  cross-section](original-road-data.md#5-plan-profile-cross-section)): an arc's angle is its length in the distance
-  column over its radius, its side the record's flag, and the table's headings and positions check it, within 0.03° and
-  14 units; the record's degrees are rounded and are not read. A shared rule lays a plan from a table's arcs, a
-  heading's jump between two straights laid as a turn at the lanes' least radius, as [a heading table's
-  turn](original-road-data.md#plan-from-a-heading-table) is.
-- **Its heights** are a 3D road in the ROMs ([Profile from the original's
-  screen](original-road-data.md#profile-from-the-originals-screen)), times f = min(its lens ratio, 0.25 ÷ its steepest
-  grade): 0.537 for its steepest 25°, its lens ratio 2.7 to 3.1, so that SPECIAL STAGE 2's 87 m become 47 m. Its crests
-  take V as every course's ([Crests](original-road-data.md#crests)).
-- **Its tick** is its board's frames a second over its main loop's (K, 2026-11-08): the loop waits for interrupt 4,
-  which MAME gives every second frame, so a tick is 1/30 s, the chapter stating that interval as an assumption. Its
-  program agrees: its waiting clock and its last seconds' warning count 30 ticks a second, while its race clock counts a
-  shown second in 24 to 28 ticks at Normal, the factory setting, a little ahead of time.
-- **Its skies** are baked ([Sky baking](original-road-data.md#sky-baking)) from its two tile layers, the near turning 12
-  pixels a degree and the far 8, each laid round from its seam, as neither turn (4,320 and 2,880 pixels) is a whole
-  number of its pictures.
-- **Its materials.** Its ground's is read from its color (`groundMaterial`), and a ground the rule makes `WATER` that is
-  no water stops the conversion for K, as in Stage TA. Its road's is as the study's table of its sets of road colors has
-  it: `ASPHALT` for its towns' paving (STARTING RUN's first 1.1 km), `DIRT` for its desert's road and `WATER` for its
-  river crossings, each set named in its chapter.
-- **Its order.** It is raised beside Stage RM now that Stage TA has closed, and CISCO HEAT after it.
-
-K decided (2026-11-11):
-
-- **Its two roads' heights.** The original draws each road at its own heights, each road CPU its own layer, and this
-  game's one road layer draws one road's: the course takes the second road's heights, and the first's through SPECIAL
-  STAGE 2's parting in height, where the two share their plan, the first lies below and the original holds the car on
-  it. Where the two share their plan and part in height, the other road is not drawn; where they lie apart, both are
-  drawn at the course's heights. Where the original's road lines leave a side transparent and show beneath it ground
-  more than 1 m below the course, or its background, the ground on that side is transparent (a Strip's `"transparent"`
-  color); if its data does not tell where, where the other road lies more than 1 m below. Through it the boards whose
-  foot is below the ground ([Rules of the originals](original-road-data.md#rules-of-the-originals)) are seen before its
-  sky's rows below the horizon: a cliff's faces, and the other road's standing objects at its own heights (a negative
-  `groundOffset`). Its lying objects there are not placed, as no picture folds below the ground, and where it lies
-  above, as through SPECIAL STAGE 2's parting, none of its objects is, as that road is not drawn. No construct is added:
-  the format and the engine draw all of it.
-- **Its lanes** are its town paving's wherever its road goes ([two roads](original-road-data.md#two-roads)): its
-  desert's road, as wide at every depth, paints no lane line.
-- **Its tables' check** is record by record: each record is laid from the table's own heading and position where it
-  starts and taken against the next record's, within 0.03° and 14 units, and a jump is a record's heading departing by
-  more than that from the heading its record before reaches. Laid on from the first record's, its plan departs further
-  from the table's points, by what its records' small departures add up to, which its chapter reports.
-
-Defaults for K to confirm before the stage closes, each its PR's:
-
-- **The sky's color below the horizon** (BR-5). Its ramp's first row's, the row at the horizon: the road layer draws
-  the road there and gives the sky no color of its own below it, so the horizon's row goes on down.
-- **A scene's steps up and down** (BR-5). Not laid: a sky lays a picture at one height, its scene's own row offset
-  ([its skies](big-run-road-data.md#its-skies)), while the program moves the plane along 21 of the 26 scenes it shows
-  by their tables of steps, 2 to 80 rows each.
-- **A second road from its own table** (BR-4b). Where the two tables hold one point and one arc, the two roads are one.
-  Where they part, the second is laid by its own arcs from P's point where they part, and where the tables' points meet
-  again its miss of P there is spread straight along P over the parting, so that it meets P where they do; one that
-  never meets P again keeps its own arcs. Where the two start apart, the second is laid from its own first point, taken
-  from P's, its miss where they first meet spread the same way. So the two are one, part and meet where the original's
-  tables have them, whatever their records' small departures add up to.
-- **A 3D road's grade** (BR-6a). A record's grade is the sine of its angle, as the table's heights rise along its
-  positions, a vertical arc's changing evenly to the next record's; the steepest is taken among the records starting
-  before each goal, 25°, so f is 0.537 as K decided, while SPECIAL STAGE 1's last record bends on to 30° past its goal.
-- **The town's entries in every stage** (BR-6b). Entries 1 to 24 of each road layer's palette are STARTING RUN's in
-  every stage, as a game plays its stages in turn from it and no later stage loads them again.
-- **The eight partings in height** (BR-6). As K decided on 2026-11-11: over the five rivers the course crosses on the
-  second road, its clear sides show the sky's rows below the horizon where the original shows the first road's water
-  below. The board takes no second road layer for now, which would draw that water ([Stage
-  CS](#stage-cs--cisco-heat-from-the-roms), K, 2026-11-12).
-- **A course's end** (BR-6c). Its goal, and on to the first record of either road past it, at most 2,000 positions:
-  enough for the finish, short of SPECIAL STAGE 1's fall past its goal.
-- **The two roads' order** (BR-6c). Road 2's picture over road 1's, as MAME draws the second road layer over the first at
-  one priority; the rows' priorities, set from both roads' flags, are not read.
-- **Where pictures leave the lanes no material** (BR-6c). The lanes keep the held road's surface's material, and a clear
-  run and the ground between the roads `SAND`; the car drives on there, as the original lets it off its road.
-- **Its limits** (BR-6c). 512 units, a line's half, beyond the outermost road's centre on each side, where the original
-  draws its pictures to; the program's own limit to the car's lateral is not read.
-- **The road not taken** (BR-6c). VICTORY RUN's road 1 is drawn, with no material, as far as it heads within 60° of P,
-  where its lateral can be taken across P.
-- **Its skies** (BR-6c). A sky's change laid over its fade's 48 ticks at 200 km/h; a sky's yaw its back plane facing its
-  middle column where its scene loads, the front plane's overlap as when both load together (BR-5).
-- **Its own car's width** (BR-7). Measured again from its frame and zoom tables: 85.0 units, where the study had 71.7
-  (its zoom taken twice), so a unit across is 20.7 mm; K adjusts it at the end.
-- **Its objects' places** (BR-7, BR-7c). An object's lateral is its picture's left edge and its height its top edge, as
-  the program draws its sprite down from it, its board's base its drawn height below; its lateral in units across and
-  its height in units up, a unit up 6/7 of a unit across, as its pictures are drawn at the screen's pixel; a sprite's
-  pixel 1.992 units, the zoom at the nearest distance; its sway (`$f6048`, `$f604a`) not taken; its pen 0, a shadow or a
-  color, transparent.
-- **Its objects' hits** (BR-7). An object in the program's list of things the car meets (flags' bits 9 and 10) has a
-  body as wide as its picture's colored columns; how the program meets them is not read.
-- **Objects not placed** (BR-7). Those of kinds other than 0, which the program moves or picks, and those of a sprite
-  of its shadow alone; the conversion reports how many each course leaves.
-
-The PRs, in order:
-
-- **BR-8** The stage closes, its scale across left for K to adjust at the end: this section goes, Stage CS taking what
-  it needs of it, what is left goes to [Courses of the originals](#courses-of-the-originals), and BIG RUN's class goes
-  into [the product](product.md#arcade-tribute).
-
 ## Stage CS — CISCO HEAT from the ROMs
 
 Stage CS raises JALECO's CISCO HEAT (1990) from its ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), after Stage BR, whose studies read it with BIG RUN.
+ROMs](original-road-data.md#raising-an-original-from-its-roms)), after BIG RUN, whose studies read it with BIG RUN's.
 
-Its board and tables are [Stage BR](#stage-br--big-run-from-the-roms)'s, one layer reading both, its headings 65,536 a
+Its board and tables are [BIG RUN](big-run-road-data.md)'s, one layer reading both, its headings 65,536 a
 turn where BIG RUN's are 16,384, and its tick is BIG RUN's. MAME calls CISCO HEAT's pictures imperfect, so how it looks
 is compared with K's videos or a cabinet's records.
 
@@ -578,7 +445,7 @@ K's decisions (2026-11-09):
 
 K decided (2026-11-12):
 
-- **Its two roads' heights** are taken as BIG RUN's are ([Stage BR](#stage-br--big-run-from-the-roms), K, 2026-11-11):
+- **Its two roads' heights** are taken as BIG RUN's are ([its conversion](big-run-road-data.md#its-conversion), K, 2026-11-11):
   the course takes the heights of the road the original holds the car on, and where the two lie apart both are drawn at
   the course's heights. Both roads' heights are read back from its screen by one rule, so that where one lies more than
   1 m below the other is taken between two readings alike.
@@ -938,6 +805,15 @@ Left by the stages that raised them, beside what follows:
   grass, as POLE POSITION II shows, is mended on the vehicles' and materials' side. K adjusts its scale
   (2.15 m, its own car) and its grade limit (`GRADE_LIMIT`, its heights' factor 0.570) by driving in DEV, its courses
   with a model then solved again; MEXICO's lap stays as the procedure gives it (K, 2026-11-10).
+- BIG RUN: its ARCADE TRIBUTE series, of the classes [the product](product.md#arcade-tribute) names, is not made. Not
+  drawn as the original draws them ([its chapter](big-run-road-data.md#its-conversion)): the water its first road shows
+  below its second over its five rivers, where the course shows its sky's rows below the horizon, which a second road
+  layer would draw ([One road layer](#stage-cs--cisco-heat-from-the-roms)); a scene's steps up and down along it (21 of
+  its 26 scenes, 2 to 80 rows each), a sky laying its scene at its own row offset; and its sky's color below the
+  horizon, its ramp's first row's. Not read: the rows' priorities its roads' flags set, the program's own limit to the
+  car's lateral, and how the program meets its hits. Its objects of kinds other than 0, which the program moves or
+  picks, are not placed. K adjusts its scale (1.76 m, its own car, a unit across 20.7 mm) by driving in DEV, its
+  courses then raised again.
 
 When the product's pictures are drawn again, a picture's shadow is cast from its shape, by one rule as a vehicle's is
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course

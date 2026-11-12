@@ -183,7 +183,7 @@ is drawn with sprites, SUPER MONACO GP among them, waits for a model of its own
 | ARCADE TRIBUTE - TOP SPEED          | TAITO, 1987    | `topspeed`      | A–G                                                            |
 | ARCADE TRIBUTE - CONTINENTAL CIRCUS | TAITO, 1987    | `contcirc`      | BRAZIL, AMERICA, FRANCE, MONACO, GERMANY, SPAIN, MEXICO, JAPAN |
 | ARCADE TRIBUTE - CHASE H.Q.         | TAITO, 1988    | `chasehq`       | STAGE 1 RIGHT, 2 LEFT, 3 LEFT, 4 LEFT, 5 LEFT                  |
-| ARCADE TRIBUTE - BIG RUN            | JALECO, 1989   | `bigrun`        | after Stage BR                                                 |
+| ARCADE TRIBUTE - BIG RUN            | JALECO, 1989   | `bigrun`        | STARTING RUN, SPECIAL STAGE 1–4, VICTORY RUN                   |
 | ARCADE TRIBUTE - CISCO HEAT         | JALECO, 1990   | `cischeat`      | after Stage CS                                                 |
 
 CONTINENTAL CIRCUS came out in Japan in 1988. OUTRUN's six SHORT roads are not in its tribute; they serve the game's own
@@ -191,6 +191,7 @@ series (K, 2026-11-03). TOP SPEED's classes are its seven roads, TOP SPEED A to 
 courses](top-speed-road-data.md#its-course-tables)). CHASE H.Q.'s are one a stage, on the road the stage's arrow names
 where the original fixes it (stage 1 right, stage 3 left) and on its left road where the original chooses at random
 (stages 2, 4 and 5); its other five courses serve the game's own series, as OUTRUN's SHORT roads do (K, 2026-11-05).
+BIG RUN's are its six stages ([its conversion](big-run-road-data.md#its-conversion); K, 2026-11-09).
 
 ### The game's own series
 

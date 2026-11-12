@@ -85,7 +85,10 @@ on road 1 where it is 1.
   STAGE 4; none in STARTING RUN and VICTORY RUN, at 999,999) and its grid (M 0xF54: eight slots of a lateral, a road and
   a position).
 - **A road position** is 13.23 mm: a speed unit shows 0xB6DB / 65,536 km/h (M 0x15DEA) and gains the road half a
-  position a tick straight ahead (M 0x3248), at BIG RUN's tick of 1/30 s.
+  position a tick straight ahead (M 0x3248), at BIG RUN's tick of 1/30 s (K, 2026-11-08): its main loop waits for
+  interrupt 4, which the board gives every second frame (MAME's description, taken as an assumption), and its waiting
+  clock and last seconds' warning count 30 ticks a second, while its race clock counts a shown second in 24 to 28 ticks
+  at Normal, the factory setting.
 
 ## Its plan
 
@@ -104,8 +107,8 @@ A road's 3D road becomes a profile along its positions (the board's, `jaleco/roa
 height's rise a position, the sine of its grade's angle, as the table's heights rise; a vertical arc's grade changes
 evenly to the next record's, a straight's at once where it ends. Laid on from the first record, it departs from the
 table's heights by up to 25.8 positions where a record starts. Its steepest grade among the records starting before a
-goal is the tangent of 25° (STARTING RUN's and SPECIAL STAGE 2's), so its factor f is 0.25 ÷ 0.466, 0.537, as K decided
-(2026-11-09).
+goal is the tangent of 25° (STARTING RUN's and SPECIAL STAGE 2's), so its factor f, the least of its lens ratio (2.7 to
+3.1) and 0.25 ÷ its steepest grade, is 0.25 ÷ 0.466, 0.537, as K decided (2026-11-09).
 
 ## Its road across
 
@@ -161,8 +164,9 @@ Its six courses (`big-run-course`, each laid as the board's, `jaleco/board-cours
   lies beneath, its ground is transparent. VICTORY RUN's road 1 is drawn as the road not taken as far as it heads
   within 60° of P, with no material.
 - **Its materials.** The town's road `ASPHALT`, the desert's `DIRT`; a river's (kind 2) and a one-line picture's, and
-  the ground beside the road, by their colors (`groundMaterial`), water only in a river; under a clear run and between
-  the roads `SAND`, and the lanes keep the held road's surface's where a picture gives them none.
+  the ground beside the road, by their colors (`groundMaterial`), water only in a river, a ground the rule makes
+  `WATER` elsewhere stopping the conversion for K; under a clear run and between the roads `SAND`, and the lanes keep
+  the held road's surface's where a picture gives them none.
 - **Its limits** lie 512 units, a line's half, beyond the outermost road's centre on each side.
 - **Its objects** of kind 0 stand where their records put them, each a board of its descriptor's sprite in its stage's
   sprites' palette ([its objects](#its-objects)): its lateral its picture's left edge from its road's centre in units
@@ -172,9 +176,12 @@ Its six courses (`big-run-course`, each laid as the board's, `jaleco/board-cours
   it lies above none does; past the road not taken's end none does. A hit (flags' bits 9 and 10, which the program puts
   in its list of things the car meets) has a body as wide as its picture's colored columns. Objects of the other kinds,
   which the program moves or picks, are not placed.
-- **Its scale across** is its own car's straight picture's (K, 2026-11-09): its frame 0, 64 colored columns, drawn at
-  the zoom its distance gives (M 0x12200, the table at 0x13B000: 102,000 ÷ (d + 600)) over the road's pixels a unit
-  there, 600 ÷ (d + 600), is 85.0 units at every distance, so a unit across is 1.76 m ÷ 85.0, 20.7 mm.
+- **Its scale across** is its own car's straight picture's (K, 2026-11-09), as wide as a real car of its kind in 1989,
+  the Peugeot 405 T16 Grand Raid's 1,760 mm ([Ultimatecarpage, its
+  specifications](https://www.ultimatecarpage.com/spec/4960/Peugeot-405-T16-Grand-Raid.html), Dimensions): its frame
+  0, 64 colored columns, drawn at the zoom its distance gives (M 0x12200, the table at 0x13B000: 102,000 ÷ (d + 600))
+  over the road's pixels a unit there, 600 ÷ (d + 600), is 85.0 units at every distance, so a unit across is
+  1.76 m ÷ 85.0, 20.7 mm. Up is the plan's own scale, its screen drawing a unit up as a unit across.
 - **Its skies** are its planes' scenes in force with the sky's entries' first set, and their last from where its stage's
   sky changes, laid where a scene starts and over 1.6 s at 200 km/h where the sky changes; a sky's yaw is its back
   plane facing its middle column where its scene loads, turning 8 pixels a degree.
