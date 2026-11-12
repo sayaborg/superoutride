@@ -15,7 +15,7 @@ import { micrometre } from '../shared/section-writing.js';
 import { bakeSky, sectionYawOrigin, skyYawOrigin } from '../shared/sky-baking.js';
 import { lanesOverTwoRoads } from '../shared/two-roads.js';
 import { layBoardCourse, type BoardSkyKnot } from '../jaleco/board-course.js';
-import { bigRunBoards, boardUses } from './big-run-boards.js';
+import { zoomBoards, boardUses } from '../jaleco/zoom-boards.js';
 import { bigRunDescriptor, bigRunObjects, ownCarUnits, spritePalette, type BigRunObject } from './big-run-objects.js';
 import { SPRITE_TILE, spritePen } from '../jaleco/zoom-sprites.js';
 import { BIG_RUN_SKIES, STAGES } from './big-run-backgrounds.js';
@@ -199,7 +199,7 @@ export function bigRunCourses(set: RomSet) {
       uses.add(boardOf(o), stage, o.color, entry);
     }
   }
-  const boards = new Map(bigRunBoards(sprites, uses.uses(), unitMetres, SCREEN_PIXEL_HEIGHT).map((b) => [b.name, b]));
+  const boards = new Map(zoomBoards(sprites, uses.uses(), unitMetres, SCREEN_PIXEL_HEIGHT).map((b) => [b.name, b]));
   for (const b of boards.values()) outputs.file(b.image.path, b.image.bytes);
   const courses = stages.map(({ stage, goal, end, roads: [road1, road2] }) => {
     const name = NAMES[stage]!;

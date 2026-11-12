@@ -1,5 +1,6 @@
 /**
- * BIG RUN's objects' pictures as course images ([BIG RUN road data](../../../docs/big-run-road-data.md#its-objects)):
+ * The JALECO board's objects' pictures as course images (BIG RUN's and CISCO HEAT's, [BIG RUN road
+ * data](../../../docs/big-run-road-data.md#its-objects)):
  * each a sprite of the board's zoomed sprites in a palette entry, mirrored where its object asks, at its scales, pen 15
  * and pen 0 (its shadow, or a color no board keeps) transparent, none where it draws nothing else; by chosen lines and
  * the sprites' rules, its base point its bottom row's left edge, where its object's lateral and height put it.
@@ -9,7 +10,7 @@ import { SPRITE_SOURCE_TEXELS_PER_METER } from '../../../src/image/sprite.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { namedBoardMaster, texelsAPixel } from '../shared/pixel-grid.js';
 import { partsOnGrid, pictureParts } from '../shared/sprite-rules.js';
-import { SPRITE_CLEAR, SPRITE_SHADOW, SPRITE_TILE, spritePen } from '../jaleco/zoom-sprites.js';
+import { SPRITE_CLEAR, SPRITE_SHADOW, SPRITE_TILE, spritePen } from './zoom-sprites.js';
 
 /** The largest picture the course format admits (`imageMasterTexels`). */
 const MASTER_TEXELS = 1024 * 1024;
@@ -64,7 +65,7 @@ export function boardUses() {
  * each its name, colored columns from its left edge (metres), its width and its image, its palettes the use's, pens 0
  * and 15 transparent; one a name.
  */
-export function bigRunBoards(rom: Uint8Array, uses: readonly BoardUse[], unitMetres: number, aspect: number) {
+export function zoomBoards(rom: Uint8Array, uses: readonly BoardUse[], unitMetres: number, aspect: number) {
   const seen = new Set<string>();
   return uses.flatMap((use) => {
     const { name } = use;

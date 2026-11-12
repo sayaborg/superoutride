@@ -6,7 +6,7 @@ import {
   ownCarUnits,
   spritePalette,
 } from '../../tools/road-data/big-run/big-run-objects.ts';
-import { bigRunBoards, boardUses } from '../../tools/road-data/big-run/big-run-boards.ts';
+import { zoomBoards, boardUses } from '../../tools/road-data/jaleco/zoom-boards.ts';
 import { spritePen } from '../../tools/road-data/jaleco/zoom-sprites.ts';
 import { rgb555Of } from '../../tools/road-data/jaleco/palette.ts';
 
@@ -102,12 +102,12 @@ test('a board is its sprite in its palette entry, mirrored as its object asks, p
   for (let y = 0; y < 16; y++) rom[2 * 128 + 4 * y + 1] = 0x05;
   const palettes = [{ name: 'p040', colors: Array.from({ length: 16 }, (_, p) => p * 100) }];
   const sprite = { name: 'bigrun-000c', tile: 2, across: 1, down: 1, xScale: 1, yScale: 1, mirrored: false };
-  const [board] = bigRunBoards(rom, [{ ...sprite, palettes }], 0.05, 1);
+  const [board] = zoomBoards(rom, [{ ...sprite, palettes }], 0.05, 1);
   assert.equal(board.name, 'bigrun-000c');
   assert.ok(Math.abs(board.colored[0] - 3 * 0.05) < 1e-9 && Math.abs(board.colored[1] - 4 * 0.05) < 1e-9);
-  const [mirrored] = bigRunBoards(rom, [{ ...sprite, name: 'mirrored', mirrored: true, palettes }], 0.05, 1);
+  const [mirrored] = zoomBoards(rom, [{ ...sprite, name: 'mirrored', mirrored: true, palettes }], 0.05, 1);
   assert.ok(Math.abs(mirrored.colored[0] - 12 * 0.05) < 1e-9);
-  const [half] = bigRunBoards(rom, [{ ...sprite, xScale: 0.5, palettes }], 0.05, 1);
+  const [half] = zoomBoards(rom, [{ ...sprite, xScale: 0.5, palettes }], 0.05, 1);
   assert.ok(Math.abs(half.colored[0] - 3 * 0.025) < 1e-9);
 });
 

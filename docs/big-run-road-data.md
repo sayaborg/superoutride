@@ -182,7 +182,8 @@ Its six courses (`big-run-course`, each laid as the board's, `jaleco/board-cours
 ## Its objects
 
 Its objects stand along its roads as each stage's table holds them (`big-run-objects`), drawn by the JALECO board's
-zoomed sprites (`jaleco/zoom-sprites`; [research notes](research/big-run.md#its-objects)).
+zoomed sprites (`jaleco/zoom-sprites`), each picture a board of its sprite (`jaleco/zoom-boards`; [research
+notes](research/big-run.md#its-objects)).
 
 - **A record** (16 bytes, in the order of their positions, M 0x9874's table a stage): its position (+0), its picture's
   descriptor (+4, bytes into the descriptors' table at M 0xB07A), its kind (+6: 0 a picture standing where it is put,
