@@ -2916,7 +2916,6 @@
         }
       ],
       "walls": [],
-      "openLimits": [],
       "sprites": [
         {
           "kind": "sprite",
@@ -7099,7 +7098,6 @@
         }
       ],
       "walls": [],
-      "openLimits": [],
       "sprites": [
         {
           "kind": "sprite",
@@ -10069,7 +10067,6 @@
         }
       ],
       "walls": [],
-      "openLimits": [],
       "sprites": [],
       "environments": [
         {
@@ -10518,7 +10515,6 @@
         }
       ],
       "walls": [],
-      "openLimits": [],
       "sprites": [
         {
           "kind": "sprite",
@@ -13951,7 +13947,6 @@
         }
       ],
       "walls": [],
-      "openLimits": [],
       "sprites": [
         {
           "kind": "sprite",
@@ -17994,7 +17989,6 @@
         }
       ],
       "walls": [],
-      "openLimits": [],
       "sprites": [
         {
           "kind": "sprite",
@@ -22032,7 +22026,6 @@
         }
       ],
       "walls": [],
-      "openLimits": [],
       "sprites": [
         {
           "kind": "sprite",
@@ -27014,7 +27007,6 @@
         }
       ],
       "walls": [],
-      "openLimits": [],
       "sprites": [
         {
           "kind": "sprite",
@@ -31405,7 +31397,6 @@
         }
       ],
       "walls": [],
-      "openLimits": [],
       "sprites": [
         {
           "kind": "sprite",

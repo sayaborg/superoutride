@@ -582,7 +582,6 @@ function sectionDocument(
     ],
     strips,
     walls: [],
-    openLimits: [],
     sprites: repeated(
       [...context.objects]
         .sort(

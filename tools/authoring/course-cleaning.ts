@@ -466,15 +466,8 @@ function knotReach(resolved: ReadonlyMap<string, CourseElement>, element: Course
   return [previous.s - half(previous), next.s + half(next)];
 }
 
-/** Kinds whose Positions join with near ones: knots, Strip and wall ends, open limits and gates. */
-const JOINED: readonly CourseElementKind[] = [
-  'boundary-knot',
-  'strip',
-  'wall-strip-knot',
-  'wall',
-  'open-limit',
-  'gate',
-];
+/** Kinds whose Positions join with near ones: knots, Strip and wall ends and gates. */
+const JOINED: readonly CourseElementKind[] = ['boundary-knot', 'strip', 'wall-strip-knot', 'wall', 'gate'];
 
 /**
  * Near things that could be one, each within `tolerance` (metres) but not the same: an absolute lateral near a

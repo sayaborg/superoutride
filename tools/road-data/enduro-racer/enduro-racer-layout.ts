@@ -530,7 +530,6 @@ function sectionDocument(span: SectionSpan, context: SectionContext): SectionDoc
     ],
     strips,
     walls: [],
-    openLimits: [],
     sprites: sectionSprites(context.objects, at),
     environments,
     gates,

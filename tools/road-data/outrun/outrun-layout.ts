@@ -739,7 +739,6 @@ function sectionDocument(l: Laid, section: SectionInput): SectionDocument {
     boundaries: [...(within?.boundaries ?? []), ...clipped],
     strips,
     walls: [],
-    openLimits: [],
     sprites: sectionSprites(frame),
     environments,
     gates,

@@ -308,6 +308,7 @@ export function createCourseRace(options: {
   const barrierContacts = createBarrierContacts(
     runtime.readers.coordinates,
     runtime.window,
+    runtime.route,
     options.setup.bodyContact,
     contactFaces,
     SIM_DT,

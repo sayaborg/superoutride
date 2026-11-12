@@ -64,7 +64,7 @@ import { fidelityReport, gradeReport, round1, OriginalOutputs, type Conversion }
 import { VECTOR_RESOLUTION } from '../shared/shared-constants.js';
 
 /** The conversion's version, recorded in the specification beside the courses it wrote. */
-export const SUPER_HANG_ON_CONVERSION_VERSION = 43;
+export const SUPER_HANG_ON_CONVERSION_VERSION = 44;
 
 /** A course's id and the stem of its Sections' ids. */
 export const courseSlug = (name: string) => name.toLowerCase();

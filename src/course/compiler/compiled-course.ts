@@ -168,7 +168,7 @@ async function compileSection(
     `${path}/walls`,
     slices,
   );
-  const barriers = compileCourseBarriers(walls, section.openLimits, resolve, strips.material, length, path);
+  const barriers = compileCourseBarriers(walls, strips.material, length, path);
   const physical = compileCoursePhysicalContent(section, length, resolve, path);
   // The Section's sprites expanded once: the placements, and their identities, objects and appearance share.
   const placements = compileCourseSpritePlacements(section, length, lines, assets, resolve, path);
@@ -188,7 +188,7 @@ async function compileSection(
     ...physical,
     ...strips,
     barriers,
-    ground: compileCourseGround(strips.material, barriers, `${path}/strips`),
+    ground: compileCourseGround(strips.material, `${path}/strips`),
     objects,
     // Set by `compileAppearance`, after the fork structure and before anything reads it.
     appearance: null as unknown as OpenSection['appearance'],

@@ -5971,7 +5971,6 @@
         }
       ],
       "walls": [],
-      "openLimits": [],
       "sprites": [
         {
           "kind": "repeat",
@@ -31087,7 +31086,6 @@
         }
       ],
       "walls": [],
-      "openLimits": [],
       "sprites": [
         {
           "kind": "sprite",

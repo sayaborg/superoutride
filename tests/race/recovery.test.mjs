@@ -139,7 +139,6 @@ function ring() {
               },
             ]
           : [],
-      openLimits: [],
       sprites: [],
       environments: [
         {
@@ -176,19 +175,48 @@ function ring() {
   return normalizeCoursePositions(document).document;
 }
 
+/**
+ * A road with ends: the ring's first Section alone, no Link leaving it, so its end is the Route's terminal; its finish
+ * 30 m into its arc, the grid where the ring's is.
+ */
+function line() {
+  const document = ring();
+  const [section] = document.sections;
+  return normalizeCoursePositions({
+    ...document,
+    name: 'LINE',
+    maxLaps: 1,
+    sections: [
+      {
+        ...section,
+        gates: [section.gates[0], { kind: 'finish', id: 'LINE-FINISH', at: { joint: 'c0', offset: 30 } }],
+      },
+    ],
+    links: [],
+  }).document;
+}
+
 const template = content.manifest.files.find((file) => file.kind === 'course' && file.id === 'tsukuba');
-// The ring is delivered alone, without measured products: its drivers drive its centre line.
+// The fixtures are delivered alone, without measured products: their drivers drive their centre lines.
 const files = content.manifest.files.filter((file) => file.kind !== 'racing-line');
+const fixtures = { ring, line };
 const delivered = {
   ...content,
-  manifest: { ...content.manifest, files: [...files, { ...template, id: 'ring' }] },
+  manifest: {
+    ...content.manifest,
+    files: [...files, ...Object.keys(fixtures).map((id) => ({ ...template, id }))],
+  },
   bytes: async (kind, id) =>
-    kind === 'course' && id === 'ring' ? new TextEncoder().encode(JSON.stringify(ring())) : content.bytes(kind, id),
+    kind === 'course' && id in fixtures
+      ? new TextEncoder().encode(JSON.stringify(fixtures[id]()))
+      : content.bytes(kind, id),
 };
 const course = await loadDeliveredCourse(delivered, 'ring', materials);
+const lineCourse = await loadDeliveredCourse(delivered, 'line', materials);
 
-/** A FREE PLAY run on the ring with `rivals` rivals, through READY to GO. */
-async function run({ rivals = 0, entry = TESTAROSSA, ready = idle } = {}) {
+/** A FREE PLAY run on the ring (or `on`) with `rivals` rivals, through READY to GO. */
+async function run({ rivals = 0, entry = TESTAROSSA, ready = idle, on = course } = {}) {
+  const course = on;
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   const prepared = await prepareRun(delivered, catalog, course, null, {
     mode: 'FREE_PLAY',
@@ -530,5 +558,43 @@ test('a driver whose vehicle stands 2 s asks for the player’s manual recovery'
   assert.equal(rival.actor.recovery.recoveries, 1);
   // The player's own input is no driver's: it stands braked and nothing recovers it.
   assert.equal(race.player.body.driving, null);
+  assert.equal(actor.recovery.recoveries, 0);
+});
+
+test("the Route's ends are limits across the road: fast, airborne or reversing, a vehicle stays inside", async (t) => {
+  // Each coasts into the terminal: under throttle, held there, it would recover as stuck.
+  for (const { name, speed, drop, input } of [
+    { name: 'at 30 m/s', speed: 30, drop: 0, input: idle },
+    { name: 'at 50 m/s', speed: 50, drop: 0, input: idle },
+    { name: 'airborne at 30 m/s', speed: 30, drop: -1.5, input: idle },
+  ]) {
+    const { race, scene, actor } = await run({ on: lineCourse });
+    const { terminal } = scene.runtime.route;
+    assert.notEqual(terminal, null);
+    place(scene, race.player.body, terminal - 40, lane('a'), { speed, drop });
+    let farthest = -Infinity;
+    for (let i = 0; i < 6 * 60; i++) {
+      race.advance(input);
+      farthest = Math.max(farthest, actor.vehicle.course.s);
+      assert.ok(actor.vehicle.course.inDomain, `${name}: left the domain at step ${i}`);
+    }
+    assert.equal(actor.recovery.recoveries, 0, `${name}: recovered`);
+    const half = actor.model.compiledVehicle.footprint / 2;
+    t.diagnostic(
+      `${name}: centre at most ${(terminal - farthest).toFixed(2)} m before the terminal (half ${half}), ` +
+        `resting ${(terminal - actor.vehicle.course.s).toFixed(1)} m before it`,
+    );
+    assert.ok(farthest < terminal);
+  }
+  // Rolling backward out past the Route's start, it stays after it.
+  const { race, scene, actor } = await run({ on: lineCourse });
+  const { start } = scene.runtime.route;
+  place(scene, race.player.body, start + 20, lane('a'), { speed: -15 });
+  let nearest = Infinity;
+  for (let i = 0; i < 4 * 60; i++) {
+    race.advance(idle);
+    nearest = Math.min(nearest, actor.vehicle.course.s);
+  }
+  assert.ok(nearest > start, `${nearest - start}`);
   assert.equal(actor.recovery.recoveries, 0);
 });

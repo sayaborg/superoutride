@@ -156,7 +156,6 @@ export function layRoad(options: RoadLayout): {
           ...(parts.over ?? []),
         ],
         walls: [],
-        openLimits: [],
         sprites: repeated(parts.sprites ?? []),
         environments: parts.environments,
         gates: [

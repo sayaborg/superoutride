@@ -63,7 +63,6 @@ export type CourseElementKind =
   | 'wall'
   | 'wall-strip'
   | 'wall-strip-knot'
-  | 'open-limit'
   | 'sprite'
   | 'object'
   | 'environment'
@@ -259,7 +258,7 @@ export function readCourseSection(value: unknown, index: number, memo: SectionRe
 }
 
 /** The Section's lists whose items read alone, each from itself and the Section's other fields. */
-const ITEM_LISTS: ReadonlySet<string> = new Set(['strips', 'walls', 'openLimits', 'sprites', 'environments', 'gates']);
+const ITEM_LISTS: ReadonlySet<string> = new Set(['strips', 'walls', 'sprites', 'environments', 'gates']);
 /**
  * The contexts a memo keeps besides those it keeps for good, the latest first used: a change of a Section's other
  * fields reads it whole again.
@@ -786,14 +785,6 @@ function readSection(
       });
     });
   });
-  list(section.openLimits).forEach((limit, i) =>
-    kept(`open-limit ${i} ${memo?.id(limit)}`, () =>
-      add('open-limit', `${pointer}/openLimits/${i}`, record(limit), {
-        positions: ['start', 'end'],
-        values: { side: record(limit).side },
-      }),
-    ),
-  );
   // Sprites: each placement, its body making it an object.
   repeats(section.sprites, `${pointer}/sprites`);
   expand(section.sprites, `${pointer}/sprites`, (source, offset, path, copies) =>

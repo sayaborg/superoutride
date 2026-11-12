@@ -75,7 +75,6 @@ function circuit(start) {
         },
       ],
       walls: [],
-      openLimits: [],
       sprites: [],
       environments: [
         {
@@ -182,7 +181,7 @@ test('from a start before the line, laps and checkpoints count from the line, as
   assert.ok(start >= 60 && start < 60 + RACING_LINE_SPACING, `${start}`);
 });
 
-test('behind the Route start a vehicle recovers at rest as at a road end, and the camera has room', async () => {
+test('the Route start holds a vehicle rolling back past it, and the camera has room', async () => {
   const course = await startIn('sector-3');
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   const { route } = scene.runtime;
@@ -227,10 +226,12 @@ test('behind the Route start a vehicle recovers at rest as at a road end, and th
   });
   vehicle.course = initializePlanCoordinateObservation(scene.world.coordinates, vehicle.x, vehicle.z, s);
   publishVehicleRenderY(vehicle, model);
-  let recovered = null;
-  for (let i = 0; i < 10 * 60 && recovered === null; i++)
-    if (race.advance(idle).recovered) recovered = { s: vehicle.course.s, speed: vehicle.longitudinalSpeed };
-  assert.ok(recovered, 'never recovered');
-  assert.ok(recovered.s >= route.start && recovered.s < route.start + 10, `${recovered.s - route.start}`);
-  assert.ok(Math.abs(recovered.speed) < 1e-9);
+  // The Route's start is a limit across the road: it pushes the vehicle back, which never passes it nor recovers.
+  let nearest = Infinity;
+  for (let i = 0; i < 10 * 60; i++) {
+    race.advance(idle);
+    nearest = Math.min(nearest, vehicle.course.s);
+  }
+  assert.ok(nearest > route.start, `${nearest - route.start}`);
+  assert.equal(race.player.actor.recovery.recoveries, 0);
 });

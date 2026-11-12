@@ -25,7 +25,6 @@ const LAYER_OF: Partial<Record<CourseElement['kind'], PlanLayer>> = {
   wall: 'walls',
   'wall-strip': 'walls',
   'wall-strip-knot': 'walls',
-  'open-limit': 'walls',
   sprite: 'sprites',
   object: 'objects',
   gate: 'gates',

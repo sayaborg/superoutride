@@ -186,13 +186,6 @@ export interface SolidWallDocument {
   readonly freeEnd: number | null;
 }
 
-/** A stretch of one side of a Section where no course limit runs: `side` from `start` to `end`. */
-export interface OpenLimitDocument {
-  readonly side: 'left' | 'right';
-  readonly start: CoursePosition;
-  readonly end: CoursePosition;
-}
-
 export interface SectionDocument {
   readonly id: string;
   /** The centreline from the Section's origin, facing +Z. */
@@ -206,7 +199,6 @@ export interface SectionDocument {
   readonly boundaries: readonly BoundaryDocument[];
   readonly strips: readonly StripElementDocument[];
   readonly walls: readonly WallDocument[];
-  readonly openLimits: readonly OpenLimitDocument[];
   readonly sprites: readonly RepeatElement<SpriteDocument>[];
   readonly environments: readonly RepeatElement<EnvironmentDocument>[];
   readonly gates: readonly CourseGateDocument[];
@@ -634,15 +626,6 @@ function solidWall(value: unknown, path: string): SolidWallDocument {
     freeEnd: thickness(v.freeEnd, `${path}/freeEnd`),
   });
 }
-function openLimit(value: unknown, path: string): OpenLimitDocument {
-  const v = readRecord(value, path, ['side', 'start', 'end']);
-  return Object.freeze({
-    side: readEnum(v.side, ['left', 'right'] as const, `${path}/side`),
-    start: position(v.start, `${path}/start`),
-    end: position(v.end, `${path}/end`),
-  });
-}
-
 function environments(value: unknown, path: string): SectionDocument['environments'] {
   return readArray(
     value,
@@ -663,7 +646,6 @@ function section(value: unknown, path: string): SectionDocument {
     'boundaries',
     'strips',
     'walls',
-    'openLimits',
     'sprites',
     'environments',
     'gates',
@@ -700,7 +682,6 @@ function section(value: unknown, path: string): SectionDocument {
       max: COURSE_DOCUMENT_LIMITS.stripElements,
     }),
     walls: readArray(v.walls, `${path}/walls`, wall, { max: COURSE_DOCUMENT_LIMITS.walls }),
-    openLimits: readArray(v.openLimits, `${path}/openLimits`, openLimit, { max: COURSE_DOCUMENT_LIMITS.openLimits }),
     sprites: readArray(
       v.sprites,
       `${path}/sprites`,

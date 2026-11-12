@@ -243,7 +243,7 @@ Every original is raised from its ROMs by these rules (K, 2026-10-18 to 2026-10-
   course is its canon and its extract. The canon is what the ROMs determine by constants and rules, and for a course
   with a model its model with them: the course's
   `name`, `entry`, `maxLaps`, `bearing` and `links`, and each Section's `plan`, `profile`, `lanes`, `centerLane`,
-  `centerLateral`, `boundaries`, `strips`, `walls`, `openLimits` and `gates`. The extract is its pictures and their
+  `centerLateral`, `boundaries`, `strips`, `walls` and `gates`. The extract is its pictures and their
   placements: each Section's `sprites` and `environments`. Raising a course again writes it from the ROMs alone, and
   `--check` compares every byte (`OriginalOutputs.course`). A name is read from its original's ROMs where the original
   shows it as text, and is otherwise a constant with its reason. A course's `maxLaps` is the laps its original runs it

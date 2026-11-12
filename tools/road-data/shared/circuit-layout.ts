@@ -295,7 +295,6 @@ export function layCourse(options: {
             ),
         ],
         walls: [],
-        openLimits: [],
         sprites: repeated(
           options.objects
             .filter((o) => o.s >= from && (o.s < to || (last && o.s <= to)))

@@ -31,7 +31,7 @@ Each line is one area as it stands, with the document that owns it.
   parting gates, and the lying pictures have no material. What remains is [Courses of the
   originals](#courses-of-the-originals)' list.
 - **Features no course uses.** BRANCH (forks, seam joins and signs shown by a fork's choice), solid walls (TSUKUBA's
-  walls are looks alone), open course limits, a grid longer than 16 slots (`startGridSlots` 32), movable objects (and
+  walls are looks alone), a grid longer than 16 slots (`startGridSlots` 32), movable objects (and
   their knocked pictures), and the `WET_ASPHALT`, `SHOULDER` and `SNOW` materials (`SNOW` for RALLY STAGE's WINTER) stay
   in the engine ([Content and gameplay](content-and-gameplay.md), [Stage RM](#stage-rm--branch-tsukuba-and-the-walls)).
   So do three of the format's general constructs, each part of a rule every course follows: `text` Strips, the road's
@@ -70,9 +70,9 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-2, then [Stage
-RC](#stage-rc--one-recovery)'s RC-2 and RC-3, and AD-3; in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and
-beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
+Next PR: [Stage RC](#stage-rc--one-recovery)'s RC-3, then [Stage
+AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-3 (AD-2 and RC-2 await K's word for main); in [Stage
+RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.

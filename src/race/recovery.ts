@@ -26,14 +26,12 @@ import { add3, dot3, scale3, type Vec3 } from '../core/vector3.js';
 import { drivenWheelOmega } from '../vehicle/physics/vehicle-definitions.js';
 import { initializeVehicleTireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
 
-type RecoveryReason =
-  'fallen' | 'outside-domain' | 'road-end' | 'stuck' | 'overturned' | 'manual' | 'wrong-course' | 'explosion';
+type RecoveryReason = 'fallen' | 'stuck' | 'overturned' | 'manual' | 'wrong-course' | 'explosion' | 'outside-domain';
 
 /** The fixed recovery policy: rules only, shared by every competitor; no live state or target resolution. */
 export interface RecoveryPolicy {
   /**
-   * Consecutive fixed steps a recovery condition holds before the vehicle recovers: outside the coordinate domain, or
-   * stuck (drive reaching its wheels below `stuckSpeed`).
+   * Consecutive fixed steps a vehicle is stuck (drive reaching its wheels below `stuckSpeed`) before it recovers.
    */
   readonly holdSteps: number;
   /** m/s: the speed below which a vehicle whose wheels drive counts as not moving. */
@@ -64,8 +62,6 @@ export type RecoveryPlacement = (s: number) => RecoveryTarget | null;
 
 export interface RecoveryState {
   lastSafeS: number;
-  /** Consecutive fixed steps the vehicle center has been outside the coordinate domain. */
-  outsideDomainSteps: number;
   /** Consecutive fixed steps drive has reached its wheels with the vehicle below `stuckSpeed`. */
   stuckSteps: number;
   recoveries: number;
@@ -80,7 +76,6 @@ export interface RecoveryTarget {
 export function createRecoveryState(vehicle: VehicleState): RecoveryState {
   return {
     lastSafeS: vehicle.course.s,
-    outsideDomainSteps: 0,
     stuckSteps: 0,
     recoveries: 0,
     lastReason: null,
@@ -131,18 +126,13 @@ function updateRecovery(
   model: VehicleModel,
   { state, place }: RecoveryOptions,
 ): RecoveryReason | null {
+  // The course limits are closed everywhere, so a centre outside the coordinate domain should not happen: it recovers
+  // the one way in that step, its reason `outside-domain` a development record, not a recovery condition (the
+  // auditor's choice).
   if (!vehicle.course.inDomain) {
     state.stuckSteps = 0;
-    state.outsideDomainSteps += 1;
-    if (state.outsideDomainSteps < RECOVERY_POLICY.holdSteps) return null;
-    // Out past the road's end (the Route's start, or the end of a Section no Link leaves) as against a fixed object;
-    // the resident extent keeps every vehicle, so one before its start is before the Route's.
-    const { start, terminal } = world.extent;
-    const reason =
-      vehicle.course.s <= start || (terminal !== null && vehicle.course.s >= terminal) ? 'road-end' : 'outside-domain';
-    return recoverVehicle(world, vehicle, model, { state, reason, place }) ? reason : null;
+    return recoverVehicle(world, vehicle, model, { state, reason: 'outside-domain', place }) ? 'outside-domain' : null;
   }
-  state.outsideDomainSteps = 0;
   // Drive reaches its wheels and it does not move, whatever holds it: an object, a limit, a wall or another vehicle
   // (K, 2026-11-12). No input is read: an engine still rising from idle through the slipping clutch delivers none.
   const stuck =
@@ -233,7 +223,6 @@ export function recoverVehicleToPlanCoordinate(
   vehicle.course = initializePlanCoordinateObservation(world.coordinates, vehicle.x, vehicle.z, target.s);
 
   state.lastSafeS = target.s;
-  state.outsideDomainSteps = 0;
   state.stuckSteps = 0;
   state.recoveries += 1;
   state.lastReason = reason;

@@ -35,7 +35,7 @@ CourseDocument {
 }
 Section {
   id, plan, profile: [{at, y, curveLength}], lanes, centerLane, centerLateral,
-  boundaries, strips, walls, openLimits, sprites, environments, gates
+  boundaries, strips, walls, sprites, environments, gates
 }
 ```
 
@@ -302,12 +302,12 @@ table over the wall's own interval (station `s - start`) and keeps the height ra
 Solid walls and the course limits are the Section's barrier lines ([Body contact](#barrier-lines)). The course limits
 run along the left and right outer edges of the covered material — the material table's outermost finite covered edges
 as the compiler clips them, the lateral domain's edges before `MAXIMUM_VEHICLE_REACH` — and authors never write them.
-Section `openLimits` declares where a course limit does not run: an array (empty when the Section has none) of `{side,
-start, end}`, side `"left"` or `"right"` from Position `start` to Position `end` (`start < end`, `invalid_value`
-otherwise). That side has no course limit over the declared interval; a wall for looks only beside it does not open it.
-A course limit pushes and the ground supports: behind a closed limit the ground continues
-([Architecture](architecture.md#material-cross-sections)), while a vehicle leaving through an open limit has no support
-beyond the material and falls; ordinary recovery returns it.
+A vehicle does not leave its course: the course limits are closed everywhere, along both sides and across the road at
+the Route's start and at its end (K, 2026-11-12). A place to fall is material-free ground inside the limits. A course
+limit pushes and the ground supports: behind a limit the ground continues
+([Architecture](architecture.md#material-cross-sections)); inside the limits it is the material table, where
+material-free ground is a hole that a vehicle falls through. A Section with `openLimits`, which earlier versions of the
+format declared, is refused when read (`invalid_value`).
 
 ### Roadside objects
 
@@ -445,7 +445,6 @@ Section gives 384. This also contains OutRun's 15 nodes/20 Links and the selecte
 | Section `spritePlacements` (expanded)                                   |              16384 | 21 × (200 + 20)/km × 2, rounded up; one sprite array, a repeat's too, may hold all of its Section's placements          |
 | Each Strip array `stripElements`                                        |               2048 | 21 × 30/km × 2, rounded up                                                                                              |
 | Section `walls` / each wall's Strips (`stripElements`)                  |        1024 / 2048 | Both sides × 21 km × 10 wall runs/km × 2, rounded up; a wall's Strip array has the road's Strip array ceiling           |
-| Section `openLimits`                                                    |                256 | Both sides × 21 km × 3 open stretches/km × 2, rounded up                                                                |
 | Wall Strip heights `wallHeightMeters` (absolute)                        |               1000 | The Strip lateral ceiling `lateralMeters`: wall heights are read as Strip laterals                                      |
 | `repeatCount`                                                           |              65536 | Whole-length 1 m repetitions: 21000 × 2, rounded up                                                                     |
 | `repeatDepth` / `textCodeUnits`                                         |             8 / 64 | Four organizational levels × 2; 32-character road legend × 2                                                            |
@@ -595,7 +594,7 @@ and every result resolves through the course compiler's functions.
 **Form.** `readCourseStructure` lists every element of a course an author draws or edits, by Section: plan elements at
 their joints and the Section's end, PVIs and their vertical-curve ends, Boundaries (their written knots, and every
 vertex the compiler resolves, written or inherited from a referenced Boundary), repeats, Strips,
-texts, walls and their Strips and knots, open limits, sprites (an object when it has a body),
+texts, walls and their Strips and knots, sprites (an object when it has a body),
 environments, gates, grid slots and lanes (each lane's centre line), and the course's Links. Each element has the JSON Pointer of its
 record (a repeated element's one authored record), whether it is written or derived (and from what), every Position
 as written (`joint`, `offset`) and resolved (`s`), every lateral as written (a number, or a Boundary and offset) and
@@ -702,10 +701,9 @@ stale; the driving changes only when the shift is not 0.
   line's extent and stay.
 - `joinCandidates` proposes near things, within a distance but not the same, written as one: an absolute lateral near
   a Boundary or lane line at an offset it is already referred to with (or 0) becomes that reference (`join-reference` when exactly
-  on it); a Position (of a knot, wall,
-  open limit or gate) near another element's Position takes it, either way round; a Position near a joint's station
-  is measured from that joint with offset 0; a Strip's left edge near the previous Strip's right edge where it starts
-  takes its written value. A join that leaves the Section unreadable is not proposed.
+  on it); a Position (of a knot, wall or gate) near another element's Position takes it, either way round; a Position
+  near a joint's station is measured from that joint with offset 0; a Strip's left edge near the previous Strip's right
+  edge where it starts takes its written value. A join that leaves the Section unreadable is not proposed.
 - `mergeCandidates` proposes each width written at Positions whose values all agree as that one number (`merge-width`),
   and, for each list, its runs of three or more elements that combine exactly into repeats,
   and each colour within a tolerance (in 5-bit steps) of a more used colour, which then takes its place everywhere.
@@ -1213,9 +1211,8 @@ road tangent. It is finite and may be negative; product runs and reference runs 
 browser picks a new seed for every run assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
 FREE PLAY runs without rivals, use 0, and scenarios and tests fix theirs. The race builds each
 competitor's mechanics and each rival's driver from its entry's vehicle; the player's composition supplies input only.
-A course need not leave every vehicle room to stop past its FINISH (K, 2026-10-24): a vehicle that cannot stop
-before the road ends leaves the coordinate domain there and recovers, at rest as every recovery
-([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)), so it does not cross the end again.
+A course need not leave every vehicle room to stop past its FINISH (K, 2026-10-24): the road's end is a course limit
+across the road ([Barrier lines](#barrier-lines)), which holds a vehicle that cannot stop before it.
 A circuit FINISH and an undecided fork are not terminal stopping points.
 
 A run's start begins a standing run. PAUSE/hidden-page time consumes no simulation time. GOAL, GAME OVER or ENDED
@@ -1750,8 +1747,15 @@ move), `F = max(0, m(ω²x + 2ζωv))`; `v` is how fast the overlap grows: the v
 the line's slope times the vehicle's speed along the road, since a slanted line closes on a vehicle driving along it.
 Friction along the road's horizontal tangent opposes the vehicle's speed along the road with magnitude
 `min(barrierFriction × F, m × |v_along| / step)`, never reversing that speed within the step. No vertical force or moment
-arises and height is not compared. Recovery rules are unchanged: a vehicle past an open limit, or beyond either end of the
-resident Route, recovers as before.
+arises and height is not compared.
+
+The Route's ends are course limits across the road too (K, 2026-11-12): its start keeps vehicles after it and its
+terminal, the end of a Section no Link leaves, before it (a circuit has none). Each acts as a side limit does, turned
+across the road: its overlap is half the footprint less the centre's route distance from the end, it pushes along the
+road's horizontal tangent with the same spring-damper and approach speed, friction opposes the speed across the road,
+and its contacts are recorded, sounded and explode an exploding vehicle as a side limit's do (the auditor's choice).
+They are not compiled lines: the race reads them from the Route (`createBarrierContacts`' `ends`), the one owner of
+where it starts and ends. Every grid slot lies within them.
 
 The contact faces record every line a vehicle touches (overlap positive), course limits included, so a line's contact
 begins as a pair's does: in the step it overlaps after a step it did not.

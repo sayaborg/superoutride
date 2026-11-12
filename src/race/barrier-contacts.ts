@@ -22,18 +22,50 @@ import type { ContactBody, createContactFaces } from './body-contacts.js';
  * body a line pushes is passed to `pushed`. Every line touch is recorded in the contact faces, so a line's contact begins
  * as a pair's does; `log` receives each begun contact (a `wall`, course limits included, with its damper term's work
  * over the step) and each push with its friction's power.
+ *
+ * The Route's ends are course limits across the road (K, 2026-11-12): its start (`ends.start`) keeps vehicles after it
+ * and its terminal (`ends.terminal`, the end of a Section no Link leaves; none on a circuit) before it. Each acts as a
+ * side limit does, turned across the road: the overlap is half the footprint less the centre's route distance from the
+ * end, the push is along the road's tangent with the same spring-damper and friction opposes the speed across the road;
+ * contact records, sound and an exploding vehicle's explosion follow as for any limit.
  */
 export function createBarrierContacts(
   coordinates: PlanCoordinateReader,
   route: Pick<RouteView, 'at'>,
+  ends: { readonly start: number; readonly terminal: number | null },
   contact: CompiledBodyContact,
   faces: ReturnType<typeof createContactFaces>,
   step: number,
   log: ContactLog,
 ) {
   const sample = createPlanCoordinateSample();
+  // The Route end at `station` keeping `body` on its `keep` side (1: after it, -1: before it), as the limit `key`.
+  const end = (body: ContactBody, station: number, keep: 1 | -1, key: string, pushed: (body: ContactBody) => void) => {
+    const { vehicle } = body;
+    const { footprint, mass } = body.model.compiledVehicle;
+    const overlap = footprint / 2 - keep * (vehicle.course.s - station);
+    if (overlap <= 0) return;
+    const began = faces.touchLine(body.id, key, keep);
+    const heading = coordinates.toWorld(vehicle.course.s, vehicle.course.l, sample).heading;
+    // The unit axis away from the end (the road's tangent, signed by the kept side) and the road's right.
+    const nx = keep * Math.sin(heading),
+      nz = keep * Math.cos(heading);
+    const rx = Math.cos(heading),
+      rz = -Math.sin(heading);
+    const approach = -(vehicle.velocityX * nx + vehicle.velocityZ * nz);
+    const across = vehicle.velocityX * rx + vehicle.velocityZ * rz;
+    const push = bodyContactForce(contact, mass, overlap, approach);
+    if (began) log.start(body.id, 'wall', push > 0 ? bodyContactDampingPower(contact, mass, approach) * step : 0);
+    if (push === 0) return;
+    const friction = Math.sign(across) * Math.min(contact.barrierFriction * push, (mass * Math.abs(across)) / step);
+    body.contactForce.x += push * nx - friction * rx;
+    body.contactForce.z += push * nz - friction * rz;
+    pushed(body);
+  };
   return (bodies: readonly ContactBody[], pushed: (body: ContactBody) => void) => {
     for (const body of bodies) {
+      end(body, ends.start, 1, 'route start', pushed);
+      if (ends.terminal !== null) end(body, ends.terminal, -1, 'route terminal', pushed);
       const vehicle = body.vehicle;
       const occurrence = route.at(vehicle.course.s);
       if (!occurrence) continue;

@@ -1,6 +1,6 @@
 import type { StripBudget } from '../strip-budget.js';
 import type { CourseLines } from '../course-lanes.js';
-import type { CoursePosition, OpenLimitDocument, WallDocument } from '../course-document.js';
+import type { CoursePosition, WallDocument } from '../course-document.js';
 import { courseBoundaryAt, courseBoundarySlopeAt, type CompiledBoundary } from '../course-boundaries.js';
 import type { CompiledCoursePosition } from '../course-geometry.js';
 import type { CourseBarrierLine } from '../course-barriers.js';
@@ -137,12 +137,10 @@ export function compileWallEnds(
 
 /**
  * A Section's barrier lines: every solid wall, then each side's course limit along the outer edge of the covered material,
- * except over the Section's declared open limits.
+ * the whole Section long (the limits are closed everywhere, K, 2026-11-12).
  */
 export function compileCourseBarriers(
   walls: readonly CompiledWall[],
-  openLimits: readonly OpenLimitDocument[],
-  resolve: (at: CoursePosition, path: string) => CompiledCoursePosition,
   material: StripMaterial,
   length: number,
   path: string,
@@ -160,33 +158,17 @@ export function compileCourseBarriers(
           slopeAt: (s: number) => courseBoundarySlopeAt(wall.boundary, s),
         }),
       );
-  const open = { left: [] as [number, number][], right: [] as [number, number][] };
-  openLimits.forEach((declared, index) => {
-    const at = `${path}/openLimits/${index}`;
-    const start = resolve(declared.start, `${at}/start`).s,
-      end = resolve(declared.end, `${at}/end`).s;
-    requireCourse(start < end, `${at}/end`, 'An open limit needs start < end', 'invalid_value');
-    open[declared.side].push([start, end]);
-  });
   for (const side of ['left', 'right'] as const) {
-    const intervals = open[side].sort((a, b) => a[0] - b[0]);
-    let s = 0;
     const read = { left: 0, right: 0 };
-    const limit = (start: number, end: number) =>
-      lines.push(
-        Object.freeze({
-          start,
-          end,
-          keep: side === 'left' ? (1 as const) : (-1 as const),
-          lateralAt: (at: number) => edges.at(at, read)[side],
-          slopeAt: (at: number) => edges.slopeAt(at, side),
-        }),
-      );
-    for (const [a, b] of intervals) {
-      if (a > s) limit(s, a);
-      s = Math.max(s, b);
-    }
-    if (s < length) limit(s, length);
+    lines.push(
+      Object.freeze({
+        start: 0,
+        end: length,
+        keep: side === 'left' ? (1 as const) : (-1 as const),
+        lateralAt: (at: number) => edges.at(at, read)[side],
+        slopeAt: (at: number) => edges.slopeAt(at, side),
+      }),
+    );
   }
   return Object.freeze(lines);
 }

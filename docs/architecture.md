@@ -475,11 +475,11 @@ only points within a Section reach the Section table.
 
 The Route reader is the one physical surface read: vehicle support, tire contact, suspension, recovery and drivers'
 grip read the ground through it, and nothing else does. It reads each Section's ground (`CompiledSection.ground`), the
-material table continued behind each closed course limit: at a lateral beyond a closed limit, on its outer side, the
+material table continued behind each course limit: at a lateral beyond a limit, on its outer side, the
 ground is the material at the limit itself, the outermost covered span at that station, out to the lateral domain's
 edge (`MAXIMUM_VEHICLE_REACH` beyond the limit). Height and normal depend on the station alone, so the ground there has
-the limit's height, normal and material. Each side follows its own limit; over a Section's `openLimits` interval on a
-side there is no ground beyond the material. The material table itself, appearance and sound are unchanged.
+the limit's height, normal and material. Each side follows its own limit, and the limits are closed everywhere. The
+material table itself, appearance and sound are unchanged.
 Gate/grid validation and fork compilation consume the same table. Support-interval construction
 is compiler-only; running point reads do not allocate arrays, objects or readers.
 
