@@ -4,21 +4,21 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 
 ## Commands
 
-| Command                       | Purpose                                                               |
-| ----------------------------- | --------------------------------------------------------------------- |
-| `npm ci`                      | Install locked dependencies                                           |
-| `npm run check`               | Lint, format, strict product/tool type checks, dependencies and links |
-| `npm run check:static`        | `check` without the product type check, which `npm test`'s build does |
-| `npm run lint`                | Lint source, tests and tools                                          |
-| `npm run format`              | Format maintained files                                               |
-| `npm run format:check`        | Check formatting; `content/` JSON has its own layout owner            |
-| `npm run check:links`         | Check the Markdown's relative links and their headings' fragments     |
-| `npm run build`               | Clear dist, compile TypeScript, build tools and generate content      |
-| `npm test`                    | All checks, build, startup and screens smoke and driving scenarios    |
-| `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe               |
-| `npm run hud-tiles`           | Draw the HUD part tiles and pictures into the text tiles              |
-| `npm run skies`               | Draw the course skies that have sources into course images            |
-| `python3 -m http.server 8000` | Serve the checkout, game and tools                                    |
+| Command                       | Purpose                                                                 |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| `npm ci`                      | Install locked dependencies                                             |
+| `npm run check`               | Lint, format, strict product/tool type checks, dependencies and links   |
+| `npm run check:static`        | `check` without the product type check, which `npm test`'s build does   |
+| `npm run lint`                | Lint source, tests and tools                                            |
+| `npm run format`              | Format maintained files                                                 |
+| `npm run format:check`        | Check formatting; `content/` JSON has its own layout owner              |
+| `npm run check:links`         | Check the Markdown's relative links and their headings' fragments       |
+| `npm run build`               | Clear dist, check and bundle the game, build tools and generate content |
+| `npm test`                    | All checks, build, startup and screens smoke and driving scenarios      |
+| `npm run pictures -- <set>`   | Generate a vehicle sprite set from its views and recipe                 |
+| `npm run hud-tiles`           | Draw the HUD part tiles and pictures into the text tiles                |
+| `npm run skies`               | Draw the course skies that have sources into course images              |
+| `python3 -m http.server 8000` | Serve the checkout, game and tools                                      |
 
 ### Driving scenarios
 
@@ -1208,9 +1208,16 @@ its alignment numbers are committed, under `content/course-underlays/`.
 
 ## Build outputs
 
-`dist/` contains compiled product ESM and bundled browser graphics/audio tools, not Node build-script output. `dist/delivery/` contains every delivered file
-listed below and the content manifest. Product modules compile to `dist/<layer>/`, including the `content`
-layer's modules in `dist/content/`; delivered files stay under `dist/delivery/` so modules and data never share a directory. Course JSON retains authored Strip constructs; the shared compiler expands them and builds immutable
+`dist/` contains the bundled game and the bundled browser graphics/audio tools, not Node build-script output.
+`dist/delivery/` contains every delivered file listed below and the content manifest. The game build
+([`build-game.ts`](../tools/build/build-game.ts)) bundles with esbuild, after `tsc --noEmit` has checked the sources,
+two ESM files: `dist/shell/main-course.js`, the composition root with every module it imports, and
+`dist/audio/vehicle-processor.js`, the AudioWorklet's module graph. The browser fetches these two however deep the
+imports run. Each lies one directory under the build's root, as every module did before bundling, so `../delivery/`
+and the worklet's `../audio/vehicle-processor.js` resolve from `import.meta.url` as before, and the page loads the
+whole build from its commit directory (`build/<sha>/`) or the workbench's. Type checks, the layer check and the
+scenarios read the sources, never the bundle. Delivered files stay under `dist/delivery/` so modules and data never
+share a directory. Course JSON retains authored Strip constructs; the shared compiler expands them and builds immutable
 preblend fields before browser driving or headless rendering. Expanded Strips are
 in-memory compiler products, not committed files or an additional delivered image format. Build also delivers the
 racing lines, game time budgets and pace schedules from the [measured products](#measured-products) saved under

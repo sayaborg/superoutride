@@ -121,7 +121,9 @@ export function rivalSpatialization(
  * changes fades out and waits before the new sound starts. Every settings record it receives is an admitted one.
  */
 export async function createAudioScene(context: AudioContext, surfaces: TireSurfaceSounds) {
-  await context.audioWorklet.addModule(new URL('./vehicle-processor.js', import.meta.url));
+  // The worklet's module, by its place under the build's root: every module of the build, bundled or not, lies one
+  // directory under it, as the delivery's `../delivery/` is reached.
+  await context.audioWorklet.addModule(new URL('../audio/vehicle-processor.js', import.meta.url));
   const graph = createSoundGraph(context);
   const playerEngine = createEngineVoice(context, graph.input('engine'));
   const rivalPan = context.createStereoPanner();

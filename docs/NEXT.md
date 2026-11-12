@@ -606,29 +606,6 @@ borrow:
   rule in physics, ROTARY on screen, one exhaust per rotor per revolution in the engine sound) and whether its pictures
   are shared with OUTRUNNERS' RX-7 (FC3S), whose 1989 candidate would be the late model; its colors are decided then.
 
-## Stage BT — The startup's LOADING screen
-
-From opening the page to TITLE the frame stays black for long: every vehicle's pictures are read before the first
-screen, the small catalogs are fetched one after another, nothing can be drawn until the vehicle and sound
-catalogs are read, and the game's modules are fetched one by one as the browser follows their imports.
-
-K's decisions (2026-11-12):
-
-- While the page starts, the frame shows a LOADING screen: one full-screen picture of the controls, which K draws, with
-  the progress written over it, `LOADING 57%` centred in YELLOW on row 28 (TITLE's `PRESS START` row). The controls
-  are not written in text tiles. Until K's picture is delivered the progress shows on black.
-- Every vehicle's pictures are still read at startup; nothing is read when first needed (vehicles will hardly grow).
-- No change of screen uses black (2026-11-08): LOADING appears without brightening and gives way by line thinning.
-
-The work, in order; the game stays playable after each:
-
-4. **BT-5: the game's modules bundled,** so the files the browser fetches do not grow with the imports' depth; the
-   commit directory, the workbench's build, `../delivery/` and the AudioWorklet module keep their meaning. Type
-   checks, the layer check and the scenarios still read the sources. The stage's last PR removes this section.
-
-Each PR reports the time from opening the page to LOADING and to TITLE, with and without cache, before and after.
-Reading the vehicle pictures when first needed is not part of this stage: K decides on it from these times.
-
 ## Card UI
 
 The selection is rows of cards ([product](product.md#6-flow-and-screens)). GD-5 laid down their skeleton (K,
