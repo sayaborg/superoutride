@@ -48,17 +48,18 @@ function admitScreenPicture(source: DocumentSource): AdmissionResult<TilePicture
   });
 }
 
-/** The catalog of the admitted pictures: the title logo is among them. */
+/** The catalog of the admitted pictures: the title logo and the picture of the controls are among them. */
 function screenPictureCatalog(pictures: Map<string, TilePicture>): AdmissionResult<ScreenPictureCatalog> {
   return admit(`content/${SCREEN_PICTURES_DIRECTORY}/`, () => {
-    requireAdmission(pictures.has(TITLE_LOGO.id), 'unresolved_reference', '', `Missing ${TITLE_LOGO.id}`);
+    for (const { id } of [TITLE_LOGO, CONTROLS_PICTURE])
+      requireAdmission(pictures.has(id), 'unresolved_reference', '', `Missing ${id}`);
     return pictures as ScreenPictureCatalog;
   });
 }
 
 /**
- * Admit the screen pictures: each document is a tile picture named by its file name, and the title logo is among them
- * at its size. A series admits its own image's size and opacity.
+ * Admit the screen pictures: each document is a tile picture named by its file name, and the title logo and the picture
+ * of the controls are among them, each at its size. A series admits its own image's size and opacity.
  */
 export function compileScreenPictures(sources: readonly DocumentSource[]): AdmissionResult<ScreenPictureCatalog> {
   const pictures = new Map<string, TilePicture>();
@@ -86,10 +87,9 @@ export async function loadScreenPictures(
   return requireLoaded(screenPictureCatalog(pictures));
 }
 
-/** The delivered screen picture `id` alone, admitted as the catalog admits it, or null when none is delivered. */
-export async function loadScreenPicture(content: ContentDelivery, id: string): Promise<TilePicture | null> {
-  const entry = content.manifest.files.find((file) => file.kind === 'screen-picture' && file.id === id);
-  if (!entry) return null;
+/** The delivered screen picture `id` alone, admitted as the catalog admits it. */
+export async function loadScreenPicture(content: ContentDelivery, id: string): Promise<TilePicture> {
   const value = await content.json('screen-picture', id);
+  const entry = content.manifest.files.find((file) => file.kind === 'screen-picture' && file.id === id)!;
   return requireLoaded(admitScreenPicture({ id, path: entry.path, value, sha256: entry.sha256 }));
 }

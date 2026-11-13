@@ -24,7 +24,7 @@ export const ZOOM_CENTRE = Object.freeze({
 /** The shake's reach: this share of the row's pitch. */
 const SHAKE = 0.06;
 /** TITLE's PRESS START row, and its blink: shown this many fixed steps, then hidden as many as the second. */
-export const PRESS_START_ROW = 28;
+const PRESS_START_ROW = 28;
 const BLINK = Object.freeze({ on: 32, off: 16 });
 /** The title logo's top, standing for the main picture until it is made. */
 const LOGO_Y = 16;

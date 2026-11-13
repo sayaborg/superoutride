@@ -626,6 +626,17 @@ borrow:
   rule in physics, ROTARY on screen, one exhaust per rotor per revolution in the engine sound) and whether its pictures
   are shared with OUTRUNNERS' RX-7 (FC3S), whose 1989 candidate would be the late model; its colors are decided then.
 
+## Stage BT follow-up — Progress by bytes
+
+K's decision (2026-11-13): LOADING's percentage and the PRE-RACE card's bar count bytes, not files, so they advance
+with the time the reading takes.
+
+- **BT-7:** each manifest entry carries its delivered file's size, written by the build and admitted with the manifest
+  (a new manifest version). The progress is the bytes of the files read (fetched, verified, decoded and admitted) over
+  the bytes of every file planned, whole and never falling; a file counts only once read whole. The PRE-RACE card's
+  course files count the same way. The PR records the percentage once a second at 4× CPU throttle. This section goes
+  with it.
+
 ## Card UI
 
 The selection is rows of cards ([product](product.md#6-flow-and-screens)). GD-5 laid down their skeleton (K,

@@ -4,7 +4,6 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 import type { Screen } from './screen-host.js';
 import { createMenuScreen, writeCentred } from './menu.js';
 import type { TilePicture } from '../image/tile-picture.js';
-import { PRESS_START_ROW } from './card-rows.js';
 
 /**
  * The screen after a run's assembly failed: LOAD FAILED in red, with RETRY and BACK. The reason is not drawn: it may
@@ -28,16 +27,19 @@ export function createLoadFailedScreen(
   });
 }
 
+/** LOADING's row: the text grid's last (y 232–239), which the picture of the controls leaves free. */
+const LOADING_ROW = 29;
+
 /**
- * LOADING, the screen the page's startup stands on: the picture of the controls, or black until it is delivered, and
- * over it `LOADING <n>%` centred in YELLOW on TITLE's PRESS START row, nothing else and no blinking. The percentage is
+ * LOADING, the screen the page's startup stands on: the picture of the controls, and over it `LOADING <n>%` centred in
+ * YELLOW on the bottom row, which the picture leaves free, nothing else and no blinking. The percentage is
  * the share of the startup's files read, whole and never falling. Commands do nothing; it thins away to the next screen.
  */
 export function createLoadingScreen(
   frame: SoftwareSurface,
   text: TextLayer,
   present: () => void,
-  picture: TilePicture | null,
+  picture: TilePicture,
 ) {
   let percent = 0,
     // The percentage drawn last: the canvas keeps the frame presented, so an unchanged one is not drawn again.
@@ -54,9 +56,9 @@ export function createLoadingScreen(
       if (percent === drawn) return;
       drawn = percent;
       frame.clear(0);
-      picture?.draw(frame, 0, 0);
+      picture.draw(frame, 0, 0);
       text.clear();
-      writeCentred(text, PRESS_START_ROW, `LOADING ${percent}%`, TEXT_PALETTES.YELLOW);
+      writeCentred(text, LOADING_ROW, `LOADING ${percent}%`, TEXT_PALETTES.YELLOW);
       text.draw(frame);
       present();
       if (percent === 100) complete();

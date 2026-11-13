@@ -134,7 +134,7 @@ async function startPage(): Promise<void> {
       const reload = () => location.reload();
       host.show(createLoadFailedScreen(devices.framebuffer, textLayer, present, { retry: reload, back: reload }));
     };
-    // LOADING stands on the picture of the controls once it is read, or on black while none is delivered.
+    // LOADING stands on the picture of the controls once it is read.
     loading = createLoadingScreen(
       devices.framebuffer,
       textLayer,

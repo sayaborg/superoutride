@@ -64,10 +64,11 @@ the console and, with `dev=1`, outside the frame with Retry.
 
 ## Screens
 
-LOADING is the page's first screen: it stands once the text tiles and the picture of the controls are read (the
-picture is [`controls`](image-assets.md#screen-pictures); while none is delivered, LOADING stands on black). It appears
-at full brightness at once, from the page's black. Over the picture it writes `LOADING <n>%` centred in YELLOW on row
-28, TITLE's PRESS START row, and nothing else, without blinking: `<n>` is the share of the startup's files read
+LOADING is the page's first screen: it stands once the text tiles and the picture of the controls
+([`controls`](image-assets.md#screen-pictures)) are read. It appears at full brightness at once, from the page's black.
+Over the picture it writes `LOADING <n>%` centred in YELLOW on row 29, the last (y 232–239), which the picture leaves
+free (K, 2026-11-13: its own row, not PRESS START's 28, which the picture's divider reaches), and nothing else,
+without blinking: `<n>` is the share of the startup's files read
 ([Display and scheduling](#display-and-scheduling)), whole and never falling. It has no minimum time. While it stands,
 menu commands do nothing and nothing sounds. Once it has drawn 100% it gives way by line thinning to TITLE, or to the
 PRE-RACE card of a run the URL names. A startup that fails once the frame can write text shows LOAD FAILED in the frame,
