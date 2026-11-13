@@ -2,13 +2,13 @@
   "format": "superoutride.racing-line",
   "version": 2,
   "courseBuildSha256": "7c0571fbb51ab34170c3eea4731986fa09136fc4791a68b70d43242e8e1d3dda",
-  "procedureSha256": "295b712c4a507a9c8b6e5c5ee8c63618c99595b0354621fdcf6045648c5d6385",
+  "procedureSha256": "22a549ef40d91f1f1f05a7962483edcd8f927b157651aa89778609d8a269d467",
   "spacing": 5,
   "lengthWeight": 0,
   "vehicles": [
     {
       "vehicleId": "MCLAREN_MP4_4",
-      "vehicleSha256": "77ae9c73325964f1b8085889606945e61269a0351f30305a81cf8f0021cfb1f0",
+      "vehicleSha256": "e10cac154b4cd46c84d005f2df0fff408a4c2b10b2b75a0962cbfab733c3a972",
       "seconds": 131.87,
       "minimumCurvatureSeconds": 131.87
     }

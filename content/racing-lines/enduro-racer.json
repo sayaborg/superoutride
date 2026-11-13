@@ -2,13 +2,13 @@
   "format": "superoutride.racing-line",
   "version": 2,
   "courseBuildSha256": "fdc3f7fda9f2009daaf778eb218ce51be67ea320ef5b0eddb9dde1dcfb6ed73e",
-  "procedureSha256": "295b712c4a507a9c8b6e5c5ee8c63618c99595b0354621fdcf6045648c5d6385",
+  "procedureSha256": "22a549ef40d91f1f1f05a7962483edcd8f927b157651aa89778609d8a269d467",
   "spacing": 5,
   "lengthWeight": 0.000562,
   "vehicles": [
     {
       "vehicleId": "R80_GS_PARIS_DAKAR",
-      "vehicleSha256": "a5b3bb827b3b93b068fbc2cea9612bdc798dca96f76980a280150105458eac31",
+      "vehicleSha256": "2b408d3dd21e87e36b907c39427ebb9d240a8ccae299efac306c22eff2030a41",
       "seconds": 484.163,
       "minimumCurvatureSeconds": 488.646
     }

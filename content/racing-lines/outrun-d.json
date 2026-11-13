@@ -2,13 +2,13 @@
   "format": "superoutride.racing-line",
   "version": 2,
   "courseBuildSha256": "196d9201d83d2f3e449b95ad6df23d757472165b5bead663303ee2481dbd023b",
-  "procedureSha256": "295b712c4a507a9c8b6e5c5ee8c63618c99595b0354621fdcf6045648c5d6385",
+  "procedureSha256": "22a549ef40d91f1f1f05a7962483edcd8f927b157651aa89778609d8a269d467",
   "spacing": 5,
   "lengthWeight": 0,
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
-      "vehicleSha256": "feb1c8e834943836d84e691ec8a86de71f1af2ec2be43a92d08dbf66ecb85bf7",
+      "vehicleSha256": "cd4d4a8e8372dcb647b785b081acd328e89bf638a3cda6c55f38c603164899fe",
       "seconds": 431.994,
       "minimumCurvatureSeconds": 431.994
     }

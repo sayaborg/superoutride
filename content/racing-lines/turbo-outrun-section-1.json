@@ -2,13 +2,13 @@
   "format": "superoutride.racing-line",
   "version": 2,
   "courseBuildSha256": "26773f53f4261cb9f0633f2b95e7fbaff63510475947ab836499debc13df6d8c",
-  "procedureSha256": "295b712c4a507a9c8b6e5c5ee8c63618c99595b0354621fdcf6045648c5d6385",
+  "procedureSha256": "22a549ef40d91f1f1f05a7962483edcd8f927b157651aa89778609d8a269d467",
   "spacing": 5,
   "lengthWeight": 0,
   "vehicles": [
     {
       "vehicleId": "FERRARI_F40_1990",
-      "vehicleSha256": "6d39355010b9a879ebeed7dbe0d735f82f43e5f14180ab03079b3a05ee0efd8c",
+      "vehicleSha256": "314746003813df4ac11e203564ee2aaef0f227e99ae1383c51dd7ef5336c9534",
       "seconds": 192.852,
       "minimumCurvatureSeconds": 192.852
     }
