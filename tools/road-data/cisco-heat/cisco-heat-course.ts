@@ -17,6 +17,7 @@ import { bakeSky, sectionYawOrigin, skyYawOrigin } from '../shared/sky-baking.js
 import { lanesOverTwoRoads } from '../shared/two-roads.js';
 import { layBoardCourse, type BoardCourseRoads, type BoardSkyKnot } from '../jaleco/board-course.js';
 import { boardScenes, boardSky, SKY_MIDDLE, type BoardScene } from '../jaleco/ms1-skies.js';
+import { type RightAngle } from '../jaleco/road-plan.js';
 import { boardUses, zoomBoards } from '../jaleco/zoom-boards.js';
 import { spritePen } from '../jaleco/zoom-sprites.js';
 import { roadTables, type HeldStretch, type RoadNumber } from '../jaleco/road-tables.js';
@@ -64,6 +65,12 @@ const OPEN: ReadonlySet<number> = new Set([0x0ff0, 0x5484, 0x5490]);
 /** The conversion's version: its outputs' format. */
 export const CISCO_HEAT_CONVERSION_VERSION = 1;
 
+/**
+ * The jumps each stage's original shows as turns at right angles, laid as quarter turns: tried first at STAGE 1's wharf
+ * (K, 2026-11-13), where its corner board stands past its first jump and its second jump, 8,000 positions on, is the
+ * same corner's.
+ */
+const RIGHT_ANGLES: readonly (readonly RightAngle[])[] = [[{ at: 147_760, joins: [155_760] }]];
 /** How far a record may depart from its table's next heading and position: BIG RUN's (K, 2026-11-09). */
 const PLAN_LIMITS = Object.freeze({ heading: (0.03 * Math.PI) / 180, position: 14 });
 
@@ -267,6 +274,7 @@ export function ciscoHeatCourses(set: RomSet) {
       name,
       tables: CISCO_HEAT_TABLES,
       planLimits: PLAN_LIMITS,
+      rightAngles: RIGHT_ANGLES[stage] ?? [],
       roads,
       goal,
       end,

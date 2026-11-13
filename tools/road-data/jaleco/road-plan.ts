@@ -39,3 +39,56 @@ export function twoRoadPlan(
   const qPlan = arcPlan(q!, end, metres, least, limits, meetingsWithP(p!, q!, end));
   return { p: pPlan, road1: qPlan, beside: secondRoad(p!, pPlan, q!, qPlan, end) };
 }
+
+/**
+ * A turn the original shows at right angles (K, 2026-11-13): its tables' heading jump at `at`, and the jumps after it
+ * that the same corner takes in (`joins`).
+ */
+export interface RightAngle {
+  readonly at: number;
+  readonly joins: readonly number[];
+}
+
+/**
+ * A road's records with each right angle a quarter turn to its jump's side: the records from its jump on turned about
+ * the jump's start by what the quarter turn adds to the jump, and those from each joined jump on turned back by that
+ * jump, so that the plan lays the corner as one turn and the road on from it as its tables run.
+ */
+export function rightAngled(
+  records: readonly RoadPlanRecord[],
+  angles: readonly RightAngle[],
+  tables: RoadTablesAt,
+): readonly RoadPlanRecord[] {
+  const units = tables.turnUnits;
+  const wrap = (u: number) => ((((u + units / 2) % units) + units) % units) - units / 2;
+  const jumpAt = (rs: readonly RoadPlanRecord[], at: number) => {
+    const k = rs.findIndex((r) => r.start === at);
+    if (k < 1) throw new RangeError(`No record starts a jump at ${at}`);
+    return { k, by: wrap(rs[k]!.heading - rs[k - 1]!.heading) };
+  };
+  // The records from the k-th on turned by `by` units about the k-th's start.
+  const turned = (rs: readonly RoadPlanRecord[], k: number, by: number) => {
+    const [px, py] = [rs[k]!.x, rs[k]!.y];
+    const [c, s] = [Math.cos(by * angleRadians(tables)), Math.sin(by * angleRadians(tables))];
+    return rs.map((r, i) =>
+      i < k
+        ? r
+        : {
+            ...r,
+            heading: (((r.heading + by) % units) + units) % units,
+            x: px + (r.x - px) * c - (r.y - py) * s,
+            y: py + (r.x - px) * s + (r.y - py) * c,
+          },
+    );
+  };
+  let out = records;
+  for (const angle of angles) {
+    const { k, by } = jumpAt(out, angle.at);
+    out = turned(out, k, Math.sign(by) * (units / 4) - by);
+    for (const at of angle.joins) {
+      const joined = jumpAt(out, at);
+      out = turned(out, joined.k, -joined.by);
+    }
+  }
+  return out;
+}

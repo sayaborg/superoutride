@@ -170,6 +170,16 @@ Its five courses (`cisco-heat-course`, each laid as the board's, `jaleco/board-c
   the road not taken, drawn as far as it heads within 60° of road 1. As a rule of the board's: where the original holds
   the car on road 1 after it has left P for good, the course follows it from where it left, and the other road is not
   taken from where the car is held on the course's road.
+- **Its right angles** ([Stage CS](NEXT.md#stage-cs--cisco-heat-from-the-roms), K, 2026-11-13). Where the original
+  shows a turn at right angles at a jump of its tables, its two roads' records from the jump on are turned about its
+  start by what a quarter turn adds to the jump, and those from each later jump the same corner takes in are turned
+  back by that jump, so that the plan lays the corner as one 90° turn and the road on from it as its tables run. The
+  turn is as tight as the course's limits allow: its inside's limit alone (10.4 m) where both sides' (21 m) bound every
+  other turn, and the Sections near it, cut at its middle and its ends, reach their inside's limit alone. Outside it the
+  street across, its road's surface, reaches three limits' reach beyond the course's limit; the street ahead ends there.
+  Its objects stand at their stations, its sky turns with the road. Tried first at STAGE 1's wharf: its jump at 147,760
+  (10° right), where its corner board stands, taking in its jump at 155,760 (10° right), which no board, countdown or
+  street marks, turned at 10.38 m; its other jumps are laid as its tables give them.
 - **Its lanes** are its most common picture's ([its road across](#its-road-across)) over its two roads, each at its
   own centre ([two roads](original-road-data.md#two-roads)).
 - **Its pictures.** Each road's picture across, its nearest line's runs, is laid at its centre as BIG RUN's are, road 2's

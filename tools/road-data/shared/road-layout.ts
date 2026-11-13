@@ -76,7 +76,8 @@ export interface RoadLayout {
   readonly pieces: readonly PathPiece[];
   /** Where its Sections are cut, beside where it comes within `reach` of itself: where its original changes at once. */
   readonly cuts: readonly number[];
-  readonly reach: number;
+  /** How near itself its road may come on a side, metres: one for all of it, or at station `u` on `side`. */
+  readonly reach: number | ((u: number, side: 'left' | 'right') => number);
   /** Its heights' changes of grade. */
   readonly road: { readonly bends: readonly Bend[]; readonly kinks: readonly Kink[] };
   /** Its start's grids, which lie in its first Section, and its gates. */
