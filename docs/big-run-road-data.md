@@ -162,10 +162,11 @@ Its six courses (`big-run-course`, each laid as the board's, `jaleco/board-cours
   over the whole and the others repeated, in its layer's palette as its stage loads it. A picture's most common inner run
   across, its stripes and its ground, is laid beneath each stretch of its inner runs, and each other inner run over it
   only where it differs: its ground where that differs, and its stripes' parts that differ, or its own colors where those
-  are no more, so that two pictures keep within the format's 64 active strips; they show as before. Road 1 is not drawn where the
-  two share their plan and lie more than 1 m apart in height (K, 2026-11-11); where road 2's side is clear and nothing
-  lies beneath, its ground is transparent. VICTORY RUN's road 1 is drawn as the road not taken as far as it heads
-  within 60° of P, with no material.
+  are no more, so that two pictures keep within the format's 64 active strips; they show as before. Road 1 is drawn at
+  the course's height wherever the two share their plan, however far apart in height the original holds them (K,
+  2026-11-13, replacing the rule of 2026-11-11): where road 2's side is clear, road 1's picture shows beside it, a
+  river's water at the road's own height. VICTORY RUN's road 1 is drawn as the road not taken as far as it heads within
+  60° of P, with no material.
 - **Its materials.** The town's road `ASPHALT`, the desert's `DIRT`; a river's (kind 2) and a one-line picture's, and
   the ground beside the road, by their colors (`groundMaterial`), water only in a river, a ground the rule makes
   `WATER` elsewhere stopping the conversion for K; under a clear run and between the roads `SAND`, and the lanes keep
@@ -175,10 +176,9 @@ Its six courses (`big-run-course`, each laid as the board's, `jaleco/board-cours
   sprites' palette ([its objects](#its-objects)): its lateral its picture's left edge from its road's centre in units
   across; its height its picture's top edge over that road, its board's base its drawn height below it ([its
   objects](#its-objects), Their places), in units up, a unit up a screen pixel's height over its width of a unit across
-  (6/7), as its pictures are drawn. On a road not drawn they stand at that road's height below the course's, and where
-  it lies above none does; past the road not taken's end none does. A hit (flags' bits 9 and 10, which the program puts
-  in its list of things the car meets) has a body as wide as its picture's colored columns. Objects of the other kinds,
-  which the program moves or picks, are not placed.
+  (6/7), as its pictures are drawn, at the course's height as their road is drawn; past the road not taken's end none
+  does. A hit (flags' bits 9 and 10, which the program puts in its list of things the car meets) has a body as wide as
+  its picture's colored columns. Objects of the other kinds, which the program moves or picks, are not placed.
 - **Its scale across** is its own car's straight picture's (K, 2026-11-09), as wide as a real car of its kind in 1989,
   the Peugeot 405 T16 Grand Raid's 1,760 mm ([Ultimatecarpage, its
   specifications](https://www.ultimatecarpage.com/spec/4960/Peugeot-405-T16-Grand-Raid.html), Dimensions): its frame

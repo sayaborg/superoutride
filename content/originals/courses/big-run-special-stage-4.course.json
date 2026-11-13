@@ -35326,6 +35326,51 @@
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-1-centre", "offset": -10.580706 },
+          "right": { "boundary": "road-1-centre", "offset": -5.300706 },
+          "color": null,
+          "material": "WATER"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": null,
+          "right": { "boundary": "road-1-centre", "offset": -5.300706 },
+          "color": 13114,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-1-centre", "offset": -5.300706 },
+          "right": { "boundary": "road-1-centre", "offset": 0 },
+          "color": 9778,
+          "material": "WATER"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-1-centre", "offset": 0 },
+          "right": { "boundary": "road-1-centre", "offset": 10.580706 },
+          "color": null,
+          "material": "WATER"
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
+          "left": { "boundary": "road-1-centre", "offset": 0 },
+          "right": null,
+          "color": 9844,
+          "material": null
+        },
+        {
+          "kind": "strip",
+          "start": { "joint": "s0", "offset": 0 },
+          "end": { "joint": "end", "offset": 0 },
           "left": -3.872,
           "right": 3.872,
           "color": 21035,
@@ -35628,7 +35673,7 @@
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "outer-left", "offset": 0 },
-          "right": -3.872,
+          "right": { "boundary": "road-1-centre", "offset": -10.580706 },
           "color": null,
           "material": "SAND"
         },
@@ -35636,7 +35681,7 @@
           "kind": "strip",
           "start": { "joint": "s0", "offset": 0 },
           "end": { "joint": "end", "offset": 0 },
-          "left": 3.872,
+          "left": { "boundary": "road-1-centre", "offset": 10.580706 },
           "right": { "boundary": "outer-right", "offset": 0 },
           "color": null,
           "material": "SAND"

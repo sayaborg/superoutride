@@ -203,8 +203,8 @@ Its five courses (`cisco-heat-course`, each laid as the board's, `jaleco/board-c
 - **Its objects** of kind 0 stand where their records put them, each a board of its descriptor's sprite at its record's
   scale and mirroring, in its stage's sprites' palette ([its objects](#its-objects)): its lateral its picture's left
   edge from its road's centre in units across; its height its picture's bottom edge over that road, in units up, a
-  unit up a screen pixel's height over its width of a unit across (6/7). On a road not drawn they stand at that road's
-  height below the course's, and where it lies above none does; past the road not taken's end none does. A hit has a
+  unit up a screen pixel's height over its width of a unit across (6/7), at the course's height as their road is drawn
+  ([BIG RUN's pictures](big-run-road-data.md#its-conversion)); past the road not taken's end none does. A hit has a
   body between the columns its program meets the car between ([its objects](#its-objects), Their hits), within its
   picture's, as the course format holds a solid part: where they reach past its picture (two of STAGE 2's), its body is
   the part within it. Descriptor 0x0FF0's hits, 9.1 m wide, most across its road's middle (30 over the five stages),

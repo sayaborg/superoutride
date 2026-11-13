@@ -346,19 +346,14 @@ export function bigRunCourses(set: RomSet) {
       },
       // Each object's place: its road's centre, its lateral its picture's left edge, its height its picture's top edge
       // over its road, its sprite drawn down from it (its foot its drawn height below), a unit up a screen pixel's
-      // height over its width of a unit across, as its picture is drawn; on a road not drawn, at that road's height
-      // below the course's, and none where it lies above or past the road not taken.
-      sprites: ({ station, drawn, shown1, leavesAt, notTakenEnd }) => {
+      // height over its width of a unit across, as its picture is drawn; at the course's height, as its road is, and none
+      // past the road not taken.
+      sprites: ({ station, shown1, leavesAt, notTakenEnd }) => {
         const placeOf = (o: BigRunObject) => {
           const p = o.position;
           const centre = o.road === 2 ? 0 : shown1.at(p);
-          let lift = (o.height - drawnUnits(o.descriptor)) * UP;
+          const lift = (o.height - drawnUnits(o.descriptor)) * UP;
           if (o.road === 1 && p >= leavesAt && p >= notTakenEnd) return null;
-          if (!drawn(o.road, p)) {
-            const own = otherHeights[o.road - 1]!.height(p) - heights.profile.height(p);
-            if (own > 0) return null;
-            lift += own * f * metres;
-          }
           const board = boards.get(boardOf(o).name);
           if (!board) return null;
           const palette = uses.paletteOf(board.name, stage, o.color);

@@ -34,8 +34,6 @@ import type { HeldStretch, RoadNumber, RoadPlanRecord, RoadTables, RoadTablesAt 
 
 /** How far the course reaches beyond the outermost road's centre on each side, units: a line's half. */
 export const LIMIT_UNITS = LINE_PIXELS / 2;
-/** How far apart in height the two roads may be where they share their plan for both to be drawn, metres (K, 2026-11-11). */
-const DRAWN_APART = 1;
 /** No Section is cut this near the grid's front, positions. */
 const GRID_CLEAR = 1000;
 /** Road 1's centre is taken every this many positions where it parts from P. */
@@ -195,8 +193,8 @@ export interface BoardStage {
 /**
  * Stage `stage`'s course: its plan (road 2 as P, road 1 beside it), road 1's centre where it parts from P and meets it
  * again (where it jumps back onto P, its own to a position before), and as the road not taken where it leaves; its lanes over both roads; its grid; its Sections cut where a
- * picture changes, the roads part and meet and a hold changes; each road drawn but where they share their plan and lie
- * more than a metre apart in height; its pictures' strips, road 2's clear runs first, road 1's picture over them, then
+ * picture changes, the roads part and meet and a hold changes; each road drawn at the course's height (K, 2026-11-13);
+ * its pictures' strips, road 2's clear runs first, road 1's picture over them, then
  * road 2's own; its limits `LIMIT_UNITS` beyond the outermost road's centre; its skies and sprites by its hooks.
  */
 export function layBoardCourse(stage: BoardStage) {
@@ -415,14 +413,9 @@ export function layBoardCourse(stage: BoardStage) {
   const cutsAt = [
     ...new Set(stage.cutAtPictures ? sectionCuts : [...sectionCuts, ...pictureChanges.filter((p) => p > 0 && p < end)]),
   ].sort((a, b) => a - b);
-  // Whether road `road` is drawn at `p`: the held road always; the other unless they share their plan and lie more than
-  // a metre apart in height, or it has left P.
-  const drawn = (road: RoadNumber, p: number) => {
-    if (road === heldOn(p)) return true;
-    if (road === 1 && p >= leavesAt) return p < notTakenEnd;
-    const apart = heights.apart(p);
-    return !(Math.abs(lateral1.at(p)) < 1e-6 && apart > DRAWN_APART);
-  };
+  // Whether road `road` is drawn at `p`, at the course's height however far apart the original holds the two (K,
+  // 2026-11-13): the road not taken as far as its picture goes, every other road everywhere.
+  const drawn = (road: RoadNumber, p: number) => road === 2 || p < leavesAt || road === heldOn(p) || p < notTakenEnd;
   const context: BoardCourseContext = { station, positionOf, back, path, shown1, leavesAt, notTakenEnd, drawn, roads };
   const placed = stage.sprites(context);
   const runsOf = (road: RoadNumber, p: number) => stage.runsOf(original(road, p), pictureAt(road, p), p);

@@ -350,20 +350,14 @@ export function ciscoHeatCourses(set: RomSet) {
         return { knots, yawOf };
       },
       // Each object's place: its road's centre, its lateral its picture's left edge, its height its picture's bottom
-      // edge over its road; on a road not drawn, at that road's height below the course's, and none where it lies
-      // above or past the road not taken; a hit where its program meets the car with it, within its picture.
-      sprites: ({ station, drawn, shown1, leavesAt, notTakenEnd, roads: on }) =>
+      // edge over its road, at the course's height as its road is, and none past the road not taken; a hit where its program meets the car with it, within its picture.
+      sprites: ({ station, shown1, leavesAt, notTakenEnd, roads: on }) =>
         objects[stage]!.plain.flatMap((o) => {
           const p = o.position;
           const road: RoadNumber = on.original(2, p) === o.road ? 2 : 1;
           if (road === 1 && p >= leavesAt && p >= notTakenEnd) return [];
           const place = ciscoHeatPlace(main, o, pixel);
-          let lift = place.bottom * UP;
-          if (!drawn(road, p)) {
-            const own = read[o.road - 1]!.height(p * metres) - read[on.course(p) - 1]!.height(p * metres);
-            if (own > 0) return [];
-            lift += own;
-          }
+          const lift = place.bottom * UP;
           const board = boards.get(boardOf(o).name);
           if (!board) return [];
           // A hit within its picture's columns, as the course format holds a solid part; none for a descriptor whose

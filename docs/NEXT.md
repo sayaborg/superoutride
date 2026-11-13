@@ -566,9 +566,8 @@ Defaults for K to confirm before the stage closes, each its PR's:
   meeting not read; descriptor 0x0FF0's hits and STAGE 4's barrier of 0x5484 and 0x5490, which would close
   the road, not laid.
 - **Its objects** (CS-4). Placed as BIG RUN's: a board a descriptor, scale and mirroring, in its stage's sprites'
-  palette; on a road not drawn at that road's height below the course's, none where it lies above or past the road not
-  taken; those of other kinds, which the program moves or picks, not placed ([its
-  conversion](cisco-heat-road-data.md#its-conversion)).
+  palette; at the course's height as their road is drawn, none past the road not taken; those of other kinds, which
+  the program moves or picks, not placed ([its conversion](cisco-heat-road-data.md#its-conversion)).
 - **Each way's slide** (CS-2). A plane slides by its slide's whole pixels, a pixel more one way than the other (the
   front 15 and 16, the back 7 and 8): their mean.
 - **The steps along a scene** (CS-2). Not laid, as BIG RUN's: a sky lays its scene's own row offset.
