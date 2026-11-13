@@ -71,8 +71,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-2, then [Stage
-RC](#stage-rc--one-recovery)'s RC-2 and RC-3, and AD-3; in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and
-beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
+RC](#stage-rc--one-recovery)'s RC-2 and RC-3, and AD-3; in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls);
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
@@ -462,119 +461,6 @@ Stage RM makes what Stage PG left to later stages in [Courses of the originals](
 and the walls go, so their follow-ups (forks' transfer, a fork's conditional bodies, wall Strips and the walls'
 open decisions) are not kept.
 
-## Stage CS — CISCO HEAT from the ROMs
-
-Stage CS raises JALECO's CISCO HEAT (1990) from its ROMs ([Raising an original from its
-ROMs](original-road-data.md#raising-an-original-from-its-roms)), after BIG RUN, whose studies read it with BIG RUN's.
-
-Its board and tables are [BIG RUN](big-run-road-data.md)'s, one layer reading both, its headings 65,536 a
-turn where BIG RUN's are 16,384, and its tick is BIG RUN's. MAME calls CISCO HEAT's pictures imperfect, so how it looks
-is compared with K's videos or a cabinet's records.
-
-K's decisions (2026-11-09):
-
-- **Its courses** are its five stages, one a course, as the [course texts](#course-names-and-descriptions) name them
-  (`cisco-heat-stage-1` to `cisco-heat-stage-5`); its two roads are BIG RUN's, the one that leaves at STAGE 5's end the
-  road not taken. In STAGE 5 they change their order across eight times, its first road on one side of its second where
-  they run side by side and on the other where they part widest, as BIG RUN's and its other stages' never do; [the lanes
-  over two roads](original-road-data.md#two-roads) take either order.
-- **Its heading's jumps** between straights (4° to 20°) are laid as turns by [the plan from a table's
-  arcs](original-road-data.md#plan-from-a-tables-arcs), and where its first road jumps back onto its second at the end
-  of their parting, a Section is cut.
-- **Its heights** are no 3D road times f: its grades pass −90° and its stages fall by up to a fifth of their length,
-  which its camera, tilting with the road, never shows. They are read back from its screen as [Profile from the
-  original's screen](original-road-data.md#profile-from-the-originals-screen) reads a screen alone, the rule extended to
-  a camera that tilts with the road. Its 59 places steeper than −40°, in STAGES 1, 2, 3 and 5, show as crests the road
-  falls away beyond and as climbs ahead, never as walls, as the study saw its road CPU draw them.
-- **Its scale along** is its program's: its car gains a position a tick for each whole unit of its speed, which its
-  speedometer shows times 1.75 km/h, so a position is 16.2 mm (1.75 / 108 m), 1.225 times BIG RUN's. Its program scales
-  the gain on an arc by the car's lateral and pushes on a car that falls behind; both are its handling, not its course,
-  and change no length.
-- **Its scale across** is its own car's, as BIG RUN's: the sedan, one of the two cars a player chooses from, as wide as
-  the Ford LTD Crown Victoria of 1990, 1.969 m, its chapter citing Edmunds. Its straight picture, 79 pixels wide, is
-  drawn at its own size where its road shows 0.81 to 0.82 pixels a unit, so it is 97 units wide, as wide as the same car
-  drawn as a rival near the camera, and a unit across is 20.3 mm, 1.25 times a unit along; K adjusts it at the end, as
-  every original's scale across. The other car, of the Nissan 300ZX's kind, is 77 units wide.
-
-K decided (2026-11-12):
-
-- **Its two roads' heights** are taken as BIG RUN's are ([its conversion](big-run-road-data.md#its-conversion), K, 2026-11-11):
-  the course takes the heights of the road the original holds the car on, and where the two lie apart both are drawn at
-  the course's heights. Both roads' heights are read back from its screen by one rule, so that where one lies more than
-  1 m below the other is taken between two readings alike.
-- **Its skies** turn with the road at one rate, as every course's do: its program shifts its planes only through a
-  curve, by its speed and up to a limit, and back on a straight, so its sky is baked as one turning a fixed number of
-  pixels a degree, the rate at which its planes shift through its curves at its default speed, its chapter giving how.
-- **One road layer.** The board takes no second road layer for now: its courses are raised on one road layer as BIG
-  RUN's are, its two roads where they lie apart drawn at the course's heights, and its courses' PR reports how far apart
-  in height its two roads lie where they part. A second road layer, which would draw them at their own heights and the
-  water BIG RUN's first road shows below its second over its rivers, would be a stage of its own, its courses and BIG
-  RUN's raised again then.
-- **STAGE 5's end.** Its course follows road 1 there, as its main program holds the car on it from 507,330 past its
-  goal; road 2 is the road not taken from there, drawn clear to 515,706 and going on 16° right of road 1 from 556,330.
-
-The stage starts by reading how its screen draws its two roads where their order changes, which one's paint shows over
-the other's, and its courses' PR measures its own car's width again.
-
-Defaults for K to confirm before the stage closes, each its PR's:
-
-- **The rule's words** (CS-1). [Profile from the original's
-  screen](original-road-data.md#profile-from-the-originals-screen)'s cameras are one reading camera, its focal length,
-  pinhole and behind, level or tilting with the grade under the player as the original's is, each original's camera one
-  of it; CISCO HEAT's tilts, at this game's focal length where its pinhole lies. No other original's reading changes.
-- **Its camera's pitch** (CS-1). Its road CPUs pitch the camera by the held road's angle under the car, and its main
-  program adds a pitch where a record of its first road's list gives one, gone within 16 frames
-  ([research](research/cisco-heat.md#its-camera)); its screen is read at the road's angle alone.
-- **Its skies' turn** (CS-2, CS-3f). Its planes slide through a curve at its highest top speed, 160 units a frame,
-  while the car turns through its roads' sharpest common curves, 7,000 positions ([its
-  skies](cisco-heat-road-data.md#its-skies)): 5.73 pixels a degree for the back and 11.84 for the front, its back
-  plane's pictures laid about 1.4 times narrower than the original draws them, as BIG RUN's 1.9; the radius its roads
-  turn through longest, 40,000, would lay them 7.8 times narrower.
-- **A jump beside an arc** (CS-3g). [The plan from a table's arcs](original-road-data.md#plan-from-a-tables-arcs)
-  lays a heading's jump as a turn added to the records either side, straight or arc, over the fewest whole positions
-  alike either side at which the curvature they add up to keeps the lanes' least radius; a jump between straights is
-  the case of it the rule laid before. It lays STAGE 5's 20° jump of both roads at 351,908, after an arc of 65,000
-  positions; no other original's reading changes.
-- **Its screen** (CS-3l). Its road CPU's rows as its program draws them from its tables ([its
-  heights](cisco-heat-road-data.md#its-heights)), its nearest row on its screen's last, a frame every 64 positions of
-  the car (about a metre), each stage's road read from its start to its end, its goal and on to the first record of
-  either road past it, at most 2,000 positions, as BIG RUN's, level before its start; in parts (CS-3n), cut at both ends
-  of each run of at least 200 m, its sight, whose screen shows no hill.
-- **Its lanes** (CS-3k). Its two roads keep the lanes of its most common picture, kind 2's, wherever they go, as BIG
-  RUN's keep its town's: four lanes of 116, 142, 142 and 116 units, its lines' surface the pen they cover most, as the
-  run at their centre is a lane line ([its road across](cisco-heat-road-data.md#its-road-across)).
-- **Its colours** (CS-3m). A row's entry its word's bits 0 to 5, its bit 6 (the striped deck's variants) not read; each
-  layer's palette as its stage loads it at its start, the changes its records make on along it not read; its sky's
-  entries their first set, then their last from where its fade begins ([its
-  colours](cisco-heat-road-data.md#its-colours)).
-- **Its courses** (CS-3). Its own car alone at its start on road 2, at the centre of the lane right of the road's
-  middle; the ground where its pictures give none the city's `ASPHALT`; a picture's neighbouring runs of one paint one
-  run, its widest run's colors and material, for the course format's 64 strips at a station; its Sections cut at its
-  pictures' changes only as often as keeps their strips within the format's 2,048; no turn of its plan tighter than it
-  reaches on its inside there (21 m, or its limit beyond road 1's centre where road 1 lies on that side), the least
-  radius it gives the plan from a table's arcs (its rule's `leastLaneRadius`); its scale
-  across its own car's rear frame's 97.3 units where it is drawn at its own size, the study's 97 measured again ([its
-  conversion](cisco-heat-road-data.md#its-conversion)).
-- **Its objects' places** (CS-4a). An object's lateral is its picture's left edge from its road's centre and its height
-  its picture's bottom edge over its road, as its sprites are drawn up from their y; its scale its flags' bits 12 to 14;
-  those of its flags' bits 11 (between the two roads) and 15 (moved by the program) read as the others; a hit where its
-  program meets the car with it, between its descriptor's columns +0 and +2 within its picture's, the program's own
-  meeting not read; descriptor 0x0FF0's hits and STAGE 4's barrier of 0x5484 and 0x5490, which would close
-  the road, not laid.
-- **Its objects** (CS-4). Placed as BIG RUN's: a board a descriptor, scale and mirroring, in its stage's sprites'
-  palette; on a road not drawn at that road's height below the course's, none where it lies above or past the road not
-  taken; those of other kinds, which the program moves or picks, not placed ([its
-  conversion](cisco-heat-road-data.md#its-conversion)).
-- **Each way's slide** (CS-2). A plane slides by its slide's whole pixels, a pixel more one way than the other (the
-  front 15 and 16, the back 7 and 8): their mean.
-- **The steps along a scene** (CS-2). Not laid, as BIG RUN's: a sky lays its scene's own row offset.
-
-The PRs, in order:
-
-- **CS-5** The stage closes, its scale across left for K to adjust at the end: this section goes, what is left goes to
-  [Courses of the originals](#courses-of-the-originals), and CISCO HEAT's class goes into [the
-  product](product.md#arcade-tribute).
-
 ## Stage DT — DRIFT TUNED trial vehicles
 
 On hold (K, 2026-10-27), and it may be stopped. What is on main stays: each vehicle's tire and wheel slip protection,
@@ -792,7 +678,7 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 ### Courses of the originals
 
 OUTRUN's, SUPER HANG-ON's, TURBO OUTRUN's, ENDURO RACER's, POLE POSITION II's, FINAL LAP 2's, CHASE H.Q.'s, TOP SPEED's,
-CONTINENTAL CIRCUS's and BIG RUN's courses are raised from their ROMs' road data ([Original road data](original-road-data.md));
+CONTINENTAL CIRCUS's, BIG RUN's and CISCO HEAT's courses are raised from their ROMs' road data ([Original road data](original-road-data.md));
 RACING HERO is not made (K, 2026-10-22). Their time limits come from reference driving, as for every course.
 
 Left by the stages that raised them, beside what follows:
@@ -876,12 +762,23 @@ Left by the stages that raised them, beside what follows:
 - BIG RUN: its ARCADE TRIBUTE series, of the classes [the product](product.md#arcade-tribute) names, is not made. Not
   drawn as the original draws them ([its chapter](big-run-road-data.md#its-conversion)): the water its first road shows
   below its second over its five rivers, where the course shows its sky's rows below the horizon, which a second road
-  layer would draw ([One road layer](#stage-cs--cisco-heat-from-the-roms)); a scene's steps up and down along it (21 of
+  layer would draw (BIG RUN and CISCO HEAT, below); a scene's steps up and down along it (21 of
   its 26 scenes, 2 to 80 rows each), a sky laying its scene at its own row offset; and its sky's color below the
   horizon, its ramp's first row's. Not read: the rows' priorities its roads' flags set, the program's own limit to the
   car's lateral, and how the program meets its hits. Its objects of kinds other than 0, which the program moves or
   picks, are not placed. K adjusts its scale (1.76 m, its own car, a unit across 20.7 mm) by driving in DEV, its
   courses then raised again.
+- CISCO HEAT: its ARCADE TRIBUTE series, of the classes [the product](product.md#arcade-tribute) names, is not made; how
+  it looks is compared with K's videos or a cabinet's records, as MAME calls its pictures imperfect. Not drawn as the
+  original draws them ([its chapter](cisco-heat-road-data.md#its-conversion)): its two roads at their own heights where
+  they lie apart (below); a scene's steps up and down along it, a sky laying its scene at its own row offset. Not read:
+  its rows' bit 6 (the striped deck's variants), the palettes' changes its records make along a stage, the pitch its
+  main program adds to its camera, how the program meets the car with an object, and what its objects' flags' bits 11
+  and 15 do. Its objects of kinds other than 0 are not placed. K adjusts its scale (1.969 m, its own car's 97.3 units, a
+  unit across 20.2 mm) by driving in DEV, its courses with a model then solved again.
+- BIG RUN and CISCO HEAT: their board is raised on one road layer (K, 2026-11-12), their two roads where they lie apart
+  drawn at the course's heights. A second road layer, which would draw them at their own heights and the water BIG RUN's
+  first road shows below its second over its rivers, would be a stage of its own, their courses raised again then.
 
 When the product's pictures are drawn again, a picture's shadow is cast from its shape, by one rule as a vehicle's is
 cast from its own (K, 2026-10-28): an original's pen 10 and the shadow pictures it draws apart serve only a course
