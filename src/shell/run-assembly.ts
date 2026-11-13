@@ -179,7 +179,7 @@ export async function assembleRun(
       content,
       courseId,
       materials,
-      (files, total) => report?.progress((LOADING_SHARES.files * files) / total),
+      (bytes, total) => report?.progress((LOADING_SHARES.files * bytes) / total),
       {
         slices: page.workSlices(),
         compiled: (fraction) =>

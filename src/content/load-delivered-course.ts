@@ -7,7 +7,8 @@ import { missingContent, requireLoaded } from './content-load-error.js';
 
 /**
  * Resolve a saved course and the delivered images it names through the admitted delivery index. `loaded` hears each
- * fetched file: how many of the course's files have arrived and how many there are, once the course names them. The
+ * fetched file: how many bytes of the course's files have arrived whole, of all their bytes (their manifest sizes),
+ * once the course names its images. The
  * compilation runs as `work` says. With `crestKmh`, a course delivered with crest trials takes their Sections' profiles at that speed (`withCrestTrial`), its
  * identity unchanged; one without them is as saved.
  */
@@ -15,7 +16,7 @@ export async function loadDeliveredCourse(
   content: ContentDelivery,
   id: string,
   materials: SurfaceMaterialCatalog,
-  loaded?: (files: number, total: number) => void,
+  loaded?: (bytes: number, totalBytes: number) => void,
   work?: CourseCompileWork,
   crestKmh: number | null = null,
 ) {
@@ -34,12 +35,13 @@ export async function loadDeliveredCourse(
   // An undelivered name supplies no bytes, and course admission reports it missing.
   const names = new Set(courseImageNames(source));
   const entries = content.manifest.files.filter((entry) => entry.kind === 'image' && names.has(entry.id));
-  let files = 1;
-  loaded?.(files, 1 + entries.length);
+  let arrived = file.size + (trial?.size ?? 0);
+  const total = entries.reduce((sum, entry) => sum + entry.size, arrived);
+  loaded?.(arrived, total);
   const images = await Promise.all(
     entries.map(async (entry) => {
       const bytes = await content.bytes('image', entry.id);
-      loaded?.(++files, 1 + entries.length);
+      loaded?.((arrived += entry.size), total);
       return { name: entry.id, bytes };
     }),
   );

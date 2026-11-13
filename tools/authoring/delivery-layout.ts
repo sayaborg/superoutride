@@ -77,11 +77,11 @@ export async function layoutDelivery(
       continue;
     }
     const path = contentPath(kind, id, sha256);
-    entries.push({ kind, id, path, sha256 });
+    entries.push({ kind, id, path, sha256, size: bytes.length });
     layout.set(path, bytes);
   }
   const manifest = requireLoaded(
-    readContentManifest({ format: 'superoutride.content-manifest', version: 1, files: entries }),
+    readContentManifest({ format: 'superoutride.content-manifest', version: 2, files: entries }),
   );
   layout.set('manifest.json', new TextEncoder().encode(JSON.stringify(manifest) + '\n'));
   return layout;

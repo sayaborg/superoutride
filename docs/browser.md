@@ -33,8 +33,9 @@ page's own startup reads once the files decided from the manifest before reading
 (materials, engine sounds, vehicle sprite sets, vehicle and driving documents, the course index, screen pictures, music
 documents, series, FREE PLAY rules, the front end, the contact explosion and the puffs with their pictures, audio
 settings, surface sounds and engine loudness); courses, their products and recordings are read after it and are not
-among them. Its progress is the share of those files read: fetched, verified against their digests, decoded and
-admitted. Once the frame stands, every file left is fetched at once in reading order, and the startup's work runs in
+among them. Its progress is the share of those files' bytes read (K, 2026-11-13): the sizes the manifest gives of the
+files read, fetched, verified against their digests, decoded and admitted, over the sizes of them all. A file counts
+once read whole; nothing counts within one. Once the frame stands, every file left is fetched at once in reading order, and the startup's work runs in
 the same 8 ms slices: each file's decoding and its admission are units of work, and a vehicle sprite set's admission
 pauses between its pictures. The frame stands as soon as the text tiles are read, and the startup stands on LOADING
 ([Screens](#screens)).
@@ -68,7 +69,7 @@ LOADING is the page's first screen: it stands once the text tiles and the pictur
 ([`controls`](image-assets.md#screen-pictures)) are read. It appears at full brightness at once, from the page's black.
 Over the picture it writes `LOADING <n>%` centred in YELLOW on row 29, the last (y 232–239), which the picture leaves
 free (K, 2026-11-13: its own row, not PRESS START's 28, which the picture's divider reaches), and nothing else,
-without blinking: `<n>` is the share of the startup's files read
+without blinking: `<n>` is the share of the startup's bytes read
 ([Display and scheduling](#display-and-scheduling)), whole and never falling. It has no minimum time. While it stands,
 menu commands do nothing and nothing sounds. Once it has drawn 100% it gives way by line thinning to TITLE, or to the
 PRE-RACE card of a run the URL names. A startup that fails once the frame can write text shows LOAD FAILED in the frame,
@@ -104,7 +105,7 @@ on row 23 and `BEST <time>` (GREEN) on row 25, the record READY would show, `--'
 only).
 On
 row 28, columns 17–37, a progress bar 4 pixels high in the row's middle fills YELLOW over dark gray as the run loads:
-the course's files to 70 %, its compilation to 80 % (Section by Section), the run to 90 %, the assembled run
+the course's files to 70 % (by their bytes, each counted once fetched whole), its compilation to 80 % (Section by Section), the run to 90 %, the assembled run
 to 100 %. The title, course
 name, map, length and laps show at once; the field, start slot and record once the run is prepared. The
 card stays at least 2.5 s (counted in fixed steps) and until the run is assembled; then the black transition leads to

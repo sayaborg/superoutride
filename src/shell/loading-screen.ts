@@ -33,7 +33,7 @@ const LOADING_ROW = 29;
 /**
  * LOADING, the screen the page's startup stands on: the picture of the controls, and over it `LOADING <n>%` centred in
  * YELLOW on the bottom row, which the picture leaves free, nothing else and no blinking. The percentage is
- * the share of the startup's files read, whole and never falling. Commands do nothing; it thins away to the next screen.
+ * the share of the startup's bytes read, whole and never falling. Commands do nothing; it thins away to the next screen.
  */
 export function createLoadingScreen(
   frame: SoftwareSurface,
@@ -66,7 +66,7 @@ export function createLoadingScreen(
   };
   return Object.freeze({
     screen,
-    /** The share of the startup's files read, 0 to 1. */
+    /** The share of the startup's bytes read, 0 to 1. */
     progress(share: number) {
       percent = Math.max(percent, Math.floor(share * 100));
     },

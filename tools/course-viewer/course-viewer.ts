@@ -761,8 +761,8 @@ async function openCourse(id: string) {
   status.textContent = `Opening ${id}…`;
   courseSelect.disabled = true;
   try {
-    const course = await loadDeliveredCourse(content, id, materials, (files, total) => {
-      status.textContent = `Opening ${id}: ${files} of ${total} files`;
+    const course = await loadDeliveredCourse(content, id, materials, (bytes, total) => {
+      status.textContent = `Opening ${id}: ${Math.floor((bytes / total) * 100)}% of its files`;
     });
     // How the course is written comes from the authored document the build published, as the workbench reads it.
     const source = authored

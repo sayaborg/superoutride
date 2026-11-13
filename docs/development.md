@@ -1224,8 +1224,9 @@ racing lines, game time budgets and pace schedules from the [measured products](
 `content/`; it runs no driving. Browsers load these products.
 
 `dist/delivery/manifest.json` is the sole delivery index. Its own
-`format: "superoutride.content-manifest", version: 1` identifies the index format; entries have only
-`{kind, id, path, sha256}`. Every JSON file is delivered as compact JSON followed by a newline; vehicle
+`format: "superoutride.content-manifest", version: 2` identifies the index format; entries have only
+`{kind, id, path, sha256, size}`, `size` the delivered file's length in bytes, which the build writes from the bytes it
+digests and the progress of a reading counts by; the digest alone verifies the bytes. Every JSON file is delivered as compact JSON followed by a newline; vehicle
 mechanics, vehicle listing, driving, material, surface-sound, puff, audio, engine-sound, music, series, screen picture and text tile documents are delivered exactly as authored in that
 encoding, so the build knows their delivered digests before staging them. Recordings are not JSON: each is delivered
 as the exact bytes its author placed under `content/`. Entries contain no payload

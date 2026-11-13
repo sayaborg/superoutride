@@ -104,7 +104,8 @@ export interface CountedReading {
 
 /**
  * A counted reading of `files`, entries of `content`'s manifest decided before reading starts. Loaders run through
- * `read` one at a time, and after each `progress` hears how many of the files are read. A loader fetches the files it
+ * `read` one at a time, and after each `progress` hears how many bytes of the files are read, of all the files' bytes
+ * (their manifest sizes): a file counts once its loader has read it whole. A loader fetches the files it
  * takes, until `fetchAll` fetches every one left at once and loaders take their bytes from there. A loader that takes a file outside the plan, a loader run while
  * another runs and a `finish` before every file is read are internal faults.
  */
@@ -112,9 +113,11 @@ export function createCountedReading(
   content: ContentDelivery,
   files: readonly ContentEntry[],
   slices: WorkSlices,
-  progress: (read: number, total: number) => void,
+  progress: (readBytes: number, totalBytes: number) => void,
 ): CountedReading {
   const planned = new Set(files);
+  const totalBytes = files.reduce((sum, entry) => sum + entry.size, 0);
+  let readBytes = 0;
   // The verified bytes `fetchAll` fetched, until a loader takes them; a failure is met when its loader takes the file.
   const fetched = new Map<ContentEntry, Promise<Uint8Array<ArrayBuffer>>>();
   const read = new Set<ContentEntry>();
@@ -134,8 +137,12 @@ export function createCountedReading(
       taken = step;
       try {
         const value = await load(delivery);
-        for (const entry of step) read.add(entry);
-        progress(read.size, planned.size);
+        for (const entry of step)
+          if (!read.has(entry)) {
+            read.add(entry);
+            readBytes += entry.size;
+          }
+        progress(readBytes, totalBytes);
         if (slices.due()) await slices.pause();
         return value;
       } finally {

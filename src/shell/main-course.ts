@@ -113,8 +113,8 @@ async function startPage(): Promise<void> {
     // runs in the run assembly's slices, so the frame loop and input run between them. LOADING shows its progress.
     const slices = createWorkSlices(LOADING_SLICE_MILLISECONDS, () => performance.now(), nextTask);
     let loading: ReturnType<typeof createLoadingScreen> | null = null;
-    const reading = createCountedReading(content, startupFiles(content.manifest), slices, (read, total) =>
-      loading?.progress(read / total),
+    const reading = createCountedReading(content, startupFiles(content.manifest), slices, (bytes, total) =>
+      loading?.progress(bytes / total),
     );
     const textTiles = await reading.read(loadTextTiles);
     const textLayer = createTextLayer(textTiles);

@@ -850,7 +850,7 @@ documents ask for them, frozen). The browser's slices are its own ([Browser](bro
 
 The page's startup reads its delivered files in the same slices through one counted reading
 (`createCountedReading`, `content/content-delivery.ts`): its files are a plan of manifest entries, its loaders run one
-at a time and the files each takes count as read once it returns. A catalog's documents are decoded one unit each, and
+at a time and the files each takes count as read, by their manifest sizes, once it returns. A catalog's documents are decoded one unit each, and
 a vehicle sprite set is admitted in steps (`admitInSlices` over `vehicleSpriteSetDocumentSteps`), one a picture; tools
 and the build read the same documents through, with no slices.
 
