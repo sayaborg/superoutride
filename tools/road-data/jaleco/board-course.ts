@@ -336,6 +336,32 @@ export function layBoardCourse(stage: BoardStage) {
   // A Section's strips: each road's picture drawn, road 1's beneath road 2's, each run striped by its colors.
   const zero = back;
   const period = stage.stripePeriod * metres;
+  /** A stripe's runs of one color, in parts of STRIPE_PART positions, those where `beneath` (a stripe) differs alone. */
+  const stripeParts = (colors: readonly (number | null)[], beneath?: readonly (number | null)[]) => {
+    const parts: { from: number; to: number; color: number }[] = [];
+    for (let k = 0; k < colors.length; k += STRIPE_PART) {
+      const color = colors[k]!;
+      if (beneath && beneath[k] === color) continue;
+      const last = parts.at(-1);
+      if (last && last.to === k && last.color === color) last.to = k + STRIPE_PART;
+      else parts.push({ from: k, to: k + STRIPE_PART, color });
+    }
+    return parts;
+  };
+  /** The parts' strips over [a, b] between `left` and `right`, each its color alone, repeated along the stripe. */
+  const partStrips = (
+    parts: readonly { from: number; to: number; color: number }[],
+    left: Lateral | null,
+    right: Lateral | null,
+    a: number,
+    b: number,
+    positionAt: (s: number) => CoursePosition,
+  ) =>
+    parts.flatMap((q) =>
+      periodic({ from: q.from * metres, to: q.to * metres }, period, zero, a, b, (x, y) =>
+        stripElement(positionAt(x), positionAt(y), left, right, q.color, null),
+      ),
+    ) as StripDocument[];
   const bandStrips = (
     colors: readonly (number | null)[],
     material: Material | null,
@@ -347,27 +373,30 @@ export function layBoardCourse(stage: BoardStage) {
   ): StripDocument[] => {
     if (colors[0] === null)
       return [stripElement(positionAt(a), positionAt(b), left, right, 'transparent', null) as StripDocument];
-    // The stripe's runs of one color, in parts of STRIPE_PART positions, the most common color laid over the whole.
-    const parts: { from: number; to: number; color: number }[] = [];
-    for (let k = 0; k < colors.length; k += STRIPE_PART) {
-      const color = colors[k]!;
-      const last = parts.at(-1);
-      if (last && last.color === color) last.to = k + STRIPE_PART;
-      else parts.push({ from: k, to: k + STRIPE_PART, color });
-    }
+    // The stripe's runs of one color, the most common color laid over the whole.
+    const parts = stripeParts(colors);
     const count = new Map<number, number>();
     for (const q of parts) count.set(q.color, (count.get(q.color) ?? 0) + q.to - q.from);
     const base = [...count].sort((x, y) => y[1] - x[1])[0]![0];
     return [
       stripElement(positionAt(a), positionAt(b), left, right, base, material),
-      ...parts
-        .filter((q) => q.color !== base)
-        .flatMap((q) =>
-          periodic({ from: q.from * metres, to: q.to * metres }, period, zero, a, b, (x, y) =>
-            stripElement(positionAt(x), positionAt(y), left, right, q.color, null),
-          ),
-        ),
+      ...partStrips(
+        parts.filter((q) => q.color !== base),
+        left,
+        right,
+        a,
+        b,
+        positionAt,
+      ),
     ] as StripDocument[];
+  };
+  /** How many parts a stripe's own strips lay beyond their first: its parts not of its most common color. */
+  const ownParts = (colors: readonly (number | null)[]) => {
+    const parts = stripeParts(colors);
+    const count = new Map<number, number>();
+    for (const q of parts) count.set(q.color, (count.get(q.color) ?? 0) + q.to - q.from);
+    const base = [...count].sort((x, y) => y[1] - x[1])[0]![0];
+    return parts.filter((q) => q.color !== base).length;
   };
   const laid = layRoad({
     id,
@@ -425,12 +454,57 @@ export function layBoardCourse(stage: BoardStage) {
         // picture beneath it shows, or none.
         const layer = (road: RoadNumber, clear: boolean) => {
           if (!drawn(road, at)) return [];
-          return runsOf(road, at).flatMap(({ run, colors, material }, k, all) => {
+          // The road not taken's picture has no material: the car never reaches it.
+          const away = road === 1 && at >= leavesAt;
+          const groundOf = (material: Material | null) => (away ? null : (material ?? stage.clearGround));
+          const runs = runsOf(road, at);
+          // Its inner runs of this layer that are painted: the most common of them across, its stripe and ground, is
+          // laid beneath each stretch of them, and each over it only where it differs, so that a picture keeps within
+          // the format's active strips.
+          const beneath = (k: number) =>
+            k > 0 && k < runs.length - 1 && (runs[k]!.run.pen === null) === clear && runs[k]!.colors[0] !== null;
+          const widths = new Map<string, number>();
+          runs.forEach(({ run, colors, material }, k) => {
+            if (!beneath(k)) return;
+            const key = JSON.stringify([colors, groundOf(material)]);
+            widths.set(key, (widths.get(key) ?? 0) + run.to - run.from);
+          });
+          const common = [...widths].sort((x, y) => y[1] - x[1])[0]?.[0];
+          const base = common ? (JSON.parse(common) as [readonly (number | null)[], Material | null]) : null;
+          return runs.flatMap(({ run, colors, material }, k, all) => {
             if ((run.pen === null) !== clear) return [];
             const outerRun = k === 0 || k === all.length - 1;
-            // The road not taken's picture has no material: the car never reaches it.
-            const away = road === 1 && at >= leavesAt;
-            const ground = away ? null : (material ?? stage.clearGround);
+            const ground = groundOf(material);
+            if (base && beneath(k)) {
+              let last = k;
+              while (beneath(last + 1)) last++;
+              // The most common run beneath the stretch of runs from here, where it starts.
+              const under = beneath(k - 1)
+                ? []
+                : bandStrips(
+                    base[0],
+                    base[1],
+                    fromCentre(road, run.from),
+                    fromCentre(road, all[last]!.run.to),
+                    a,
+                    b,
+                    positionAt,
+                  );
+              const [left, right] = [fromCentre(road, run.from), fromCentre(road, run.to)];
+              const grounding =
+                ground === base[1]
+                  ? []
+                  : [stripElement(positionAt(a), positionAt(b), left, right, null, ground) as StripDocument];
+              const differing = stripeParts(colors, base[0]);
+              // Its own strips where they are as few as the parts it differs by.
+              const over =
+                differing.length === 0
+                  ? []
+                  : 1 + ownParts(colors) <= differing.length
+                    ? bandStrips(colors, null, left, right, a, b, positionAt)
+                    : partStrips(differing, left, right, a, b, positionAt);
+              return [...under, ...grounding, ...over];
+            }
             const colored = bandStrips(
               colors,
               outerRun ? null : ground,
