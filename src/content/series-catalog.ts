@@ -43,7 +43,7 @@ export function classTitleLines(title: string): readonly string[] {
 }
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 16;
+export const SERIES_DOCUMENT_VERSION = 17;
 const PLAYER_SLOTS = ['own', 'last', 'first'] as const;
 const TRAFFIC_PATHS = ['lane', 'line'] as const;
 
@@ -73,8 +73,6 @@ export interface CompiledSeries {
 export interface SeriesEntry {
   readonly vehicle: VehicleId;
   readonly color: string;
-  /** Pace ratio p, positive: as a rival, the entry follows the player vehicle's pace schedule divided by p. */
-  readonly pace: number;
   /** The stages the entry takes part in, `first` through `last`; null for the whole run. */
   readonly stages: StageInterval | null;
   readonly slot: number | null;
@@ -291,7 +289,7 @@ function readEntries(
     value,
     path,
     (item, at) => {
-      const record = readRecord(item, at, ['vehicle', 'color', 'pace', 'stages', 'slot', 'ahead']);
+      const record = readRecord(item, at, ['vehicle', 'color', 'stages', 'slot', 'ahead']);
       const id = readString(record.vehicle, `${at}/vehicle`);
       const vehicle = vehicleOf(id);
       requireAdmission(vehicle !== undefined, 'unresolved_reference', `${at}/vehicle`, `Unknown vehicle ${id}`);
@@ -302,7 +300,6 @@ function readEntries(
         `${at}/color`,
         `${id} has no color ${color}`,
       );
-      const pace = readNumber(record.pace, `${at}/pace`, { min: 0, exclusiveMin: true });
       const stages = record.stages === null ? null : readStages(record.stages, `${at}/stages`);
       // An entry from STAGE 1 stands in a grid slot; a later one appears ahead of the player.
       if (stages === null || stages.first === 1) {
@@ -319,14 +316,13 @@ function readEntries(
           'Grid entries must be in grid order, one per slot',
         );
         previous = slot;
-        return Object.freeze({ vehicle: id, color, pace, stages, slot, ahead: null });
+        return Object.freeze({ vehicle: id, color, stages, slot, ahead: null });
       }
       requireAdmission(record.slot === null, 'invalid_value', `${at}/slot`, 'An entry from a later stage has no slot');
       const ahead = readRecord(record.ahead, `${at}/ahead`, ['distance', 'lane']);
       return Object.freeze({
         vehicle: id,
         color,
-        pace,
         stages,
         slot: null,
         ahead: Object.freeze({

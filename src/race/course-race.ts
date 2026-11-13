@@ -30,7 +30,12 @@ import {
 } from './present-vehicle.js';
 import { RUN_RULE_LIMITS } from '../course/run-rules.js';
 import { createRivalPace } from './rival-pace.js';
-import { createPlannedDriverWorkspace, createVariablePlannedDriver, drivingDomainBefore } from './planned-driver.js';
+import {
+  createPlannedDriverWorkspace,
+  createVariablePlannedDriver,
+  drivingDomainBefore,
+  PLANNED_DRIVER,
+} from './planned-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createVehicle, updateVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createStartPhase, type StartStatus } from './start-phase.js';
@@ -69,10 +74,10 @@ export interface RaceEvent {
   readonly extensionMs: number | null;
 }
 
-/** A paced rival's pace and the setter of its driver's utilization and speed cap, a fraction of its vehicle's. */
+/** A rival's pace and the setter of its driver's utilization. */
 interface RivalPacing {
   readonly pace: ReturnType<typeof createRivalPace>;
-  readonly set: (utilization: number, speedFraction: number) => void;
+  readonly set: (utilization: number) => void;
 }
 
 /**
@@ -93,12 +98,12 @@ export function createCourseRace(options: {
   /** The player's SLOW DOWN stages' utilizations; the owner's (`SLOW_DOWN.utilizations`) when absent. */
   readonly slowDownUtilizations?: SlowDownUtilizations;
 }) {
-  const { course, configuration, budgets, entries, rankLimits, paceSchedule } = options.setup;
+  const { course, configuration, budgets, entries, rankLimits } = options.setup;
   const { initialSpeed } = configuration;
   const { runtime } = options;
-  // Entries sharing a vehicle share its model, which the run built, and unpaced entries sharing a vehicle share its
-  // fixed driver. Every planned driver steers by `PLANNED_DRIVER.steering`; the player's own input by its own rule
-  // (`playerSteering`), else by the default rule, resolved once on each model's vehicle.
+  // Entries sharing a vehicle share its model, which the run built. Every planned driver steers by
+  // `PLANNED_DRIVER.steering`; the player's own input by its own rule (`playerSteering`), else by the default rule,
+  // resolved once on each model's vehicle.
   const defaultSteerings = new Map<VehicleModel, Readonly<DriverSteering>>();
   const modelOf = (vehicle: RunEntry['vehicle']) => {
     const { model } = options.setup.mechanicsOf(vehicle);
@@ -108,22 +113,12 @@ export function createCourseRace(options: {
   };
   const defaultSteering = (model: VehicleModel) => defaultSteerings.get(model)!;
   const steeringOf = (body: PresentVehicle) => body.driving?.driver.steering ?? defaultSteering(body.model);
-  // An entry with a pace ratio drives its own driver at the utilization and speed cap its pace sets; the others share
-  // their vehicle's fixed driver, which the run compiled.
+  // Every rival drives its own driver at the utilization its pace sets, at its vehicle's whole speed (K, 2026-11-12).
   const drivingOf = (entry: RunEntry) => {
-    if (entry.pace === null) return { driver: options.setup.driverOf(entry.vehicle), pace: null, set: null };
-    if (!paceSchedule) throw new Error('a paced rival requires the pace schedule');
-    const pace = createRivalPace(
-      runtime.route,
-      paceSchedule,
-      entry.pace,
-      entry.vehicle.drivingDefinition.compiledDriving.rivalPace,
-      SIM_DT,
-    );
+    const pace = createRivalPace(entry.vehicle.drivingDefinition.compiledDriving.roles.rival, SIM_DT);
     const { model, limits, speedCap } = options.setup.mechanicsOf(entry.vehicle);
-    const variable = createVariablePlannedDriver(model, limits, pace.utilization, pace.speedFraction * speedCap, true);
-    const set = (utilization: number, speedFraction: number) => variable.set(utilization, speedFraction * speedCap);
-    return { driver: variable.driver, pace, set };
+    const variable = createVariablePlannedDriver(model, limits, pace.utilization, speedCap, true);
+    return { driver: variable.driver, pace, set: variable.set };
   };
   const clock = createCheckpointClock(budgets);
   const outcome = createRunOutcome();
@@ -191,7 +186,7 @@ export function createCourseRace(options: {
       get actor(): VehicleActor {
         return body.actor;
       },
-      /** A paced rival's pace and the utilization/speed-cap setter of its driver; null otherwise. */
+      /** A rival's pace and the utilization setter of its driver; null for the player. */
       pacing,
       /** The stages this competitor takes part in; null for the whole run. */
       stages,
@@ -283,8 +278,9 @@ export function createCourseRace(options: {
         offset,
         workspace: createPlannedDriverWorkspace(),
         target: (s: number) => forks.targetL(s, intent),
+        standing: 0,
       },
-      pace ? { pace, set: set! } : null,
+      { pace, set },
       entry.stages,
     );
   });
@@ -373,7 +369,6 @@ export function createCourseRace(options: {
       if (placement.occupied(c.actor.model, s, lane(s))) continue;
       const speed = laneDriving.appearanceSpeed(c.actor.model, s, intent, driver);
       if (speed === null) continue;
-      c.pacing?.pace.join(s);
       c.body.actor = spawn(entry, { s, l: lane(s), initialSpeed: speed });
       // It starts where it appears: it moved from nowhere, so its contacts sweep nothing before it.
       Object.assign(c.body.previous, { s, l: lane(s) });
@@ -399,15 +394,44 @@ export function createCourseRace(options: {
     }
   };
   const idle: DrivingInput = Object.freeze({ steering: 0, throttle: false, brake: false });
+  const revving: DrivingInput = Object.freeze({ steering: 0, throttle: true, brake: false });
   // READY holds every vehicle in its update; race time and rival driving start at GO, where free updates restore
-  // the fixed clutch capacity.
-  const holdReady = (input: DrivingInput) => {
+  // the fixed clutch capacity. Every driver waits through READY at full throttle and leaves at full throttle on GO
+  // (K, 2026-11-12): the rivals, and the player's vehicle when no input of the player's reaches it (null).
+  const holdReady = (input: DrivingInput | null) => {
     for (const body of activeBodies) {
-      body.step.input = body === activeBodies[0] ? input : idle;
+      body.step.input = body === activeBodies[0] ? (input ?? revving) : revving;
       body.step.steering = body === activeBodies[0] ? playerOwnSteering : steeringOf(body);
       updateVehicle(runtime.readers, body.vehicle, body.model, body.step.input, body.step.steering, true);
     }
     startPhase.advance();
+  };
+  /*
+   * The AI's safety net, a driver's rule (K, 2026-11-13): a driver whose vehicle has stood below the speed deadzone for
+   * `standingSeconds` of running steps asks for the player's manual recovery, whatever holds it; with no free place
+   * behind it, it asks again the next step. A vehicle at its plan's terminal (the road's end, a lane's end it waits to
+   * merge at, the takeover's stop) stands by design, and an exploding vehicle has its own recovery: neither counts.
+   */
+  const standingSteps = Math.round(PLANNED_DRIVER.standingSeconds / SIM_DT);
+  const safetyNet = (body: PresentVehicle) => {
+    const { vehicle, driving } = body;
+    if (!driving) return;
+    const { terminalClearance, spacing, speedDeadzone } = PLANNED_DRIVER;
+    const atTerminal = driving.workspace.plan.terminal - vehicle.course.s <= terminalClearance + spacing;
+    const standing =
+      !body.recovered &&
+      !contactResponseStopped(body.actor.contactResponse) &&
+      !atTerminal &&
+      Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed) < speedDeadzone;
+    driving.standing = standing ? driving.standing + 1 : 0;
+    if (driving.standing < standingSteps) return;
+    body.recovered = recoverVehicle(runtime.readers, vehicle, body.model, {
+      state: body.step.state,
+      reason: 'manual',
+      place: body.step.place,
+    });
+    // The recovered vehicle stands at rest by design: its count starts again.
+    if (body.recovered) driving.standing = 0;
   };
   const move = (body: PresentVehicle, input: DrivingInput, steering = steeringOf(body)) =>
     advancePresentVehicle(runtime.readers, body, input, steering);
@@ -518,6 +542,7 @@ export function createCourseRace(options: {
       offset,
       workspace: takeoverWorkspace,
       target: (station: number) => forks.targetL(station, takeoverIntent),
+      standing: 0,
     };
   };
   // Before GOAL the player's run driver drives the player when the composition asks (an advance without input), as
@@ -539,6 +564,7 @@ export function createCourseRace(options: {
       offset,
       workspace: playerWorkspace,
       target: (station: number) => forks.targetL(station, playerIntent),
+      standing: 0,
     };
   };
   // The player's input this step: its own, or its driver's. After GOAL the takeover drives the player and its input no
@@ -554,7 +580,8 @@ export function createCourseRace(options: {
   };
   /**
    * Moves the present field one step: the player by `input`, each rival by its driver, then fork observation and Route
-   * loading. A running step (`stepStart` set) also paces paced rivals; after the run ends they hold their pace.
+   * loading. A running step (`stepStart` set) also paces the rivals by their lead over the player, the progress the
+   * standing ranks by; after the run ends they hold their pace.
    */
   const driveField = (input: DrivingInput | null, stepStart: number | null) => {
     // Drivers see the present vehicles as they stand at the step's start.
@@ -584,13 +611,16 @@ export function createCourseRace(options: {
     for (let i = 1; i < active.length; i += 1) {
       const { body, pacing } = active[i]!;
       if (pacing && stepStart !== null) {
-        pacing.pace.update(body.vehicle.course.s, stepStart);
-        pacing.set(pacing.pace.utilization, pacing.pace.speedFraction);
+        pacing.pace.update(active[i]!.progress.s - player.progress.s);
+        pacing.set(pacing.pace.utilization);
       }
       move(body, laneDriving.drive(body));
     }
     // Traffic drives as rivals do; it never selects a route, and recovery keeps it legal like any vehicle.
     trafficField.advance();
+    // Only a running step counts: READY holds the field, and after the run ends nothing counts.
+    if (stepStart !== null) for (const body of bodies) safetyNet(body);
+    else for (const body of bodies) if (body.driving) body.driving.standing = 0;
     roadsideObjects.advance();
     forks.observe(activeBodies);
     for (const body of activeBodies) {
@@ -606,7 +636,7 @@ export function createCourseRace(options: {
   const step = (input: DrivingInput | null) => {
     if (startPhase.status === 'WAITING') return;
     if (startPhase.status === 'READY') {
-      holdReady(input ?? idle);
+      holdReady(input);
       return;
     }
     handOver(input === null);

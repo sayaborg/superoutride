@@ -30,6 +30,8 @@ export interface VehicleDriving {
   readonly offset: PathOffset | null;
   readonly workspace: ReturnType<typeof createPlannedDriverWorkspace>;
   target: (s: number) => number;
+  /** Consecutive running steps the vehicle has stood, away from its plan's terminal (the safety net's count). */
+  standing: number;
 }
 
 /**

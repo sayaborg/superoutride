@@ -165,6 +165,7 @@ export function createTrafficField(options: {
           offset,
           workspace: createPlannedDriverWorkspace(),
           target: lane,
+          standing: 0,
         };
         const motion: TrafficMotion = Object.assign(
           createPresentVehicle(

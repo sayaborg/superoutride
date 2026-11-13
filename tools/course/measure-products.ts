@@ -148,7 +148,7 @@ async function trace(args: readonly string[]) {
   );
   const result = {
     format: 'superoutride.reference-run',
-    version: 4,
+    version: 5,
     courseBuildSha256: course.identity.buildSha256,
     procedureSha256: await procedureSha256(referenceProcedure(RACING_LINE_PROCEDURE)),
     vehicle,

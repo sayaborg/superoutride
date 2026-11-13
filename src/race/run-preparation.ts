@@ -2,7 +2,6 @@ import type { ContentDelivery } from '../content/content-delivery.js';
 import { readCourseTimeBudgets } from '../content/course-time-budgets.js';
 import { admitProduct } from '../content/delivered-product.js';
 import type { FreePlayRules } from '../content/free-play-rules.js';
-import { readPaceSchedule } from '../content/pace-schedule.js';
 import { readRacingLines } from '../content/racing-line.js';
 import type { SeriesClass } from '../content/series-catalog.js';
 import { createRunVehicle, runVehicleSha256, type RunVehicle } from '../content/run-vehicle.js';
@@ -26,11 +25,11 @@ export interface RunCatalog {
  * from a request to a run, which the browser and the driving scenarios share. It admits the request
  * (`compileRunConfiguration`, with the start speed `initialSpeed`), then loads from delivery, once each, what the
  * Run needs (`runDemand`): the player's and every other run vehicle with its reference identity, the
- * clock's time budgets (the course's reference times for the player's vehicle with its class's margin), RACE's pace
- * schedule and the course's racing lines. `resolve(seed)` resolves the run with a seed; a DEV rebuild passes its
+ * clock's time budgets (the course's reference times for the player's vehicle with its class's margin) and the
+ * course's racing lines. `resolve(seed)` resolves the run with a seed; a DEV rebuild passes its
  * tuned vehicle and configuration, which have no budgets. A delivery without measured products (no racing lines in its
- * manifest: the workbench's build while measurements are stale) admits only a run that demands no time budgets
- * or pace schedule, whose drivers drive the centre lane for the racing line.
+ * manifest: the workbench's build while measurements are stale) admits only a run that demands no time budgets,
+ * whose drivers drive the centre lane for the racing line.
  */
 export async function prepareRun(
   content: ContentDelivery,
@@ -44,8 +43,7 @@ export async function prepareRun(
   const configuration = compileRunConfiguration(request, course, runClass, catalog, initialSpeed);
   const demand = runDemand(configuration, runClass, vehicles);
   const measured = content.manifest.files.some((file) => file.kind === 'racing-line');
-  if (!measured && (demand.budgets || demand.paceSchedule))
-    throw new RangeError('Without measured products a run has no time limit and no pace schedule');
+  if (!measured && demand.budgets) throw new RangeError('Without measured products a run has no time limit');
   const loadEntryVehicle = async (id: string): Promise<EntryVehicle & { readonly sha256: string }> => {
     const vehicle = createRunVehicle(
       vehicles.find((v) => v.compiledVehicle.id === id)!,
@@ -66,11 +64,6 @@ export async function prepareRun(
         readCourseTimeBudgets(course, player.sha256, runClass!.timeMargin!, value, document),
       )
     : null;
-  const paceSchedule = demand.paceSchedule
-    ? await admitProduct(content, 'schedule', `${course.id}/${vehicleId}`, (value, document) =>
-        readPaceSchedule(course, player.sha256, value, document),
-      )
-    : undefined;
   // The course's racing lines, delivered with the measured products.
   const racingLines = measured
     ? await admitProduct(content, 'racing-line', course.id, (value, document) =>
@@ -95,7 +88,7 @@ export async function prepareRun(
         seed,
         tuned?.vehicle ?? player.vehicle,
         tuned ? null : budgets,
-        { vehicleOf, rivalPool: runDemand(resolved, runClass, vehicles).rivalPool, paceSchedule, racingLines },
+        { vehicleOf, rivalPool: runDemand(resolved, runClass, vehicles).rivalPool, racingLines },
       );
     },
   });

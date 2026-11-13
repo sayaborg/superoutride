@@ -49,7 +49,7 @@ audio), the screen host with its frame loop and, with `dev=1`, the performance H
 controls (sound, camera, RESULT delay, SLOW DOWN). The frame, its presentation, the input and the screen host stand as
 soon as the text tiles are read and need no vehicle or sound catalog; the audio lifetime, the one owner of sound, is
 assembled once its catalogs are read and joins the devices, taking the route the host last set. The run lifetime holds the selected course, its run
-settings, the field's run vehicles, racing lines, time budgets and pace schedule, the run, scene and race,
+settings, the field's run vehicles, racing lines and time budgets, the run, scene and race,
 the player's sprites, the camera rig and lifecycle and, with `dev=1`, the course's performance-HUD
 values and the run's DEV controls (driving tuning, export, RECOVER). Page devices hold no run: each frame passes the
 run's observations to them.
@@ -668,7 +668,7 @@ commit's build instead of `version.txt`'s, and the page takes its delivery from 
 (`window.opener`, same origin) instead of fetching `../delivery/`. That delivery passes the same manifest admission and
 digest checks; only the transport differs. Without that workbench page, or without its answer within 10 s, the page
 fails to start and says why. With `dev=1`, the DEV toggle reads `WORKBENCH BUILD`. A delivery without measured
-products admits only runs that need none: no time limit and no pace schedule, its drivers driving the centre lane
+products admits only runs that need none: no time limit, its drivers driving the centre lane
 for the racing line.
 
 ## Driving input

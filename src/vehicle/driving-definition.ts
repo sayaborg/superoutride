@@ -28,15 +28,20 @@ export interface DrivingDefinition {
   readonly wheelSlip: Readonly<WheelSlipProtection>;
   readonly tire: Readonly<TireCharacteristics>;
   /**
-   * RACE rival pace: the driving utilization a rival following its pace schedule varies within, and the time
-   * constant in seconds of its response.
+   * The drivers' roles: a rival's utilization, `utilization` level with the player, from `mostUtilization` as far
+   * behind as `spanMeters` to `leastUtilization` as far ahead, followed with the time constant `responseSeconds`; the
+   * standard driver's utilization; traffic's utilization.
    */
-  readonly rivalPace: Readonly<{
-    minimumUtilization: number;
-    maximumUtilization: number;
-    minimumSpeedFraction: number;
-    bandSeconds: number;
-    responseSeconds: number;
+  readonly roles: Readonly<{
+    rival: Readonly<{
+      utilization: number;
+      leastUtilization: number;
+      mostUtilization: number;
+      spanMeters: number;
+      responseSeconds: number;
+    }>;
+    standard: Readonly<{ utilization: number }>;
+    traffic: Readonly<{ utilization: number }>;
   }>;
   /**
    * The game-wide body contact spring-damper between vehicles, and against walls and course limits: natural frequency
@@ -47,7 +52,7 @@ export interface DrivingDefinition {
 }
 
 export const DRIVING_DOCUMENT_FORMAT = 'superoutride.driving-definition';
-export const DRIVING_DOCUMENT_VERSION = 22;
+export const DRIVING_DOCUMENT_VERSION = 23;
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: typeof DRIVING_DOCUMENT_FORMAT;

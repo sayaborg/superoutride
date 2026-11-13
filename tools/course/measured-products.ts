@@ -1,7 +1,5 @@
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { courseBudgetLandmarks } from '../../src/content/course-time-budgets.js';
-import { PACE_SCHEDULE_FORMAT, PACE_SCHEDULE_SPACING } from '../../src/content/pace-schedule.js';
-import { readPaceSchedule } from '../../src/content/pace-schedule.js';
 import {
   RACING_LINE_FORMAT,
   createRacingLines,
@@ -30,11 +28,11 @@ import type { runCourseReference } from './reference-run.js';
 
 /**
  * The measured products saved under `content/`: each course's racing lines and, for each course a class runs, the
- * reference times and pace schedules of every vehicle a class runs there, which the measurement tool writes and builds
+ * reference times of every vehicle a class runs there, which the measurement tool writes and builds
  * admit. A reference run depends on the course, the vehicle and the procedure alone (it drives the course's `maxLaps`,
  * and a run reads the laps it runs), so classes sharing a course and vehicle share one measurement.
  */
-export const REFERENCE_TIMES_FORMAT = Object.freeze({ format: 'superoutride.reference-times', version: 2 } as const);
+export const REFERENCE_TIMES_FORMAT = Object.freeze({ format: 'superoutride.reference-times', version: 3 } as const);
 
 /** The saved reference times of a course a class runs, under `content/`. */
 export const referenceTimesPath = (courseId: string) => `reference-times/${courseId}.json`;
@@ -94,7 +92,13 @@ export function measureRacingLines(
   const solution = solveRacingLines(course, solved, (laterals) => {
     const lines = createRacingLines(course, laterals);
     return vehicles.map(({ vehicle }) =>
-      plannedLineSeconds(course, lines, vehicle, catalog, procedure.driver.utilization),
+      plannedLineSeconds(
+        course,
+        lines,
+        vehicle,
+        catalog,
+        vehicle.drivingDefinition.compiledDriving.roles.standard.utilization,
+      ),
     );
   });
   return racingLineDocument(course, procedureSha256, {
@@ -109,19 +113,12 @@ export function measureRacingLines(
   });
 }
 
-/** A pace schedule's times: from GO along the start's Section, and from each Section's start, in milliseconds. */
-export interface SavedPaceSchedule {
-  readonly start: { readonly section: string; readonly first: number; readonly milliseconds: readonly number[] };
-  readonly sections: readonly (readonly [string, readonly number[]])[];
-}
-
-/** One vehicle's reference times on a course, before any class margin, and its pace schedule. */
+/** One vehicle's reference times on a course, before any class margin. */
 export interface SavedReferenceVehicle {
   readonly vehicleId: string;
   readonly vehicleSha256: string;
   readonly initialSeconds: number;
   readonly after: readonly (readonly [string, readonly number[]])[];
-  readonly schedule: SavedPaceSchedule;
 }
 
 export interface SavedReferenceTimes {
@@ -134,7 +131,7 @@ export interface SavedReferenceTimes {
 
 /**
  * One vehicle's saved reference times from its reference runs, one per route: they are admitted as a reference
- * report and reduced to the longest intervals, and the runs' passes give the pace schedule.
+ * report and reduced to the longest intervals.
  */
 export function savedReferenceVehicle(
   course: CompiledCourse,
@@ -145,7 +142,7 @@ export function savedReferenceVehicle(
 ): SavedReferenceVehicle {
   const report = {
     format: 'superoutride.course-reference',
-    version: 4,
+    version: 5,
     courseBuildSha256: course.identity.buildSha256,
     procedureSha256,
     vehicles: [{ vehicleId, vehicleSha256, runs }],
@@ -162,44 +159,6 @@ export function savedReferenceVehicle(
       gate.id,
       Array.from({ length: laps }, (_, index) => times.after(gate, index + 1)),
     ]),
-    schedule: paceSchedule(course.gates.start.id, runs),
-  };
-}
-
-/**
- * A pace schedule from reference runs: the start times from GO along the start's Section, and for each Section run from
- * its start the fastest times from that start, in integer milliseconds.
- */
-function paceSchedule(startId: string, runs: readonly ReferenceRun[]): SavedPaceSchedule {
-  const fastest = (into: number[], values: readonly number[]) =>
-    values.forEach((value, index) => (into[index] = Math.min(into[index] ?? Infinity, value)));
-  const start: number[] = [];
-  const sections = new Map<string, number[]>();
-  for (const run of runs) {
-    const [first, ...rest] = run.passes;
-    if (first!.section !== startId) throw new Error("A reference run starts outside the start's Section");
-    fastest(
-      start,
-      first!.seconds.map((seconds) => Math.round(1000 * seconds)),
-    );
-    for (const pass of rest) {
-      if (pass.first !== 0) throw new Error(`A reference run enters ${pass.section} past its start`);
-      const values = sections.get(pass.section) ?? [];
-      fastest(
-        values,
-        pass.seconds.map((seconds) => Math.round(1000 * (seconds - pass.seconds[0]!))),
-      );
-      sections.set(pass.section, values);
-    }
-  }
-  // Stations closer than a millisecond's travel take the next millisecond, so that the times increase strictly.
-  const increasing = (values: readonly number[]) =>
-    values.reduce<number[]>((out, value) => [...out, Math.max(value, (out.at(-1) ?? -1) + 1)], []);
-  return {
-    start: { section: startId, first: runs[0]!.passes[0]!.first, milliseconds: increasing(start) },
-    sections: [...sections]
-      .filter(([, values]) => values.length >= 2)
-      .map(([section, values]) => [section, increasing(values)] as const),
   };
 }
 
@@ -210,11 +169,6 @@ export function referenceTimes(saved: SavedReferenceVehicle): CourseReferenceTim
     initialSeconds: saved.initialSeconds,
     after: (gate: { readonly id: string }, lap: number) => after.get(gate.id)![lap - 1]!,
   });
-}
-
-/** The delivered pace schedule of a course and run vehicle from its saved times. */
-export function deliveredSchedule(courseBuildSha256: string, vehicleSha256: string, schedule: SavedPaceSchedule) {
-  return { ...PACE_SCHEDULE_FORMAT, courseBuildSha256, vehicleSha256, spacing: PACE_SCHEDULE_SPACING, ...schedule };
 }
 
 /** The diagnostic code of a saved measured product that is stale, absent or not owned. */
@@ -237,7 +191,7 @@ function readUnder<T>(base: string, result: AdmissionResult<T>): T {
 /**
  * Admit a course's saved reference times against the compiled course, the reference run's identity and the vehicles
  * the classes run there with their run vehicle identities, in catalog order: every entry current, every budget
- * landmark's times positive with one per lap, and each pace schedule what the delivered schedule admits.
+ * landmark's times positive with one per lap.
  */
 export function readSavedReferenceTimes(
   course: CompiledCourse,
@@ -260,7 +214,7 @@ export function readSavedReferenceTimes(
     if (readString(data.procedureSha256, '/procedureSha256', SHA256_TEXT) !== procedureSha256)
       staleMeasurement('/procedureSha256', 'The reference run changed since the reference times were measured');
     const entries = readArray(data.vehicles, '/vehicles', (item, at) => {
-      const entry = readRecord(item, at, ['vehicleId', 'vehicleSha256', 'initialSeconds', 'after', 'schedule']);
+      const entry = readRecord(item, at, ['vehicleId', 'vehicleSha256', 'initialSeconds', 'after']);
       return { at, entry, vehicleId: readString(entry.vehicleId, `${at}/vehicleId`) };
     });
     if (
@@ -295,15 +249,6 @@ export function readSavedReferenceTimes(
         );
         readArray(pair[1], `${pairAt}/1`, (value, path) => readNumber(value, path, seconds), { length: laps });
       });
-      const schedule = readRecord(entry.schedule, `${at}/schedule`, ['start', 'sections']);
-      readUnder(
-        `${at}/schedule`,
-        readPaceSchedule(
-          course,
-          vehicleSha256,
-          deliveredSchedule(course.identity.buildSha256, vehicleSha256, schedule as unknown as SavedPaceSchedule),
-        ),
-      );
     });
     return input as SavedReferenceTimes;
   });

@@ -445,7 +445,7 @@ export function compileDrivingDocument(
         'brake',
         'wheelSlip',
         'tire',
-        'rivalPace',
+        'roles',
         'bodyContact',
       ],
       DRIVING_DOCUMENT_FORMAT,
@@ -460,14 +460,15 @@ export function compileDrivingDocument(
       };
     };
     const tire = readTire(v.tire, '/tire');
-    const paceKeys = [
-      'minimumUtilization',
-      'maximumUtilization',
-      'minimumSpeedFraction',
-      'bandSeconds',
-      'responseSeconds',
-    ] as const;
-    const rivalPace = readNumbers(readRecord(v.rivalPace, '/rivalPace', paceKeys), paceKeys, '/rivalPace');
+    const roleRecord = readRecord(v.roles, '/roles', ['rival', 'standard', 'traffic']);
+    const rivalKeys = ['utilization', 'leastUtilization', 'mostUtilization', 'spanMeters', 'responseSeconds'] as const;
+    const role = <K extends string>(name: 'rival' | 'standard' | 'traffic', keys: readonly K[]) =>
+      readNumbers(readRecord(roleRecord[name], `/roles/${name}`, keys), keys, `/roles/${name}`);
+    const roles = {
+      rival: role('rival', rivalKeys),
+      standard: role('standard', ['utilization'] as const),
+      traffic: role('traffic', ['utilization'] as const),
+    };
     const contactKeys = ['frequencyHertz', 'dampingRatio', 'barrierFriction'] as const;
     const bodyContact = readNumbers(
       readRecord(v.bodyContact, '/bodyContact', contactKeys),
@@ -488,7 +489,7 @@ export function compileDrivingDocument(
       brake: pedal('brake'),
       wheelSlip,
       tire,
-      rivalPace,
+      roles,
       bodyContact,
     });
     return Object.freeze({ source, sha256, compiledDriving: deepFreeze(admitDomain(() => compileDriving(source))) });

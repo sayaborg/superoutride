@@ -40,7 +40,6 @@ const CONTENT_KINDS: readonly ContentKind[] = [
   'explosion-picture',
   'screen-picture',
   'reference-times',
-  'schedule',
   'racing-line',
   'engine-loudness',
   'vehicle',

@@ -11,11 +11,21 @@ import type { AdmissionResult } from '../core/admission.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { CompiledLink, CompiledSection } from '../course/compiler/course-graph.js';
-import { PACE_SCHEDULE_SPACING, paceScheduleStations } from './pace-schedule.js';
-
 export const RACING_LINE_FORMAT = Object.freeze({ format: 'superoutride.racing-line', version: 2 } as const);
 
-/** Each Section's lines by its exit's Link ID (null for a Section that does not fork): a lateral per schedule station. */
+/** Metres between racing line stations along a Section, from its start; its end is the last station. */
+export const RACING_LINE_SPACING = 5;
+
+/** The native stations of a Section's racing line: every spacing from its start, then its end. */
+export function racingLineStations(section: CompiledSection): readonly number[] {
+  const { start, end } = section.coordinates.domain;
+  const stations: number[] = [];
+  for (let s = start; s < end; s += RACING_LINE_SPACING) stations.push(s);
+  stations.push(end);
+  return stations;
+}
+
+/** Each Section's lines by its exit's Link ID (null for a Section that does not fork): a lateral per station. */
 export type RacingLineLaterals = ReadonlyMap<string, ReadonlyMap<string | null, readonly number[]>>;
 
 /**
@@ -70,7 +80,7 @@ export function racingLineDocument(
     ...RACING_LINE_FORMAT,
     courseBuildSha256: course.identity.buildSha256,
     procedureSha256,
-    spacing: PACE_SCHEDULE_SPACING,
+    spacing: RACING_LINE_SPACING,
     lengthWeight,
     vehicles: vehicles.map((vehicle) => ({
       ...vehicle,
@@ -94,7 +104,7 @@ export function racingLineExits(section: CompiledSection): readonly (CompiledLin
 
 /**
  * A course's admitted racing lines: the lateral of a Section's line, toward `exit` on a fork Section, at native
- * station `s`, interpolated linearly between its schedule stations.
+ * station `s`, interpolated linearly between its racing line stations.
  */
 export interface RacingLines {
   lateral(section: CompiledSection, exit: CompiledLink | null, s: number): number;
@@ -102,21 +112,21 @@ export interface RacingLines {
 
 /**
  * The racing lines `laterals` of `course` (one complete line per Section and exit), read at a native station: linearly
- * between its schedule stations.
+ * between its racing line stations.
  */
 export function createRacingLines(course: CompiledCourse, laterals: RacingLineLaterals): RacingLines {
   const lines = new Map(
     course.sections.map((section) => {
       const byExit = laterals.get(section.id)!;
       const values = new Map([...byExit].map(([exit, line]) => [exit, Float64Array.from(line)]));
-      return [section, { stations: paceScheduleStations(section), values }] as const;
+      return [section, { stations: racingLineStations(section), values }] as const;
     }),
   );
   return Object.freeze({
     lateral(section: CompiledSection, exit: CompiledLink | null, s: number) {
       const { stations, values: byExit } = lines.get(section)!;
       const values = byExit.get(section.fork ? exit!.id : null)!;
-      const i = Math.min(stations.length - 2, Math.max(0, Math.floor(s / PACE_SCHEDULE_SPACING)));
+      const i = Math.min(stations.length - 2, Math.max(0, Math.floor(s / RACING_LINE_SPACING)));
       const a = stations[i]!,
         b = stations[i + 1]!;
       const t = Math.min(1, Math.max(0, (s - a) / (b - a)));
@@ -128,8 +138,8 @@ export function createRacingLines(course: CompiledCourse, laterals: RacingLineLa
 /**
  * Admit a course's racing lines against the compiled course: its build identity, the station spacing, a length weight
  * of at least 0, timing vehicles each with a positive finite time on the lines and on the minimum-curvature lines, and
- * exactly one line of finite laterals at every schedule station for each Section, one per exit on a fork Section. The
- * procedure and vehicle identities are read here and compared by the build, which knows the procedure and catalog.
+ * exactly one line of finite laterals at every racing line station for each Section, one per exit on a fork Section.
+ * The procedure and vehicle identities are read here and compared by the build, which knows the procedure and catalog.
  */
 export function readRacingLines(course: CompiledCourse, input: unknown, document = ''): AdmissionResult<RacingLines> {
   return admit(document, () => {
@@ -146,7 +156,7 @@ export function readRacingLines(course: CompiledCourse, input: unknown, document
       'Stale course identity',
     );
     readString(data.procedureSha256, '/procedureSha256', SHA256_TEXT);
-    requireAdmission(data.spacing === PACE_SCHEDULE_SPACING, 'invalid_value', '/spacing', 'Unknown station spacing');
+    requireAdmission(data.spacing === RACING_LINE_SPACING, 'invalid_value', '/spacing', 'Unknown station spacing');
     requireAdmission(readNumber(data.lengthWeight, '/lengthWeight') >= 0, 'invalid_value', '/lengthWeight', 'Negative');
     readArray(data.vehicles, '/vehicles', (value, path) => {
       const vehicle = readRecord(value, path, ['vehicleId', 'vehicleSha256', 'seconds', 'minimumCurvatureSeconds']);
@@ -176,7 +186,7 @@ export function readRacingLines(course: CompiledCourse, input: unknown, document
       );
       const byExit = lines.get(section) ?? new Map();
       requireAdmission(!byExit.has(exit), 'duplicate_id', path, 'One line per Section and exit');
-      const stations = paceScheduleStations(section);
+      const stations = racingLineStations(section);
       const laterals = readArray(line.laterals, `${path}/laterals`, (value, at) => readNumber(value, at), {
         length: stations.length,
       });

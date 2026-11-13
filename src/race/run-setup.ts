@@ -4,7 +4,6 @@ import { assertBodyContactStability } from '../vehicle/physics/body-contact.js';
 import { createVehicleModel, VEHICLE_SUBSTEPS, type VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import { createVehicleLimits, type VehicleLimits } from '../vehicle/vehicle-limits.js';
 import type { CourseTimeBudgets } from '../content/course-time-budgets.js';
-import type { PaceSchedule } from '../content/pace-schedule.js';
 import type { RacingLines } from '../content/racing-line.js';
 import type { RunVehicle } from '../content/run-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
@@ -24,8 +23,8 @@ export interface EntryVehicle {
 }
 
 /**
- * One competitor's resolved entry: its stable ID, grid slot or ahead appearance, color, pace ratio, stage interval,
- * and run vehicle.
+ * One competitor's resolved entry: its stable ID, grid slot or ahead appearance, color, stage interval and run
+ * vehicle.
  */
 export interface RunEntry extends EntryVehicle {
   readonly id: string;
@@ -34,8 +33,6 @@ export interface RunEntry extends EntryVehicle {
   readonly ahead: AheadAppearance | null;
   /** A color of the vehicle's sprite set. */
   readonly color: string;
-  /** A RACE rival's pace ratio; null for the player and for FREE PLAY rivals, which drive at a fixed utilization. */
-  readonly pace: number | null;
   /** The stages the competitor takes part in; null for the whole run. */
   readonly stages: StageInterval | null;
 }
@@ -76,7 +73,7 @@ export interface ResolvedTraffic {
  * What a run of `configuration` needs besides the player's own vehicle, decided with its entries: the
  * FREE PLAY rival pairs it draws from (`rivalPool`), every other vehicle that may drive in it — RACE's class
  * entries, FREE PLAY's pool when it has rivals, and the traffic candidates — each with its run vehicle
- * (`vehicleIds`, unique, in first-use order), the time budgets of its clock and RACE's pace schedule.
+ * (`vehicleIds`, unique, in first-use order) and the time budgets of its clock.
  */
 export function runDemand(
   configuration: RunConfiguration,
@@ -96,8 +93,6 @@ export function runDemand(
     rivalPool,
     vehicleIds: Object.freeze([...new Set(ids)]),
     budgets: configuration.timeLimit,
-    // Rivals follow the pace schedule in a RACE with a clock; without one they drive unpaced.
-    paceSchedule: configuration.mode === 'RACE' && configuration.timeLimit,
   });
 }
 
@@ -152,8 +147,6 @@ export function resolveRunSetup(
     readonly vehicleOf?: (vehicleId: string) => EntryVehicle;
     /** FREE PLAY rival vehicle/color pairs; FREE PLAY with rivals requires them. */
     readonly rivalPool?: readonly VehicleColor[];
-    /** The player vehicle's pace schedule on this course; RACE requires it. */
-    readonly paceSchedule?: PaceSchedule;
     /** The course's racing lines; without them drivers' racing line is the centre lane. */
     readonly racingLines?: RacingLines | null;
   } = {},
@@ -171,8 +164,6 @@ export function resolveRunSetup(
     vehicle.vehicleDefinition,
     configuration.color,
   );
-  if (configuration.mode === 'RACE' && configuration.timeLimit && !field.paceSchedule)
-    throw new RangeError("RACE requires the player vehicle's delivered pace schedule");
   if (configuration.timeLimit && !budgets)
     throw new RangeError('A time limit requires current, complete reference runs');
   if (configuration.rivalCount > 0 && !field.vehicleOf)
@@ -185,15 +176,19 @@ export function resolveRunSetup(
     if (!resolved) mechanics.set(runVehicle, (resolved = createRunMechanics(runVehicle)));
     return resolved;
   };
-  // Each vehicle's fixed driver, compiled once at the rival utilization and its speed cap: the race's unpaced rivals and
-  // the player's run driver use the same one; traffic drivers use the same utilization.
-  const rivalUtilization = 0.75;
+  // The roles' utilizations (K, 2026-11-12), the run vehicle's driving definition's: the standard driver, which drives
+  // the player's vehicle on request and after GOAL, and traffic.
+  const { roles } = vehicle.drivingDefinition.compiledDriving;
+  // Each vehicle's standard driver, compiled once at the standard utilization and its speed cap.
   const drivers = new Map<RunVehicle, PlannedDriver>();
   const driverOf = (runVehicle: RunVehicle) => {
     let driver = drivers.get(runVehicle);
     if (!driver) {
       const { model, limits, speedCap } = mechanicsOf(runVehicle);
-      drivers.set(runVehicle, (driver = compilePlannedDriver(model, limits, rivalUtilization, speedCap, true)));
+      drivers.set(
+        runVehicle,
+        (driver = compilePlannedDriver(model, limits, roles.standard.utilization, speedCap, true)),
+      );
     }
     return driver;
   };
@@ -209,8 +204,9 @@ export function resolveRunSetup(
           field.rivalPool ?? [],
           field.vehicleOf!,
         );
-  // Traffic drives each candidate vehicle's driver at the rival utilization, capped at the one traffic speed, converted
-  // from km/h here once (a vehicle slower than it keeps its own maximum speed); each driver is compiled once here.
+  // Traffic drives each candidate vehicle's driver at the traffic utilization, capped at the one traffic speed,
+  // converted from km/h here once (a vehicle slower than it keeps its own maximum speed); each driver is compiled
+  // once here.
   const trafficSpeed = configuration.traffic
     ? configuration.traffic.speedKilometersPerHour / KILOMETERS_PER_HOUR_PER_METER_PER_SECOND
     : 0;
@@ -227,7 +223,13 @@ export function resolveRunSetup(
               colors: spriteSetColors(candidate.vehicle.vehicleDefinition.spriteSet),
               weight: configuration.traffic!.weights[index]!,
               // Traffic never changes lanes to pass; it follows a slower vehicle in its lane and merges where its lane ends.
-              driver: compilePlannedDriver(model, limits, rivalUtilization, Math.min(trafficSpeed, speedCap), false),
+              driver: compilePlannedDriver(
+                model,
+                limits,
+                roles.traffic.utilization,
+                Math.min(trafficSpeed, speedCap),
+                false,
+              ),
             });
           }),
         ),
@@ -244,11 +246,9 @@ export function resolveRunSetup(
     mechanicsOf,
     /** The course's racing lines, which rivals and the player's run driver drive; null without them. */
     racingLines: field.racingLines ?? null,
-    /** The fixed driver of a run vehicle, at the rival utilization and its speed cap. */
+    /** The standard driver of a run vehicle, at the standard utilization and its speed cap. */
     driverOf,
     budgets: configuration.timeLimit ? budgets : null,
-    /** The player vehicle's pace schedule; RACE only. */
-    paceSchedule: configuration.mode === 'RACE' && configuration.timeLimit ? field.paceSchedule! : null,
     /** Rank limit N by gate ID; RACE only. */
     rankLimits: configuration.mode === 'RACE' && runClass ? runClass.rankLimits : NO_RANK_LIMITS,
     bodyContact,
@@ -279,8 +279,6 @@ function classEntries(
     runClass.playerSlot === 'own' ? null : runClass.playerSlot === 'last' ? slots.slice(0, -1) : slots.slice(1);
   const playerSlot =
     runClass.playerSlot === 'own' ? own.slot! : runClass.playerSlot === 'last' ? slots.at(-1)! : slots[0]!;
-  // Without a clock there is no pace schedule, and every rival drives unpaced.
-  const paced = runClass.timeMargin !== null;
   let gridIndex = 0;
   const slotOf = (entry: (typeof others)[number]) =>
     entry.slot === null ? null : grid[otherGridSlots ? otherGridSlots[gridIndex++]! : entry.slot]!;
@@ -290,7 +288,6 @@ function classEntries(
       slot: grid[playerSlot]!,
       ahead: null,
       color: playerColor,
-      pace: null,
       stages: null,
       ...player,
     }),
@@ -300,7 +297,6 @@ function classEntries(
         slot: slotOf(entry),
         ahead: entry.ahead,
         color: entry.color,
-        pace: paced ? entry.pace : null,
         stages: entry.stages,
         ...rivals[index]!,
       }),
@@ -331,7 +327,6 @@ function freePlayEntries(
       slot: grid[rivalCount]!,
       ahead: null,
       color: playerColor,
-      pace: null,
       stages: null,
       ...player,
     }),
@@ -341,7 +336,6 @@ function freePlayEntries(
         slot: grid[index]!,
         ahead: null,
         color: pair.color,
-        pace: null,
         stages: null,
         ...rivals[index]!,
       }),

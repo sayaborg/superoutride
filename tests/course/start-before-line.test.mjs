@@ -8,8 +8,7 @@ import { createPlanCoordinateSample } from '../../src/course/geometry/plan-coord
 import { transformPlanarPoint } from '../../src/core/planar-transform.js';
 import { normalizeCoursePositions } from '../../tools/authoring/course-joints.ts';
 import { runCourseReference } from '../../tools/course/reference-run.ts';
-import { createRacingLines } from '../../src/content/racing-line.js';
-import { PACE_SCHEDULE_SPACING, paceScheduleStations } from '../../src/content/pace-schedule.js';
+import { createRacingLines, RACING_LINE_SPACING, racingLineStations } from '../../src/content/racing-line.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadFreePlayRules, NO_TRAFFIC } from '../../src/content/free-play-rules.js';
@@ -165,9 +164,9 @@ test('from a start before the line, laps and checkpoints count from the line, as
   // The racing line along P.
   const lines = createRacingLines(
     course,
-    new Map(course.sections.map((s) => [s.id, new Map([[null, paceScheduleStations(s).map(() => 0)]])])),
+    new Map(course.sections.map((s) => [s.id, new Map([[null, racingLineStations(s).map(() => 0)]])])),
   );
-  const run = runCourseReference(course, vehicle, catalog, [], 2, lines);
+  const run = runCourseReference(course, vehicle, catalog, [], 2, lines, true);
   // Every line after the line, lap by lap; the line crossed from the grid is none.
   assert.deepEqual(
     run.events.map((e) => [e.landmarkId, e.lap]),
@@ -177,9 +176,10 @@ test('from a start before the line, laps and checkpoints count from the line, as
   assert.equal(run.metrics.recoveries, 0);
   // The run begins in the Section before the line, from its grid's last slot 60 m into it, where a FREE PLAY run alone
   // starts from its first, 150 m in.
-  assert.equal(run.passes[0].section, 'sector-3');
-  const first = paceScheduleStations(course.gates.start)[run.passes[0].first];
-  assert.ok(first >= 60 && first < 60 + PACE_SCHEDULE_SPACING, `${first}`);
+  const [first] = run.trace;
+  assert.equal(first.sectionId, 'sector-3');
+  const start = first.s + course.gates.start.coordinates.domain.end;
+  assert.ok(start >= 60 && start < 60 + RACING_LINE_SPACING, `${start}`);
 });
 
 test('behind the Route start a vehicle recovers at rest as at a road end, and the camera has room', async () => {

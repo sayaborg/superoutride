@@ -28,10 +28,10 @@ export interface CompiledDriving {
   readonly tire: Readonly<CompiledTireCharacteristics>;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
   /**
-   * RACE rival pace: utilization bounds, 0 < minimum ≤ maximum ≤ 1; the speed cap's fraction of maximum speed at
-   * the minimum utilization, in (0,1]; the schedule difference band and the response time constant, in seconds.
+   * The drivers' roles: each utilization in (0,1], a rival's least ≤ its level utilization ≤ its most; a rival's span
+   * in metres and response time constant in seconds, finite and positive.
    */
-  readonly rivalPace: DrivingDefinition['rivalPace'];
+  readonly roles: DrivingDefinition['roles'];
   /** The body contact spring-damper between vehicles, and against walls, course limits and objects. */
   readonly bodyContact: CompiledBodyContact;
 }
@@ -73,24 +73,23 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
       'pitchLimitDegrees',
       `pitchLimitDegrees must lie in (0,${PITCH_LIMIT_MAX_DEGREES}]`,
     );
-  const { minimumUtilization, maximumUtilization, minimumSpeedFraction, bandSeconds, responseSeconds } =
-    definition.rivalPace;
-  if (!(maximumUtilization > 0 && maximumUtilization <= 1))
-    throw new DefinitionDomainError('rivalPace/maximumUtilization', 'rivalPace maximumUtilization must lie in (0,1]');
-  if (!(minimumUtilization > 0 && minimumUtilization <= maximumUtilization))
+  const { rival, standard, traffic } = definition.roles;
+  const utilizationIn = (value: number, path: string) => {
+    if (!(value > 0 && value <= 1)) throw new DefinitionDomainError(`roles/${path}`, `${path} must lie in (0,1]`);
+  };
+  utilizationIn(rival.mostUtilization, 'rival/mostUtilization');
+  utilizationIn(standard.utilization, 'standard/utilization');
+  utilizationIn(traffic.utilization, 'traffic/utilization');
+  if (!(rival.leastUtilization > 0 && rival.leastUtilization <= rival.utilization))
     throw new DefinitionDomainError(
-      'rivalPace/minimumUtilization',
-      'rivalPace minimumUtilization must lie in (0, maximumUtilization]',
+      'roles/rival/leastUtilization',
+      'rival leastUtilization must lie in (0, utilization]',
     );
-  if (!(minimumSpeedFraction > 0 && minimumSpeedFraction <= 1))
-    throw new DefinitionDomainError(
-      'rivalPace/minimumSpeedFraction',
-      'rivalPace minimumSpeedFraction must lie in (0,1]',
-    );
-  if (!(bandSeconds > 0) || !Number.isFinite(bandSeconds))
-    throw new DefinitionDomainError('rivalPace/bandSeconds', 'rivalPace bandSeconds must be finite and > 0');
-  if (!(responseSeconds > 0) || !Number.isFinite(responseSeconds))
-    throw new DefinitionDomainError('rivalPace/responseSeconds', 'rivalPace responseSeconds must be finite and > 0');
+  if (!(rival.utilization <= rival.mostUtilization))
+    throw new DefinitionDomainError('roles/rival/utilization', 'rival utilization must not exceed mostUtilization');
+  for (const key of ['spanMeters', 'responseSeconds'] as const)
+    if (!(rival[key] > 0) || !Number.isFinite(rival[key]))
+      throw new DefinitionDomainError(`roles/rival/${key}`, `rival ${key} must be finite and > 0`);
   if (!(definition.drivelineEfficiency > 0 && definition.drivelineEfficiency <= 1))
     throw new DefinitionDomainError('drivelineEfficiency', 'drivelineEfficiency must lie in (0,1]');
   // One traversal time sets both steering rates, so steering response is symmetric by construction.
@@ -142,12 +141,10 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
       wheelSlip: Object.freeze({ drive: definition.wheelSlip.drive, brake: definition.wheelSlip.brake }),
       pitchLimit: (definition.pitchLimitDegrees * Math.PI) / 180,
     }),
-    rivalPace: Object.freeze({
-      minimumUtilization,
-      maximumUtilization,
-      minimumSpeedFraction,
-      bandSeconds,
-      responseSeconds,
+    roles: Object.freeze({
+      rival: Object.freeze({ ...rival }),
+      standard: Object.freeze({ ...standard }),
+      traffic: Object.freeze({ ...traffic }),
     }),
     bodyContact: withDefinitionPath(
       () => compileBodyContact(definition.bodyContact),

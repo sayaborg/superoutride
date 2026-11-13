@@ -24,6 +24,7 @@ import { createContactResponse } from '../../src/race/contact-response.js';
 import { advancePresentVehicle, createPresentVehicle } from '../../src/race/present-vehicle.js';
 import { driverSteering } from '../../src/vehicle/steering-rule.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
+import { PLANNED_DRIVER } from '../../src/race/planned-driver.js';
 
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
@@ -500,4 +501,34 @@ test('a recovered driver drives on from the lane nearest where it was', async ()
     if (keepsLane) assert.equal(rival.body.driving.intent.lane, 1);
     else assert.ok(rival.body.driving.offset !== null);
   }
+});
+
+test('a driver whose vehicle stands 2 s asks for the player’s manual recovery', async () => {
+  const { race, scene, actor } = await run({ rivals: 1 });
+  const rival = race.rivals[0];
+  // The rival keeps lane a, so it does not pass: it waits behind the player, braked at rest in that lane, as a driver
+  // waits behind a standing object.
+  const s = sector2(scene, 150);
+  place(scene, race.player.body, s, lane('a'));
+  place(scene, rival.body, s - 20, lane('a'));
+  const driving = rival.body.driving;
+  Object.assign(driving.intent, { lane: 0, at: s - 20, offset: undefined });
+  rival.body.driving = { ...driving, offset: null, target: (at) => race.forks.targetL(at, driving.intent) };
+  const counts = [];
+  for (let step = 0; step < 900 && !rival.actor.recovery.recoveries; step++) {
+    race.advance(braked);
+    counts.push(rival.body.driving.standing);
+  }
+  assert.equal(rival.actor.recovery.lastReason, 'manual');
+  // It asked on its 120th standing step (2 s), having stood each step before it, and its count starts again.
+  const steps = Math.round(PLANNED_DRIVER.standingSeconds / SIM_DT);
+  assert.equal(steps, 120);
+  assert.deepEqual(counts.slice(-steps), [...Array.from({ length: steps - 1 }, (_, k) => k + 1), 0]);
+  assertRecoveredAtRest(scene, rival.actor, lane('a'));
+  // Standing at rest after its recovery, it does not ask again before another 2 s.
+  for (let step = 1; step < steps; step++) race.advance(braked);
+  assert.equal(rival.actor.recovery.recoveries, 1);
+  // The player's own input is no driver's: it stands braked and nothing recovers it.
+  assert.equal(race.player.body.driving, null);
+  assert.equal(actor.recovery.recoveries, 0);
 });

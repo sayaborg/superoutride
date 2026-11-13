@@ -26,10 +26,10 @@ Use Node.js 24. [AGENTS](../AGENTS.md) owns checks and release procedure.
 TSUKUBA; `driving-harness.mjs` assembles the same scene, race,
 vehicle physics, route readers, camera and rival sprite rendering as the browser, and prepares each run from a request
 through the browser's path (`prepareRun`: the run admission, the products it needs from delivery, and resolution).
-The player is driven by the product's driver: an advance without input hands the player to its run driver (the
-driver of the takeover after GOAL), which plans, follows, passes and merges by the drivers' rules toward the
-scenario's target exit at every fork. Policies that need other inputs script them: the course limit and broadside
-policies hold pedals and steering. `npm test` runs them on every
+The player is driven by the product's driver: an advance without input hands the player to its run driver, the standard
+driver ([Driver roles](content-and-gameplay.md#driver-roles)), which plans, follows, passes and merges by the drivers'
+rules toward the scenario's target exit at every fork. Policies that need other inputs script them: the course limit and
+broadside policies hold pedals and steering. `npm test` runs them on every
 CI build. After `npm run build`, use `npm run test:scenarios` alone. The Node test runner reports total wall time and
 per-scenario times; these are observations, not timing gates.
 
@@ -55,16 +55,16 @@ entries, movable objects and forks have no driving scenario. Each row checks a s
 
 Three rows cover run rules. The RACE rows name their class: of a test-only series document,
 `tests/scenarios/run-rules.series.json` (never delivered, standing on TSUKUBA CLUBMAN's picture), with the build's
-delivered reference times and pace schedules. The player drives the class's first vehicle, TESTAROSSA elsewhere. Rows
+delivered reference times. The player drives the class's first vehicle, TESTAROSSA elsewhere. Rows
 that run to their ending add `rules` evidence: outcome, cause, ending time, position, distance past the finish, player
 speed, rival travel after the ending, and appearances and departures. After the ending, race time, progress, events and
 the position hold.
 
-| Row (course)                                                                     | Passes when                                                                                                                                                                                                                           |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| RACE lap from the grid ahead of rivals, then the takeover stops (TSUKUBA)        | 911 TURBO 3.3 from the pole ahead of two paced GOLF GTI 16V rivals (p = 1) at the back of the grid: one lap to GOAL at P1/3; over the 16 seconds after it the takeover stops the player within its runout and the rivals keep driving |
-| TIME ATTACK lap without a finish from the first slot (TSUKUBA, the quickest lap) | from the first grid slot, without rivals, traffic or clock; the lap's finish line does not finish the run, which the player ends after one lap: ENDED at P1/1 with that lap as its best                                               |
-| RACE with the test series traffic (TSUKUBA, seed 7, 30 s bounded stretch)        | traffic appears ahead and leaves the view, at most sixteen at once (its states join the digest and the `traffic` evidence); the outcome is open                                                                                       |
+| Row (course)                                                                     | Passes when                                                                                                                                                                                                             |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RACE lap from the grid ahead of rivals, then the takeover stops (TSUKUBA)        | 911 TURBO 3.3 from the pole ahead of two GOLF GTI 16V rivals at the back of the grid: one lap to GOAL at P1/3; over the 20 seconds after it the takeover stops the player within its runout and the rivals keep driving |
+| TIME ATTACK lap without a finish from the first slot (TSUKUBA, the quickest lap) | from the first grid slot, without rivals, traffic or clock; the lap's finish line does not finish the run, which the player ends after one lap: ENDED at P1/1 with that lap as its best                                 |
+| RACE with the test series traffic (TSUKUBA, seed 7, 30 s bounded stretch)        | traffic appears ahead and leaves the view, at most sixteen at once (its states join the digest and the `traffic` evidence); the outcome is open                                                                         |
 
 To add a scenario, add a policy/outcome record to the course's list, with a finite simulated work limit.
 Compose ordinary inputs in the harness, and require evidence that the intended situation occurred.
@@ -1220,7 +1220,7 @@ scenarios read the sources, never the bundle. Delivered files stay under `dist/d
 share a directory. Course JSON retains authored Strip constructs; the shared compiler expands them and builds immutable
 preblend fields before browser driving or headless rendering. Expanded Strips are
 in-memory compiler products, not committed files or an additional delivered image format. Build also delivers the
-racing lines, game time budgets and pace schedules from the [measured products](#measured-products) saved under
+racing lines and game time budgets from the [measured products](#measured-products) saved under
 `content/`; it runs no driving. Browsers load these products.
 
 `dist/delivery/manifest.json` is the sole delivery index. Its own
@@ -1259,7 +1259,6 @@ format/version. The delivery layout (`layoutDelivery` in
 | `recording`          | `<group>/<name>`: `music/<id>`, `effects/<name>` or `impacts/<name>` | `recordings/<id>.m4a`                     | Recording, AAC-LC in MP4 ([Audio](audio.md#recordings-and-music-documents))                                                     |
 | `music`              | Track ID                                                             | `music/<id>.json`                         | Music document ([Audio](audio.md#recordings-and-music-documents))                                                               |
 | `reference-times`    | `<course>/<vehicle>`                                                 | `reference-times/<course>/<vehicle>.json` | Reference times before the series margin, from which a timed run derives its budgets (`superoutride.course-reference-times` v1) |
-| `schedule`           | `<course>/<vehicle>`                                                 | `schedules/<course>/<vehicle>.json`       | RACE pace schedule (`superoutride.pace-schedule` v1)                                                                            |
 | `racing-line`        | Course ID                                                            | `racing-lines/<id>.json`                  | The course's racing lines (`superoutride.racing-line` v2)                                                                       |
 | `engine-loudness`    | `default`                                                            | `engine-loudness/<id>.json`               | Each vehicle's engine loudness, as saved (`superoutride.engine-loudness` v1, [Audio](audio.md#engine-loudness))                 |
 
@@ -1296,8 +1295,8 @@ catalog), then the front end selection (admitted against the series, the screen 
 Each stage receives earlier products directly, and a course and its images are delivered only after the course
 compiles. Last, the core admits the saved measured products against this content and delivers each course's racing
 lines and, for each course a class runs, once for each vehicle a
-class runs there, its reference times (before any margin; a run applies its series' margin) and pace schedule; only
-courses a class runs are timed, since only RACE has the clock and rival pace. A stale, absent or unowned saved product fails the build
+class runs there, its reference times (before any margin; a run applies its series' margin); only
+courses a class runs are timed, since only RACE has the clock. A stale, absent or unowned saved product fails the build
 ([Measured products](content-and-gameplay.md#measured-products)). A document whose bytes are not UTF-8 JSON is an
 input error of that document (`parse_failure` at its root), as for course documents. The build lays the returned files
 out with the delivery layout and writes them, the manifest last.

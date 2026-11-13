@@ -56,7 +56,6 @@ import { referenceProcedure } from '../course/reference-run.js';
 import { RACING_LINE_PROCEDURE } from '../course/racing-line.js';
 import { courseReferenceTimesProduct } from '../course/course-reference.js';
 import {
-  deliveredSchedule,
   measuredCourses,
   racingLinePath,
   readSavedRacingLines,
@@ -117,7 +116,7 @@ export type ContentCompilation = (
  * one pass: vehicle sprite sets, text tiles, materials, surface sounds, puffs, audio settings, recordings and
  * music, FREE PLAY rules, engine sounds, vehicle and driving definitions, courses (their walls' sounds admitted against
  * the wall sounds) and their images, the course index, series, the front end's selection, then the measured
- * products: each course's racing lines and each series course's time budgets and pace schedules from the saved
+ * products: each course's racing lines and each series course's time budgets from the saved
  * measurements, which must be current.
  * Each stage receives earlier products directly and admits its documents as delivery does. With `measured: false` it
  * stops before the measured products, for tools that produce them or do not use them. An expected content error ends
@@ -631,9 +630,9 @@ function namedImages(bytes: Uint8Array): string[] {
 }
 
 /**
- * The measured products: each course's racing lines and, for each course a class runs, the reference times and pace schedule of each vehicle a class runs there, from the saved measurements,
- * each delivered once, and the engine loudness, delivered as saved. Every saved file must be current and owned. A run
- * applies its class's margin to the delivered times.
+ * The measured products: each course's racing lines and, for each course a class runs, the reference times of each
+ * vehicle a class runs there, from the saved measurements, each delivered once, and the engine loudness, delivered as
+ * saved. Every saved file must be current and owned. A run applies its class's margin to the delivered times.
  */
 async function measuredFiles(
   store: ContentStore,
@@ -726,11 +725,6 @@ async function measuredFiles(
       // The delivered times admit as a run admits them, here with no margin.
       requireLoaded(readCourseTimeBudgets(course, sha256, 1, product, `reference-times/${course.id}/${id}.json`));
       add('reference-times', `${course.id}/${id}`, encodeContentJson(product));
-      add(
-        'schedule',
-        `${course.id}/${id}`,
-        encodeContentJson(deliveredSchedule(course.identity.buildSha256, sha256, vehicle.schedule)),
-      );
     }
   }
   return files;

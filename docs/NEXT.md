@@ -446,12 +446,19 @@ driving is made lighter: a lookahead fitted to the speed, fewer lane-position re
 (AD-3; its lane-position part after RC-3). The protection solvers are only examined; simpler traffic and unseen rivals
 are not made now.
 
+K's decisions of 2026-11-13. A driver whose vehicle has stood 2 s asks for the player's manual recovery, a safety net
+that asks no cause (AD-2). Roadside objects are of two kinds, by the physics' own `movable`: a driver does not see a
+movable one and drives through it, the physics doing the rest; a fixed one is part of the road's shape, which its path
+clears before any other path rule, over the whole ground inside the course limits, its plan held for it only while no
+clearing path is open; lane drivers merge past it as now (AD-4, after AD-3). AD-4 also examines, without changing
+them, why a pack of one model laps about 12 s slower than one alone at TSUKUBA, and reports what to change.
+
 The auditor's choices (reported to K): the stage's name and PRs; utilization read in steps of 0.01; a rival's
 utilization starting at its level. Provisional numbers K can change in DEV: the lag 6 s, the span 200 m, the replanning
 interval 6 steps.
 
-Order with Stage RC (K, 2026-11-12): RC-1, AD-1, AD-2, RC-2, RC-3, AD-3. AD-2, RC-2 and RC-3 change formats and wait as
-PRs until K lets them into main.
+Order with Stage RC (K, 2026-11-12, revised 2026-11-13): RC-1, AD-1, AD-2 with the safety net, AD-2 and RC-2 into main,
+RC-3, AD-3, AD-4. RC-3 changes formats and waits as a PR until K lets it into main.
 
 Not decided, for later: whether the protection solvers can be skipped with the same results (AD-3.4's report);
 simpler traffic and unseen rivals (not now, K); small differences between rivals, should their order set too firmly.

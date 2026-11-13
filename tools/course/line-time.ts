@@ -1,14 +1,14 @@
 import type { CompiledCourse } from '../../src/course/compiler/compiled-course.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { enumerateCourseRoutes } from '../../src/course/compiler/course-routes.js';
-import { gridRouteS } from '../../src/course/course-route.js';
+import { gridRouteS, routeSectionS, selectedSuccessor, type CourseRoute } from '../../src/course/course-route.js';
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
 import type { RacingLines } from '../../src/content/racing-line.js';
 import type { RunVehicle } from '../../src/content/run-vehicle.js';
 import { createRunMechanics } from '../../src/race/run-setup.js';
 import { compilePlannedDriver, createPlannedDriverWorkspace, plannedNode } from '../../src/race/planned-driver.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
-import { referenceLine } from './reference-driving-policy.js';
+import type { DriverIntent } from '../../src/race/course-fork-field.js';
 
 /**
  * The time a planned driver at `utilization` takes along `course`'s racing lines `lines` in `vehicle`, by its own speed
@@ -35,7 +35,7 @@ export function plannedLineSeconds(
   for (const route of enumerateCourseRoutes(course.entry, course.type)) {
     const { runtime } = createCourseScene(course.entry, course.gates, catalog);
     const planned = new Map(route.map((link) => [link.from.section, link]));
-    const lane = referenceLine(runtime.route, lines, (occurrence) =>
+    const lane = racingLinePath(runtime.route, lines, (occurrence) =>
       occurrence.section.fork!.exits.findIndex((exit) => exit.link === planned.get(occurrence.section)),
     );
     const workspace = createPlannedDriverWorkspace();
@@ -73,4 +73,25 @@ export function plannedLineSeconds(
     total += course.type === 'CIRCUIT' ? times[1]! - times[0]! : times[0]!;
   }
   return total;
+}
+
+/**
+ * A planned route's path: the course's racing line and, at a fork, the line toward the Link its route takes. It
+ * changes no other lines, so reference runs keep their path whatever traffic the course sees.
+ */
+export function racingLinePath(
+  route: CourseRoute,
+  lines: RacingLines,
+  exit: DriverIntent['exit'],
+): (s: number) => number {
+  return (s) => {
+    const occurrence = route.at(s)!;
+    const section = occurrence.section,
+      domain = section.coordinates.domain;
+    const at = Math.min(domain.end, Math.max(domain.start, routeSectionS(occurrence, s)));
+    const link = section.fork
+      ? (selectedSuccessor(route, occurrence) ?? section.fork.exits[exit(occurrence)]!.link)
+      : null;
+    return lines.lateral(section, link, at) - occurrence.lateralOrigin;
+  };
 }

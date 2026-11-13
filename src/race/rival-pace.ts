@@ -1,91 +1,34 @@
 import { clamp } from '../core/math.js';
-import { paceScheduleStations, type PaceSchedule, type PaceTimes } from '../content/pace-schedule.js';
-import type { CompiledSection } from '../course/compiler/course-graph.js';
-import { routeSectionS, type CourseRoute, type RouteOccurrence } from '../course/course-route.js';
 import type { CompiledDriving } from '../vehicle/physics/compiled-driving.js';
 
+type RivalRole = CompiledDriving['roles']['rival'];
+
 /**
- * A RACE rival's pace: its target times are the player vehicle's schedule divided by the pace ratio, summed by
- * Section along the Route the rival runs. A grid rival's targets count from GO along the start schedule; a rival
- * joining later counts from where and when it joins. Its target utilization is proportional to its schedule
- * difference (race time minus target time): the minimum at minus the band or below, the maximum at plus the band or
- * above. Its utilization starts at the middle of its bounds and follows the target with the response time constant;
- * its speed cap, as a fraction of its maximum speed, runs linearly from the minimum speed fraction at the minimum
- * utilization to 1 at the maximum. Where its schedule times no station, both hold, and the next timed station
- * re-anchors the targets. It reads nothing else, in particular not the player's position.
+ * A rival's target utilization at `lead` metres ahead of the player (negative behind): its level utilization level
+ * with the player, the least as far ahead as the span and beyond, the most as far behind and beyond, straight between.
  */
-export function createRivalPace(
-  route: CourseRoute,
-  schedule: PaceSchedule,
-  ratio: number,
-  bounds: CompiledDriving['rivalPace'],
-  stepSeconds: number,
-) {
-  const { minimumUtilization, maximumUtilization, minimumSpeedFraction, bandSeconds, responseSeconds } = bounds;
-  const span = maximumUtilization - minimumUtilization;
-  const response = 1 - Math.exp(-stepSeconds / responseSeconds);
-  const timesOf = (occurrence: RouteOccurrence) =>
-    occurrence.ordinal === 0 ? schedule.start : schedule.section(occurrence.section);
-  let utilization = (minimumUtilization + maximumUtilization) / 2;
-  // The current occurrence, its schedule and the race time at that schedule's zero; NaN until anchored.
-  let ordinal = 0;
-  let times: PaceTimes | null = schedule.start;
-  let zeroSeconds = 0;
-  const stationsBySection = new Map<CompiledSection, readonly number[]>();
-  const secondsAt = (record: PaceTimes, station: number) => {
-    let stations = stationsBySection.get(record.section);
-    if (!stations) stationsBySection.set(record.section, (stations = paceScheduleStations(record.section)));
-    return scheduleSeconds(record, stations, station);
-  };
+export function rivalTargetUtilization(role: RivalRole, lead: number): number {
+  const t = clamp(lead / role.spanMeters, -1, 1);
+  return t >= 0
+    ? role.utilization + (role.leastUtilization - role.utilization) * t
+    : role.utilization + (role.mostUtilization - role.utilization) * -t;
+}
+
+/**
+ * A rival's pace (K, 2026-11-12): its utilization starts at its level and follows its target utilization at its lead
+ * over the player (`rivalTargetUtilization`) with the role's response time constant, one fixed step at a time. It reads
+ * the lead alone: nothing of the player's vehicle, speed or input, and no schedule.
+ */
+export function createRivalPace(role: RivalRole, stepSeconds: number) {
+  const response = 1 - Math.exp(-stepSeconds / role.responseSeconds);
+  let utilization = role.utilization;
   return Object.freeze({
     get utilization() {
       return utilization;
     },
-    /** The speed cap's fraction of the rival's maximum speed at its utilization. */
-    get speedFraction() {
-      return span > 0
-        ? minimumSpeedFraction + ((utilization - minimumUtilization) / span) * (1 - minimumSpeedFraction)
-        : 1;
-    },
-    /** Join the run at route station `s`: on schedule at the first station its schedule times. */
-    join(s: number) {
-      const occurrence = route.at(s)!;
-      ordinal = occurrence.ordinal;
-      times = timesOf(occurrence);
-      zeroSeconds = NaN;
-    },
-    /** One step's response to the rival's route station `s` at race time `raceSeconds`. */
-    update(s: number, raceSeconds: number) {
-      const at = route.at(s);
-      for (; at && ordinal < at.ordinal; ordinal += 1) {
-        const occurrence = route.occurrences[ordinal]!;
-        const end = times && secondsAt(times, occurrence.section.coordinates.domain.end);
-        zeroSeconds = end === null ? NaN : zeroSeconds + end / ratio;
-        times = timesOf(route.occurrences[ordinal + 1]!);
-      }
-      const local = times && secondsAt(times, routeSectionS(route.occurrences[ordinal]!, s));
-      if (local === null) return;
-      if (Number.isNaN(zeroSeconds)) zeroSeconds = raceSeconds - local / ratio;
-      const difference = raceSeconds - (zeroSeconds + local / ratio);
-      const target = minimumUtilization + span * clamp((difference + bandSeconds) / (2 * bandSeconds), 0, 1);
-      utilization += (target - utilization) * response;
+    /** One step's response to its lead over the player, metres along the Route (laps included). */
+    update(lead: number) {
+      utilization += (rivalTargetUtilization(role, lead) - utilization) * response;
     },
   });
-}
-
-/**
- * The schedule's seconds at a native station of its Section, interpolated between the Section's schedule stations;
- * null where it times none.
- */
-function scheduleSeconds(times: PaceTimes, stations: readonly number[], station: number): number | null {
-  const { first, milliseconds } = times;
-  if (!(station >= stations[0]!) || station > stations.at(-1)!) return null;
-  let k = Math.min(stations.length - 2, Math.floor((station - stations[0]!) / (stations[1]! - stations[0]!)));
-  while (k > 0 && station < stations[k]!) k -= 1;
-  while (k < stations.length - 2 && station > stations[k + 1]!) k += 1;
-  const i = k - first;
-  if (i < 0 || i + 1 >= milliseconds.length) return null;
-  const a = stations[k]!,
-    b = stations[k + 1]!;
-  return (milliseconds[i]! + ((station - a) / (b - a)) * (milliseconds[i + 1]! - milliseconds[i]!)) / 1000;
 }

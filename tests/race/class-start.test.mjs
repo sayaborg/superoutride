@@ -31,7 +31,7 @@ const runClass = (playerSlot, timeMargin) =>
     course: 'tsukuba',
     laps: 1,
     vehicles: ['TESTAROSSA'],
-    entries: [0, 1, 2].map((slot) => ({ vehicle: 'TESTAROSSA', color, pace: 1, stages: null, slot, ahead: null })),
+    entries: [0, 1, 2].map((slot) => ({ vehicle: 'TESTAROSSA', color, stages: null, slot, ahead: null })),
     playerSlot,
     rankLimits: {},
     traffic: null,
@@ -50,15 +50,10 @@ const race = (settings) => {
   return { configuration, setup };
 };
 
-test('a class without a margin races without a clock, its rivals unpaced', () => {
+test('a class without a margin races without a clock', () => {
   const { configuration, setup } = race(runClass('last', null));
   assert.equal(configuration.timeLimit, false);
   assert.equal(setup.budgets, null);
-  assert.equal(setup.paceSchedule, null);
-  assert.deepEqual(
-    setup.entries.map((entry) => entry.pace),
-    [null, null, null],
-  );
 });
 
 test('`first` puts the player in the frontmost slot and the others behind it, in order', () => {

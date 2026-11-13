@@ -35,11 +35,11 @@ steps and never rejects a driving definition.
 | Powertrain | J     | `engineInertiaKilogramSquareMetersPerLitre` | Engine inertia per litre (kg m²/L)           | 0.04    | 0.010–0.100 / 0.005        |
 | Powertrain | ETA   | `drivelineEfficiency`                       | Driveline efficiency                         | 0.90    | 0.70–1.00 / 0.01           |
 | Powertrain | CLU   | `clutchCapacityFactor`                      | Clutch capacity × maximum curve torque       | 1.5     | 1.1–3.0 / 0.1              |
-| Rival pace | UMIN  | `rivalPace.minimumUtilization`              | RACE rival minimum driving utilization       | 0.55    | 0.30–1.00 / 0.05           |
-| Rival pace | UMAX  | `rivalPace.maximumUtilization`              | RACE rival maximum driving utilization       | 0.95    | 0.30–1.00 / 0.05           |
-| Rival pace | VMIN  | `rivalPace.minimumSpeedFraction`            | Rival speed cap at UMIN, × maximum speed     | 0.85    | 0.50–1.00 / 0.05           |
-| Rival pace | BAND  | `rivalPace.bandSeconds`                     | Schedule difference from UMIN to UMAX target | ±2.0 s  | 0.5–10.0 s / 0.5 s         |
-| Rival pace | RESP  | `rivalPace.responseSeconds`                 | Rival utilization response time constant     | 3.0 s   | 0.5–10.0 s / 0.5 s         |
+| Rivals     | ULVL  | `roles.rival.utilization`                   | Rival utilization level with the player      | 0.85    | 0.30–1.00 / 0.01           |
+| Rivals     | UMIN  | `roles.rival.leastUtilization`              | Rival utilization at the span ahead          | 0.70    | 0.30–1.00 / 0.01           |
+| Rivals     | UMAX  | `roles.rival.mostUtilization`               | Rival utilization at the span behind         | 0.98    | 0.30–1.00 / 0.01           |
+| Rivals     | SPAN  | `roles.rival.spanMeters`                    | Lead at which a rival's target is a bound    | 200 m   | 20–1000 m / 10 m           |
+| Rivals     | RESP  | `roles.rival.responseSeconds`               | Rival utilization response time constant     | 6.0 s   | 0.5–30.0 s / 0.5 s         |
 | Contact    | BCF   | `bodyContact.frequencyHertz`                | Body contact natural frequency (Hz)          | 3.0 Hz  | 1.0–6.0 Hz / 0.5 Hz        |
 | Contact    | BCZ   | `bodyContact.dampingRatio`                  | Body contact damping ratio                   | 1.0     | 0.2–1.5 / 0.1              |
 | Contact    | BWF   | `bodyContact.barrierFriction`               | Wall friction, as a fraction of the push     | 0.30    | 0.00–1.00 / 0.05           |
@@ -124,15 +124,17 @@ The full driving source document participates in vehicle identity for reference 
 A driver's utilization is the fraction of its tires' friction ellipses it plans to use, with no other factor: it scales
 the lateral and longitudinal semi-axes of every axle alike, and the brake torques, so it acts on cornering, braking and
 acceleration alike; at 1 the plan corners at the limit itself (K, 2026-11-12). It plans speed alone: every planned driver steers by one rule, CENTER at 100 %
-([Drivers](content-and-gameplay.md#drivers)). Rival pace reads it as before. A vehicle's speed cap
+([Drivers](content-and-gameplay.md#drivers)). A vehicle's speed cap
 is its steady speed on a level straight of unit grip without rolling resistance, at full utilization.
 
-| Setting               | Value | Meaning                                                                                             |
-| --------------------- | ----- | --------------------------------------------------------------------------------------------------- |
-| Rival utilization     | 0.75  | Utilization of unpaced rivals, traffic and the player's run driver (the takeover after GOAL)        |
-| Reference utilization | 0.9   | Offline reference driver's utilization                                                              |
-| Following time        | 1.5 s | Drivers' following time (`PLANNED_DRIVER.followSeconds`)                                            |
-| Terminal clearance    | 2 m   | Left before a terminal, or behind the vehicle ahead, at a stop (`PLANNED_DRIVER.terminalClearance`) |
+The roles' utilizations are the driving definition's `roles` ([Driver roles](content-and-gameplay.md#driver-roles)):
+a rival's follows the player within the five DEV values above, the standard driver's is 0.90 (`roles.standard`) and
+traffic's 0.75 (`roles.traffic`).
+
+| Setting            | Value | Meaning                                                                                             |
+| ------------------ | ----- | --------------------------------------------------------------------------------------------------- |
+| Following time     | 1.5 s | Drivers' following time (`PLANNED_DRIVER.followSeconds`)                                            |
+| Terminal clearance | 2 m   | Left before a terminal, or behind the vehicle ahead, at a stop (`PLANNED_DRIVER.terminalClearance`) |
 
 Drivers' rules read the following time and the terminal clearance
 ([Content and gameplay](content-and-gameplay.md#drivers)).
@@ -141,8 +143,9 @@ Drivers' rules read the following time and the terminal clearance
 planning, following, lane choice and merging, pedals and steering. It rises by one with every change that alters a
 driver's input for the same vehicle state and observations, whether the change is to a value or to that law, and with
 every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
-driver's record, part of the reference run's procedure record, contains it. It is 4: the plan corners at the driver's
-utilization of the limit itself, with no margin and no capacity correction.
+driver's record, part of the reference run's procedure record, contains it. It is 5: the plan corners at the driver's
+utilization of the limit itself, with no margin and no capacity correction, and a driver whose vehicle has stood 2 s
+(`standingSeconds`, K's, 2026-11-13) asks for the player's manual recovery.
 
 The planned driver's other values ([`PLANNED_DRIVER`](../src/race/planned-driver.ts) and the path offset rules'
 [`PATH_OFFSET`](../src/race/lane-following.ts)) are author values: chosen by the implementer, neither derived from a

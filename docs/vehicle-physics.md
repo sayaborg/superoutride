@@ -217,7 +217,7 @@ first five conditions in order; race composition and the player request the last
 | `stuck`          | Drive reaches the driven wheels and the vehicle's speed is below `RECOVERY_POLICY.stuckSpeed` (0.15 m/s), for 44 consecutive fixed steps   |
 | `wrong-course`   | Race composition: the vehicle left the route its locked fork allows; it returns to the selected road                                       |
 | `explosion`      | Race composition: the authored contact response's stopped interval has ended                                                               |
-| `manual`         | The player's request                                                                                                                       |
+| `manual`         | The player's request, or a driver's: the safety net after its vehicle has stood 2 s                                                        |
 
 A vehicle whose centre of gravity is more than 3 m below the ground's height there recovers, supported or not
 (K, 2026-11-12). The heightfield is the one at the center's route coordinate, material-free ground included, so a
@@ -760,14 +760,15 @@ fields: `maxRoadWheelSteerDegrees`,
 `clutchLockIdleMargin`, `clutchCapacityFactor` above 1,
 `pitchLimitDegrees` in (0,45], `throttle`
 and `brake` (each applySeconds/releaseSeconds),
-`wheelSlip` (drive/brake, both boolean), `tire` (gripX/peakSlipX/gripY/peakSlipY/knee/loadSensitivity/slidingRatio), `rivalPace`
-(minimumUtilization/maximumUtilization/minimumSpeedFraction/bandSeconds/responseSeconds, with 0 < minimum ≤
-maximum ≤ 1, a speed fraction in (0,1], and a positive finite band and response time) and `bodyContact`
-(frequencyHertz/dampingRatio, both positive and finite, and barrierFriction, finite and at least 0). `rivalPace` drives no vehicle mechanics: RACE rivals read it
-to pace their driving. `bodyContact` is the [body contact](#body-contact) spring-damper. Vehicle models do not carry it: a run reads it
-once, from the run's driving definition, and admits its stability at the race's fixed step. Angles are degrees, traversal times
-are seconds, pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values
-are dimensionless. Require
+`wheelSlip` (drive/brake, both boolean), `tire` (gripX/peakSlipX/gripY/peakSlipY/knee/loadSensitivity/slidingRatio),
+`roles` (`rival`: utilization/leastUtilization/mostUtilization/spanMeters/responseSeconds, with 0 < least ≤ utilization
+≤ most ≤ 1 and a positive finite span and response time; `standard` and `traffic`: utilization in (0,1]) and
+`bodyContact`
+(frequencyHertz/dampingRatio, both positive and finite, and barrierFriction, finite and at least 0). `roles` drives no
+vehicle mechanics: drivers read it ([Driver roles](content-and-gameplay.md#driver-roles)). `bodyContact` is the
+[body contact](#body-contact) spring-damper. Vehicle models do not carry it: a run reads it once, from the run's driving
+definition, and admits its stability at the race's fixed step. Angles are degrees, traversal times are seconds,
+pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values are dimensionless. Require
 0 < offset < maximum < 90 degrees, positive finite actuator rates and finite pressures in pascals after conversion, positive finite
 tire capacities/stiffness, 0 < knee < 1, 0 ≤ loadSensitivity < 1 and 0 < slidingRatio ≤ 1.
 Later game-wide launch and pitch rules extend this same document rather than creating separate

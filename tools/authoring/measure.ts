@@ -346,6 +346,5 @@ function timeChanges(before: SavedReferenceVehicle | null, after: SavedReference
   add('START', null, before?.initialSeconds ?? null, after.initialSeconds);
   for (const [gate, seconds] of after.after)
     seconds.forEach((value, index) => add(gate, index + 1, previous(before, gate)?.[index] ?? null, value));
-  const scheduleChanged = JSON.stringify(before?.schedule ?? null) !== JSON.stringify(after.schedule);
-  return { changes, scheduleChanged };
+  return { changes };
 }

@@ -60,7 +60,7 @@ const screenPictures = await loadScreenPictures(content);
 const music = await loadMusic(content, TEXT_COLUMNS);
 
 // The test-only series (never delivered) gives TSUKUBA RACE settings that exercise run rules with the build's
-// time budgets and pace schedules.
+// time budgets.
 const SCENARIO_SERIES_PATH = new URL('./run-rules.series.json', import.meta.url);
 const scenarioSeries = requireLoaded(
   compileSeriesCatalog(
@@ -591,8 +591,10 @@ export async function runScenario({ course }, scenario) {
       evidence.bestLapSeconds = race.player.bestLapSeconds;
     }
     if (expect.position) assert.equal(ending.position, expect.position);
-    // The takeover stops the finished player on its runout: its speed cap² / (2a) at the run driver's a.
-    const runout = driver.speedCap ** 2 / (2 * driver.braking);
+    // The takeover stops the finished player on its runout: its speed cap² / (2a) at the run driver's a, within the
+    // 5 % the plan's braking and the mechanics agree to (model-check); the standard driver plans at 0.90 of the limit
+    // itself, with no margin left to absorb the difference.
+    const runout = (1.05 * driver.speedCap ** 2) / (2 * driver.braking);
     const pastFinish = vehicle.course.s - ending.progress[0][0];
     const playerSpeed = Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed);
     if (expect.stop) {

@@ -4,14 +4,13 @@ import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 import { courseRoadsAt } from '../../src/course/course-lanes.js';
 import { stripSupportedIntervals } from '../../src/course/strip-material.js';
 import { stripSlabAt } from '../../src/course/strip-slabs.js';
-import { paceScheduleStations } from '../../src/content/pace-schedule.js';
-import { racingLineExits, type RacingLineLaterals } from '../../src/content/racing-line.js';
+import { racingLineExits, racingLineStations, type RacingLineLaterals } from '../../src/content/racing-line.js';
 import { wrapAngle } from '../../src/core/math.js';
 import { createPlanCoordinateSample, type PlanCoordinateReader } from '../../src/course/geometry/plan-coordinate.js';
 import { invertPlanarTransform, type PlanarTransform } from '../../src/core/planar-transform.js';
 import type { CourseObject } from '../../src/course/course-objects.js';
 import { AdmissionError } from '../../src/core/admission.js';
-import { REFERENCE_DRIVER } from './reference-driving-policy.js';
+import { PLANNED_DRIVER } from '../../src/race/planned-driver.js';
 
 /** The racing line procedure: its name, version and the values deciding its lines. */
 export const RACING_LINE_PROCEDURE = Object.freeze({
@@ -28,8 +27,11 @@ export const RACING_LINE_PROCEDURE = Object.freeze({
     0,
     ...Array.from({ length: 17 }, (_, k) => Number((10 ** (-5 + k / 4)).toPrecision(3))),
   ]),
-  /** The driver that times the lines: the reference driver, whose plan's speeds time them (`plannedLineSeconds`). */
-  driver: REFERENCE_DRIVER,
+  /**
+   * The driver policy that times the lines: each timing vehicle's standard driver, whose plan's speeds time them
+   * (`plannedLineSeconds`).
+   */
+  driver: PLANNED_DRIVER,
   /**
    * Metres: the width of the vehicle the lines are solved for, every course's (K, 2026-10-26), and the room it keeps
    * from the road's edges and from a fixed body standing on the road. A line keeps half the width plus the room from
@@ -132,7 +134,7 @@ export function solveRacingLines(
   for (const section of course.sections)
     for (const exit of racingLineExits(section)) {
       const link = exit ?? section.outgoing[0] ?? null;
-      const stations = paceScheduleStations(section);
+      const stations = racingLineStations(section);
       const variables = new Int32Array(stations.length),
         offsets = new Float64Array(stations.length);
       const begins = seams.get(section);

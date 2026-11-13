@@ -910,8 +910,11 @@ ending time is the race clock's, which stops at the ending: the race publishes i
 at GOAL is the player's finish crossing. RESULT and records read that one value.
 
 The state before GO has one owner, the start phase: WAITING until the run starts, then READY for the 3-second
-hold (`READY_SECONDS`), GO on the step boundary nearest its end. The run outcome has one owner from GO: RUNNING, then
-GOAL or GAME_OVER with its cause, `TIME`
+hold (`READY_SECONDS`), GO on the step boundary nearest its end. READY holds every competitor in place: the player's
+vehicle takes the player's input, and every driver waits at full throttle, its clutch open and its engine running up
+to the fuel cut as the player's does, and leaves at full throttle on GO (K, 2026-11-12): the rivals, and the player's
+vehicle while its standard driver drives it (a step without the player's input), the reference runs included. The run
+outcome has one owner from GO: RUNNING, then GOAL or GAME_OVER with its cause, `TIME`
 (the deadline expired) or `RANK` (a rank limit failed the player), or ENDED. Moving the field and deciding what
 happened are separate: each running step first moves every vehicle, then takes every competitor's crossing candidates
 of the step in race-time order (the player before rivals at equal times) and decides them one at a time up to the
@@ -925,9 +928,9 @@ run, RUNNING) and ends it between steps (`end`), ENDED at the race time of that 
 
 After the ending the race keeps moving the field: every present competitor advances each step with recovery, fork
 observation and Route loading, while race time, progress, events, presence and judging hold. The player's rank is
-therefore fixed at the ending: competitors unfinished at that moment rank behind a finished player. Paced rivals keep
-their last utilization and speed cap. After GOAL the player's input no longer reaches its vehicle: its vehicle's run
-driver at the fixed run driver utilization (0.75) drives it on the racing line, taken with a path offset from where
+therefore fixed at the ending: competitors unfinished at that moment rank behind a finished player. Rivals keep
+their last utilization. After GOAL the player's input no longer reaches its vehicle: its vehicle's standard driver
+([Driver roles](#driver-roles)) drives it on the racing line, taken with a path offset from where
 the vehicle is at the end of the step it finished in (on a fork, toward the selected exit), and plans a stop at its
 station then plus that vehicle's runout distance (`speedCap² / (2*a)`), within any Route terminal. After GAME OVER the player's throttle is released: its steering and brake still
 apply and the vehicle coasts.
@@ -992,14 +995,14 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 16) is the one owner of its classes, the races it runs. A series
+A series document (`superoutride.series` version 17) is the one owner of its classes, the races it runs. A series
 holds no rule values: every rule is a class's, and classes of one series may repeat the same values. It is saved
 as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 16,
+  "version": 17,
   "id": "example",
   "title": "EXAMPLE",
   "description": "A series for the example's sake.",
@@ -1013,9 +1016,7 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
       "course": "tsukuba",
       "laps": 1,
       "vehicles": ["911_TURBO_3_3"],
-      "entries": [
-        { "vehicle": "911_TURBO_3_3", "color": "silver", "pace": 1, "stages": null, "slot": 14, "ahead": null }
-      ],
+      "entries": [{ "vehicle": "911_TURBO_3_3", "color": "silver", "stages": null, "slot": 14, "ahead": null }],
       "playerSlot": "last",
       "rankLimits": {},
       "traffic": {
@@ -1048,10 +1049,9 @@ from column 17 of the 40), a delivered `course`, its `laps` (1 through 99), its 
 `vehicles` (at least one, unique and in the catalog, in selection order), `entries`, `playerSlot`, `rankLimits`,
 `traffic` (null, or traffic settings whose vehicles are catalog vehicles; see [Traffic](#traffic)), `timeMargin`, the
 clock's margin (positive, finite and at most 10), or null for a RACE without a clock (K, 2026-11-10: for a course whose
-reference run cannot finish, ENDURO RACER's): it needs no reference times or pace schedule, so its rivals drive unpaced
-and their `pace` is not read, and `fixedColors`, whether the player drives in its entry's color
-rather than its own chosen color. `entries` lists the whole field, 1 through 16 entries, each a catalog vehicle, a color
-its sprite set declares, a positive pace ratio `pace`, `stages` (null for the whole run, or `{first, last}` with `last`
+reference run cannot finish, ENDURO RACER's): it needs no reference times, and `fixedColors`, whether the player drives
+in its entry's color rather than its own chosen color. `entries` lists the whole field, 1 through 16 entries, each a
+catalog vehicle, a color its sprite set declares, `stages` (null for the whole run, or `{first, last}` with `last`
 at least `first` and no later than the stage count of every run of the course: its race gates per route, times the laps
 on a circuit) and one appearance. An entry taking part from STAGE 1 has a grid `slot` index (0 through 15) and `ahead:
 null`; grid entries are in grid order with strictly increasing slots. An entry whose first stage is later has `slot:
@@ -1076,14 +1076,13 @@ The delivered series is TSUKUBA CLUBMAN, the first product series; its
 document holds its classes, with their fields. It has the title track
 `placeholder-one` until K delivers its own. TSUKUBA CLUBMAN runs TSUKUBA in PRODUCTION 750 (VFR750R),
 GTI CUP (GOLF GTI 16V) and 911 CUP (911 TURBO 3.3), 5 laps each with a margin of 1.35, without traffic or rank limits: sixteen grid entries of the
-class's vehicle in its four colors in turn, the player last, and the rivals' pace ratios falling by 0.01 a slot from
-1.02 at the pole to 0.88.
+class's vehicle in its four colors in turn, the player last.
 
 ARCADE TRIBUTE - POLE POSITION II is delivered too (K, 2026-11-09), to try an ARCADE TRIBUTE's play before the card UI
 is updated. An ARCADE TRIBUTE class is titled with its course's official name (POLE POSITION II FUJI; K, 2026-11-11:
 names are written in full). It plays its reference game's race without the qualifying lap, which is not made for now: FUJI, TEST,
 SUZUKA and SEASIDE, in the reference game's order, 4 laps each (the original's factory setting) with a margin of 1.35,
-without rank limits. Its field is the original's eight: seven LOTUS 79 SPECIAL rivals of one pace ratio, 1, driving the
+without rank limits. Its field is the original's eight: seven LOTUS 79 SPECIAL rivals driving the
 racing line, ahead of the player, who starts last in the LOTUS 79 SPECIAL in its entry's color (`fixedColors`). The
 cars the player laps are traffic: LOTUS 79 SPECIALs at 2 a kilometre, driving their lanes at up to 150 km/h and
 slowing for the corners as every driver does. Until POLE POSITION II's product courses are made, its classes run the
@@ -1100,7 +1099,7 @@ PARIS-DAKARs and WRANGLERs, weighing 3 and 1, at 2 a kilometre and up to 100 km/
 ARCADE TRIBUTE - SUPER HANG-ON is delivered on the same terms too (K, 2026-11-10), on its original courses: AFRICA,
 ASIA, AMERICA and EUROPE, in the original's order, each one run of its stages with a margin of 1.35, without rank
 limits. Its field is the original's eight, all VFR750Rs until the GP machines are made: the player last, in the bike
-grid's rearmost slot, with the original's seven rivals of one pace ratio, 1, in front of it, and the riders the player
+grid's rearmost slot, with the original's seven rivals in front of it, and the riders the player
 passes are traffic VFR750Rs of `path: line`, slow riders on the racing line, at 2 a kilometre and up to 150 km/h
 (provisional). The original's turbo is not made.
 
@@ -1113,14 +1112,14 @@ now, since its reference run ends off the pavement past its GOAL. The reference 
 so the clocks are generous until the driving is mended.
 
 ARCADE TRIBUTE - TURBO OUTRUN is delivered on the same terms (K, 2026-11-10), on its original SECTION 1 to 4, each one
-run with a margin of 1.35. The player drives the F40, in red, beside its one rival, a white 911 Turbo 3.3 of pace 1
+run with a margin of 1.35. The player drives the F40, in red, beside its one rival, a white 911 Turbo 3.3
 (the original's Porsche), both on the grid's first two slots (`own`); the traffic drives its lanes, five vehicles of
 equal weight standing for the original's (the C4 Corvette, the Nova 250, the Mini 850, the Wrangler and a 911 Turbo
 3.3), at 4 a kilometre and up to 90 km/h (provisional). The F40's reference runs recover 3 to 12 times a section.
 
 ARCADE TRIBUTE - FINAL LAP 2 is delivered on the same terms (K, 2026-11-10), on its original JAPAN, MONACO, ITALY and
 USA, 4 laps each with a margin of 1.35, without rank limits. The player drives the MP4/4, for now, from the last of
-eight slots, with seven rivals of pace 1 in front of it, FERRARI 640s and MP4/4s in turn; the cars the player laps are
+eight slots, with seven rivals in front of it, FERRARI 640s and MP4/4s in turn; the cars the player laps are
 traffic LOTUS 79 SPECIALs of `path: line`, at 2 a kilometre and up to 150 km/h (provisional).
 
 ## FREE PLAY document
@@ -1173,7 +1172,7 @@ RACE resolves its class: one of the class's vehicle candidates, its entries and 
 checkpoint clock. The player takes the rearmost grid entry of its vehicle in grid order: with `own` it stands in
 that entry's slot and every other grid entry in its own; with `last` it stands in the rearmost of the grid entries'
 slots and the other grid entries, in order, take the slots in front. Each other entry is a rival with its own
-vehicle, color, pace ratio and stage interval; one with an ahead appearance has no slot. The player's color, in RACE
+vehicle, color and stage interval; one with an ahead appearance has no slot. The player's color, in RACE
 and TIME ATTACK alike, is its entry's when the class fixes colors, otherwise the player's chosen color (the
 player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
 vehicle, zero to fifteen rivals within the grid, a rival pool, a traffic level and permitted laps; it has no clock.
@@ -1191,23 +1190,23 @@ lane's centre, or `line`, the racing line; FREE PLAY's is `lane`), at least one 
 unique vehicle IDs, each weight an integer from 1 to 100 (`RUN_RULE_LIMITS.trafficWeight`, K, 2026-11-10: a class sets
 how often each traffic vehicle comes), and the one
 traffic speed in km/h in (0, 864] (`MAXIMUM_VEHICLE_SPEED` in km/h). Run resolution converts that speed to m/s once
-(÷ `KILOMETERS_PER_HOUR_PER_METER_PER_SECOND`, 3.6), resolves each traffic vehicle's run vehicle and compiles its driver once: the rival utilization 0.75 with that speed as its
-speed cap, so a vehicle whose own speed cap is lower keeps its own; curve speeds and following are any
-driver's. On an untimed course, run resolution rejects RACE; a RACE clock without its delivered time
-budgets fails. Unsupported course/vehicle/grid/lap combinations fail before
-activation. A run binds immutable course, entries, lap target, start speed and timing references. Its entries
-list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`, `RIVAL_02`, …), its grid
-slot and its run vehicle (vehicle calibration and protection settings). In FREE PLAY and TIME ATTACK the rivals
-stand in the first slots of the grid the run's field starts from, `RIVAL_01` frontmost, and the player in the slot
-behind them, in the first when there are none (K, 2026-11-05).
+(÷ `KILOMETERS_PER_HOUR_PER_METER_PER_SECOND`, 3.6), resolves each traffic vehicle's run vehicle and compiles its driver
+once: the traffic role's utilization with that speed as its speed cap ([Driver roles](#driver-roles)), so a vehicle
+whose own speed cap is lower keeps its own; curve speeds and following are any driver's. On an untimed course, run
+resolution rejects RACE; a RACE clock without its delivered time budgets fails. Unsupported course/vehicle/grid/lap
+combinations fail before activation. A run binds immutable course, entries, lap target, start speed and timing
+references. Its entries list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`,
+`RIVAL_02`, …), its grid slot and its run vehicle (vehicle calibration and protection settings). In FREE PLAY and TIME
+ATTACK the rivals stand in the first slots of the grid the run's field starts from, `RIVAL_01` frontmost, and the player
+in the slot behind them, in the first when there are none (K, 2026-11-05).
 Each FREE PLAY rival is a vehicle/color pair drawn from the rival pool (`ALL`, `CARS` or `BIKES`; every color each
 pool vehicle's sprite set declares) by the run seed: a seeded shuffle of the pairs other than the player's own,
 reused in the same order only after every pair has been drawn, so the player's pair is drawn only when the pool
-holds nothing else. Each rival drives its own vehicle with that vehicle's run driver. Each entry also carries its color.
+holds nothing else. Each rival drives its own vehicle by the rival role. Each entry also carries its color.
 Resolving a run with rivals requires every rival's run vehicle and, in FREE PLAY, the pool; a missing one is a
 `RangeError`, never the player's vehicle. What a run needs is decided with its entries (`runDemand`): the
 FREE PLAY rival pairs, every other vehicle that may drive in it (class entries, the pool when it has rivals, traffic
-candidates), the clock's time budgets and RACE's pace schedule; the browser loads exactly these.
+candidates) and the clock's time budgets; the browser loads exactly these.
 The start speed is a resolved run setting: every competitor spawns at its grid slot moving at it along the
 road tangent. It is finite and may be negative; product runs and reference runs use 0. The run seed is a
 32-bit unsigned integer that run resolution takes with the configuration and checks; rival target exits derive from it. The
@@ -1227,15 +1226,18 @@ Recovery consumes simulation time and grants no crossing credit. Results are run
 ### Reference times and clock
 
 `tools/course` owns reference generation, its policy and report-to-budget admission. The product
-reads completed racing lines, time budgets and pace schedules and owns live run driving policy.
+reads completed racing lines and time budgets and owns live run driving policy.
 The measurement tool's continuous reference runs are FREE PLAY's runs without rivals or traffic, but from the last
 grid slot, where a FREE PLAY run alone starts from the first: product physics and finite routes/laps, with the
-reference driver alone and no clock. Each successful run records the race's event stream for the player
-([race time and events](#race-time-and-events)): ordered crossings with their race times, including within-step
-fractions. Reading a report derives the order and laps a run must record from the race's own lines: it builds the
-planned route's Route and reads its `RouteCrossSections` race lines through the completing FINISH. Wrong-route choice, timeout or incomplete FINISH invalidates a timing product. A recovery does not: the run goes on,
-its times include the recovery, and the measurement reports each course and vehicle's recoveries.
-Maximum-lap runs supply their actual prefixes; starting and later-lap arrival classes remain distinct.
+standard driver alone, waiting at full throttle through READY, and no clock. It drives by its own plan along the
+racing line toward the planned Link at each fork (`racingLinePath`), without the race's sightings of other vehicles and
+standing objects, so that a run's path is the racing line's whatever stands on it. Each successful run records the
+race's event stream for the player ([race time and events](#race-time-and-events)): ordered crossings with their race
+times, including within-step fractions. Reading a report derives the order and laps a run must record from the race's
+own lines: it builds the planned route's Route and reads its `RouteCrossSections` race lines through the completing
+FINISH. Wrong-route choice, timeout or incomplete FINISH invalidates a timing product. A recovery does not: the run goes
+on, its times include the recovery, and the measurement reports each course and vehicle's recoveries. Maximum-lap runs
+supply their actual prefixes; starting and later-lap arrival classes remain distinct.
 
 Identity includes course/compiler, vehicle/calibration/protection, driver policy, fixed step, start
 and seed inputs. A document's identity is the SHA-256 of its delivered bytes: its manifest digest in
@@ -1247,16 +1249,17 @@ settings and material physics—derives from those documents; the vehicle listin
 change to their delivered bytes changes `vehicleSha256`; a listing change does not. A DEV-tuned driving
 definition is not delivered and has no identity, so a run rebuilt by DEV tuning uses no time
 budgets ([Browser](browser.md#dev-controls)). This digest is saved with each measured product and is independently
-recomputed by build and browser budget and schedule admission; both reject products carrying an old digest.
+recomputed by build and browser budget admission; both reject products carrying an old digest.
 Each procedure that produces a measured product has one record, its name, version and the values that decide its
 results, and one identity: the SHA-256 of the record's JSON ([procedure](../tools/course/procedure.ts)), as the course
 compiler's record is part of a course build identity. A code change that changes a procedure's results raises that
 procedure's version. The reference run (`REFERENCE_RUN`,
-`superoutride.reference-driving` version 11) records the race's fixed step, the run seed, the reference driver (the
-driver policy `PLANNED_DRIVER` at utilization 0.9, steering by its rule) and the pace schedule's station spacing; its identity is that of the
+`superoutride.reference-driving` version 12) records the race's fixed step, the run seed and the driver policy
+`PLANNED_DRIVER` the standard driver drives by (its utilization is the driving definition's, part of each vehicle's
+digest); its identity is that of the
 record with the racing line procedure's record (`racingLine`), whose lines it drives. Authored values belong to the per-vehicle digest, so editing one vehicle does not invalidate unchanged
 vehicles' products. The saved measured products, report admission and the traces (`superoutride.reference-run`
-version 4) record these identities as `procedureSha256`; the reference run's record is in its trace
+version 5) record these identities as `procedureSha256`; the reference run's record is in its trace
 (`npm run measure -- trace`). For a budget state, reference duration is the maximum upcoming interval among
 continuous histories sharing that state and its legal next checkpoint/finish alternatives.
 
@@ -1292,15 +1295,14 @@ vehicle share one measurement. It starts, alone, from the last slot of the grid 
 the course's bike grid, when it has one. A class whose player could start from the other grid (a bike candidate in a
 field with a car, on a course with a bike grid) would need a second measurement, so series admission refuses it and the
 grid needs no place in the identities. A class whose player starts from another slot shares that measurement until a
-reference run starts from its class's player's slot ([Series values](NEXT.md#series-values)). Reference times (`superoutride.reference-times` version 2) have `courseBuildSha256`,
-`procedureSha256` (the reference run's identity) and `vehicles`: one entry per vehicle some class runs on the course,
-each once, in catalog order. An entry
+reference run starts from its class's player's slot ([Series values](NEXT.md#series-values)). Reference times
+(`superoutride.reference-times` version 3) have `courseBuildSha256`, `procedureSha256` (the reference run's identity)
+and `vehicles`: one entry per vehicle some class runs on the course, each once, in catalog order. An entry
 has `vehicleId`, `vehicleSha256`, `initialSeconds` (the longest interval from START to the first gate), `after` (for
 each budget landmark in the course's order, `[gate, seconds]` with one longest next interval per lap, as a time
-reference times' `after`) and `schedule` (the pace schedule's `start` and `sections`). The
+reference times' `after`). The
 times are seconds before any class margin, as the reference runs measured them, and are delivered so; only a
-Run's budget rounds, once, after its margin is applied. The delivered pace schedule carries the schedule's times with the course and vehicle
-identities and the station spacing.
+Run's budget rounds, once, after its margin is applied.
 
 A saved product is current while its identities equal the current course build, run vehicle and procedure
 identities (the engine loudness: its own sources and procedure). Builds admit the saved products ([`compileContent`](../tools/authoring/compile-content.ts)) and derive the
@@ -1331,8 +1333,8 @@ class runs is timed by no vehicle (K, 2026-10-23): its lines are the minimum-cur
   minimum-curvature lines), each from the lines of the one before: 0 and four weights to a decade from 10⁻⁵ to 10⁻¹
   per square metre. These are author values: the length term weighs as much as the squared curvature of a turn of
   radius `1/√λ`, from 316 m, gentler than any turn that limits speed, to 3.2 m, tighter than any road, where the lines
-  are all but the shortest. Each solution is timed by each timing vehicle's reference driver (the planned driver at the
-  reference utilization, 0.9): its own speed plan along the lines, stepping from each node of the plan to the next at
+  are all but the shortest. Each solution is timed by each timing vehicle's standard driver (the planned driver at the
+  standard utilization, 0.90): its own speed plan along the lines, stepping from each node of the plan to the next at
   the speeds the plan allows (`plannedLineSeconds`, the plan's forward and backward passes, no second speed model),
   from rest at the last slot of the vehicle's grid. The time is the second lap on a CIRCUIT and the sum over every
   route to its FINISH on a LINEAR or BRANCH course. The weight whose summed time is least is chosen, the smaller on a
@@ -1390,33 +1392,39 @@ course's reference times again whenever it solves its lines again. The admitted 
 native station, interpolated linearly between stations. A run admits its course's lines with its other measured
 products; rivals, reference runs and the player's run driver drive them ([Drivers](#drivers)).
 
-### Pace schedules
+### Rival utilization
 
-A pace schedule (`superoutride.pace-schedule` version 1) records a vehicle's reference pace on a course a class runs, for
-RACE rival pace. It carries the course build and vehicle identities of a time budget and the station spacing, 5 m:
-a Section's schedule stations are every 5 m from its start, then its end. `start` gives the race times from GO, in
-integer milliseconds, at the start's Section's stations from the first one the reference reaches. `sections` gives,
-for each Section a reference run passes from its start, the fastest time over all of that course's reference runs
-from the Section's start to each station it reaches, starting at 0; times increase strictly. The build derives
-both by interpolating the run's race time between fixed steps at each station's route station; a station passed in
-the same millisecond as the one before (a Section's end just past its last 5 m station) takes the next millisecond. A RACE run
-admits the player vehicle's schedule once, against the compiled course and the run vehicle; no other vehicle's
-schedule and no FREE PLAY run reads one.
+A rival drives at a utilization that follows the player: 0.85 level with the player, down to 0.70 as far ahead as
+200 m and up to 0.98 as far behind, following that target with a time constant of 6 s; it drives its vehicle's whole
+speed on a straight. RACE and FREE PLAY rivals drive alike, and no rival follows a schedule (K, 2026-11-12; the 200 m
+and 6 s are provisional).
 
-A RACE rival follows that schedule divided by its entry's pace ratio p. Its target time at a station sums, Section
-by Section along the Route it runs, the schedule's times divided by p: a grid rival's from GO along the start
-schedule, from the player vehicle's reference start; a rival appearing ahead's from its appearance, on schedule at
-the first station its schedule times. Between stations the times are interpolated linearly. Its difference is race
-time minus target time, positive when behind. Its target utilization is proportional to the difference: the driving
-definition's `rivalPace.minimumUtilization` at `-bandSeconds` or below, `maximumUtilization` at `+bandSeconds` or
-above, linear between. The rival's utilization starts at the middle of the bounds and, each fixed step, follows the
-target as a first-order lag with time constant `responseSeconds`. Its speed cap is its own vehicle's speed cap
-times a fraction that runs linearly from `minimumSpeedFraction` at the minimum utilization to 1 at the maximum.
-Where its schedule times no station (past the last timed station of a Section, or on a Section no reference run
-passes from its start), the utilization and speed cap hold and the next timed station anchors the targets anew. The
-rival reads nothing else, in particular not the player's position or vehicle. FREE PLAY rivals drive at the fixed run
-driver utilization (0.75). Run resolution compiles each entry vehicle's fixed driver (that utilization at the vehicle's speed cap)
-once; the race's unpaced rivals and the player's run driver use that one.
+A rival's lead is its progress along the Route less the player's, the progress the standing ranks by, laps included:
+positive ahead of the player. Its target utilization (`rivalTargetUtilization`) is the driving definition's
+`roles.rival.utilization` at a lead of 0, `leastUtilization` at `spanMeters` ahead or farther and `mostUtilization` at
+`spanMeters` behind or farther, linear between. Its utilization starts at `utilization`, on the grid and where it
+appears ahead alike, and each running fixed step follows the target as a first-order lag with time constant
+`responseSeconds`; after the run ends it holds. It reads the player's progress alone: nothing of the player's vehicle,
+speed or input. Its speed cap is its own vehicle's whole speed cap, whatever its utilization. Each rival drives its own
+driver, whose utilization the race sets each step; the plan reads it in steps of 0.01.
+
+### Driver roles
+
+Every planned driver drives in one of three roles (K, 2026-11-12), whose utilizations the driving definition's
+`roles` holds:
+
+| Role     | Path                        | Passes | Utilization                                                        | Speed cap                                          |
+| -------- | --------------------------- | ------ | ------------------------------------------------------------------ | -------------------------------------------------- |
+| Rival    | Racing line plus its offset | Yes    | Level 0.85, 0.70 to 0.98 ([Rival utilization](#rival-utilization)) | Its vehicle's whole speed                          |
+| Standard | Racing line plus its offset | Yes    | 0.90                                                               | Its vehicle's whole speed                          |
+| Traffic  | Its lane's centre           | No     | 0.75                                                               | The series' traffic speed (its vehicle's below it) |
+
+The standard driver, at 0.90, drives the reference runs, the attract demo's player vehicle and the takeover after
+GOAL (K, 2026-11-12), and the player's vehicle whenever a run advances without the player's input: it is the player's
+run driver. Traffic of a series whose path is the racing line (SUPER HANG-ON's riders) drives the line instead of its
+lane, as before. A role's path and passing follow from the role itself, in the race's composition; the table holds
+only the utilizations. Run resolution compiles each entry vehicle's standard driver (the standard utilization at the
+vehicle's speed cap) and each traffic candidate's driver once.
 
 ### Drivers
 
@@ -1826,6 +1834,15 @@ pose, velocities, wheels, actuators, powertrain and observations at known suppor
 preserving steering/tire calibration and earned gates, locks and laps. Manual recovery is a race operation on the
 player: the ordinary recovery toward the centre of its road, the legal-road check, a progress baseline reset that awards
 no progress, then a fresh player observation.
+
+A driver asks for the player's manual recovery too (K, 2026-11-13): a safety net that asks no cause, and a driver's
+rule, not a recovery condition. A driver (a rival's, traffic's, the player's run driver or the takeover) whose vehicle
+has stood, `hypot(longitudinalSpeed, lateralSpeed)` below the speed deadzone (0.15 m/s), for
+`PLANNED_DRIVER.standingSeconds` (2 s, 120 fixed steps) asks for it in the step it reaches the count (reason `manual`,
+the one recovery method); with no free place it asks again the next step. Only running steps count: not READY, not
+after the run ends, not while a vehicle explodes until its explosion's recovery, and not while it stands at its plan's
+terminal (within `terminalClearance` and a cell of it: the road's end, a lane's end it waits to merge at, the
+takeover's stop). The player's own input is no driver's and asks for nothing.
 
 The fixed recovery policy is one immutable record (`RECOVERY_POLICY`) shared by every competitor; it holds
 rules only, no live state or target resolution:

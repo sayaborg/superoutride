@@ -6,7 +6,7 @@ games, remastered into one shared world, on one shared set of vehicle mechanics.
 
 This document is the product target. [NEXT](NEXT.md) schedules the parts that are not yet implemented;
 the topic specifications describe the current implementation. Values that depend on a produced course
-(rank limits, spawn distances, pace ratios, time margins, grid spacing) are set during course production
+(rank limits, spawn distances, time margins, grid spacing) are set during course production
 from playtests; [NEXT](NEXT.md#pending-product-decisions) lists every open decision.
 
 ## 1. Concept
@@ -65,14 +65,14 @@ there is no unlocking, currency or progression.
 A run combines these rule components. Forks, recovery and timing mechanics are common to all
 runs ([Content and gameplay](content-and-gameplay.md) owns their definitions).
 
-| Component          | Values                                                                                  |
-| ------------------ | --------------------------------------------------------------------------------------- |
-| Clock              | On or off. On: the checkpoint clock with per-checkpoint time extensions                 |
-| Rank limits        | Per race gate: a limit N, or none                                                       |
-| Competitor entries | Vehicle, color, pace ratio, stage interval and appearance (grid slot or ahead distance) |
-| Player slot        | The player's own entry position, or the last grid slot                                  |
-| Laps               | Circuits only                                                                           |
-| Traffic            | Off, or a density in vehicles per kilometre, vehicle candidates and a speed             |
+| Component          | Values                                                                      |
+| ------------------ | --------------------------------------------------------------------------- |
+| Clock              | On or off. On: the checkpoint clock with per-checkpoint time extensions     |
+| Rank limits        | Per race gate: a limit N, or none                                           |
+| Competitor entries | Vehicle, color, stage interval and appearance (grid slot or ahead distance) |
+| Player slot        | The player's own entry position, or the last grid slot                      |
+| Laps               | Circuits only                                                               |
+| Traffic            | Off, or a density in vehicles per kilometre, vehicle candidates and a speed |
 
 **Field.** A run has at most sixteen competitors, the player included. The entries of a class list
 its whole field in grid order. The player occupies the rearmost entry of the selected vehicle in grid
@@ -100,14 +100,13 @@ crosses it before the player. An exact tie in event time goes to the player. Ran
 competitors present in the run at that moment.
 
 **Clock.** The clock starts at GO; each newly earned checkpoint extends it once, and expiry ends the
-run in GAME OVER. The time allowance derives from the player's selected vehicle: the reference driver's time for
+run in GAME OVER. The time allowance derives from the player's selected vehicle: the standard driver's time for
 that vehicle on the class's course and route, multiplied by the class's time margin. Only a RACE has a clock.
 
-**Rival pace.** In a RACE, rival driving is relative to the player's selected vehicle. Each entry has a pace ratio
-p. The rival follows a pace schedule: the times at which the player's vehicle passes each station in its reference
-run on that course, divided by p. A rival behind its schedule drives harder and one ahead of it drives easier,
-within its own vehicle's limits. The schedule does not depend on the player's actual position, so there is no
-catch-up. Thus the choice of vehicle does not change the difficulty, and no vehicle's mechanics change. The
+**Rival pace.** Rivals drive vehicles about as able as the player's, so no rival follows a schedule (K,
+2026-11-12). A rival drives a little harder behind the player and a little easier ahead of it, following the player
+slowly, within its own vehicle's limits and at its vehicle's whole speed on a straight; RACE and FREE PLAY rivals
+drive alike ([Rival utilization](content-and-gameplay.md#rival-utilization)). No vehicle's mechanics change. The
 difference is visible driving, not a hidden correction.
 
 **Forks.** The first competitor to cross a fork's lock line selects the route for the whole field;
@@ -146,9 +145,9 @@ kept as chosen (K, 2026-11-09), are the rival count (0–15), the rival vehicle 
 traffic (OFF, LOW or HIGH; default OFF) and laps (1 to the most any course allows). A run takes as many rivals as the
 course's grid holds at most and, on a circuit, as many laps as the course allows at most; the PRE-RACE card shows
 what it takes. Rival vehicles and colors are drawn from
-the pool by the run's seed. FREE PLAY rivals drive at their own vehicles' pace, so the choice of
-vehicles shapes the race; FREE PLAY needs no reference runs. The rivals stand from the first grid slot and the player
-behind them, in the first when there are none.
+the pool by the run's seed. FREE PLAY rivals follow the player as RACE rivals do, each at its own vehicle's limits,
+so the choice of vehicles shapes the race; FREE PLAY needs no reference runs. The rivals stand from the first grid slot
+and the player behind them, in the first when there are none.
 FREE PLAY traffic is the same on every course: LOW is 5 and HIGH 30 vehicles per kilometre, drawn from every
 vehicle, at 80 km/h. FREE PLAY records nothing.
 
@@ -206,9 +205,8 @@ of the series has the same; each class also has its time margin and whether it f
 - **TSUKUBA CLUBMAN** is an original series in the manner of a late-1980s club race meeting at Tsukuba. Each class
   is one race of 5 laps on TSUKUBA (CIRCUIT): PRODUCTION 750 for 750 cc production superbikes (the VFR750R alone until
   the GSX-R750 is in the catalog), GTI CUP for the Golf GTI 16V and 911 CUP for the 911 Turbo. Each class is one-make:
-  sixteen of its vehicle, in their four colors, with the player last on the grid. The rivals' pace falls from the
-  pole to the back of the grid, as a qualifying order would set it. The clock extends at each of the three sector
-  lines; colors are not fixed.
+  sixteen of its vehicle, in their four colors, with the player last on the grid. The clock extends at each of the three
+  sector lines; colors are not fixed.
 
 ## 6. Flow and screens
 

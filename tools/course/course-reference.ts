@@ -40,7 +40,7 @@ export interface CourseReferenceTimes {
 const SECONDS = { min: 0, exclusiveMin: true };
 
 /**
- * Admit a saved reference report (`superoutride.course-reference` version 4) for the vehicle `vehicleId`, whose
+ * Admit a saved reference report (`superoutride.course-reference` version 5) for the vehicle `vehicleId`, whose
  * Run vehicle has the identity `vehicleSha256`, against the compiled course and the reference run's identity
  * `referenceSha256`, and resolve its runs to the course's canonical landmarks: one run per route, each through the
  * maximum laps, recording exactly the race lines its route crosses.
@@ -60,7 +60,7 @@ export function readCourseReference(
       input,
       ['format', 'version', 'courseBuildSha256', 'procedureSha256', 'vehicles'],
       'superoutride.course-reference',
-      4,
+      5,
     );
     requireAdmission(
       readString(data.courseBuildSha256, '/courseBuildSha256', SHA256_TEXT) === course.identity.buildSha256,
@@ -95,7 +95,7 @@ export function readCourseReference(
       candidate.runs,
       `${at}/runs`,
       (item, runAt) => {
-        const run = readRecord(item, runAt, ['links', 'lapCount', 'elapsedSeconds', 'events', 'passes', 'metrics']);
+        const run = readRecord(item, runAt, ['links', 'lapCount', 'elapsedSeconds', 'events', 'metrics']);
         const ids = readArray(run.links, `${runAt}/links`, (id, path) => readString(id, path));
         const key = JSON.stringify(ids);
         requireAdmission(!seen.has(key), 'duplicate_id', `${runAt}/links`, 'Duplicate route');

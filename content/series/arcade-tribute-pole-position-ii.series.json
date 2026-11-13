@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 16,
+  "version": 17,
   "id": "arcade-tribute-pole-position-ii",
   "title": "ARCADE TRIBUTE - POLE POSITION II",
   "description": "NAMCO, 1983. The sequel to Pole Position, with four tracks instead of one: Fuji, Test, Suzuka and Seaside. A Formula One car, and a qualifying lap to earn a place on the grid.",
@@ -22,7 +22,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-2",
-          "pace": 1,
           "stages": null,
           "slot": 0,
           "ahead": null
@@ -30,7 +29,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-3",
-          "pace": 1,
           "stages": null,
           "slot": 1,
           "ahead": null
@@ -38,7 +36,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-4",
-          "pace": 1,
           "stages": null,
           "slot": 2,
           "ahead": null
@@ -46,7 +43,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race",
-          "pace": 1,
           "stages": null,
           "slot": 3,
           "ahead": null
@@ -54,7 +50,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-2",
-          "pace": 1,
           "stages": null,
           "slot": 4,
           "ahead": null
@@ -62,7 +57,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-3",
-          "pace": 1,
           "stages": null,
           "slot": 5,
           "ahead": null
@@ -70,7 +64,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-4",
-          "pace": 1,
           "stages": null,
           "slot": 6,
           "ahead": null
@@ -78,7 +71,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race",
-          "pace": 1,
           "stages": null,
           "slot": 7,
           "ahead": null
@@ -112,7 +104,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-2",
-          "pace": 1,
           "stages": null,
           "slot": 0,
           "ahead": null
@@ -120,7 +111,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-3",
-          "pace": 1,
           "stages": null,
           "slot": 1,
           "ahead": null
@@ -128,7 +118,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-4",
-          "pace": 1,
           "stages": null,
           "slot": 2,
           "ahead": null
@@ -136,7 +125,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race",
-          "pace": 1,
           "stages": null,
           "slot": 3,
           "ahead": null
@@ -144,7 +132,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-2",
-          "pace": 1,
           "stages": null,
           "slot": 4,
           "ahead": null
@@ -152,7 +139,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-3",
-          "pace": 1,
           "stages": null,
           "slot": 5,
           "ahead": null
@@ -160,7 +146,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-4",
-          "pace": 1,
           "stages": null,
           "slot": 6,
           "ahead": null
@@ -168,7 +153,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race",
-          "pace": 1,
           "stages": null,
           "slot": 7,
           "ahead": null
@@ -202,7 +186,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-2",
-          "pace": 1,
           "stages": null,
           "slot": 0,
           "ahead": null
@@ -210,7 +193,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-3",
-          "pace": 1,
           "stages": null,
           "slot": 1,
           "ahead": null
@@ -218,7 +200,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-4",
-          "pace": 1,
           "stages": null,
           "slot": 2,
           "ahead": null
@@ -226,7 +207,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race",
-          "pace": 1,
           "stages": null,
           "slot": 3,
           "ahead": null
@@ -234,7 +214,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-2",
-          "pace": 1,
           "stages": null,
           "slot": 4,
           "ahead": null
@@ -242,7 +221,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-3",
-          "pace": 1,
           "stages": null,
           "slot": 5,
           "ahead": null
@@ -250,7 +228,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-4",
-          "pace": 1,
           "stages": null,
           "slot": 6,
           "ahead": null
@@ -258,7 +235,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race",
-          "pace": 1,
           "stages": null,
           "slot": 7,
           "ahead": null
@@ -292,7 +268,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-2",
-          "pace": 1,
           "stages": null,
           "slot": 0,
           "ahead": null
@@ -300,7 +275,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-3",
-          "pace": 1,
           "stages": null,
           "slot": 1,
           "ahead": null
@@ -308,7 +282,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-4",
-          "pace": 1,
           "stages": null,
           "slot": 2,
           "ahead": null
@@ -316,7 +289,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race",
-          "pace": 1,
           "stages": null,
           "slot": 3,
           "ahead": null
@@ -324,7 +296,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-2",
-          "pace": 1,
           "stages": null,
           "slot": 4,
           "ahead": null
@@ -332,7 +303,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-3",
-          "pace": 1,
           "stages": null,
           "slot": 5,
           "ahead": null
@@ -340,7 +310,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race-4",
-          "pace": 1,
           "stages": null,
           "slot": 6,
           "ahead": null
@@ -348,7 +317,6 @@
         {
           "vehicle": "LOTUS_79_SPECIAL",
           "color": "race",
-          "pace": 1,
           "stages": null,
           "slot": 7,
           "ahead": null

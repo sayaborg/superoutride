@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 16,
+  "version": 17,
   "id": "scenario-rules",
   "title": "SCENARIO RULES",
   "description": "A series of the driving scenarios, not delivered.",
@@ -20,7 +20,6 @@
         {
           "vehicle": "911_TURBO_3_3",
           "color": "silver",
-          "pace": 1,
           "stages": null,
           "slot": 0,
           "ahead": null
@@ -28,7 +27,6 @@
         {
           "vehicle": "GOLF_GTI_16V",
           "color": "red",
-          "pace": 1,
           "stages": null,
           "slot": 14,
           "ahead": null
@@ -36,7 +34,6 @@
         {
           "vehicle": "GOLF_GTI_16V",
           "color": "red",
-          "pace": 1,
           "stages": null,
           "slot": 15,
           "ahead": null
@@ -58,7 +55,6 @@
         {
           "vehicle": "911_TURBO_3_3",
           "color": "silver",
-          "pace": 1,
           "stages": null,
           "slot": 14,
           "ahead": null

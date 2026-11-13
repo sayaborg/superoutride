@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 16,
+  "version": 17,
   "id": "arcade-tribute-turbo-outrun",
   "title": "ARCADE TRIBUTE - TURBO OUTRUN",
   "description": "SEGA, 1989. Coast to coast across America, from New York to Los Angeles in sixteen stages, against a rival's white sports car and the police, with a turbo and a tune-up between sections.",
@@ -22,7 +22,6 @@
         {
           "vehicle": "911_TURBO_3_3",
           "color": "white",
-          "pace": 1,
           "stages": null,
           "slot": 0,
           "ahead": null
@@ -30,7 +29,6 @@
         {
           "vehicle": "FERRARI_F40_1990",
           "color": "red",
-          "pace": 1,
           "stages": null,
           "slot": 1,
           "ahead": null
@@ -80,7 +78,6 @@
         {
           "vehicle": "911_TURBO_3_3",
           "color": "white",
-          "pace": 1,
           "stages": null,
           "slot": 0,
           "ahead": null
@@ -88,7 +85,6 @@
         {
           "vehicle": "FERRARI_F40_1990",
           "color": "red",
-          "pace": 1,
           "stages": null,
           "slot": 1,
           "ahead": null
@@ -138,7 +134,6 @@
         {
           "vehicle": "911_TURBO_3_3",
           "color": "white",
-          "pace": 1,
           "stages": null,
           "slot": 0,
           "ahead": null
@@ -146,7 +141,6 @@
         {
           "vehicle": "FERRARI_F40_1990",
           "color": "red",
-          "pace": 1,
           "stages": null,
           "slot": 1,
           "ahead": null
@@ -196,7 +190,6 @@
         {
           "vehicle": "911_TURBO_3_3",
           "color": "white",
-          "pace": 1,
           "stages": null,
           "slot": 0,
           "ahead": null
@@ -204,7 +197,6 @@
         {
           "vehicle": "FERRARI_F40_1990",
           "color": "red",
-          "pace": 1,
           "stages": null,
           "slot": 1,
           "ahead": null

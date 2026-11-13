@@ -9,7 +9,7 @@ scenarioTests({
       mode: 'RACE',
       class: 'tsukuba',
       policy: 'finish',
-      afterEndingSeconds: 16,
+      afterEndingSeconds: 20,
       seconds: 120,
       expect: { outcome: 'GOAL', position: 'P1/3', stop: true, rivalsDrive: true },
     },

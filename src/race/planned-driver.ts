@@ -19,7 +19,7 @@ import type { VehicleLimits } from '../vehicle/vehicle-limits.js';
  * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
  */
 export const PLANNED_DRIVER = Object.freeze({
-  version: 4,
+  version: 5,
   /**
    * Every planned driver's one steering rule, a driver's aid and not physics: the centre reference, full steering
    * input reaching the front tire's whole lateral force bound. It is independent of the driver's utilization, which
@@ -73,6 +73,11 @@ export const PLANNED_DRIVER = Object.freeze({
   followSeconds: 1.5,
   /** The step in which the plan reads a driver's utilization, so plans of nearby utilizations share their cache. */
   utilizationResolution: 0.01,
+  /**
+   * Seconds a driven vehicle stands below `speedDeadzone`, away from its plan's terminal, before its driver asks for
+   * the player's manual recovery: the AI's safety net, whatever holds it (K, 2026-11-13).
+   */
+  standingSeconds: 2,
 });
 
 /** Wheel slip protection on both sides, TCS and MSR and ABS, with which every planned driver drives. */
@@ -117,10 +122,7 @@ export function compilePlannedDriver(
   });
 }
 
-/**
- * A driver whose owner changes its utilization and speed cap between steps; its planning braking follows the
- * utilization.
- */
+/** A driver whose owner changes its utilization between steps; its planning braking follows the utilization. */
 export function createVariablePlannedDriver(
   model: VehicleModel,
   limits: VehicleLimits,
@@ -131,12 +133,11 @@ export function createVariablePlannedDriver(
   const driver = { ...compilePlannedDriver(model, limits, utilization, speedCap, passes) };
   return Object.freeze({
     driver: driver as PlannedDriver,
-    set(nextUtilization: number, nextSpeedCap: number) {
+    set(nextUtilization: number) {
       if (nextUtilization !== driver.utilization) {
         driver.utilization = nextUtilization;
         driver.braking = planningBraking(limits, nextUtilization);
       }
-      driver.speedCap = nextSpeedCap;
     },
   });
 }
@@ -260,8 +261,11 @@ export function createPlannedDriverWorkspace() {
     target: createPlanCoordinateSample(),
     differential: { y: 0, dYdS: 0 },
     pedals: { opening: 0, wheelTorquePerOpening: 0 },
-    /** The latest plan: its speed now without the vehicle ahead (`free`) and with it (`target`), in m/s. */
-    plan: { free: 0, target: 0 },
+    /**
+     * The latest plan: its speed now without the vehicle ahead (`free`) and with it (`target`), in m/s, and the route
+     * station of its domain's terminal, where it stops (Infinity for none).
+     */
+    plan: { free: 0, target: 0, terminal: Infinity },
     input: { steering: 0, throttle: 0 as number | boolean, brake: 0 as number | boolean },
   };
 }
@@ -627,6 +631,7 @@ function plan(
     )
       break;
   }
+  ws.plan.terminal = domain.terminal ?? Infinity;
   ws.plan.free = backwardPass(limits, ws, u, ws.free, terminal, 0, Infinity, Infinity);
   if (leader === null) {
     ws.constrained.set(ws.free);
