@@ -1,7 +1,7 @@
 import { createPlanCoordinateSample } from '../geometry/plan-coordinate.js';
 import { compilePlanarTransform, composePlanarTransforms } from '../../core/planar-transform.js';
 import { courseBoundaryAt } from '../course-boundaries.js';
-import { courseRoadsAt, type CompiledLane } from '../course-lanes.js';
+import { courseRoadOf, courseRoadsAt, type CompiledLane } from '../course-lanes.js';
 import { requireCourse } from '../course-diagnostics.js';
 import type { CompiledCut, CompiledLink, CompiledSection } from './course-graph.js';
 
@@ -29,7 +29,7 @@ export const COURSE_LINK_RECIPE = Object.freeze({
  * wider than zero there.
  */
 function roadOf(section: CompiledSection, lane: CompiledLane, s: number, path: string) {
-  const road = courseRoadsAt(section.lanes, s).find((candidate) => candidate.lanes.includes(lane));
+  const road = courseRoadOf(section.lanes, lane, s);
   requireCourse(road !== undefined, path, `Lane ${lane.id} must be wider than zero at the cut line`, 'invalid_link');
   return { road, index: road.lanes.indexOf(lane) };
 }

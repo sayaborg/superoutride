@@ -1,7 +1,7 @@
 import type { CompiledSection } from '../course/compiler/course-graph.js';
 import { routeSectionS, type RouteOccurrence } from '../course/course-route.js';
 import { courseBoundaryAt, type CompiledBoundary } from '../course/course-boundaries.js';
-import { courseRoadsAt, type CompiledLane, type CourseRoad } from '../course/course-lanes.js';
+import { courseRoadOf, type CompiledLane, type CourseRoad } from '../course/course-lanes.js';
 import type { CourseRoute } from '../course/course-route.js';
 import type { RacingLines } from '../content/racing-line.js';
 
@@ -61,19 +61,35 @@ function lanesOf(section: CompiledSection): readonly CompiledLane[] {
 }
 
 const roadOf = (section: CompiledSection, lane: CompiledLane, at: number): CourseRoad | undefined =>
-  courseRoadsAt(section.lanes, at).find((road) => road.lanes.includes(lane));
+  courseRoadOf(section.lanes, lane, at);
 
 /**
  * The lanes and the racing line along the Route, as drivers and recovery read them. `racingLines` are the course's;
  * without them the racing line is the centre lane's centre.
  */
 export function createCourseLaneField(route: CourseRoute, racingLines: RacingLines | null = null) {
+  /*
+   * One reading per station: within a step a driver reads one station several times over (a racing line path with an
+   * offset reads its line there twice, its road's edges and so its place), and on the same resident Route a station
+   * reads the same. Each of these keeps its latest station and answer, for the Route's occurrences it read.
+   */
+  const latest = <T>(read: (s: number) => T) => {
+    let station = NaN,
+      occurrences: CourseRoute['occurrences'] | null = null,
+      answer: T;
+    return (s: number): T => {
+      if (s === station && occurrences === route.occurrences) return answer;
+      answer = read(s);
+      [station, occurrences] = [s, route.occurrences];
+      return answer;
+    };
+  };
   // The occurrence at route station s (clamped to the Route), and the native station there.
-  const place = (s: number) => {
+  const place = latest((s: number) => {
     const occurrence = route.at(Math.min(route.end, Math.max(route.start, s)))!;
     const domain = occurrence.section.coordinates.domain;
     return { occurrence, at: Math.min(domain.end, Math.max(domain.start, routeSectionS(occurrence, s))) };
-  };
+  });
   // A lane index across the seam into `next` (its incoming Link), forward or backward; null when it does not continue.
   const across = (next: RouteOccurrence, lane: number, forward: boolean): number | null => {
     const link = next.incoming!;
@@ -124,12 +140,12 @@ export function createCourseLaneField(route: CourseRoute, racingLines: RacingLin
     return nearestLane(to, toAt, l, there(to, toAt, vehicle));
   };
   // The racing line's route lateral at route station `s`.
-  const lineL = (s: number) => {
+  const lineL = latest((s: number) => {
     const { occurrence, at } = place(s);
     const section = occurrence.section;
     if (!racingLines) return courseBoundaryAt(section.lanes.center.center, at) - occurrence.lateralOrigin;
     return racingLines.lateral(section, at) - occurrence.lateralOrigin;
-  };
+  });
   // The intent's lane at route station `s`: carried across each seam between.
   const laneIn = (intent: DriverIntent, s: number) => {
     if (intent.lane === LINE) return LINE;
@@ -182,6 +198,11 @@ export function createCourseLaneField(route: CourseRoute, racingLines: RacingLin
     const section = occurrence.section;
     return { occurrence, at, road: roadOf(section, section.lanes.center, at)! };
   };
+  // The edges of the road drivers drive at route station `s` (route laterals).
+  const roadEdges = latest((s: number): { readonly left: number; readonly right: number } => {
+    const { occurrence, road } = roadAt(s);
+    return Object.freeze({ left: road.left - occurrence.lateralOrigin, right: road.right - occurrence.lateralOrigin });
+  });
   const laneField = Object.freeze({
     /** The target l for an intent: the centre of its lane there, or the racing line (route lateral). */
     targetL(s: number, intent: DriverIntent) {
@@ -243,10 +264,7 @@ export function createCourseLaneField(route: CourseRoute, racingLines: RacingLin
       );
     },
     /** The edges of the road drivers drive at route station `s` (route laterals). */
-    roadEdges(s: number): { readonly left: number; readonly right: number } {
-      const { occurrence, road } = roadAt(s);
-      return { left: road.left - occurrence.lateralOrigin, right: road.right - occurrence.lateralOrigin };
-    },
+    roadEdges,
     /**
      * The ground a racing line driver's path may take at route station `s` to clear a fixed object (route laterals):
      * between the course limits, and within the solid walls beside the road drivers drive there (a wall wholly to one

@@ -60,6 +60,32 @@ export function courseRoadsAt(lanes: CompiledLanes, s: number): CourseRoad[] {
   return roads;
 }
 
+/**
+ * The road at station `s` that holds `lane`, as `courseRoadsAt` gives it, building that road alone; undefined when
+ * `lane` has zero width there.
+ */
+export function courseRoadOf(lanes: CompiledLanes, lane: CompiledLane, s: number): CourseRoad | undefined {
+  let current: CompiledLane[] = [],
+    holds = false;
+  const road = () =>
+    Object.freeze({
+      lanes: Object.freeze(current),
+      left: courseBoundaryAt(current[0]!.left, s),
+      right: courseBoundaryAt(current.at(-1)!.right, s),
+    });
+  for (const element of lanes.elements) {
+    if (element.kind === 'median') {
+      if (courseBoundaryAt(element.width, s) <= 0) continue;
+      if (holds) return road();
+      current = [];
+    } else if (courseBoundaryAt(element.lane.width, s) > 0) {
+      current.push(element.lane);
+      holds ||= element.lane === lane;
+    }
+  }
+  return holds ? road() : undefined;
+}
+
 /** The lines Lateral references read in a Section: its Boundaries and its lanes'. */
 export interface CourseLines {
   readonly boundaries: ReadonlyMap<string, CompiledBoundary>;

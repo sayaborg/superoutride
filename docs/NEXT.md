@@ -71,8 +71,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course loading](architecture.md#course-loading)).
 
 Next PR: [Stage AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage
-AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-3, beside [Stage RC](#stage-rc--one-recovery)'s RC-3
-(awaiting K's word for main); in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
+RC](#stage-rc--one-recovery) and [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving) are made and await K's
+DEV check; in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
 CS](#stage-cs--cisco-heat-from-the-roms)'s raising; [RD-6e](#courses-of-the-originals) once K's recordings come; then
 [Stage 16](#stage-16--produce-product-courses).
 
@@ -439,9 +439,10 @@ a condition; the limits across the road are limits as the side ones are, for con
   and terminal, pushing back along the road with the side limits' spring-damper on half the footprint; `openLimits`
   removed from the format, the compilers, the tools, road data and `content/`; `outside-domain` and `road-end`
   removed.
-- **RC-3, BRANCH removed (format change; K confirms before main).** Gates, multi-exit Sections, fork signs, closed
-  roads, `wrong-course`, `legalRecovery`, `legalTarget`, target exits and `rivalExit` go; lanes, merges and one Link
-  per Section stay. Its lists of what goes and what stays are written in its PR first, split if that reads better.
+- **RC-3, BRANCH removed (format change; into main by K's word, 2026-11-14).** Gates, multi-exit Sections, fork
+  signs, closed roads, `wrong-course`, `legalRecovery`, `legalTarget`, target exits and `rivalExit` go; lanes, merges
+  and one Link per Section stay. Its lists of what goes and what stays are written in its PR first, split if that
+  reads better.
 
 Not decided, for later: after a recovery a vehicle stands at rest with its engine at idle, and the slipping clutch
 delivers nothing until the engine has risen (NSR500 stands about 0.7 s); K judges it in DEV. A course with holes needs
@@ -472,7 +473,7 @@ The replanning interval is measured (K, 2026-11-13): the largest of 2, 3 and 4 s
 finishes on the pavement, 3 (`PLANNED_DRIVER.replanSteps`).
 
 Order with Stage RC (K, 2026-11-12, revised 2026-11-13): RC-1, AD-1, AD-2 with the safety net, AD-2 and RC-2 into main,
-RC-3, AD-3, AD-4. RC-3 changes formats and waits as a PR until K lets it into main.
+RC-3, AD-3, AD-4. RC-3 changes formats and went into main by K's word (2026-11-14), before AD-3's lane-position part.
 
 Not decided, for later: whether the protection solvers can be skipped with the same results (AD-3.4's report);
 simpler traffic and unseen rivals (not now, K); small differences between rivals, should their order set too firmly.
