@@ -110,6 +110,32 @@ RUN](big-run.md)).
   stage ends (M 0x17B44, `$f0024` 7), and where it passes the checkpoint M 0x18010 sets `$f025c` bit 6 and a count of 90
   frames.
 
+## Its right angles
+
+- **The main's four lists.** M 0x2212 copies a stage's four longs from the table at M 0x900 (16 bytes a stage, by
+  `$f011a`) to `$f0240` to `$f024c`; M 0x5D84 copies them to a car's +0x50 to +0x5C, and M 0x5DF8 (a car, by its +0x10)
+  and M 0x619C (the player, by `$f0410`) step each on as the position passes its next record's start. The first two
+  are 12 bytes a record (flags, radius, start long, length, last word): road 1's and road 2's plan tables, their
+  records the road CPUs' with the same starts and radii, and on past the stage's end. The other two are 20 bytes a
+  record (flags, radius, start long, a word whose bit 7 M 0x5E70 skips, a heading of 182 a degree, a long, two words of
+  its sine and cosine as 0x4000 one): a second path, its arcs not the tables' where it eases out of some right angles
+  (radii from 3,000 widening, 4° a record); M 0x5E70 adds four times a record's first word to `$f0222`, which M 0x63D2
+  takes back by `$64(a6)` a tick. What `$f0222` moves is not read.
+- **The mark.** A first list's record whose last word has bit 14 set is a right angle at its start, a cross street's
+  record (kind 22); bit 11 set (0x78xx) turns it left, bit 10 (0x74xx) right. Bit 15 marks records 500 positions before
+  some of the tables' heading jumps (STAGES 4 and 5); what reads it is not read.
+- **The turn.** M 0x619C looks 20,000 positions ahead for a marked record (`$f025e`, its start to `$f0270`, its side to
+  `$f0276`). From 0x180 positions before its start the player's steering (`$26(a6)`, at least 0x24 a tick) adds four
+  times itself to an angle (`$f021e`), whose sine and cosine (M 0x2DC0) go to `$f0262` and `$f0264`; at a quarter turn
+  (0x4000 of 65,536) the turn is made (`$14(a6)` set, `$c4(a6)` the corner, `$f026e` 3) and the angle cleared. Until
+  then M 0x6650 swaps the car's moves along and across, and M 0x66A6 holds its lateral within ±0x181; once made, its
+  lateral is how far it has passed the corner (M 0x6302). Past 3,500 positions beyond the corner unturned, M 0x62B4
+  leaves for M 0x708E (not read).
+- **What turns with it.** The other cars (M 0xCC50 to 0xCDA0) and the objects (M 0xE1C4 to 0xE210) are placed by their
+  distances along and across from the corner, turned by `$f0262` and `$f0264`; the sky planes' scroll takes the angle's
+  change in 256ths of a turn (`$f034c`, M 0xA508), the back plane's (M 0xA3B0) but in STAGE 1, the front's (M 0xA7BC).
+  The road CPUs' tables run straight through it: a right angle is the main's alone.
+
 ## Its road across
 
 - **Its colours.** The row word (R1 0x19DE, `$c1fae`, the row 0 slot of the rows' words at `$c1dae` + 0x200) is the
