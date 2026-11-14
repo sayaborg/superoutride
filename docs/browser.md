@@ -309,8 +309,8 @@ K saw, "for now"):
 
 Positions in motion are rounded to whole pixels. A command during a motion waits, the last one alone, and acts when the
 motion ends. The attract demo runs from TITLE until a run starts (K, 2026-11-08) and pauses while a series' picture
-covers the frame. Its series, class, vehicle and color are written on TITLE alone (K, 2026-11-09), in WHITE on rows 21,
-22, 24 and 25, right-aligned to column 38, and its ticker runs on row 27 (below).
+covers the frame. Its one line of text, written on TITLE alone, is its ticker on row 27 (below; K, 2026-11-14: no fixed
+text).
 
 The [attract demo](../src/shell/attract-demo.ts) is the one owner of the demo runs and their turns. It runs the RACE
 sessions of the product classes (never DEV ones), a turn each, every turn's class drawn at random other than the one
@@ -383,9 +383,14 @@ at the last station that holds it and ends. The director gives the run one value
 for the player's, and the run's drawing decides from it alone that every shot but CHASE draws the player as any other
 vehicle, seen from where the camera stands.
 
-The ticker runs the shown film's words along row 27 from the right edge, a character every 3 fixed steps, until their
-last has left at the left, then again after four spaces: the course's description over the course film, the series'
-over the race film (K, 2026-11-12; a vehicle's description joins it once vehicles have one).
+The ticker runs the shown film's subjects along row 27 in WHITE from the right edge, a character every 3 fixed steps,
+each until its last character has left at the left, and then the film's next subject, again and again; none is cut
+short (K, 2026-11-14). Every subject is `<name>  <words>`, in capitals: the course (the course index's name and
+description), the series (SERIES and CLASS titles, and the series' description) and the machine (the vehicle's
+manufacturer, model and color name, and its words). The course film's one subject is the course, and it ends when that
+has run once; the race film's are the series and the machine in turn. A machine's words are built by one function
+(`machineWords`) from what its listing already says, its period, identifier, engine and selected specification, joined
+by commas, so the listing stays the one owner of those facts and nothing is written for the demo.
 
 Music ([product](product.md#13-music-and-sound-effects)): on SELECT SERIES, once the row has rested 30 fixed steps, the
 series in focus plays its title track from its start, looped; a move fades it out over 0.25 s, and so does BACK to MAIN

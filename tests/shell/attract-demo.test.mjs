@@ -6,12 +6,22 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 const TURN = Math.round(ATTRACT_SECONDS / SIM_DT);
 const series = { id: 'series', title: 'SERIES', description: 'THE SERIES' };
 const classes = ['a', 'b', 'c'].map((id) => ({ series, id, title: id.toUpperCase(), course: id, vehicles: ['V'] }));
-const courses = ['a', 'b', 'c'].map((id) => ({ id, description: `COURSE ${id.toUpperCase()}` }));
+const courses = ['a', 'b', 'c'].map((id) => ({ id, name: `COURSE ${id.toUpperCase()}`, description: 'A COURSE' }));
 const vehicles = [
   {
     compiledVehicle: { id: 'V' },
     spriteSet: { colors: ['red'] },
-    listing: { metadata: { manufacturer: 'Make', model: 'Model' }, visuals: { colorNames: { red: 'RED' } } },
+    listing: {
+      metadata: {
+        manufacturer: 'Make',
+        model: 'Model',
+        period: '1989',
+        identifier: null,
+        engine: 'V8',
+        selectedSpecification: [],
+      },
+      visuals: { colorNames: { red: 'RED' } },
+    },
   },
 ];
 
@@ -25,14 +35,14 @@ function demoOf(endAfter = Infinity, intro = 0) {
     vehicles,
     courses,
     () => 0,
-    async (request, words) => {
+    async (request, subjects) => {
       const run = { classId: request.classId, steps: 0, disposed: false };
       let introduced = 0;
       runs.push(run);
       return {
         films: [
           {
-            words: words.course,
+            subjects: [subjects.course],
             get ended() {
               return introduced >= intro;
             },
@@ -40,7 +50,7 @@ function demoOf(endAfter = Infinity, intro = 0) {
             draw() {},
           },
           {
-            words: words.series,
+            subjects: [subjects.series, subjects.machine],
             get ended() {
               return run.steps >= endAfter;
             },
@@ -120,8 +130,8 @@ test('a run that ends ends its turn early and is released', async () => {
   assert.deepEqual(held(runs), ['b', 'a']);
 });
 
-test("a turn thins in over the turn before, and the ticker runs the course's words, then the series'", async () => {
-  const { demo } = demoOf(100, 40);
+test('a turn thins in over the turn before, and the ticker runs the course, then the series and the machine', async () => {
+  const { demo } = demoOf(1000, 40);
   demo.enter();
   await settle();
   const written = [];
@@ -135,9 +145,13 @@ test("a turn thins in over the turn before, and the ticker runs the course's wor
   written.length = 0;
   demo.draw(frame, text);
   assert.deepEqual(tickerOf(), [[39, 27, 'C']]);
-  // When the course film ends the ticker starts again with the series' words.
+  // When the course film ends the ticker runs the series, and once it has run to its end, the machine.
   steps(demo, 40);
   written.length = 0;
   demo.draw(frame, text);
-  assert.deepEqual(tickerOf(), [[39, 27, 'T']]);
+  assert.deepEqual(tickerOf(), [[39, 27, 'S']]);
+  steps(demo, ('SERIES A  THE SERIES'.length + 40) * 3);
+  written.length = 0;
+  demo.draw(frame, text);
+  assert.deepEqual(tickerOf(), [[39, 27, 'M']]);
 });

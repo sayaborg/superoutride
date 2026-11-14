@@ -70,11 +70,11 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage AT](#stage-at--the-attract-demo-remade)'s AT-4, by K's instruction of 2026-11-14; beside it
-[Stage AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-3, beside [Stage
-RC](#stage-rc--one-recovery)'s RC-3 (awaiting K's word for main); in [Stage
-RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
-[RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
+Next PR: [Stage AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage
+AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-3, beside [Stage RC](#stage-rc--one-recovery)'s RC-3
+(awaiting K's word for main); in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
+CS](#stage-cs--cisco-heat-from-the-roms)'s raising; [RD-6e](#courses-of-the-originals) once K's recordings come; then
+[Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -82,25 +82,15 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 ## Stage AT — The attract demo remade
 
-K's requirements of 2026-11-14: the demo is random each time; more camera work, with cameras that look back at the
-vehicle (an unoriented standing board seen from behind is mirrored at half brightness); UP, DOWN, LEFT and RIGHT change
-it while it shows; no fixed text, everything a ticker of series, course and machine. The stage's first aim is that the
-demo, with these added, is smaller and has fewer rules than before: its shape was mended first (AT-0: films, the run
-only watched, one line thinning), and cameras look back through one reversed reader (AT-1), and every shot is a row of
-one table (AT-2); nothing is added by branches, exceptions or copies. Each PR states the line counts of the demo's files
-before and after; at the stage's end the demo's parts of `attract-demo.ts`, `demo-director.ts` and `run-assembly.ts`
-stay near the 560 lines they had, or the shape is reviewed and reported. K's decisions: CHASE stays the player's camera;
-UP and DOWN step the class. Awaiting K (the recommended default meanwhile): a machine's words are built from its
-listing's facts, with no new text.
+K's requirements of 2026-11-14 are in place (AT-0 to AT-4): the demo is a reel of films with the run only watched;
+cameras look back through one reversed reader; every shot is a row of one table; chance and TITLE's four directions
+make the same two choices, the next shot and the next class; its one line of text is a ticker of subjects
+([Browser](browser.md#card-rows)). What stays open before the stage closes:
 
-- **AT-4 — Tickers alone.** TITLE's four fixed lines go; the ticker is the demo's one line of text, every subject
-  `<name>  <words>`: the course (its name and description), the series (SERIES and CLASS titles, the series'
-  description), the machine (the vehicle's name and color, words built by one function from its listing). A subject
-  runs to its end, then the film's next: the course film has the course alone and ends with it; the race film
-  alternates series and machine. Owners: [product](product.md) (TITLE, the demo, input) and
-  [browser](browser.md#card-rows).
-
-To confirm on a device: the shot table's values, `cut`, and the ticker's speed and row.
+- Awaiting K (the default meanwhile is the recommended one): a machine's words are built from its listing's facts, with
+  no new text (`machineWords`).
+- To confirm on a device: the shot table's values, `cut`, the ticker's speed and row, and how often the shots looking
+  back can stand, which the loading window behind the field bounds and which no rule widens.
 
 ## Stage PS — Product pictures and courses (ENDURO RACER first)
 

@@ -61,10 +61,10 @@ export const DEMO_FILM = Object.freeze({
 });
 
 /**
- * The demo's words run along one row of the frame's text from its right edge, a character every `stepsPerColumn`
- * fixed steps, until the last has left at the left.
+ * The demo's one line of text, its ticker: a subject runs along `row` of the frame's text from its right edge, a
+ * character every `stepsPerColumn` fixed steps, until the last has left at the left.
  */
-export const DEMO_TICKER = Object.freeze({ stepsPerColumn: 3, columns: 40 });
+export const DEMO_TICKER = Object.freeze({ row: 27, stepsPerColumn: 3, columns: 40 });
 
 /**
  * The demo's one rule of chance (K, 2026-11-14): one of `count` drawn by `random`, other than `last` (when one is and
@@ -76,10 +76,17 @@ export function drawOther(count: number, last: number, random: () => number): nu
   return last >= 0 && drawn >= last ? drawn + 1 : drawn;
 }
 
-/** How many fixed steps `words` take to run along the ticker once. */
-export const tickerSteps = (words: string) => (words.length + DEMO_TICKER.columns) * DEMO_TICKER.stepsPerColumn;
+/** How many fixed steps `subject` takes to run along the ticker once. */
+export const tickerSteps = (subject: string) => (subject.length + DEMO_TICKER.columns) * DEMO_TICKER.stepsPerColumn;
 
-/** One film of the attract demo: a picture that moves on step by step until it ends, and the words run over it. */
+/** The demo's subjects (K, 2026-11-14), each `<name>  <words>`: the course's, the series' and class's, the machine's. */
+export interface DemoSubjects {
+  readonly course: string;
+  readonly series: string;
+  readonly machine: string;
+}
+
+/** One film of the attract demo: a picture that moves on step by step until it ends, and the subjects run over it. */
 export interface Film {
   /** One fixed step; whether it cut to a new picture, which thins in over the last as every change of the demo does. */
   step(): boolean;
@@ -87,8 +94,8 @@ export interface Film {
   draw(frame: SoftwareSurface): void;
   /** Whether it has ended. */
   readonly ended: boolean;
-  /** The words the ticker runs over it. */
-  readonly words: string;
+  /** The subjects the ticker runs over it, each to its end and then the next, again and again. */
+  readonly subjects: readonly string[];
   /** Cut by hand to the shot before (-1) or after (1); a film without shots has none. */
   cut?(by: -1 | 1): void;
 }
@@ -96,19 +103,19 @@ export interface Film {
 /**
  * The course film: a camera travelling the road's centre (`DEMO_FILM.intro`) over a course scene of its own with no
  * vehicle, its window following the camera, each fork taking its first exit, from a station of the entry Section drawn
- * by `random` that leaves it room to travel there. It ends when its `words` have run once on the ticker, or short of a
- * route's end.
+ * by `random` that leaves it room to travel there. Its one subject is the course; it ends when that has run once on the
+ * ticker, or short of a route's end.
  */
 export function createCourseFilm(
   course: CompiledCourse,
   vehicles: readonly CompiledVehicleDefinition[],
   definition: CameraDefinition,
-  words: string,
+  subject: string,
   random: () => number,
 ): Film {
   const scene = createCourseScene(course.entry, course.gates, vehicles);
   const { runtime } = scene;
-  const steps = tickerSteps(words);
+  const steps = tickerSteps(subject);
   const room =
     course.entry.coordinates.domain.end - DEMO_FILM.intro.speed * steps * SIM_DT - RENDER_FAR_DEPTH_METERS / 4;
   let s = random() * Math.max(0, room),
@@ -124,7 +131,7 @@ export function createCourseFilm(
   };
   travel();
   return {
-    words,
+    subjects: [subject],
     get ended() {
       return ended;
     },
@@ -148,15 +155,15 @@ export interface DemoReel {
 }
 
 /**
- * The reel of a watched `run`: its course film over the course's words, then its race film over the series': the run,
- * stepped until it has `finished`, seen through its director's shots and drawn into the page's frame.
+ * The reel of a watched `run`: its course film over the course, then its race film over the series and the machine:
+ * the run, stepped until it has `finished`, seen through its director's shots and drawn into the page's frame.
  */
 export function createDemoReel(
   run: Run,
   finished: () => boolean,
   vehicles: readonly CompiledVehicleDefinition[],
   definition: CameraDefinition,
-  words: { readonly course: string; readonly series: string },
+  subjects: DemoSubjects,
   random: () => number,
 ): DemoReel {
   const director = createDemoDirector(definition, random);
@@ -166,7 +173,7 @@ export function createDemoReel(
     return director.camera;
   };
   const race: Film = {
-    words: words.series,
+    subjects: [subjects.series, subjects.machine],
     get ended() {
       return finished();
     },
@@ -179,7 +186,7 @@ export function createDemoReel(
     cut: (by) => director.cut(by),
   };
   return {
-    films: [createCourseFilm(run.course, vehicles, definition, words.course, random), race],
+    films: [createCourseFilm(run.course, vehicles, definition, subjects.course, random), race],
     dispose: () => run.dispose(),
   };
 }

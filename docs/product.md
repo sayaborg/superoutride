@@ -249,15 +249,15 @@ of the [background transitions](image-assets.md#background-transitions), and onl
 
 Behind the main picture the attract demo runs from TITLE until a run starts (K, 2026-11-08): the RACE sessions of the
 product classes, each turn's class, vehicle, color and shots different every time (K, 2026-11-14), with no HUD and no
-sound, its series, class, vehicle and color written on TITLE alone. A turn shows a real RACE of its class and field, its
-vehicle driven by the player's run driver, filmed like television (K, 2026-11-12): a camera travels the course alone
-while a ticker runs the course's description, a camera behind the grid watches the start, the race is shown in turns by
-cameras beside the road, travelling with the vehicle, looking back at it and the player's own (K, 2026-11-14), and a
-camera before the line watches it finish, while the ticker runs the series' description; every cut is line thinning. A
-turn lasts to the race's end and its RESULT delay, or five minutes. The demo holds only the shown class's race and the
-next class's, and every turn starts its race anew: a class shown again starts a new race. On TITLE, LEFT and RIGHT cut
-to the shot before or after, and UP and DOWN make the class before or after the shown one the next, shown as soon as it
-has loaded (K, 2026-11-14), all in silence.
+sound, and no fixed text: its one line, on TITLE alone, is a ticker of the series, the course and the machine (K,
+2026-11-14). A turn shows a real RACE of its class and field, its vehicle driven by the player's run driver, filmed like
+television (K, 2026-11-12): a camera travels the course alone while the ticker introduces the course, a camera behind
+the grid watches the start, the race is shown in turns by cameras beside the road, travelling with the vehicle, looking
+back at it and the player's own (K, 2026-11-14), and a camera before the line watches it finish, while the ticker
+introduces the series and the machine in turn; every cut is line thinning. A turn lasts to the race's end and its RESULT
+delay, or five minutes. The demo holds only the shown class's race and the next class's, and every turn starts its race
+anew: a class shown again starts a new race. On TITLE, LEFT and RIGHT cut to the shot before or after, and UP and DOWN
+make the class before or after the shown one the next, shown as soon as it has loaded (K, 2026-11-14), all in silence.
 
 This game changes screens by line thinning alone, with no black (K, 2026-11-08). The changes outside the rows (from
 FREE PLAY's SELECT VEHICLE to the PRE-RACE card, from the PRE-RACE card to READY, and from RESULT back to a row) still
