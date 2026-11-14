@@ -573,11 +573,13 @@ images](#completed-sprite-images)): a level is a reduction of the master, not a 
 
 A picture may be drawn flipped left to right about its anchor (`flip`), its shadow with it, as a late-1980s board's
 sprite hardware flips one. A camera looking back along the road ([Architecture](architecture.md#a-camera-looking-back))
-sees a picture with its own image for each direction, a vehicle's, by the direction rule above, and the front of a
-vehicle is its own picture. A standing board with no image for each direction (a course image, a tire puff, an
-explosion) shows its back: the picture flipped, extending sideways the other way, in its palettes at half brightness,
-made once by the one half-brightness operation of RGB555 (`boardBack`). A picture lying on the ground is no board and
-has no back: it is drawn as it is.
+reads the road on a reversed ruler, and two separate properties follow. First, as that ruler's consequence and no
+rule of a board's, every picture without its own image for each direction, standing or lying (a course image, a tire
+puff, an explosion, a strip lying on the road), is read flipped and extending sideways the other way (`mirrored`); a
+picture with an image for each direction, a vehicle's, is chosen by the direction rule above, and the front of a
+vehicle is its own picture. Second, a standing board seen from behind shows its back at half brightness, its palettes
+halved once by the one half-brightness operation of RGB555 (`halfBright`); a picture lying on the ground keeps its
+brightness.
 
 ## Vehicle sprite sets
 

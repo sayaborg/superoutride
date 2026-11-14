@@ -78,35 +78,44 @@ export function reverseRoad(road: RoadReaders): RoadReaders {
   return reversed;
 }
 
-const backs = new WeakMap<SpriteAsset, SpriteAsset>();
+const mirrors = new WeakMap<SpriteAsset, SpriteAsset>(),
+  halves = new WeakMap<SpriteAsset, SpriteAsset>();
+// One made picture for each picture, made on first use.
+const made = (cache: WeakMap<SpriteAsset, SpriteAsset>, asset: SpriteAsset, make: () => SpriteAsset) => {
+  let picture = cache.get(asset);
+  if (!picture) cache.set(asset, (picture = Object.freeze(make())));
+  return picture;
+};
 
-/**
- * The back of a standing board with no picture for each direction: flipped, extending the other way, in its palettes
- * at half brightness, made once (K, 2026-11-14).
- */
-export function boardBack(asset: SpriteAsset): SpriteAsset {
-  let back = backs.get(asset);
-  if (!back) {
-    back = Object.freeze({
-      name: asset.name,
-      levels: Object.freeze(
-        asset.levels.map((level) =>
-          Object.freeze({ ...level, paletteRgb555: Object.freeze(level.paletteRgb555.map(halveRgb555)) }),
-        ),
+/** A picture read on the reversed ruler: flipped left to right, extending sideways the other way. */
+export function mirrored(asset: SpriteAsset): SpriteAsset {
+  return made(mirrors, asset, () => {
+    const { flip, extend, ...rest } = asset;
+    return {
+      ...rest,
+      ...(!flip && { flip: true as const }),
+      ...(extend && { extend: extend === 'left' ? ('right' as const) : ('left' as const) }),
+    };
+  });
+}
+
+/** A picture in its palettes at half brightness, by RGB555's one halving: a standing board's back (K, 2026-11-14). */
+export function halfBright(asset: SpriteAsset): SpriteAsset {
+  return made(halves, asset, () => ({
+    ...asset,
+    levels: Object.freeze(
+      asset.levels.map((level) =>
+        Object.freeze({ ...level, paletteRgb555: Object.freeze(level.paletteRgb555.map(halveRgb555)) }),
       ),
-      flip: true,
-      ...(asset.extend && { extend: asset.extend === 'left' ? ('right' as const) : ('left' as const) }),
-    });
-    backs.set(asset, back);
-  }
-  return back;
+    ),
+  }));
 }
 
 /**
  * The course read the other way, `reverseRoad`'s ruler throughout: its drawn height, extent, ground and walls follow
- * the road; the sky stands where it stands, its turn the camera's; a picture stands at its reversed station, a standing
- * one with no picture of its own for this direction as its board's back (`boardBack`), and one lying on the ground as it
- * is. `view` is a forward view.
+ * the road; the sky stands where it stands, its turn the camera's; a picture stands at its reversed station. Every
+ * picture without its own image for each direction is read `mirrored`, standing or lying, as the reversed ruler reads
+ * it; a standing one alone, a board seen from behind, is also at `halfBright`. `view` is a forward view.
  */
 export function reverseCourseView(view: CourseView): CourseView {
   const road = reverseRoad(view);
@@ -163,7 +172,7 @@ export function reverseCourseView(view: CourseView): CourseView {
     picture: (sprite: CourseSprite, oriented: boolean) => ({
       ...sprite,
       sRender: -sprite.sRender,
-      asset: oriented || sprite.asset.lies ? sprite.asset : boardBack(sprite.asset),
+      asset: oriented ? sprite.asset : mirrored(sprite.asset.lies ? sprite.asset : halfBright(sprite.asset)),
     }),
   });
 }
