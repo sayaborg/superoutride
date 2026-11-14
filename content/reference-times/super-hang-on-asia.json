@@ -1,7 +1,7 @@
 {
   "format": "superoutride.reference-times",
   "version": 3,
-  "courseBuildSha256": "0b0e7d97f45312dd2f5ad67b0fe2dd08c4cb8013c05595b671715eb1c078bb47",
+  "courseBuildSha256": "326ddbf1b595c6e70bfc31ec5faab32f2b84999ae8b10e1d04ce5e5aa82e595e",
   "procedureSha256": "60a5881ec2e98d2d8c17b5695b41151dc0720fdd0a9ef5fd2c9c1aad5195533d",
   "vehicles": [
     {
