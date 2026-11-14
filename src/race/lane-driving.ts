@@ -136,9 +136,10 @@ export function createLaneDriving(options: {
   const line = (s: number) => forks.targetL(s, lineIntent);
   /*
    * A racing line driver's input: its plan along its path, which the vehicle ahead on it constrains, and the offset it
-   * heads for by the path offset rules. A new offset, at the offset resolution, blends from the path's offset here over
-   * the blend length; the driver's path is then a new function, since the driver caches by path, and its sighting heads
-   * for the new path at once.
+   * heads for by the path offset rules. A new offset, at the offset resolution, or a change between the road's edge
+   * margin and the ground inside the course limits that holds it, blends from the path's offset here over the blend
+   * length; the driver's path is then a new function, since the driver caches by path, and its sighting heads for the
+   * new path at once.
    */
   const driveLine = (driven: PresentVehicle, offset: PathOffset, domain: DrivingDomain): DrivingInput => {
     const driving = driven.driving!;
@@ -156,31 +157,34 @@ export function createLaneDriving(options: {
     );
     lineIntent.exit = intent.exit;
     const { resolution, blendSeconds, blendLeast } = PATH_OFFSET;
-    const next =
-      Math.round(
-        following.offsetTarget(intent, driven.sighting, sightings, {
-          line,
-          path: driving.target,
-          edges: (station) => forks.roadEdges(station, intent.exit),
-          offset,
-          lapLength,
-          speedBehind: (leader) => speedBehind(driven.vehicle, driver, plan.free, leader),
-        }) / resolution,
-      ) * resolution;
-    if (next !== offset.to) {
+    const target = following.offsetTarget(intent, driven.sighting, sightings, {
+      line,
+      path: driving.target,
+      edges: (station) => forks.roadEdges(station, intent.exit),
+      ground: (station) => forks.groundEdges(station, intent.exit),
+      offset,
+      lapLength,
+      speedBehind: (leader) => speedBehind(driven.vehicle, driver, plan.free, leader),
+    });
+    const next = Math.round(target.value / resolution) * resolution;
+    if (next !== offset.to || target.clearing !== offset.clearing) {
       offset.from = intent.offset?.(s) ?? pathOffsetAt(offset, s);
       offset.to = next;
       offset.at = s;
-      offset.length = Math.max(blendLeast, driven.sighting.speed * blendSeconds);
+      // A clearing offset is reached before the object it clears.
+      offset.length = Math.min(Math.max(blendLeast, driven.sighting.speed * blendSeconds), Math.max(0, target.by - s));
+      offset.clearing = target.clearing;
       const blend = Object.freeze({ from: offset.from, to: offset.to, at: offset.at, length: offset.length });
-      // The path keeps within the road's edge margin, or no farther out than the line where the line is.
+      // The path keeps within the road's edge margin, or within the ground inside the course limits while it clears a
+      // fixed object, or no farther out than the line where the line is.
       const own: LaneIntent = { lane: LINE, at: 0, exit: intent.exit };
+      const edges = target.clearing ? forks.groundEdges : forks.roadEdges;
       const margin = driven.sighting.width / 2 + PATH_OFFSET.edgeClearance;
       intent.offset = (station: number) => {
         const shift = pathOffsetAt(blend, station);
         if (shift === 0) return 0;
         const l = forks.targetL(station, own);
-        return heldLateral(l, shift, forks.roadEdges(station, own.exit), margin) - l;
+        return heldLateral(l, shift, edges(station, own.exit), margin) - l;
       };
       driving.target = (station: number) => forks.targetL(station, intent);
       driven.sighting.target = driving.target(driven.sighting.s);

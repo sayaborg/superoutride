@@ -313,6 +313,23 @@ export function createCourseForkField(
       return { left: road.left - occurrence.lateralOrigin, right: road.right - occurrence.lateralOrigin };
     },
     /**
+     * The ground a racing line driver's path may take at route station `s` to clear a fixed object (route laterals):
+     * between the course limits, and within the solid walls beside the road an intent following `exit` drives there (a
+     * wall wholly to one side of that road's edges bounds the ground on that side).
+     */
+    groundEdges(s: number, exit: DriverIntent['exit']): { readonly left: number; readonly right: number } {
+      const { occurrence, at, road } = roadAt(s, exit);
+      let left = -Infinity,
+        right = Infinity;
+      for (const line of occurrence.section.barriers) {
+        if (at < line.start || at > line.end) continue;
+        const l = line.lateralAt(at);
+        if (line.keep === 1 || (line.keep === 0 && l <= road.left)) left = Math.max(left, l);
+        else if (line.keep === -1 || (line.keep === 0 && l >= road.right)) right = Math.min(right, l);
+      }
+      return { left: left - occurrence.lateralOrigin, right: right - occurrence.lateralOrigin };
+    },
+    /**
      * The lanes of the road an intent following `exit` drives at route station `s` there for a vehicle `vehicle` wide
      * (`roomy`), as lane indices.
      */

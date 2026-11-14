@@ -1524,7 +1524,11 @@ present vehicle's station to the foremost one's plus the driver lookahead (`PLAN
 from its Section's station-ordered list: an object is a stopped vehicle of zero length and its width, heading for its
 own lateral, at rest in line with the road. A driver sees a roadside object only where it is fixed: a movable object
 it drives through, and the physics does the rest (K, 2026-11-13); it is no vehicle ahead, ends no lane and bounds no
-path offset. Knocked objects and barrier lines are not in it. An object standing in a driver's lane is thus a stopped
+path offset. A fixed object is part of the road's shape to a driver of the racing line, not a vehicle to wait for: its
+path clears every fixed object on it before any other path rule, over the whole ground inside the course limits, and
+its plan is held for one only while no clearing path is open (K, 2026-11-13; [Path offsets](#path-offsets)); a driver
+held so long that its vehicle stands 2 s asks for the manual recovery ([Recovery](#recovery)). Knocked objects and
+barrier lines are not in it. An object standing in a driver's lane is thus a stopped
 vehicle ahead to it, and one outside every lane occupies none. A vehicle occupies both the
 lanes it overlaps where it is and the lane it is heading for: it is in a lane for a driver when either its lateral or
 the lateral it is heading for lies nearer that lane's centre at its station than half the two vehicles' widths. Three
@@ -1556,9 +1560,12 @@ so a driver following at the leader's speed keeps the footprint gap `gap + v × 
 driver that passes, and to any driver behind a standing object (which ends its lane, below); for others it is 0. It is
 the least footprint gap from which the driver's steering path from rest (at its lateral, in line with the road) into an
 adjacent lane of its road passes clear of the vehicle ahead side to side and stays clear, or 0 when
-no adjacent lane does. Such a driver stops that far behind a stopped vehicle, at least `terminalClearance` (2 m), and
-when the adjacent lane is free it starts and steers into it past the stopped vehicle; any other driver stops
-`terminalClearance` behind it. The
+no adjacent lane does. Behind a standing object a driver of the racing line clears it by its path instead: its escape
+gap is the greater of the two from which its steering path from rest, along the clearing path to either side of the
+object (a blend from its lateral to the lateral beside the object, ending half the two lengths before it), passes
+clear, so that it can go by whichever side opens. Such a driver stops
+that far behind a stopped vehicle, at least `terminalClearance` (2 m), and when the adjacent lane is free it starts and
+steers into it past the stopped vehicle; any other driver stops `terminalClearance` behind it. The
 plan is computed once per step, with and without this constraint. Whether a driver passes is an attribute its builder
 gives it (`passes`): rivals' drivers and the player's run driver pass, by their path offsets
 ([Path offsets](#path-offsets)); traffic drivers, which run resolution compiles, do not, and keep their lanes. A
@@ -1573,8 +1580,22 @@ without a vehicle ahead and meets no other vehicle.
 #### Path offsets
 
 A driver of the racing line, except a reference run, sets the offset of its path from the line by three rules, in this
-order; the first that applies sets the target offset, otherwise it is 0. On a circuit, stations and laps compare over
-the lap length.
+order; the first that applies sets the target offset, otherwise it is 0, unless that path meets a fixed object, which
+it clears first (below). On a circuit, stations and laps compare over the lap length.
+
+Clearing (K, 2026-11-13). While the path at the three rules' offset meets a standing object ahead within the driver's
+lookahead (one occupies it, or its steering path into it meets one, as the vehicle ahead is judged), the driver heads
+instead for the offset that clears it, faster or not. On each side it is the least offset, at the resolution rounded
+outward, whose path passes each standing object it meets by half the two widths plus `clearance`, the objects met in
+turn, held within the ground inside the course limits: half the driver's width plus `edgeClearance` inside the course
+limits, and inside a solid wall lying wholly beside the road there, not the road's edge margin. A side is closed when
+no such offset clears (the steering path still meets an object, or the ground runs out), or while a vehicle alongside
+or closing from behind lies across the way to it: on that side of the driver, no farther out than half the two widths
+beyond the path's lateral at the object. Of the open sides the driver takes the one nearer the three rules' offset, the
+left on a tie, and its blend ends half its length before the first object it clears. With no side open the three
+rules' offset stands, and the object, the vehicle ahead on that path, holds the plan back until one opens. The rule is
+the same wherever the driver is, off the road included: from there it takes the path back to the line clear of the
+objects. The other rules move the path within the road's edge margin as before.
 
 1. Yielding: a competitor closing from behind (within its speed times `followSeconds` behind, faster than the driver)
    or alongside that leads the driver by a lap or more: the driver moves to the side of the line away from the lateral
@@ -1583,7 +1604,8 @@ the lap length.
    driver did (it was ahead when they came alongside, so the one that came alongside first keeps its line): the
    driver's path keeps at least half the two widths plus `clearance` from that vehicle's lateral, moving away from it
    and never toward it.
-3. Passing: when the vehicle ahead on its path lowers the driver's plan, the driver weighs the two constant offsets at
+3. Passing: when the vehicle ahead on its path, a vehicle and not a standing object (which clearing serves), lowers the
+   driver's plan, the driver weighs the two constant offsets at
    which its path passes that vehicle's lateral by half the two widths plus `clearance` on either side, each within the
    road's edge margin, by the speed its plan allows behind the vehicle ahead on that path (the current curve speeds
    serve). A side counts only while its path meets no standing object (a fixed one, the only kind drivers see) ahead
@@ -1595,13 +1617,14 @@ the lap length.
    standing object: the target stays while it clears that vehicle by the same distance, else moves out to clear it.
    Alongside, giving room takes over.
 
-Every target lies within the road's edge margin: half the driver's width plus `edgeClearance` (0.3 m) inside the edges
-of the road it drives; and the path keeps within it, holding at the margin wherever the line plus the offset would
-leave it (or at the line, where the line itself lies outside the margin). The target is read in steps of `resolution` (0.25 m); a new one blends the offset from its value
-at the driver's station to the target by a cosine over `max(blendLeast, v × blendSeconds)` (30 m, 1.5 s), and the
-driver's path is then a new function, whose curvature the plan reads, so a move never asks for more than the plan
-allows. Nothing blocks a move. The constants are `PATH_OFFSET` in `src/race/lane-following.ts`. These rules replace
-lane changes for passing; traffic keeps its lanes and the lane rules below.
+Every target but a clearing one lies within the road's edge margin: half the driver's width plus `edgeClearance` (0.3 m)
+inside the edges of the road it drives; and the path keeps within it, holding at the margin wherever the line plus the
+offset would leave it (or at the line, where the line itself lies outside the margin). The target is read in steps of
+`resolution` (0.25 m); a new one blends the offset from its value at the driver's station to the target by a cosine over
+`max(blendLeast, v × blendSeconds)` (30 m, 1.5 s), and the driver's path is then a new function, whose curvature the
+plan reads, so a move never asks for more than the plan allows. Nothing blocks a move. The constants are `PATH_OFFSET`
+in `src/race/lane-following.ts`. These rules replace lane changes for passing; traffic keeps its lanes and the lane
+rules below.
 
 Where a driver's lane ends, it merges first, passing or not: this is not a pass. A lane ends at the first end within the
 driver's lookahead by the rule above (its width falling below its vehicle's, a fork line it must leave its road by, or a seam it does

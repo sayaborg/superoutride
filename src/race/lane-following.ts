@@ -55,14 +55,16 @@ export const PATH_OFFSET = Object.freeze({
 
 /**
  * A racing line driver's offset from the line: a cosine blend from `from` at route station `at` to `to` over `length`
- * metres; for each vehicle alongside, whether the driver gives it room (it came alongside later); and the pass it is
- * making, if any: the vehicle it passes, on which side (-1 left, 1 right) and from what gap.
+ * metres, held within the ground inside the course limits while it clears a fixed object (`clearing`), else within the
+ * road's edge margin; for each vehicle alongside, whether the driver gives it room (it came alongside later); and the
+ * pass it is making, if any: the vehicle it passes, on which side (-1 left, 1 right) and from what gap.
  */
 export interface PathOffset {
   from: number;
   to: number;
   at: number;
   length: number;
+  clearing: boolean;
   readonly alongside: Map<VehicleSighting, boolean>;
   passing: { readonly vehicle: VehicleSighting; readonly side: number; readonly gap: number } | null;
 }
@@ -177,18 +179,39 @@ export function createLaneFollowing(
   /*
    * The escape gap behind `other` for the driver `self` in `lane`: the least footprint gap from which its steering path
    * from rest into an adjacent lane passes clear of `other` side to side and stays clear; 0 when no adjacent lane does.
+   * Behind a standing object a racing line driver clears it by its path instead: its gap is the greater of the two from
+   * which its steering path from rest along the clearing path to either side of the object, blending from its lateral
+   * to the lateral beside the object as its clearing path does, passes clear, so that it can steer by whichever side
+   * opens.
    */
   const escape = (self: VehicleSighting, intent: DriverIntent, lane: number, other: VehicleSighting) => {
     const halfWidths = (self.width + other.width) / 2;
+    // The first distance after which the path traced into `rest` for lateral `into` stays clear; null when it ends
+    // beside `other`.
+    const clearFrom = (into: number) => {
+      if (Math.abs(into - other.l) < halfWidths) return null;
+      let from = -1;
+      for (let i = rest.count - 1; i >= 0 && Math.abs(rest.laterals[i]! - other.l) >= halfWidths; i--)
+        from = rest.distances[i]!;
+      return from >= 0 ? from : null;
+    };
+    if (other.standing && lane === LINE) {
+      let greatest = 0;
+      // The clearing path's blend from the driver's lateral ends half the two lengths before the object.
+      const length = Math.max(0, other.s - self.s - (self.length + other.length) / 2);
+      for (const side of [-1, 1]) {
+        const beside = other.l + side * clearanceOf(self, other);
+        traceSteeringPath(rest, self.s, self.l, 0, steeringLookahead(0), (s) =>
+          pathOffsetAt({ from: self.l, to: beside, at: self.s, length }, s),
+        );
+        greatest = Math.max(greatest, clearFrom(beside) ?? 0);
+      }
+      return greatest;
+    }
     let least = Infinity;
     for (const candidate of forks.adjacentLanes(self.s, lane, intent.exit, intent.width)) {
       trace(rest, self, intent, candidate, true);
-      // The first distance after which the path stays clear.
-      let clearFrom = -1;
-      for (let i = rest.count - 1; i >= 0 && Math.abs(rest.laterals[i]! - other.l) >= halfWidths; i--)
-        clearFrom = rest.distances[i]!;
-      if (clearFrom >= 0 && Math.abs(centre(intent, candidate, other.s) - other.l) >= halfWidths)
-        least = Math.min(least, clearFrom);
+      least = Math.min(least, clearFrom(centre(intent, candidate, other.s)) ?? Infinity);
     }
     return Number.isFinite(least) ? least : 0;
   };
@@ -293,13 +316,21 @@ export function createLaneFollowing(
     },
   };
   const standing = (other: VehicleSighting) => other.standing;
+  // What a path keeps from a vehicle or object it passes beside: half the two widths plus `clearance`.
+  const clearanceOf = (self: VehicleSighting, other: VehicleSighting) =>
+    (self.width + other.width) / 2 + PATH_OFFSET.clearance;
   // Whether the driver's path at the candidate offset meets a standing object ahead within its lookahead.
   const meetsBody = (self: VehicleSighting, sightings: readonly VehicleSighting[]) =>
     nearestOnPath(self, candidate, LINE, sightings, standing, self.s + PLANNED_DRIVER.lookahead) !== null;
+  // The target `offsetTarget` writes: the offset, whether it clears a fixed object, and then the route station by which
+  // it must be reached: where the first object it clears begins, less half the driver's length.
+  const target = { value: 0, clearing: false, by: Infinity };
   /*
-   * The offset from the racing line the driver `self`, which drives the line, heads for: the first of the path offset
-   * rules that applies, else 0. `line` is the racing line's lateral and `path` the driver's path now, `edges` the road's
-   * edges, `offset` the driver's path offset, whose memory of vehicles alongside and of its pass this updates,
+   * The offset from the racing line the driver `self`, which drives the line, heads for (`target`): the first of the
+   * three path offset rules that applies, else 0, while its path meets no standing object ahead within the lookahead;
+   * else the offset that clears the objects it meets (`clearing`), when one is open. `line` is the racing line's
+   * lateral and `path` the driver's path now, `edges` the road's edges and `ground` the ground inside the course
+   * limits, `offset` the driver's path offset, whose memory of vehicles alongside and of its pass this updates,
    * `lapLength` is a circuit's lap (null elsewhere), and `speedBehind` gives the driver's plan behind a vehicle ahead.
    */
   const offsetTarget = (
@@ -310,16 +341,82 @@ export function createLaneFollowing(
       readonly line: (s: number) => number;
       readonly path: (s: number) => number;
       readonly edges: (s: number) => { readonly left: number; readonly right: number };
+      readonly ground: (s: number) => { readonly left: number; readonly right: number };
       readonly offset: PathOffset;
       readonly lapLength: number | null;
       readonly speedBehind: (leader: DriverLeader | null) => number;
     },
+  ): Readonly<typeof target> => {
+    target.value = rulesTarget(intent, self, sightings, options);
+    target.clearing = false;
+    target.by = Infinity;
+    const { line, ground, lapLength } = options;
+    const { resolution } = PATH_OFFSET;
+    // The path the three rules ask for, within the road's edge margin: kept while it meets no standing object.
+    candidate.value = target.value;
+    const met = nearestOnPath(self, candidate, LINE, sightings, standing, self.s + PLANNED_DRIVER.lookahead);
+    if (met === null) return target;
+    // Clearing: on each side, the least offset at the resolution, within the ground inside the course limits, whose
+    // path passes every standing object it would meet by half the two widths plus `clearance`, the objects met in turn.
+    candidate.edges = ground;
+    const clearSide = (side: number) => {
+      let value = target.value;
+      for (let other: VehicleSighting | null = met; other !== null;) {
+        const needed = other.l + side * clearanceOf(self, other) - line(other.s);
+        if (side * (needed - value) <= 0) return null;
+        value = side * Math.ceil((side * needed) / resolution - 1e-9) * resolution;
+        candidate.value = value;
+        other = nearestOnPath(self, candidate, LINE, sightings, standing, self.s + PLANNED_DRIVER.lookahead);
+      }
+      return value;
+    };
+    // A side is taken while a vehicle alongside, or closing from behind, lies across the way to it: on that side of the
+    // driver, no farther out than half the two widths beyond where the path goes.
+    const taken = (value: number) => {
+      const to = line(met.s) + value,
+        from = self.l,
+        toward = Math.sign(to - from);
+      if (toward === 0) return false;
+      for (const other of sightings) {
+        if (other === self || other.standing) continue;
+        let ds = other.s - self.s;
+        if (lapLength !== null) ds -= Math.round(ds / lapLength) * lapLength;
+        const halfLengths = (self.length + other.length) / 2;
+        if (ds >= halfLengths || ds <= -(halfLengths + other.speed * PLANNED_DRIVER.followSeconds)) continue;
+        const halfWidths = (self.width + other.width) / 2;
+        for (const l of [other.l, other.target])
+          if (toward * (l - from) > 0 && toward * (l - to) < halfWidths) return true;
+      }
+      return false;
+    };
+    // The open side nearer the rules' offset, the left on a tie; none open, the rules' offset stands and the object
+    // holds the plan back.
+    let best: number | null = null;
+    for (const side of [-1, 1]) {
+      const value = clearSide(side);
+      if (value === null || taken(value)) continue;
+      if (best === null || Math.abs(value - target.value) < Math.abs(best - target.value)) best = value;
+    }
+    candidate.edges = options.edges;
+    if (best !== null)
+      [target.value, target.clearing, target.by] = [best, true, met.s - (self.length + met.length) / 2];
+    return target;
+  };
+  /*
+   * The offset the three path offset rules give the driver `self`, within the road's edge margin: the first that
+   * applies, else 0. Leaves `candidate` reading the road's edges.
+   */
+  const rulesTarget = (
+    intent: LaneIntent,
+    self: VehicleSighting,
+    sightings: readonly VehicleSighting[],
+    options: Parameters<typeof offsetTarget>[3],
   ): number => {
     const { line, path, edges, offset, lapLength, speedBehind } = options;
     const { alongside } = offset;
     const { passingMargin } = PLANNED_DRIVER;
     const { edgeClearance } = PATH_OFFSET;
-    const clearance = (other: VehicleSighting) => (self.width + other.width) / 2 + PATH_OFFSET.clearance;
+    const clearance = (other: VehicleSighting) => clearanceOf(self, other);
     // The lateral nearest `l` within the road's edge margin at station `s`.
     const within = (s: number, l: number) => {
       const { left, right } = edges(s);
@@ -391,11 +488,12 @@ export function createLaneFollowing(
       offset.passing = null;
     }
     // When the vehicle ahead on the racing line holds the plan back, the side that clears it, whose path meets no
-    // standing object, and allows more speed by the passing margin, the left on a tie.
+    // standing object, and allows more speed by the passing margin, the left on a tie. A standing object ahead is no
+    // vehicle to pass: clearing it is the path's first rule.
     candidate.value = 0;
     const behind = speedBehind(ahead(self, candidate, LINE, sightings));
     const blocking = aheadSighting;
-    if (blocking === null || !(behind < speedBehind(null))) return 0;
+    if (blocking === null || blocking.standing || !(behind < speedBehind(null))) return 0;
     let best = 0,
       bestSide = 0,
       bestSpeed = behind + passingMargin;

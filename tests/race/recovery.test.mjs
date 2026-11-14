@@ -25,6 +25,7 @@ import { advancePresentVehicle, createPresentVehicle } from '../../src/race/pres
 import { driverSteering } from '../../src/vehicle/steering-rule.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { PLANNED_DRIVER } from '../../src/race/planned-driver.js';
+import { PATH_OFFSET } from '../../src/race/lane-following.js';
 
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
@@ -51,8 +52,8 @@ const WALL = { from: 20, to: 80, offset: 3 };
 /**
  * A synthetic flat circuit of three Sections, each a 200 m straight and a 120° right arc of 80 m radius with two lanes
  * and 8 m of runoff each side. Sector 2 has a hole in its right runoff and a solid wall beside its right lane; Sector 3
- * is DIRT on its left half and SAND on its right. `objects` stand in Sector 2's straight, each a body of one part 1.5 m
- * wide at `offset` metres into it and native lateral `l`, movable or fixed.
+ * is DIRT on its left half and SAND on its right. `objects` stand in Sector 2's straight, each a body at `offset`
+ * metres into it and native lateral `l`, one part 1.5 m wide, movable or fixed.
  */
 function ring(objects = []) {
   const id = (k) => `sector-${k + 1}`;
@@ -634,6 +635,93 @@ test('a driver does not see a movable object, and sees a fixed one', async () =>
     assert.deepEqual(movable.trace, free.trace);
     assert.notDeepEqual(fixed.trace, free.trace);
   }
+});
+
+/** A run on the ring with `objects` and a racing line rival: the rival, and route laterals from native ones there. */
+async function lineRival(objects) {
+  const { race, scene } = await run({ rivals: 1, on: await ringWith(objects) });
+  const rival = race.rivals[0];
+  const origin = scene.runtime.route.at(sector2(scene, OBJECT_AT)).lateralOrigin;
+  return { race, scene, rival, route: (native) => native - origin };
+}
+
+test("a racing line driver's path clears a fixed object on it before anything holds it back", async () => {
+  const free = await approach(course, false);
+  const fixed = await approach(await ringWith([{ offset: OBJECT_AT, l: free.native, movable: false }]), false);
+  const speeds = (trace) => trace.map(([v]) => v);
+  // It never slows below its free run's speed, and its path passes the object by half the widths plus `clearance`,
+  // the nearer side first (the left on a tie), beyond the road's edge margin (lane a's left edge is 5 m left of the
+  // object; the ground runs 8 m farther).
+  assert.ok(Math.min(...speeds(fixed.trace)) >= Math.min(...speeds(free.trace)) - 1e-9);
+  const passed = fixed.trace.at(-1)[1] - free.trace.at(-1)[1];
+  const half = (TESTAROSSA.compiledVehicle.footprint + 1.5) / 2 + PATH_OFFSET.clearance;
+  assert.ok(passed <= -half, `passes ${passed} m beside it`);
+  const edgeMargin = -LANE + TESTAROSSA.compiledVehicle.footprint / 2 + PATH_OFFSET.edgeClearance;
+  assert.ok(free.native + passed < edgeMargin, `${free.native + passed} within the margin ${edgeMargin}`);
+});
+
+test('a driver off the road takes a path around fixed objects back to the racing line', async () => {
+  // At rest in the left runoff, 7.5 m left of the line; between it and the road a fence of objects, 1 m outside lane
+  // a's edge from 10 m to 55 m ahead of it.
+  const fenceL = -LANE - 1;
+  const fence = Array.from({ length: 31 }, (_, k) => ({ offset: 30 + 1.5 * k, l: fenceL, movable: false }));
+  const { race, scene, rival, route } = await lineRival(fence);
+  place(scene, rival.body, sector2(scene, 20), route(-LANE / 2 - 7.5));
+  const [from, to] = [sector2(scene, 30), sector2(scene, 75)];
+  let nearest = Infinity,
+    cleared = false;
+  for (let step = 0; step < 15 * 60; step++) {
+    race.advance(idle);
+    const { course } = rival.actor.vehicle;
+    if (course.s > from - 1 && course.s < to + 1) nearest = Math.min(nearest, Math.abs(course.l - route(fenceL)));
+    cleared ||= rival.body.driving.offset.clearing;
+  }
+  const half = (TESTAROSSA.compiledVehicle.footprint + 1.5) / 2;
+  assert.ok(cleared, 'its path cleared the fence');
+  assert.ok(nearest > half, `${nearest} m from the fence`);
+  assert.equal(rival.actor.recovery.recoveries, 0);
+  // Back on the line.
+  const { l } = rival.actor.vehicle.course;
+  assert.ok(Math.abs(l - route(-LANE / 2)) < 0.5, `at ${l}, the line at ${route(-LANE / 2)}`);
+});
+
+/** Fixed objects side by side, 1.5 m apart, across native laterals [from, to] at `offset` into Sector 2's straight. */
+const row = (offset, from, to) =>
+  Array.from({ length: Math.round((to - from) / 1.5) + 1 }, (_, k) => ({ offset, l: from + 1.5 * k, movable: false }));
+
+test('a driver waits while a vehicle takes the side that clears a fixed object, then clears it', async () => {
+  // The object on the line; a row beside it closes the right side to the limit; the player keeps pace alongside on the
+  // left, standing for a vehicle there.
+  const { race, scene, rival, route } = await lineRival([
+    { offset: OBJECT_AT, l: -LANE / 2, movable: false },
+    ...row(OBJECT_AT, 1, 13),
+  ]);
+  place(scene, rival.body, sector2(scene, OBJECT_AT - 40), route(-LANE / 2));
+  for (let step = 0; step < 4 * 60; step++) {
+    const { course } = rival.actor.vehicle;
+    place(scene, race.player.body, course.s, course.l - 3.5, { speed: rival.actor.vehicle.speed });
+    race.advance(braked);
+  }
+  assert.ok(rival.actor.vehicle.course.s < sector2(scene, OBJECT_AT) - 2, 'it waits behind the object');
+  assert.equal(rival.body.driving.offset.clearing, false);
+  // The player leaves, far ahead in lane b; the rival clears the object by the left and goes on.
+  place(scene, race.player.body, sector2(scene, 190), route(LANE / 2));
+  for (let step = 0; step < 4 * 60; step++) race.advance(braked);
+  assert.ok(rival.actor.vehicle.course.s > sector2(scene, OBJECT_AT) + 10, 'it passed the object');
+  assert.equal(rival.actor.recovery.recoveries, 0);
+});
+
+test('a driver with no side open stops behind a fixed object, and the safety net recovers it in 2 s', async () => {
+  const { race, scene, rival, route } = await lineRival(row(OBJECT_AT, -13, 13));
+  place(scene, rival.body, sector2(scene, OBJECT_AT - 40), route(-LANE / 2), { speed: 10 });
+  let standing = 0;
+  for (let step = 0; step < 15 * 60 && !rival.actor.recovery.recoveries; step++) {
+    race.advance(braked);
+    standing = rival.body.driving.standing || standing;
+  }
+  assert.ok(rival.actor.vehicle.course.s < sector2(scene, OBJECT_AT));
+  assert.equal(rival.actor.recovery.lastReason, 'manual');
+  assert.equal(standing, Math.round(PLANNED_DRIVER.standingSeconds / SIM_DT) - 1);
 });
 
 test("the Route's ends are limits across the road: fast, airborne or reversing, a vehicle stays inside", async (t) => {

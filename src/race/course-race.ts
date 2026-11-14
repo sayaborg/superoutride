@@ -155,14 +155,22 @@ export function createCourseRace(options: {
   // A driver takes the racing line of its exits at route station s from lateral l, holding l's offset from the line
   // (written to `offset`).
   const lineProbe: LaneIntent = { lane: LINE, at: 0, exit: () => 0 };
-  const lineOffset = (): PathOffset => ({ from: 0, to: 0, at: 0, length: 0, alongside: new Map(), passing: null });
+  const lineOffset = (): PathOffset => ({
+    from: 0,
+    to: 0,
+    at: 0,
+    length: 0,
+    clearing: false,
+    alongside: new Map(),
+    passing: null,
+  });
   const takeLine = (intent: LaneIntent, s: number, l: number, offset = lineOffset()) => {
     lineProbe.exit = intent.exit;
     const from = l - forks.targetL(s, lineProbe);
     intent.lane = LINE;
     intent.at = s;
     intent.offset = () => from;
-    Object.assign(offset, { from, to: from, at: s, length: 0, passing: null });
+    Object.assign(offset, { from, to: from, at: s, length: 0, clearing: false, passing: null });
     offset.alongside.clear();
     return offset;
   };
