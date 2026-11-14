@@ -70,7 +70,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-3, beside [Stage
+Next PR: [Stage AT](#stage-at--the-attract-demo-remade)'s AT-1 onward, by K's instruction of 2026-11-14; beside it
+[Stage AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-3, beside [Stage
 RC](#stage-rc--one-recovery)'s RC-3 (awaiting K's word for main); in [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
@@ -78,6 +79,45 @@ RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
+
+## Stage AT — The attract demo remade
+
+K's requirements of 2026-11-14: the demo is random each time; more camera work, with cameras that look back at the
+vehicle (an unoriented standing board seen from behind is mirrored at half brightness); UP, DOWN, LEFT and RIGHT
+change it while it shows; no fixed text, everything a ticker of series, course and machine. The stage's first aim is
+that the demo, with these added, is smaller and has fewer rules than before: its shape was mended first (AT-0: films,
+the run only watched, one line thinning), and nothing is added by branches, exceptions or copies. Each PR states the
+line counts of the demo's files before and after; at the stage's end the demo's parts of `attract-demo.ts`,
+`demo-director.ts` and `run-assembly.ts` stay near the 560 lines they had, or the shape is reviewed and reported. K's
+decisions: CHASE stays the player's camera; UP and DOWN step the class. Awaiting K (the recommended default
+meanwhile): a machine's words are built from its listing's facts, with no new text.
+
+- **AT-1 — Cameras that look back.** A backward camera is a forward camera reading the same road through a reversed
+  reader (s reversed, l mirrored, heading turned half round); no renderer, ground, wall or sprite branches on the
+  direction. One added rule: an unoriented standing board seen from behind is drawn at half brightness, its palette made
+  once by `rgb555`'s halving; pictures lying on the road keep theirs. Sprite drawing gains a horizontal flip. A backward
+  camera stands only while what it sees is resident. The smoke renders a few backward frames; the PR shows TSUKUBA and
+  OUTRUN at one place forward and backward. Owners: [image assets](image-assets.md).
+- **AT-2 — Shots as one table.** Every shot is a row of one shape (base: the shown vehicle, the grid's rearmost or the
+  goal line; ahead, aside, height; speed as a share of the vehicle's, 0 standing; direction; distance it ends at), the
+  director reading the table and never a shot's name: START, FIXED, PASSED, LEFT, CHASE, LOW, QUARTER, FRONT, FRONT
+  QUARTER, APPROACH, GOAL. CHASE alone has no place. A standing shot the vehicle leaves is set again on the same row. The
+  race film starts at START, draws rows that take the vehicle as base, and ends at GOAL.
+- **AT-3 — One way to choose.** Two choices, two operations: cut to the next shot, and choose the next class; random
+  draws call them on their own, UP/DOWN/LEFT/RIGHT by hand. One random rule, "draw one other than the last", for
+  classes and shots; colors (and a class's vehicle) and the course film's start are drawn plainly. The demo holds the
+  one random source, taken as an argument (the start time in the product, a fixed sequence in tests); race, physics and
+  driving never see it. TITLE's row hands LEFT/RIGHT/UP/DOWN to the demo, silently: LEFT/RIGHT cut to the table's row
+  before or after (skipping START and GOAL; nothing over the course film); UP/DOWN make the class before or after the
+  shown one (in SERIES and CLASS order) the next turn's, its run replacing the drawn one's, shown once loaded.
+- **AT-4 — Tickers alone.** TITLE's four fixed lines go; the ticker is the demo's one line of text, every subject
+  `<name>  <words>`: the course (its name and description), the series (SERIES and CLASS titles, the series'
+  description), the machine (the vehicle's name and color, words built by one function from its listing). A subject
+  runs to its end, then the film's next: the course film has the course alone and ends with it; the race film
+  alternates series and machine. Owners: [product](product.md) (TITLE, the demo, input) and
+  [browser](browser.md#card-rows).
+
+To confirm on a device: the shot table's values, `cut`, and the ticker's speed and row.
 
 ## Stage PS — Product pictures and courses (ENDURO RACER first)
 

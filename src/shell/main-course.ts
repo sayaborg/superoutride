@@ -37,7 +37,8 @@ import { createSelectionFlow } from './selection-flow.js';
 import { createCardFaces } from './card-face.js';
 import { CARD_STYLES } from './card-styles.js';
 import { loadFrontEndSelection } from '../content/front-end-selection.js';
-import { assembleRun, createDemoCourses, type Run, type RunPage } from './run-assembly.js';
+import { assembleRun, createWatchedCourses, type Run, type RunPage } from './run-assembly.js';
+import { createDemoReel } from './demo-director.js';
 import { readUrlRunRequest, type RunRequest } from './run-request.js';
 import { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { loadSurfaceSounds } from '../content/surface-sound-catalog.js';
@@ -348,13 +349,13 @@ async function startPage(): Promise<void> {
         true,
       );
     }
-    // The attract demo behind TITLE: at most the shown and the next class's runs, each holding its course's
+    // The attract demo behind TITLE: at most the shown and the next class's watched runs, each holding its course's
     // compilation, which the classes of one course share; released with the page.
-    const demoCourses = createDemoCourses();
-    const attractDemo = createAttractDemo(attractClasses(series.series), vehicles, courseIndex, async (next) => {
+    const watchedCourses = createWatchedCourses();
+    const attractDemo = createAttractDemo(attractClasses(series.series), vehicles, courseIndex, async (next, words) => {
       const state = createRunScreenState(() => {});
-      const run = await assembleRun(page, next, state, undefined, demoCourses);
-      return { run, finished: () => state.finished };
+      const run = await assembleRun(page, next, state, undefined, watchedCourses);
+      return createDemoReel(run, () => state.finished, vehicles, page.cameraDefinition(), words);
     });
     window.addEventListener('pagehide', () => attractDemo.dispose());
     // The cards' style while their design is tried (K, 2026-11-12): SETTINGS' CARD DESIGN and the C key step it.

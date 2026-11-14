@@ -1,6 +1,6 @@
 import type { CourseIndex } from '../content/course-index.js';
 import type { ContentDelivery } from '../content/content-delivery.js';
-import type { CameraDefinition } from '../view/camera.js';
+import type { CameraDefinition, CameraState } from '../view/camera.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import type { SlowDownUtilizations } from '../race/slow-down.js';
 import { createVehicleSprites } from '../view/vehicle-sprites.js';
@@ -43,13 +43,35 @@ import type { WorkSlices } from '../core/work-slices.js';
 import { createContactExplosionSprites, explosionShowsVehicle } from '../view/contact-explosion-sprites.js';
 import type { ContactExplosion } from '../content/contact-explosion-pictures.js';
 import { contactResponseStopped } from '../race/contact-response.js';
-import { createDemoDirector, DEMO_THIN_STEPS, tickerSteps } from './demo-director.js';
-import { lineThinningRanks, newLineCount } from '../view/line-thinning.js';
+import type { RaceStatus } from '../race/course-race.js';
+import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
+import type { ProfileReader } from '../course/geometry/profile.js';
+
+/** What an onlooker of a watched run sees after each of its steps. */
+export interface RunSight {
+  readonly status: RaceStatus;
+  /** The player's vehicle, which its run driver drives. */
+  readonly shown: { readonly course: { readonly s: number; readonly l: number } };
+  /** The race line the player crosses next, and whether it finishes there; null when none is left. */
+  readonly next: { readonly s: number; readonly finish: boolean } | null;
+  /** The rearmost competitor's route station. */
+  readonly rearmost: number;
+  /** The run's world, and the first route station resident in it. */
+  readonly world: { readonly coordinates: PlanCoordinateReader; readonly height: ProfileReader };
+  readonly retainedFrom: number;
+}
+/**
+ * An onlooker's choice, after each step, of the camera the run is seen through: a camera of its own, from which the
+ * player is drawn as any other vehicle is, or null for the player's camera, which draws the player as a played run does.
+ */
+export type RunLook = (sight: RunSight) => CameraState | null;
 
 /** The one run the page drives: its fixed step, its frame, its result and its disposal. */
 export interface Run extends RunFrame {
-  /** The attract demo's view of its run: whether its intro is shown, the race waiting; null for any other run. */
-  readonly demo: { readonly introducing: boolean } | null;
+  /** One fixed step; a watched run's onlooker `look`s after it. */
+  tick(look?: RunLook): void;
+  /** The course the run is on. */
+  readonly course: CompiledCourse;
   dispose(): void;
 }
 /** The page-lifetime objects a run is assembled from and drives; the composition root supplies them. */
@@ -112,11 +134,11 @@ export interface RunAssemblyReport {
 }
 
 /**
- * The attract demo's compiled courses: a demo run holds its course's compilation while it lives, so the classes of one
+ * The watched runs' compiled courses: a watched run holds its course's compilation while it lives, so the runs of one
  * course compile it once, and a course no held run uses is released. A course that failed to load is loaded again by
  * the next run that asks for it.
  */
-export function createDemoCourses() {
+export function createWatchedCourses() {
   const courses = new Map<string, { readonly compiling: Promise<CompiledCourse>; holders: number }>();
   return Object.freeze({
     /** Hold the course `id`, compiled by `load` unless a held run's compilation is shared; release it once. */
@@ -145,10 +167,10 @@ export function createDemoCourses() {
   });
 }
 /**
- * The attract demo's courses, when a run is the demo's: no player input reaches it (the player's run driver drives)
- * and it sounds and records nothing.
+ * The watched runs' courses, when a run is watched: no player input reaches it (the player's run driver drives), it
+ * sounds, shows and records nothing, and an onlooker chooses the camera it is drawn through.
  */
-export type DemoCourses = ReturnType<typeof createDemoCourses>;
+export type WatchedCourses = ReturnType<typeof createWatchedCourses>;
 
 /** Shares of a run's loading: its course's files, then the course compiled, then its run prepared. */
 const LOADING_SHARES = Object.freeze({ files: 0.7, compiled: 0.8, prepared: 0.9 });
@@ -163,7 +185,7 @@ export async function assembleRun(
   request: RunRequest,
   state: RunScreenState,
   report?: RunAssemblyReport,
-  demo?: DemoCourses,
+  watched?: WatchedCourses,
 ): Promise<Run> {
   const { content, materials, series } = page;
   // A class run drives its class on the class's course; FREE PLAY drives the course it names.
@@ -187,8 +209,8 @@ export async function assembleRun(
       },
       page.crestKmh(),
     );
-  // A demo run holds its course while it lives.
-  const held = demo?.hold(courseId, load) ?? null;
+  // A watched run holds its course while it lives.
+  const held = watched?.hold(courseId, load) ?? null;
   try {
     const run = await assembleCourseRun(
       page,
@@ -197,7 +219,7 @@ export async function assembleRun(
       report,
       held?.compiling ?? load(),
       named,
-      demo !== undefined,
+      watched !== undefined,
     );
     if (!held) return run;
     return Object.freeze({
@@ -221,11 +243,11 @@ async function assembleCourseRun(
   report: RunAssemblyReport | undefined,
   compiling: Promise<CompiledCourse>,
   named: SeriesClass | null,
-  demo: boolean,
+  watched: boolean,
 ): Promise<Run> {
   const { content, materials, vehicles, driving, raceSprites, shell } = page;
-  // The attract demo touches no page state: it reads no driving input and reports to no DEV display.
-  const performanceHud = demo ? null : page.performanceHud;
+  // A watched run touches no page state: it reads no driving input and reports to no DEV display.
+  const performanceHud = watched ? null : page.performanceHud;
   const course = await compiling;
   report?.progress(LOADING_SHARES.compiled);
   const runClass = named && loadSeriesClass(content, named, course, vehicles);
@@ -242,7 +264,7 @@ async function assembleCourseRun(
   const entry = vehicle.vehicleDefinition;
   // What a TIME ATTACK run records against: its class on its course; other runs record nothing.
   const selection: RecordSelection | null =
-    settings.mode === 'TIME_ATTACK' && !demo
+    settings.mode === 'TIME_ATTACK' && !watched
       ? {
           seriesId: runClass!.series.id,
           classId: runClass!.id,
@@ -284,22 +306,11 @@ async function assembleCourseRun(
     observation: () => active.race.observe().player,
     yawSource: page.player.settings.cameras[entry.listing.form],
   });
-  // The attract demo's camera director: its intro over the course's description, then its shots of the race (K,
-  // 2026-11-12); null for any other run.
-  const director = demo
-    ? createDemoDirector(
-        course,
-        vehicles,
-        page.cameraDefinition(),
-        tickerSteps(page.courses.find((entry) => entry.id === course.id)!.description),
-      )
-    : null;
-  // The frame a cut leaves, which the shot it cuts to thins over, and the frame's rows in line thinning's order.
-  const thinned = director ? new Uint16Array(shell.framebuffer.pixels.length) : null;
-  const ranks = director ? lineThinningRanks(shell.framebuffer.height) : null;
-  // The run's DEV controls, only with DEV and never in the attract demo.
+  // The onlooker's camera of the latest step; null for the player's, as a played run is always seen.
+  let onlooker: CameraState | null = null;
+  // The run's DEV controls, only with DEV and never in a watched run.
   const devControls =
-    page.dev && !demo
+    page.dev && !watched
       ? mountRunDevControls(vehicle, {
           canRecover: () => state.live && active.race.outcome.status === 'RUNNING',
           recover: () => {
@@ -379,41 +390,29 @@ async function assembleCourseRun(
   const measurements = page.dev ? createRenderMeasurements() : null;
   // Every vehicle of a step, reused step to step.
   const stepVehicles: CompetitorObservation[] = [];
-  // A cut keeps the frame it leaves, which the next shot thins over.
-  const keepCut = () => {
-    if (director?.cutSteps === 0) thinned!.set(shell.framebuffer.pixels);
-  };
-  const tick = () => {
-    // The demo's intro travels its own scene while the run waits.
-    if (director?.introducing) {
-      director.step(null);
-      return keepCut();
-    }
+  const tick = (look?: RunLook) => {
     const started = performanceHud ? performance.now() : 0;
     const { race } = active;
-    // The attract demo takes no input: the player's run driver drives, and nothing sounds or is recorded.
-    const step = race.advance(demo ? null : shell.inputManager.sample());
+    // A watched run takes no input: the player's run driver drives, and nothing sounds or is recorded.
+    const step = race.advance(watched ? null : shell.inputManager.sample());
     lifecycle.update(step.recovered);
     // Every vehicle within the drawing depth throws its puffs, as the camera of this step sees it.
     const observed = race.observe();
     stepVehicles.length = 0;
     stepVehicles.push(observed.player, ...observed.rivals, ...observed.traffic);
-    if (director) {
-      director.step({
+    onlooker =
+      look?.({
         status: race.outcome.status,
         shown: observed.player,
         next: race.player.progress.next,
         rearmost: Math.min(observed.player.course.s, ...observed.rivals.map((rival) => rival.course.s)),
         world: active.scene.world,
         retainedFrom: active.scene.runtime.window.occurrences[0]!.start,
-        chase: lifecycle.camera,
-      });
-      keepCut();
-    }
-    active.puffs.advance(stepVehicles, director?.camera ?? lifecycle.camera, active.scene);
+      }) ?? null;
+    active.puffs.advance(stepVehicles, onlooker ?? lifecycle.camera, active.scene);
     // A lap that set a record sounds NEW RECORD as it completes.
     if (active.records?.step(race.events, race.player.id, routeGoal)) effects.newRecord();
-    if (!demo) {
+    if (!watched) {
       effects.step(race, race, observed.player.contactResponse.sequence);
       // Each contact of the player's that began in the step sounds once, as it begins.
       if (!contactResponseStopped(observed.player.contactResponse))
@@ -423,7 +422,7 @@ async function assembleCourseRun(
     if (race.outcome.status === 'GOAL' || race.outcome.status === 'GAME_OVER') {
       if (afterEndingSeconds + SIM_DT / 2 >= page.resultDelaySeconds()) {
         state.finish();
-        if (!demo) effects.result(active.records?.outcome().newRecord ?? false);
+        if (!watched) effects.result(active.records?.outcome().newRecord ?? false);
       } else afterEndingSeconds += SIM_DT;
     }
   };
@@ -459,26 +458,13 @@ async function assembleCourseRun(
   // The other vehicles' pictures and the puffs', reused frame to frame.
   const others: CourseSprite[] = [],
     puffSprites: CourseSprite[] = [];
-  // The frame thinned from the one the latest cut left, over the cut's first steps.
-  const thin = () => {
-    if (!director || director.cutSteps >= DEMO_THIN_STEPS) return;
-    const { pixels, width, height } = shell.framebuffer;
-    const shown = newLineCount(height, (director.cutSteps + 1) / DEMO_THIN_STEPS);
-    for (let row = 0; row < height; row++)
-      if (ranks![row]! >= shown) pixels.set(thinned!.subarray(row * width, (row + 1) * width), row * width);
-  };
   const draw = () => {
-    if (director?.introducing) {
-      director.introScene!.render(shell.framebuffer, null, director.camera, [], [], [], null);
-      thin();
-      return { writeHud: () => {}, present: () => shell.present() };
-    }
     const { scene, race, puffs } = active;
     const started = performanceHud ? performance.now() : 0,
       observations = race.observe();
-    // The demo's shots but CHASE draw the player as any other vehicle, from where their camera stands.
-    const camera = director?.camera ?? lifecycle.camera,
-      playerAsOther = director !== null && !director.chasing;
+    // An onlooker's own camera draws the player as any other vehicle, from where it stands.
+    const camera = onlooker ?? lifecycle.camera,
+      playerAsOther = onlooker !== null;
     otherVehicles.length = 0;
     otherVehicles.push(...observations.rivals, ...observations.traffic);
     others.length = 0;
@@ -504,7 +490,6 @@ async function assembleCourseRun(
       observations.knocked,
       measurements,
     );
-    thin();
     const renderMilliseconds = performanceHud ? performance.now() - renderStarted : 0;
     return {
       writeHud: (text: TextLayer, menu: boolean) =>
@@ -551,15 +536,11 @@ async function assembleCourseRun(
   return {
     tick,
     draw,
-    demo: director && {
-      get introducing() {
-        return director.introducing;
-      },
-    },
+    course,
     result: () => runResult(active.race, active.records?.outcome() ?? null),
     end() {
-      // The attract demo is never ended so; it takes no menu commands.
-      if (demo || !active.race.endable) return false;
+      // A watched run is never ended so; it takes no menu commands.
+      if (watched || !active.race.endable) return false;
       active.race.end();
       return true;
     },
@@ -567,7 +548,6 @@ async function assembleCourseRun(
       music.stop();
       effects.stop();
       devControls?.dispose();
-      director?.dispose();
     },
   };
 }

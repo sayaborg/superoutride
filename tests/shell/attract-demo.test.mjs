@@ -15,25 +15,34 @@ const vehicles = [
   },
 ];
 
-// A demo whose runs count their fixed steps; `endAfter` steps of a class end its run.
-// Each run's intro lasts `intro` steps.
+// A demo whose reels count their race's fixed steps; `endAfter` steps of a class end its run. Each reel's course film
+// lasts `intro` steps.
 function demoOf(endAfter = Infinity, intro = 0) {
   const runs = [];
-  const demo = createAttractDemo(classes, vehicles, courses, async (request) => {
+  const demo = createAttractDemo(classes, vehicles, courses, async (request, words) => {
     const run = { classId: request.classId, steps: 0, disposed: false };
+    let introduced = 0;
     runs.push(run);
     return {
-      run: {
-        tick: () => run.steps++,
-        draw() {},
-        demo: {
-          get introducing() {
-            return run.steps < intro;
+      films: [
+        {
+          words: words.course,
+          get ended() {
+            return introduced >= intro;
           },
+          step: () => (introduced++, false),
+          draw() {},
         },
-        dispose: () => (run.disposed = true),
-      },
-      finished: () => run.steps >= endAfter,
+        {
+          words: words.series,
+          get ended() {
+            return run.steps >= endAfter;
+          },
+          step: () => (run.steps++, false),
+          draw() {},
+        },
+      ],
+      dispose: () => (run.disposed = true),
     };
   });
   return { demo, runs };
@@ -119,7 +128,7 @@ test("a turn thins in over the turn before, and the ticker runs the course's wor
   written.length = 0;
   demo.draw(frame, text);
   assert.deepEqual(tickerOf(), [[39, 27, 'C']]);
-  // When the intro ends the ticker starts again with the series' words.
+  // When the course film ends the ticker starts again with the series' words.
   steps(demo, 40);
   written.length = 0;
   demo.draw(frame, text);

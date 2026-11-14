@@ -13,19 +13,22 @@ import { createRaceSprites } from '../../src/view/race-sprites.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { gridRouteS } from '../../src/course/course-route.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
-import { createDemoDirector, DEMO_SHOTS } from '../../src/shell/demo-director.js';
+import { createCourseFilm, createDemoDirector, DEMO_SHOTS, tickerSteps } from '../../src/shell/demo-director.js';
 import { routeCamera } from '../../src/view/route-camera.js';
 
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
 const { vehicles } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
-const INTRO = 200;
+const WORDS = 'A COURSE';
+const INTRO = tickerSteps(WORDS);
 
 // The shown vehicle driven along the road's centre at `speed`, standing in READY for its first second; its finishing
-// line `finish` metres from its start. Every step draws the director's camera over the run's world.
+// line `finish` metres from its start, after the course film. Every step draws the shown camera: the course film's, or
+// the director's (in CHASE, a camera 6 m behind the vehicle standing for the player's) over the run's world.
 async function film(id, { speed, finish, steps }) {
   const course = await loadDeliveredCourse(content, id, materials);
-  const director = createDemoDirector(course, vehicles, CAMERA_DEFINITION, INTRO);
+  const courseFilm = createCourseFilm(course, vehicles, CAMERA_DEFINITION, WORDS);
+  const director = createDemoDirector(CAMERA_DEFINITION);
   const scene = createCourseScene(course.entry, course.gates, vehicles);
   const slot = courseStartGrid(course.gates, false).at(-1);
   const start = gridRouteS(scene.runtime.route, slot);
@@ -45,20 +48,30 @@ async function film(id, { speed, finish, steps }) {
     longitudinalSpeed: 0,
     lateralSpeed: 0,
   };
+  const chase = () =>
+    routeCamera(
+      scene.world,
+      { s: shown.course.s - 6, l: shown.course.l, height: 2, aim: shown.course.l },
+      CAMERA_DEFINITION,
+    );
   const frame = (step) => {
-    const measurements = createRenderMeasurements();
-    const camera = director.camera;
-    if (director.introducing) {
-      director.introScene.render(target, null, camera, [], [], [], measurements);
-    } else {
-      shown.yaw = scene.world.coordinates.toWorld(shown.course.s, shown.course.l, {}).heading;
-      shown.renderY = scene.world.height.sample(shown.course.s);
-      scene.render(target, null, camera, sprites([shown], camera, scene.world), [], [], measurements);
+    if (!courseFilm.ended) {
+      target.pixels.fill(0);
+      courseFilm.draw(target);
+      return assert.ok(
+        target.pixels.some((pixel) => pixel !== 0),
+        `${id} step ${step} (INTRO) drew`,
+      );
     }
+    const measurements = createRenderMeasurements();
+    const camera = director.camera ?? chase();
+    shown.yaw = scene.world.coordinates.toWorld(shown.course.s, shown.course.l, {}).heading;
+    shown.renderY = scene.world.height.sample(shown.course.s);
+    scene.render(target, null, camera, sprites([shown], camera, scene.world), [], [], measurements);
     assert.ok(measurements.stripGround.outputPixels > 0, `${id} step ${step} (${director.shot}) drew its ground`);
   };
   for (let step = 0; step < steps; step++) {
-    if (director.introducing) director.step(null);
+    if (!courseFilm.ended) courseFilm.step();
     else {
       const ready = shots.filter((s) => s === 'START').length < 60;
       if (!ready) shown.course = { s: shown.course.s + speed * SIM_DT, l: shown.course.l };
@@ -70,17 +83,11 @@ async function film(id, { speed, finish, steps }) {
         rearmost: shown.course.s,
         world: scene.world,
         retainedFrom: scene.runtime.window.occurrences[0].start,
-        // The player's camera stands for the test as a camera 6 m behind it.
-        chase: routeCamera(
-          scene.world,
-          { s: shown.course.s - 6, l: shown.course.l, height: 2, aim: shown.course.l },
-          CAMERA_DEFINITION,
-        ),
       });
       if (director.shot !== 'CHASE')
         assert.ok(director.camera.s >= scene.runtime.window.occurrences[0].start, `${id} camera within the route`);
     }
-    shots.push(director.shot);
+    shots.push(courseFilm.ended ? director.shot : 'INTRO');
     if (step % 15 === 0) frame(step);
   }
   return shots;

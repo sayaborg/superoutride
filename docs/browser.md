@@ -313,21 +313,25 @@ covers the frame. Its series, class, vehicle and color are written on TITLE alon
 22, 24 and 25, right-aligned to column 38, and its ticker runs on row 27 (below).
 
 The [attract demo](../src/shell/attract-demo.ts) is the one owner of the demo runs and their turns. It runs the RACE
-sessions of the product classes (never DEV ones) in series and class order, looping, a turn each. It holds at most two
-runs, the shown class's and the next class's, each assembled as a run with no player input (the player's run driver
-drives the class's first vehicle in its first color), with no HUD, no sound and no record, and touches no page state
-(driving input, DEV displays). Each holds its course's compilation, which held runs of one course share; a compilation
-no held run uses is released. A run is stepped in the race's fixed step, through the frame loop as a run is, only while
-its turn is shown. A turn lasts until its run ends (the player's GOAL or GAME OVER) and has stood its RESULT delay
-without RESULT, or 300 s, whichever comes first; it thins in over the frame the turn before left (the first over black)
-over 16 fixed steps. When a turn ends its run is released, so a class shown again starts a new run with the next seed.
-The first class loads behind the logo over black and its turn begins once it is loaded; each turn has the next class's
-run loaded (loading only, standing in READY), so no later turn waits on a load. A class that cannot load is passed
-over; with no product class the main world stays black. A run's start ends the shown turn and releases its run;
-returning resumes with the next class's turn. The runs are released when the page is left.
+sessions of the product classes (never DEV ones) in series and class order, looping, a turn each. A turn shows a reel
+of [films](../src/shell/demo-director.ts) in order (K, 2026-11-12): the course film, a camera travelling the course with
+no vehicle on it, then the race film, a watched run seen through its director's shots. A film steps, draws through its
+camera, says when it has ended and gives the words the ticker runs over it; the demo only turns them. It holds at most
+two reels, the shown class's and the next class's. Each reel's run is a watched run: no player input reaches it (the
+player's run driver drives the class's first vehicle in its first color), it has no HUD, no sound and no record, touches
+no page state (driving input, DEV displays) and is drawn through the camera its onlooker chooses after each step. Each
+holds its course's compilation, which held runs of one course share; a compilation no held run uses is released. A film
+is stepped in the race's fixed step, through the frame loop as a run is, only while it is shown, so a run waits in READY
+while its course film is shown. A turn lasts until its race film ends (the player's GOAL or GAME OVER and its RESULT
+delay without RESULT), or 300 s, whichever comes first. Every change of picture, a turn's, a film's and a shot's, is
+the demo's one change: the new picture thins in over the frame drawn last (the first over black) over 16 fixed steps.
+When a turn ends its reel is released, so a class shown again starts a new run with the next seed. The first class
+loads behind the logo over black and its turn begins once it is loaded; each turn has the next class's reel loaded
+(loading only, its run standing in READY), so no later turn waits on a load. A class that cannot load is passed over;
+with no product class the main world stays black. A run's start ends the shown turn and releases its reel; returning
+resumes with the next class's turn. The reels are released when the page is left.
 
-A demo run is filmed as its [director](../src/shell/demo-director.ts) takes it (K, 2026-11-12), its shots cut by line
-thinning over 16 fixed steps from the frame the cut left:
+The course film is INTRO below; the race film's director takes the other shots (K, 2026-11-12):
 
 | Shot   | Camera                                                                                                                                                          | Ends                                                                                     |
 | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -340,16 +344,17 @@ thinning over 16 fixed steps from the frame the cut left:
 | GOAL   | Stands 15 m before the line it finishes at, 3.5 m toward the centre, 1.5 m over the road, from when it has 150 m to go and is still 20 m short of the camera    | With the turn                                                                            |
 
 After START the race's shots take turns in the order FIXED, PASSED, LEFT, CHASE; GOAL takes over any of them. A camera
-of the director's stands on the route by itself ([route camera](../src/view/route-camera.ts)): over the road's height
+of the demo's stands on the route by itself ([route camera](../src/view/route-camera.ts)): over the road's height
 at its station, level, looking at the road 40 m ahead along its line (the intro's and START's the road's centre, the
-others the shown vehicle's), within 45° of the road's heading where it stands; its sky is its own place's. Every shot
+others the shown vehicle's), within 45° of the road's heading where it stands; its sky is its own place's. CHASE is
+the one exception: it shows the run as it is played, through the player's camera. The director gives the run one value
+after each step, its own camera or none for the player's, and the run's drawing decides from it alone that every shot
 but CHASE draws the player as any other vehicle, seen from where the camera stands. A camera the run's resident route
-no longer holds behind it stands at the route's first resident station, and the shot that needs it ends. A run waits
-in READY while its intro is shown.
+no longer holds behind it stands at the route's first resident station, and the shot that needs it ends.
 
-The ticker runs the turn's words along row 27 from the right edge, a character every 3 fixed steps, until their last
-has left at the left, then again after four spaces: the course's description over the intro, the series' over the
-race (K, 2026-11-12; a vehicle's description joins it once vehicles have one).
+The ticker runs the shown film's words along row 27 from the right edge, a character every 3 fixed steps, until their
+last has left at the left, then again after four spaces: the course's description over the course film, the series'
+over the race film (K, 2026-11-12; a vehicle's description joins it once vehicles have one).
 
 Music ([product](product.md#13-music-and-sound-effects)): on SELECT SERIES, once the row has rested 30 fixed steps, the
 series in focus plays its title track from its start, looped; a move fades it out over 0.25 s, and so does BACK to MAIN

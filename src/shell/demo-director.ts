@@ -1,26 +1,26 @@
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseStartGrid } from '../course/compiler/course-rules.js';
 import { gridRouteS } from '../course/course-route.js';
-import type { PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
-import type { ProfileReader } from '../course/geometry/profile.js';
 import { SIM_DT } from '../race/fixed-step.js';
-import type { RaceStatus } from '../race/course-race.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CameraDefinition, CameraState } from '../view/camera.js';
 import { RENDER_FAR_DEPTH_METERS, RENDER_NEAR_DEPTH_METERS } from '../view/camera.js';
 import { createCourseScene } from '../view/course-scene.js';
 import { routeCamera, type RoutePlace } from '../view/route-camera.js';
+import type { SoftwareSurface } from '../view/software-surface.js';
+import type { Run, RunLook, RunSight } from './run-assembly.js';
 
 /**
- * The attract demo's shots (K, 2026-11-12). INTRO travels the road with no vehicle on it; START stands behind the grid;
- * the race cycles FIXED, PASSED, LEFT and CHASE; GOAL stands before the line the shown vehicle finishes at.
+ * The race film's shots (K, 2026-11-12): START stands behind the grid; the race cycles FIXED, PASSED, LEFT and CHASE;
+ * GOAL stands before the line the shown vehicle finishes at.
  */
-export type DemoShot = 'INTRO' | 'START' | 'FIXED' | 'PASSED' | 'LEFT' | 'CHASE' | 'GOAL';
+export type DemoShot = 'START' | 'FIXED' | 'PASSED' | 'LEFT' | 'CHASE' | 'GOAL';
 
 /**
  * How the shots are taken, metres, seconds and shares of the shown vehicle's speed:
  *
- * - `intro`: along the centre of the road at `speed` m/s (100 km/h), `height` over it, from the front of the grid;
+ * - `intro`: the course film's camera, along the centre of the road at `speed` m/s (100 km/h), `height` over it, from
+ *   the front of the grid;
  * - `start`: `behind` the rearmost vehicle on the grid, `height` over the road's centre, until the shown vehicle is
  *   `away` from it;
  * - `fixed`: a point `ahead` of the shown vehicle and `aside` of its line toward the road's centre, `height` over the
@@ -47,9 +47,6 @@ export const DEMO_SHOTS = Object.freeze({
   race: ['FIXED', 'PASSED', 'LEFT', 'CHASE'] as const,
 });
 
-/** A cut thins from the frame it leaves to the new shot over this many fixed steps, as every change here does. */
-export const DEMO_THIN_STEPS = 16;
-
 /**
  * The demo's words run along one row of the frame's text from its right edge, a character every `stepsPerColumn`
  * fixed steps, until the last has left at the left.
@@ -59,63 +56,123 @@ export const DEMO_TICKER = Object.freeze({ stepsPerColumn: 3, columns: 40 });
 /** How many fixed steps `words` take to run along the ticker once. */
 export const tickerSteps = (words: string) => (words.length + DEMO_TICKER.columns) * DEMO_TICKER.stepsPerColumn;
 
-/** What the director reads of the run after each of its steps. */
-export interface DemoFacts {
-  readonly status: RaceStatus;
-  /** The shown vehicle: the player's run driver's. */
-  readonly shown: { readonly course: { readonly s: number; readonly l: number } };
-  /** The race line the shown vehicle crosses next, and whether it finishes there; null when none is left. */
-  readonly next: { readonly s: number; readonly finish: boolean } | null;
-  /** The rearmost competitor's route station. */
-  readonly rearmost: number;
-  /** The run's world, and the first route station resident in it. */
-  readonly world: { readonly coordinates: PlanCoordinateReader; readonly height: ProfileReader };
-  readonly retainedFrom: number;
-  /** The player's camera this step. */
-  readonly chase: CameraState;
+/** One film of the attract demo: a picture that moves on step by step until it ends, and the words run over it. */
+export interface Film {
+  /** One fixed step; whether it cut to a new picture, which thins in over the last as every change of the demo does. */
+  step(): boolean;
+  /** Draw its picture into `frame` through its camera of the latest step. */
+  draw(frame: SoftwareSurface): void;
+  /** Whether it has ended. */
+  readonly ended: boolean;
+  /** The words the ticker runs over it. */
+  readonly words: string;
 }
 
 /**
- * The attract demo's camera director for one run: INTRO over a course scene of its own, until its words have run once
- * (`introSteps`), while the run waits; then START, the race's turns and GOAL over the run. It keeps every camera within
- * the run's resident route: a shot that would leave it ends.
+ * The course film: a camera travelling the road's centre (`DEMO_SHOTS.intro`) over a course scene of its own with no
+ * vehicle, its window following the camera, each fork taking its first exit. It ends when its `words` have run once on
+ * the ticker, or short of a route's end.
  */
-export function createDemoDirector(
+export function createCourseFilm(
   course: CompiledCourse,
   vehicles: readonly CompiledVehicleDefinition[],
   definition: CameraDefinition,
-  introSteps: number,
-) {
-  // The intro's own scene: no vehicle, its window following the camera, each fork taking its first exit.
-  let intro: ReturnType<typeof createCourseScene> | null = createCourseScene(course.entry, course.gates, vehicles);
-  const grid = courseStartGrid(course.gates, false);
-  let introS = Math.max(...grid.map((slot) => gridRouteS(intro!.runtime.route, slot)));
-  let shot: DemoShot = 'INTRO',
+  words: string,
+): Film {
+  const scene = createCourseScene(course.entry, course.gates, vehicles);
+  const { runtime } = scene;
+  const steps = tickerSteps(words);
+  let s = Math.max(...courseStartGrid(course.gates, false).map((slot) => gridRouteS(runtime.route, slot))),
+    taken = 0,
+    ended = false,
+    camera: CameraState;
+  const travel = () => {
+    const tail = runtime.route.occurrences.at(-1)!;
+    if (tail.section.outgoing.length > 1 && s + runtime.coverage.forwardMeters > runtime.route.end)
+      runtime.selectSuccessor(tail.section.outgoing[0]!);
+    runtime.refresh(s, s);
+    camera = routeCamera(scene.world, { s, l: 0, height: DEMO_SHOTS.intro.height, aim: 0 }, definition);
+  };
+  travel();
+  return {
+    words,
+    get ended() {
+      return ended;
+    },
+    step() {
+      s += DEMO_SHOTS.intro.speed * SIM_DT;
+      const end = runtime.route.terminal;
+      if (++taken > steps || (end !== null && s + RENDER_FAR_DEPTH_METERS / 4 > end)) ended = true;
+      else travel();
+      return false;
+    },
+    draw(frame) {
+      scene.render(frame, null, camera, [], [], [], null);
+    },
+  };
+}
+
+/** A class's films in order, its course's and its race's, and their release. */
+export interface DemoReel {
+  readonly films: readonly Film[];
+  dispose(): void;
+}
+
+/**
+ * The reel of a watched `run`: its course film over the course's words, then its race film over the series': the run,
+ * stepped until it has `finished`, seen through its director's shots and drawn into the page's frame.
+ */
+export function createDemoReel(
+  run: Run,
+  finished: () => boolean,
+  vehicles: readonly CompiledVehicleDefinition[],
+  definition: CameraDefinition,
+  words: { readonly course: string; readonly series: string },
+): DemoReel {
+  const director = createDemoDirector(definition);
+  let cut = false;
+  const look: RunLook = (sight) => {
+    cut = director.step(sight);
+    return director.camera;
+  };
+  const race: Film = {
+    words: words.series,
+    get ended() {
+      return finished();
+    },
+    step() {
+      cut = false;
+      if (!finished()) run.tick(look);
+      return cut;
+    },
+    draw: () => run.draw(),
+  };
+  return {
+    films: [createCourseFilm(run.course, vehicles, definition, words.course), race],
+    dispose: () => run.dispose(),
+  };
+}
+
+/**
+ * The race film's camera director: START, the race's turns and GOAL over a watched run, from what it sees after each
+ * step. It keeps every camera within the run's resident route: a shot that would leave it ends.
+ */
+export function createDemoDirector(definition: CameraDefinition) {
+  let shot: DemoShot = 'START',
     shotSteps = 0,
-    // Steps since the latest cut, which the thinning reads; the run's first frame is no cut.
-    cutSteps = DEMO_THIN_STEPS,
+    // Whether the latest step cut to a new shot.
+    cutNow = false,
     // The race's turn: which of `DEMO_SHOTS.race` is shown.
     turn = -1,
-    place: RoutePlace = { s: introS, l: 0, height: DEMO_SHOTS.intro.height, aim: 0 },
+    place: RoutePlace = { s: 0, l: 0, height: DEMO_SHOTS.start.height, aim: 0 },
     previousShown: number | null = null,
     // Whether START has its place: behind the grid as the run first shows it.
     started = false,
     camera: CameraState | null = null;
-  const advanceIntro = () => {
-    const { runtime } = intro!;
-    const { route } = runtime;
-    const tail = route.occurrences.at(-1)!;
-    if (tail.section.outgoing.length > 1 && introS + runtime.coverage.forwardMeters > route.end)
-      runtime.selectSuccessor(tail.section.outgoing[0]!);
-    runtime.refresh(introS, introS);
-    place = { s: introS, l: 0, height: DEMO_SHOTS.intro.height, aim: 0 };
-    camera = routeCamera(intro!.world, place, definition);
-  };
-  advanceIntro();
   const cut = (next: DemoShot, at: RoutePlace) => {
     shot = next;
     shotSteps = 0;
-    cutSteps = 0;
+    cutNow = true;
     place = at;
   };
   // Which side of the shown vehicle's line a camera beside it stands: toward the road's centre, on the road.
@@ -127,7 +184,7 @@ export function createDemoDirector(
     height: at.height,
     aim: l,
   });
-  const raceShot = (facts: DemoFacts) => {
+  const raceShot = (facts: RunSight) => {
     turn = (turn + 1) % DEMO_SHOTS.race.length;
     const next = DEMO_SHOTS.race[turn]!;
     const { s, l } = facts.shown.course;
@@ -137,45 +194,17 @@ export function createDemoDirector(
     else cut(next, place);
   };
   return Object.freeze({
-    /** Whether the intro is still shown, the run waiting. */
-    get introducing() {
-      return intro !== null;
-    },
-    /** The intro's scene while it is shown. */
-    get introScene() {
-      return intro;
-    },
     get shot() {
       return shot;
     },
-    /** Steps since the latest cut. */
-    get cutSteps() {
-      return cutSteps;
+    /** The camera of the latest step; null in CHASE, the player's camera. */
+    get camera(): CameraState | null {
+      return camera;
     },
-    /** Whether the player's picture is drawn as the player's camera draws it: in CHASE alone. */
-    get chasing() {
-      return shot === 'CHASE';
-    },
-    get camera(): CameraState {
-      return camera!;
-    },
-    /** One step: of the intro, while it is shown; else after the run's step, with what it reads of the run. */
-    step(facts: DemoFacts | null) {
+    /** One step, after the run's, with what it sees of the run; whether it cut to a new shot. */
+    step(facts: RunSight): boolean {
       shotSteps++;
-      cutSteps++;
-      if (intro) {
-        introS += DEMO_SHOTS.intro.speed * SIM_DT;
-        const end = intro.runtime.route.terminal;
-        if (shotSteps > introSteps || (end !== null && introS + RENDER_FAR_DEPTH_METERS / 4 > end)) {
-          intro = null;
-          shot = 'START';
-          shotSteps = 0;
-          cutSteps = 0;
-          return;
-        }
-        return advanceIntro();
-      }
-      if (!facts) throw new Error('The demo director steps the run with its facts');
+      cutNow = false;
       const { s, l } = facts.shown.course;
       const moved = previousShown === null ? 0 : s - previousShown;
       previousShown = s;
@@ -228,12 +257,8 @@ export function createDemoDirector(
       }
       // A roadside camera the run's resident route no longer holds stands at its first station.
       if (place.s < lowest) place = { ...place, s: lowest };
-      camera = shot === 'CHASE' ? facts.chase : routeCamera(facts.world, place, definition);
-    },
-    /** Release the intro's scene. */
-    dispose() {
-      intro = null;
+      camera = shot === 'CHASE' ? null : routeCamera(facts.world, place, definition);
+      return cutNow;
     },
   });
 }
-export type DemoDirector = ReturnType<typeof createDemoDirector>;
