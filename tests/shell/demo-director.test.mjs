@@ -31,7 +31,8 @@ async function film(id, { speed, finish, steps }) {
   // A random source drawing 0 always: the course film starts at the entry's start.
   const courseFilm = createCourseFilm(course, vehicles, CAMERA_DEFINITION, WORDS, () => 0);
   const director = createDemoDirector(CAMERA_DEFINITION, () => 0);
-  const scene = createCourseScene(course.entry, course.gates, vehicles);
+  // The scene a watched run has: its onlooker looks back too.
+  const scene = createCourseScene(course.entry, course.gates, vehicles, true);
   const slot = courseStartGrid(course.gates, false).at(-1);
   const start = gridRouteS(scene.runtime.route, slot);
   const vehicle = vehicles[0];

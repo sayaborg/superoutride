@@ -282,7 +282,8 @@ async function assembleCourseRun(
   const build = (tuned: { readonly vehicle: RunVehicle; readonly configuration: RunConfiguration } | null) => {
     // The composition root alone draws randomness: every assembly, a DEV rebuild included, takes a new seed from it.
     const setup = prepared.resolve(page.drawSeed(), tuned);
-    const scene = createCourseScene(course.entry, course.gates, vehicles);
+    // A watched run's onlooker also looks back, so its window keeps the drawing depth behind the field.
+    const scene = createCourseScene(course.entry, course.gates, vehicles, watched);
     // The player drives by its own steering rule for the vehicle's form, read once as the camera's is.
     const race = createCourseRace({
       setup,

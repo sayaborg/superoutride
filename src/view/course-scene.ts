@@ -20,20 +20,29 @@ import { basePoint, type BaseBody, type BasePoint } from './base-point.js';
 import { drawSky } from './background-transition.js';
 import { reverseCourseView, type CourseView } from './reversed-view.js';
 
-/** The scene's loading window: the product camera stands `cameraDistance` behind the player's route position. */
-const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
-  cameraDistance: cameraDistance(CAMERA_DEFINITION),
-  near: RENDER_NEAR_DEPTH_METERS,
-  far: RENDER_FAR_DEPTH_METERS,
-});
+/**
+ * The scene's loading window: the product camera stands `cameraDistance` behind the player's route position; an
+ * onlooker that also looks back sees the drawing depth behind it.
+ */
+const loadingWindow = (looksBack: boolean): CourseLoadingWindow =>
+  Object.freeze({
+    cameraDistance: cameraDistance(CAMERA_DEFINITION),
+    near: RENDER_NEAR_DEPTH_METERS,
+    far: RENDER_FAR_DEPTH_METERS,
+    behind: looksBack ? RENDER_FAR_DEPTH_METERS : 0,
+  });
 
-/** The race's course world plus its rendering, shared by browser, tools, scenarios and smoke checks. */
+/**
+ * The race's course world plus its rendering, shared by browser, tools, scenarios and smoke checks; `looksBack` when
+ * its onlooker has cameras looking back (a watched run's).
+ */
 export function createCourseScene(
   section: CompiledSection,
   gates: CompiledCourse['gates'],
   vehicles: readonly CompiledVehicleDefinition[],
+  looksBack = false,
 ) {
-  const runtime = createCourseWorld(section, gates, vehicles, COURSE_LOADING_WINDOW);
+  const runtime = createCourseWorld(section, gates, vehicles, loadingWindow(looksBack));
   const rendering = createCourseRouteVisualReaders(runtime.window);
   rendering.read();
   const renderWorkspace = createRenderWorkspace();

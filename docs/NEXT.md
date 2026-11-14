@@ -89,8 +89,8 @@ make the same two choices, the next shot and the next class; its one line of tex
 
 - Awaiting K (the default meanwhile is the recommended one): a machine's words are built from its listing's facts, with
   no new text (`machineWords`).
-- To confirm on a device: the shot table's values, `cut`, the ticker's speed and row, and how often the shots looking
-  back can stand, which the loading window behind the field bounds and which no rule widens.
+- To confirm on a device: the shot table's values, `cut`, the ticker's speed and row, and how often and how the shots
+  looking back show, now that a watched run's loading window keeps the drawing depth behind the field.
 
 ## Stage PS — Product pictures and courses (ENDURO RACER first)
 

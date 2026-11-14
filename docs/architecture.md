@@ -130,15 +130,17 @@ readers, the driver's live domain and residency decisions (observable rivals) re
 own fork occurrence's selected successor on the Route and rebuilds its sprite list when the window or the Route's
 occurrences change.
 
-One loading coverage record (`resolveLoadingCoverage`) derives the window's forward and rear extents once
-from four inputs: the camera window the scene supplies (its camera distance behind the player's route position,
-near and far depth), the driver lookahead,
-recovery backtrack with the projection window and contact reach, and one fixed step at the vehicle speed bound.
+One loading coverage record (`resolveLoadingCoverage`) derives the window's forward and rear extents once from four
+inputs: the camera window the scene supplies (its camera distance behind the player's route position, near and far
+depth, and how far behind the field its onlooker looks back: the far depth for a watched run's onlooker, whose cameras
+may look back, and 0 for the player's camera, which only looks ahead), the driver lookahead, recovery backtrack with the
+projection window and contact reach, and one fixed step at the vehicle speed bound.
 
 ```text
 maximumStepMeters = MAXIMUM_VEHICLE_SPEED * SIM_DT
 forwardMeters     = max(cameraDistance + far, driver lookahead, projection window) + maximumStepMeters
-rearMeters        = max(cameraDistance + near, recovery backtrack + projection window + contactReachMeters) + maximumStepMeters
+rearMeters        = max(cameraDistance + near, behind, recovery backtrack + projection window + contactReachMeters)
+                    + maximumStepMeters
 ```
 
 `MAXIMUM_VEHICLE_SPEED` is the product's 240 m/s (864 km/h) vehicle speed bound, which vehicle admission
@@ -147,7 +149,8 @@ Contact reach is the ceiling of the largest `hypot(forwardOffset, freeReachDown)
 front/rear contact stations, so pitching or yawing a vehicle cannot enlarge that local reach.
 The step allowance retains the rear footprint until the next refresh. With the current camera, driver and
 fleet (`cameraDistance` is `D_cam`, 6 m) the record is 4 m per step, 484 m forward
-(`max(6 + 200, 480, 50) + 4`) and 64 m rear (`max(6 + 2.5, 8 + 50 + 2) + 4`). `RouteRuntime`'s window and the scenarios' one-step check read it.
+(`max(6 + 200, 480, 50) + 4`) and 64 m rear (`max(6 + 2.5, 0, 8 + 50 + 2) + 4`), a watched run's 204 m rear
+(`max(6 + 2.5, 200, 8 + 50 + 2) + 4`). `RouteRuntime`'s window and the scenarios' one-step check read it.
 Until its lock decides, a fork's parent Section alone carries the forward coverage: creating the course world
 checks every fork Section reachable from the entry for `lock.s + forwardMeters <= Section end` and rejects a
 violation with a `RangeError` naming the Section.
@@ -448,12 +451,13 @@ A camera standing on the route by itself ([route camera](../src/view/route-camer
 station s reversed, lateral l mirrored and the heading turned half round, world points the road's own; its `s` and
 `follows` are on that reversed ruler and it says so (`reversed`). The scene makes the one choice of ruler by the camera
 and reads everything the renderer draws through it: the plan, drawn height, extent, ground and walls follow the road,
-the sky stands where it stands and turns with the camera's yaw, and every picture stands at its reversed station
-([Image assets](image-assets.md#picture-contract) for what a picture shows from behind). The renderer, ground, walls
-and pictures have no direction of their own. The reversed plan finds where the road turns from the camera's yaw by
-stepping the turned heading a metre at a time and bisecting the step that turns it, the plan's own scan running forward
-alone. A reversed camera draws no player of its own: every vehicle is drawn as any other. Nothing widens the loading
-window for it: it shows what the resident route holds behind it.
+the sky stands where it stands and turns with the camera's yaw, and every picture stands at its reversed station ([Image
+assets](image-assets.md#picture-contract) for what a picture shows from behind). The renderer, ground, walls and
+pictures have no direction of their own. The reversed plan finds where the road turns from the camera's yaw by stepping
+the turned heading a metre at a time and bisecting the step that turns it, the plan's own scan running forward alone. A
+reversed camera draws no player of its own: every vehicle is drawn as any other. Its scene's loading window keeps the
+drawing depth behind the field (`behind`), so once the road behind exists a camera looking back sees all it draws; it
+stands only while the resident route holds that.
 
 ## Ground and background
 

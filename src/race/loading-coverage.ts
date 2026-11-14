@@ -10,6 +10,8 @@ export interface CourseLoadingWindow {
   readonly cameraDistance: number;
   readonly near: number;
   readonly far: number;
+  /** How far behind the rearmost vehicle the observer looks back: 0 for a camera that only looks ahead. */
+  readonly behind: number;
 }
 
 export interface LoadingCoverage {
@@ -50,6 +52,7 @@ export function resolveLoadingCoverage(
     rearMeters:
       Math.max(
         window.cameraDistance + window.near,
+        window.behind,
         RECOVERY_POLICY.backtrackDistance + PLAN_PROJECTION_WINDOW_METERS + contactReachMeters,
       ) + maximumStepMeters,
   });
