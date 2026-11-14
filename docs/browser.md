@@ -352,25 +352,26 @@ waits in READY meanwhile. The race film's director reads its shots from one tabl
 confirmed on a device), every row of one shape and none named in the code: a camera stands `ahead` of its base (the
 shown vehicle, the grid's rearmost vehicle, or the line the shown vehicle finishes at), `aside` of the base's line
 toward the road's centre (the road's centre for the rearmost) and `height` over the road, looking along that line
-forward or back; it travels at `speed` of the shown vehicle's speed (0 stands), following the vehicle's line; when the
-vehicle is `away` past it, the shot is set again on its row, keeping its time. CHASE alone has no place: it is the
-player's camera, the one exception, showing the run as it is played.
+forward or back; it travels at `speed` of the shown vehicle's speed (0 stands), following the vehicle's line. One rule
+sets every shot again: when the shown vehicle has left the picture, 120 m ahead of a camera looking forward or at a
+camera looking back, the shot is set again on its row, keeping its time. CHASE alone has no place: it is the player's
+camera, the one exception, showing the run as it is played.
 
-| Shot          | Base                | Ahead m | Aside m | Height m | Speed | Looks   | Away m |
-| ------------- | ------------------- | ------: | ------: | -------: | ----: | ------- | -----: |
-| START         | Rearmost on grid    |     −10 |       0 |        3 |     0 | forward |    150 |
-| FIXED         | Shown vehicle       |      30 |     3.5 |      1.5 |     0 | forward |    150 |
-| PASSED        | Shown vehicle       |      25 |     2.5 |      1.2 |   0.7 | forward |    120 |
-| LEFT          | Shown vehicle       |      −6 |       0 |        2 |   0.8 | forward |     60 |
-| CHASE         | The player's camera |         |         |          |       |         |        |
-| LOW           | Shown vehicle       |      −4 |       0 |      0.5 |     1 | forward |     60 |
-| QUARTER       | Shown vehicle       |      −5 |       3 |      1.2 |     1 | forward |     60 |
-| FRONT         | Shown vehicle       |       8 |       0 |      1.2 |     1 | back    |     60 |
-| FRONT QUARTER | Shown vehicle       |       6 |       3 |      1.2 |     1 | back    |     60 |
-| APPROACH      | Shown vehicle       |     120 |     3.5 |      1.5 |     0 | back    |      0 |
-| GOAL          | Finishing line      |     −15 |     3.5 |      1.5 |     0 | forward |        |
+| Shot          | Base                | Ahead m | Aside m | Height m | Speed | Looks   |
+| ------------- | ------------------- | ------: | ------: | -------: | ----: | ------- |
+| START         | Rearmost on grid    |     −10 |       0 |        3 |     0 | forward |
+| FIXED         | Shown vehicle       |      30 |     3.5 |      1.5 |     0 | forward |
+| PASSED        | Shown vehicle       |      25 |     2.5 |      1.2 |   0.7 | forward |
+| LEFT          | Shown vehicle       |      −6 |       0 |        2 |   0.8 | forward |
+| CHASE         | The player's camera |         |         |          |       |         |
+| LOW           | Shown vehicle       |      −4 |       0 |      0.5 |     1 | forward |
+| QUARTER       | Shown vehicle       |      −5 |       3 |      1.2 |     1 | forward |
+| FRONT         | Shown vehicle       |       8 |       0 |      1.2 |     1 | back    |
+| FRONT QUARTER | Shown vehicle       |       6 |       3 |      1.2 |     1 | back    |
+| APPROACH      | Shown vehicle       |     120 |     3.5 |      1.5 |     0 | back    |
+| GOAL          | Finishing line      |     −15 |     3.5 |      1.5 |     0 | forward |
 
-The race film opens on START, through READY and GO, until the shown vehicle is its distance away; then the shots based
+The race film opens on START, through READY and GO, until the shown vehicle has left its picture; then the shots based
 on the shown vehicle follow, each drawn other than the one before among those whose camera can stand, each 15 s; GOAL
 takes any of them over once the shown vehicle has 150 m to go to the line it finishes at, while GOAL's camera is still
 20 m ahead of it, and lasts to the turn's end. A camera of the demo's stands on the route by itself ([route
@@ -378,10 +379,10 @@ camera](../src/view/route-camera.ts)): over the road's height at its station, le
 along its line, within 45° of the road's heading where it stands; its sky is its own place's; one that looks back is
 that camera on the road read the other way ([Architecture](architecture.md#a-camera-looking-back)). A camera stands only
 while the run's resident route holds what it sees, from its station on along the way it looks (a camera looking back, to
-the drawing depth behind it); a shot whose camera cannot stand is passed over, and one whose camera no longer can stands
-at the last station that holds it and ends. The director gives the run one value after each step, its own camera or none
-for the player's, and the run's drawing decides from it alone that every shot but CHASE draws the player as any other
-vehicle, seen from where the camera stands.
+the drawing depth behind it, which a watched run's loading window keeps behind the field); a shot whose camera cannot
+stand is passed over, and one whose camera no longer can stands at the last station that holds it and ends. The director
+gives the run one value after each step, its own camera or none for the player's, and the run's drawing decides from it
+alone that every shot but CHASE draws the player as any other vehicle, seen from where the camera stands.
 
 The ticker runs the shown film's subjects along row 27 in WHITE from the right edge, a character every 3 fixed steps,
 each until its last character has left at the left, and then the film's next subject, again and again; none is cut

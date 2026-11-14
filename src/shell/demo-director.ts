@@ -12,8 +12,8 @@ import type { Run, RunLook, RunSight } from './run-assembly.js';
  * A shot of the race film (K, 2026-11-14), every shot a row of one shape: its camera stands `ahead` of its base (the
  * shown vehicle, the grid's rearmost vehicle or the line the shown vehicle finishes at), `aside` of the base's line
  * toward the road's centre and `height` over the road, looking along that line forward or `back`; it travels at `speed`
- * of the shown vehicle's speed (0 stands), following the vehicle's line; the shown vehicle `away` past it, the shot is
- * set again on its row. CHASE alone has no place: it is the player's camera, the run seen as it is played.
+ * of the shown vehicle's speed (0 stands), following the vehicle's line. CHASE alone has no place: it is the player's
+ * camera, the run seen as it is played.
  */
 export interface DemoShot {
   readonly name: string;
@@ -23,7 +23,6 @@ export interface DemoShot {
   readonly height: number;
   readonly speed: number;
   readonly back: boolean;
-  readonly away: number;
 }
 
 const shot = (
@@ -31,32 +30,34 @@ const shot = (
   base: DemoShot['base'],
   [ahead, aside, height, speed]: readonly [number, number, number, number],
   back: boolean,
-  away: number,
-): DemoShot => Object.freeze({ name, base, ahead, aside, height, speed, back, away });
+): DemoShot => Object.freeze({ name, base, ahead, aside, height, speed, back });
 
 /** The race film's shots: metres, and shares of the shown vehicle's speed. START opens it and GOAL closes it. */
 export const DEMO_SHOTS: readonly DemoShot[] = Object.freeze([
-  shot('START', 'REARMOST', [-10, 0, 3, 0], false, 150),
-  shot('FIXED', 'VEHICLE', [30, 3.5, 1.5, 0], false, 150),
-  shot('PASSED', 'VEHICLE', [25, 2.5, 1.2, 0.7], false, 120),
-  shot('LEFT', 'VEHICLE', [-6, 0, 2, 0.8], false, 60),
-  shot('CHASE', 'PLAYER', [0, 0, 0, 0], false, 0),
-  shot('LOW', 'VEHICLE', [-4, 0, 0.5, 1], false, 60),
-  shot('QUARTER', 'VEHICLE', [-5, 3, 1.2, 1], false, 60),
-  shot('FRONT', 'VEHICLE', [8, 0, 1.2, 1], true, 60),
-  shot('FRONT QUARTER', 'VEHICLE', [6, 3, 1.2, 1], true, 60),
-  shot('APPROACH', 'VEHICLE', [120, 3.5, 1.5, 0], true, 0),
-  shot('GOAL', 'GOAL', [-15, 3.5, 1.5, 0], false, 0),
+  shot('START', 'REARMOST', [-10, 0, 3, 0], false),
+  shot('FIXED', 'VEHICLE', [30, 3.5, 1.5, 0], false),
+  shot('PASSED', 'VEHICLE', [25, 2.5, 1.2, 0.7], false),
+  shot('LEFT', 'VEHICLE', [-6, 0, 2, 0.8], false),
+  shot('CHASE', 'PLAYER', [0, 0, 0, 0], false),
+  shot('LOW', 'VEHICLE', [-4, 0, 0.5, 1], false),
+  shot('QUARTER', 'VEHICLE', [-5, 3, 1.2, 1], false),
+  shot('FRONT', 'VEHICLE', [8, 0, 1.2, 1], true),
+  shot('FRONT QUARTER', 'VEHICLE', [6, 3, 1.2, 1], true),
+  shot('APPROACH', 'VEHICLE', [120, 3.5, 1.5, 0], true),
+  shot('GOAL', 'GOAL', [-15, 3.5, 1.5, 0], false),
 ]);
 
 /**
  * The films' timing: the course film's camera travels the road's centre at `intro.speed` m/s (100 km/h), `intro.height`
- * over it, from the front of the grid; every shot but START and GOAL lasts `cut` seconds; GOAL takes over once the shown
- * vehicle has `goal.approach` to go to the line it finishes at, while its camera is still `goal.clear` ahead of it.
+ * over it; every shot but START and GOAL lasts `cut` seconds; the shown vehicle has left a shot's picture when it is
+ * `away` ahead of a camera looking forward, or has reached a camera looking back, and the shot is then set again on its
+ * row; GOAL takes over once the shown vehicle has `goal.approach` to go to the line it finishes at, while its camera is
+ * still `goal.clear` ahead of it.
  */
 export const DEMO_FILM = Object.freeze({
   intro: { speed: 100 / 3.6, height: 4 },
   cut: 15,
+  away: 120,
   goal: { approach: 150, clear: 20 },
 });
 
@@ -230,18 +231,15 @@ export function createDemoDirector(definition: CameraDefinition, random: () => n
     DEMO_SHOTS.flatMap((row, at) =>
       row.base === 'PLAYER' || (row.base === 'VEHICLE' && stands(placeOf(row, sight), sight)) ? [at] : [],
     );
-  // Cut to one of them: drawn other than the shot shown, or by hand the one before or after it in the table's order.
+  // Cut to one of them: drawn other than the shot shown, or by hand the first met going through the table from the shot
+  // shown the way pressed.
   const advance = (sight: RunSight, by: -1 | 0 | 1) => {
-    const shots = open(sight),
-      at = shots.indexOf(index);
-    const next =
-      by === 0
-        ? shots[drawOther(shots.length, at, random)]!
-        : at >= 0
-          ? shots[(at + by + shots.length) % shots.length]!
-          : by > 0
-            ? (shots.find((shot) => shot > index) ?? shots[0]!)
-            : (shots.filter((shot) => shot < index).at(-1) ?? shots.at(-1)!);
+    const shots = open(sight);
+    let next = index;
+    if (by === 0) next = shots[drawOther(shots.length, shots.indexOf(index), random)]!;
+    else
+      do next = (next + by + DEMO_SHOTS.length) % DEMO_SHOTS.length;
+      while (!shots.includes(next));
     cut(next, placeOf(DEMO_SHOTS[next]!, sight));
   };
   return Object.freeze({
@@ -269,7 +267,8 @@ export function createDemoDirector(definition: CameraDefinition, random: () => n
       asked = 0;
       let row = DEMO_SHOTS[index]!;
       if (row.speed > 0) place = { ...placeOf(row, sight), s: place.s + row.speed * moved };
-      const gone = s - place.s >= row.away || !stands(place, sight);
+      // The vehicle has left the picture: away ahead of a camera looking forward, at a camera looking back.
+      const gone = s - place.s >= (place.back ? 0 : DEMO_FILM.away) || !stands(place, sight);
       const { next } = sight;
       if (row.base === 'REARMOST') {
         if (sight.status === 'RUNNING' && gone) advance(sight, 0);
