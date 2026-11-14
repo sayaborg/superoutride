@@ -110,6 +110,8 @@ export interface CardRow {
 export interface MainWorld {
   /** Draw the demo into the frame, its lines into `lines` when given; false leaves the frame black. */
   draw(frame: SoftwareSurface, lines: TextLayer | null): boolean;
+  /** TITLE's LEFT, RIGHT, UP or DOWN, which the demo takes in silence. */
+  steer(command: 'LEFT' | 'RIGHT' | 'UP' | 'DOWN'): void;
   tick(): void;
   enter(): void;
   leave(): void;
@@ -207,7 +209,11 @@ export function createCardRows(
     if (!view) return null;
     const { row } = view;
     const card = row.cards[view.index];
-    if (row.kind === 'title') return command === 'CONFIRM' ? (card?.confirm?.() ?? null) : null;
+    if (row.kind === 'title') {
+      if (command === 'CONFIRM') return card?.confirm?.() ?? null;
+      if (command === 'LEFT' || command === 'RIGHT' || command === 'UP' || command === 'DOWN') main.steer(command);
+      return null;
+    }
     // A list card takes every command: LEFT and RIGHT change the chosen entry, UP and DOWN choose another.
     if (card?.items) {
       const item = card.items[view.item]!;

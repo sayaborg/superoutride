@@ -15,36 +15,43 @@ const vehicles = [
   },
 ];
 
-// A demo whose reels count their race's fixed steps; `endAfter` steps of a class end its run. Each reel's course film
+// A demo whose random source always draws 0: the classes alternate a, b, a, b as one drawn other than the one before.
+// Its reels count their race's fixed steps; `endAfter` steps of a class end its run. Each reel's course film
 // lasts `intro` steps.
 function demoOf(endAfter = Infinity, intro = 0) {
   const runs = [];
-  const demo = createAttractDemo(classes, vehicles, courses, async (request, words) => {
-    const run = { classId: request.classId, steps: 0, disposed: false };
-    let introduced = 0;
-    runs.push(run);
-    return {
-      films: [
-        {
-          words: words.course,
-          get ended() {
-            return introduced >= intro;
+  const demo = createAttractDemo(
+    classes,
+    vehicles,
+    courses,
+    () => 0,
+    async (request, words) => {
+      const run = { classId: request.classId, steps: 0, disposed: false };
+      let introduced = 0;
+      runs.push(run);
+      return {
+        films: [
+          {
+            words: words.course,
+            get ended() {
+              return introduced >= intro;
+            },
+            step: () => (introduced++, false),
+            draw() {},
           },
-          step: () => (introduced++, false),
-          draw() {},
-        },
-        {
-          words: words.series,
-          get ended() {
-            return run.steps >= endAfter;
+          {
+            words: words.series,
+            get ended() {
+              return run.steps >= endAfter;
+            },
+            step: () => (run.steps++, false),
+            draw() {},
           },
-          step: () => (run.steps++, false),
-          draw() {},
-        },
-      ],
-      dispose: () => (run.disposed = true),
-    };
-  });
+        ],
+        dispose: () => (run.disposed = true),
+      };
+    },
+  );
   return { demo, runs };
 }
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -69,8 +76,8 @@ test("the demo holds the shown and the next class's runs, and a class shown agai
   );
   steps(demo, TURN);
   await settle();
-  // The first turn's run is released; the second class is shown and the third loaded.
-  assert.deepEqual(held(runs), ['b', 'c']);
+  // The first turn's run is released; the second class is shown and one other than it loaded.
+  assert.deepEqual(held(runs), ['b', 'a']);
   steps(demo, 2 * TURN);
   await settle();
   assert.deepEqual(
@@ -78,24 +85,24 @@ test("the demo holds the shown and the next class's runs, and a class shown agai
     [
       ['a', TURN],
       ['b', TURN],
-      ['c', TURN],
-      ['a', 0],
+      ['a', TURN],
       ['b', 0],
+      ['a', 0],
     ],
   );
-  // The fourth turn shows the first class again from a new run.
+  // The fourth turn shows the second class again from a new run.
   steps(demo, 10);
   assert.equal(runs[3].steps, 10);
-  assert.deepEqual(held(runs), ['a', 'b']);
+  assert.deepEqual(held(runs), ['b', 'a']);
   // Leaving ends the shown turn; returning resumes with the next class, whose run stood loaded.
   demo.leave();
   steps(demo, 50);
-  assert.deepEqual(held(runs), ['b']);
+  assert.deepEqual(held(runs), ['a']);
   demo.enter();
   steps(demo, 5);
   await settle();
   assert.equal(runs[4].steps, 5);
-  assert.deepEqual(held(runs), ['b', 'c']);
+  assert.deepEqual(held(runs), ['a', 'b']);
 });
 
 test('a run that ends ends its turn early and is released', async () => {
@@ -110,7 +117,7 @@ test('a run that ends ends its turn early and is released', async () => {
   steps(demo, 1);
   assert.equal(runs[1].classId, 'b');
   assert.equal(runs[1].steps, 1);
-  assert.deepEqual(held(runs), ['b', 'c']);
+  assert.deepEqual(held(runs), ['b', 'a']);
 });
 
 test("a turn thins in over the turn before, and the ticker runs the course's words, then the series'", async () => {

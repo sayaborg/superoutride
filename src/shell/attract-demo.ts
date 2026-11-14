@@ -1,10 +1,11 @@
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import type { CourseIndex } from '../content/course-index.js';
 import { THINNING_STEPS, thinLines } from '../view/line-thinning.js';
-import { DEMO_TICKER, type DemoReel } from './demo-director.js';
+import { DEMO_TICKER, drawOther, type DemoReel } from './demo-director.js';
 import { spriteSetColors } from '../vehicle/vehicle-sprite-set.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import type { SeriesClass } from '../content/series-catalog.js';
+import { runPlayerColor } from '../race/run-setup.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
@@ -18,15 +19,18 @@ const OVERLAY = Object.freeze({ lastColumn: 38, series: 21, class: 22, vehicle: 
 /** The space between the ticker's words and their next run. */
 const TICKER_GAP = '    ';
 
-/** One class of the demo: its request, its overlay, its words and its reel, while it holds one. */
+/** A class's turn, waiting or shown: the class, its request, overlay and words, and its reel once loaded. */
 interface DemoClass {
+  readonly at: number;
   readonly request: RunRequest;
   readonly lines: readonly (readonly [row: number, text: string])[];
   /** The ticker's words: the course's description over the course film, the series' over the race film. */
   readonly words: { readonly course: string; readonly series: string };
+  /** Chosen by hand: shown once loaded, ending the turn shown. */
+  readonly chosen: boolean;
   reel: DemoReel | null;
-  loading: boolean;
-  failed: boolean;
+  /** Replaced while loading: released once loaded. */
+  dropped: boolean;
 }
 
 /** The class shown and how far its turn has gone: fixed steps shown, the film shown and when its words began. */
@@ -37,120 +41,156 @@ interface Turn {
   wordsFrom: number;
 }
 
+/** What the demo takes from TITLE's row: LEFT and RIGHT cut to a shot, UP and DOWN choose the next class. */
+export type DemoCommand = 'LEFT' | 'RIGHT' | 'UP' | 'DOWN';
+
+/** The product's random source for the demo: a 32-bit generator (mulberry32) seeded with `seed`, the start time. */
+export function createDemoRandom(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 2 ** 32;
+  };
+}
+
 /**
  * The attract demo behind the main picture, from TITLE until a run starts (K, 2026-11-08), the one owner of the demo
- * runs and their turns: the product classes' RACEs, in series and class order, looping. It holds at most two reels,
- * the shown class's and the next class's, each a watched run in which the class's first vehicle in its first color
- * drives by its run driver, and its films ([demo director](./demo-director.ts)): its course's and then its race's (K,
- * 2026-11-12), each stepped in the race's fixed step only while it is shown. A turn shows its films in order until the
- * last ends (its run's GOAL or GAME OVER and its RESULT delay), or `ATTRACT_SECONDS`, with no HUD and no sound. Every
- * change of picture, a turn's, a film's or a cut's, thins in over the frame drawn before it, and the first over black.
- * On TITLE alone (when `draw` is given the text layer) its series, class, vehicle and color are written at the right,
- * and the ticker runs the shown film's words again and again. When a turn ends its reel is released; each turn has the
- * next class's reel loaded, its run standing in READY, so only the first turn waits on a load, and a class shown again
- * starts a new run. A class that cannot load is passed over. `leave` ends the shown turn; the next `enter` resumes with
- * the next class's turn. `dispose` releases every reel.
+ * runs and their turns: the product classes' RACEs, each turn a class drawn at random other than the one before (K,
+ * 2026-11-14), its vehicle (of the class's) and color drawn plainly. It holds at most two reels, the shown class's and
+ * the next class's, each a watched run in which that vehicle drives by its run driver, and its films ([demo
+ * director](./demo-director.ts)): its course's and then its race's (K, 2026-11-12), each stepped in the race's fixed
+ * step only while it is shown. A turn shows its films in order until the last ends (its run's GOAL or GAME OVER and its
+ * RESULT delay), or `ATTRACT_SECONDS`, with no HUD and no sound. Every change of picture, a turn's, a film's or a cut's,
+ * thins in over the frame drawn before it, and the first over black. On TITLE alone (when `draw` is given the text
+ * layer) its series, class, vehicle and color are written at the right, and the ticker runs the shown film's words
+ * again and again. When a turn ends its reel is released; each turn has the next class's reel loaded, its run standing
+ * in READY, so only the first turn waits on a load. A class that cannot load is passed over. `steer` takes TITLE's
+ * LEFT and RIGHT to the shown film (the race film cuts to the shot before or after) and UP and DOWN to the next class:
+ * the class before or after the shown one in the classes' order, or after the one chosen so, which replaces the drawn
+ * next class and ends the shown turn once loaded. `random`, the demo's one random source, draws every choice; nothing
+ * of the race sees it. `leave` ends the shown turn; the next `enter` resumes with the next class's turn. `dispose`
+ * releases every reel.
  */
 export function createAttractDemo(
   classes: readonly SeriesClass[],
   vehicles: readonly CompiledVehicleDefinition[],
   courses: CourseIndex,
-  assemble: (request: RunRequest, words: DemoClass['words']) => Promise<DemoReel>,
+  random: () => number,
+  assemble: (request: RunRequest, words: DemoClass['words'], random: () => number) => Promise<DemoReel>,
 ): Omit<MainWorld, 'logo'> & { dispose(): void } {
-  const demo = classes.map((chosen): DemoClass => {
-    const vehicle = vehicles.find((v) => v.compiledVehicle.id === chosen.vehicles[0])!;
-    const color = spriteSetColors(vehicle.spriteSet)[0]!;
+  const draw = (count: number) => Math.floor(random() * count);
+  // The class at `at` with its vehicle and color drawn.
+  const classAt = (at: number, chosen: boolean): DemoClass => {
+    const shown = classes[at]!;
+    const vehicle = vehicles.find((v) => v.compiledVehicle.id === shown.vehicles[draw(shown.vehicles.length)])!;
+    const colors = spriteSetColors(vehicle.spriteSet);
+    const color = runPlayerColor(shown, vehicle, colors[draw(colors.length)]!);
     const { manufacturer, model } = vehicle.listing.metadata;
     return {
+      at,
       request: Object.freeze({
-        seriesId: chosen.series.id,
-        classId: chosen.id,
+        seriesId: shown.series.id,
+        classId: shown.id,
         session: 'RACE',
         vehicleId: vehicle.compiledVehicle.id,
         color,
         track: null,
       }),
       lines: [
-        [OVERLAY.series, chosen.series.title],
-        [OVERLAY.class, chosen.title],
+        [OVERLAY.series, shown.series.title],
+        [OVERLAY.class, shown.title],
         [OVERLAY.vehicle, `${manufacturer} ${model}`.toUpperCase()],
         [OVERLAY.color, vehicle.listing.visuals.colorNames[color]!],
       ],
       words: {
-        course: courses.find((course) => course.id === chosen.course)?.description ?? '',
-        series: chosen.series.description,
+        course: courses.find((course) => course.id === shown.course)?.description ?? '',
+        series: shown.series.description,
       },
+      chosen,
       reel: null,
-      loading: false,
-      failed: false,
+      dropped: false,
     };
-  });
+  };
   const showSteps = Math.round(ATTRACT_SECONDS / SIM_DT);
-  let index = 0,
-    turn: Turn | null = null,
+  const failed = new Set<number>();
+  let turn: Turn | null = null,
+    next: DemoClass | null = null,
     entered = false,
     disposed = false,
     // The frame drawn last, which a change of picture thins over (black before the first), and how far it has gone.
     left: Uint16Array | null = null,
     thinning = THINNING_STEPS;
-  // Load a class's reel (loading only: its run stands in READY until its turn), unless it has one or is loading.
-  const ensure = (at: number) => {
-    const entry = demo[at % demo.length];
-    if (!entry || entry.reel || entry.loading || entry.failed) return;
-    entry.loading = true;
-    assemble(entry.request, entry.words).then(
+  // A turn's class released: its reel, or once loaded the reel it is loading.
+  const release = (ended: DemoClass | null) => {
+    if (!ended) return;
+    ended.dropped = true;
+    ended.reel?.dispose();
+    ended.reel = null;
+  };
+  // Choose the next turn's class, `at` by hand or else drawn other than the shown one, and load it; it replaces the next.
+  const prepare = (at: number | null) => {
+    const open = classes.flatMap((_, i) => (failed.has(i) ? [] : [i]));
+    if (open.length === 0) return;
+    release(next);
+    const entry = (next = classAt(
+      at ?? open[drawOther(open.length, open.indexOf(turn?.shown.at ?? -1), random)]!,
+      at !== null,
+    ));
+    assemble(entry.request, entry.words, random).then(
       (reel) => {
-        entry.loading = false;
-        if (disposed) return reel.dispose();
+        if (disposed || entry.dropped) return reel.dispose();
         entry.reel = reel;
         if (!turn) begin();
+        else if (entry.chosen) end();
       },
       (error: unknown) => {
         // A class that cannot load is passed over; with none loadable the main world stays over black.
         console.error('Attract demo could not start', error);
-        entry.loading = false;
-        entry.failed = true;
-        if (!turn) begin();
+        failed.add(entry.at);
+        if (next === entry) [next, entry.dropped] = [null, true];
+        if (!next && !disposed) prepare(null);
       },
     );
   };
-  // Begin the turn of the class at `index`, passing over classes that failed, once its reel is loaded; the next
-  // class loads meanwhile.
+  // Begin the next class's turn once its reel is loaded; the class after it loads meanwhile.
   const begin = () => {
-    if (!entered || turn || disposed) return;
-    for (let i = 0; i < demo.length && demo[index]!.failed; i++) index = (index + 1) % demo.length;
-    const entry = demo[index];
-    if (!entry || entry.failed) return;
-    ensure(index);
-    if (!entry.reel) return;
-    turn = { shown: entry, steps: 0, film: 0, wordsFrom: 0 };
-    thinning = 0;
-    ensure(index + 1);
+    if (!entered || turn || disposed || !next?.reel) return;
+    turn = { shown: next, steps: 0, film: 0, wordsFrom: 0 };
+    [next, thinning] = [null, 0];
+    prepare(null);
   };
-  // A turn has ended: its reel is released, and a class shown again starts a new one.
-  const release = (ended: DemoClass) => {
-    ended.reel?.dispose();
-    ended.reel = null;
-  };
-  // The turn has darkened: the next class's turn begins.
+  // The turn has ended: its reel is released, and the next class's turn begins.
   const end = () => {
-    const ended = turn!.shown;
+    release(turn!.shown);
     turn = null;
-    release(ended);
-    index = (index + 1) % demo.length;
     begin();
   };
   return {
     enter() {
       entered = true;
+      if (!next) prepare(null);
       begin();
     },
     leave() {
       entered = false;
       // Leaving ends the shown turn; returning resumes with the next class's turn, whose run stands loaded.
-      if (!turn) return;
-      release(turn.shown);
-      [turn, index] = [null, (index + 1) % demo.length];
+      release(turn?.shown ?? null);
+      turn = null;
+    },
+    steer(command: DemoCommand) {
+      if (command === 'LEFT' || command === 'RIGHT') {
+        if (turn) turn.shown.reel!.films[turn.film]!.cut?.(command === 'LEFT' ? -1 : 1);
+        return;
+      }
+      // UP and DOWN: the class before or after the shown one, or the one chosen so, passing over those that failed.
+      const from = next && (next.chosen || !turn) ? next.at : turn?.shown.at;
+      if (from === undefined || failed.size === classes.length) return;
+      let at = from;
+      do at = (at + (command === 'UP' ? -1 : 1) + classes.length) % classes.length;
+      while (failed.has(at));
+      prepare(at);
     },
     tick() {
       if (!turn) return;
@@ -189,8 +229,9 @@ export function createAttractDemo(
     },
     dispose() {
       disposed = true;
-      turn = null;
-      for (const entry of demo) release(entry);
+      release(turn?.shown ?? null);
+      release(next);
+      [turn, next] = [null, null];
     },
   };
 }

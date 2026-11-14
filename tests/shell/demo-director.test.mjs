@@ -28,8 +28,9 @@ const INTRO = tickerSteps(WORDS);
 // the director's (in CHASE, a camera 6 m behind the vehicle standing for the player's) over the run's world.
 async function film(id, { speed, finish, steps }) {
   const course = await loadDeliveredCourse(content, id, materials);
-  const courseFilm = createCourseFilm(course, vehicles, CAMERA_DEFINITION, WORDS);
-  const director = createDemoDirector(CAMERA_DEFINITION);
+  // A random source drawing 0 always: the course film starts at the entry's start.
+  const courseFilm = createCourseFilm(course, vehicles, CAMERA_DEFINITION, WORDS, () => 0);
+  const director = createDemoDirector(CAMERA_DEFINITION, () => 0);
   const scene = createCourseScene(course.entry, course.gates, vehicles);
   const slot = courseStartGrid(course.gates, false).at(-1);
   const start = gridRouteS(scene.runtime.route, slot);
@@ -107,7 +108,8 @@ test('the demo introduces the course, then starts behind the grid and takes the 
   const seconds = (s) => Math.round(s / SIM_DT);
   const shots = await film('tsukuba', { speed: 40, finish: 3200, steps: INTRO + seconds(85) });
   assert.deepEqual(shots.slice(0, INTRO), Array(INTRO).fill('INTRO'));
-  assert.deepEqual(order(shots).slice(0, 6), ['INTRO', 'START', 'FIXED', 'PASSED', 'LEFT', 'CHASE']);
+  // Drawing 0, each shot is the first in the table other than the one before: FIXED and PASSED by turns.
+  assert.deepEqual(order(shots).slice(0, 5), ['INTRO', 'START', 'FIXED', 'PASSED', 'FIXED']);
   assert.equal(order(shots).filter((shot) => shot === 'GOAL').length, 1);
   // Each shot after START lasts at most a cut; the goal stays to the end.
   const runs = [];

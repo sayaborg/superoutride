@@ -70,7 +70,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage AT](#stage-at--the-attract-demo-remade)'s AT-3 onward, by K's instruction of 2026-11-14; beside it
+Next PR: [Stage AT](#stage-at--the-attract-demo-remade)'s AT-4, by K's instruction of 2026-11-14; beside it
 [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-3, beside [Stage
 RC](#stage-rc--one-recovery)'s RC-3 (awaiting K's word for main); in [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
@@ -93,13 +93,6 @@ stay near the 560 lines they had, or the shape is reviewed and reported. K's dec
 UP and DOWN step the class. Awaiting K (the recommended default meanwhile): a machine's words are built from its
 listing's facts, with no new text.
 
-- **AT-3 — One way to choose.** Two choices, two operations: cut to the next shot, and choose the next class; random
-  draws call them on their own, UP/DOWN/LEFT/RIGHT by hand. One random rule, "draw one other than the last", for
-  classes and shots; colors (and a class's vehicle) and the course film's start are drawn plainly. The demo holds the
-  one random source, taken as an argument (the start time in the product, a fixed sequence in tests); race, physics and
-  driving never see it. TITLE's row hands LEFT/RIGHT/UP/DOWN to the demo, silently: LEFT/RIGHT cut to the table's row
-  before or after (skipping START and GOAL; nothing over the course film); UP/DOWN make the class before or after the
-  shown one (in SERIES and CLASS order) the next turn's, its run replacing the drawn one's, shown once loaded.
 - **AT-4 — Tickers alone.** TITLE's four fixed lines go; the ticker is the demo's one line of text, every subject
   `<name>  <words>`: the course (its name and description), the series (SERIES and CLASS titles, the series'
   description), the machine (the vehicle's name and color, words built by one function from its listing). A subject

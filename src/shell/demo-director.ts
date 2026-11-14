@@ -1,6 +1,4 @@
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
-import { courseStartGrid } from '../course/compiler/course-rules.js';
-import { gridRouteS } from '../course/course-route.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { CameraDefinition, CameraState } from '../view/camera.js';
@@ -68,6 +66,16 @@ export const DEMO_FILM = Object.freeze({
  */
 export const DEMO_TICKER = Object.freeze({ stepsPerColumn: 3, columns: 40 });
 
+/**
+ * The demo's one rule of chance (K, 2026-11-14): one of `count` drawn by `random`, other than `last` (when one is and
+ * another can be).
+ */
+export function drawOther(count: number, last: number, random: () => number): number {
+  if (count <= 1) return 0;
+  const drawn = Math.floor(random() * (count - 1));
+  return last >= 0 && drawn >= last ? drawn + 1 : drawn;
+}
+
 /** How many fixed steps `words` take to run along the ticker once. */
 export const tickerSteps = (words: string) => (words.length + DEMO_TICKER.columns) * DEMO_TICKER.stepsPerColumn;
 
@@ -81,23 +89,29 @@ export interface Film {
   readonly ended: boolean;
   /** The words the ticker runs over it. */
   readonly words: string;
+  /** Cut by hand to the shot before (-1) or after (1); a film without shots has none. */
+  cut?(by: -1 | 1): void;
 }
 
 /**
  * The course film: a camera travelling the road's centre (`DEMO_FILM.intro`) over a course scene of its own with no
- * vehicle, its window following the camera, each fork taking its first exit. It ends when its `words` have run once on
- * the ticker, or short of a route's end.
+ * vehicle, its window following the camera, each fork taking its first exit, from a station of the entry Section drawn
+ * by `random` that leaves it room to travel there. It ends when its `words` have run once on the ticker, or short of a
+ * route's end.
  */
 export function createCourseFilm(
   course: CompiledCourse,
   vehicles: readonly CompiledVehicleDefinition[],
   definition: CameraDefinition,
   words: string,
+  random: () => number,
 ): Film {
   const scene = createCourseScene(course.entry, course.gates, vehicles);
   const { runtime } = scene;
   const steps = tickerSteps(words);
-  let s = Math.max(...courseStartGrid(course.gates, false).map((slot) => gridRouteS(runtime.route, slot))),
+  const room =
+    course.entry.coordinates.domain.end - DEMO_FILM.intro.speed * steps * SIM_DT - RENDER_FAR_DEPTH_METERS / 4;
+  let s = random() * Math.max(0, room),
     taken = 0,
     ended = false,
     camera: CameraState;
@@ -143,8 +157,9 @@ export function createDemoReel(
   vehicles: readonly CompiledVehicleDefinition[],
   definition: CameraDefinition,
   words: { readonly course: string; readonly series: string },
+  random: () => number,
 ): DemoReel {
-  const director = createDemoDirector(definition);
+  const director = createDemoDirector(definition, random);
   let cut = false;
   const look: RunLook = (sight) => {
     cut = director.step(sight);
@@ -161,20 +176,22 @@ export function createDemoReel(
       return cut;
     },
     draw: () => run.draw(),
+    cut: (by) => director.cut(by),
   };
   return {
-    films: [createCourseFilm(run.course, vehicles, definition, words.course), race],
+    films: [createCourseFilm(run.course, vehicles, definition, words.course, random), race],
     dispose: () => run.dispose(),
   };
 }
 
 /**
- * The race film's camera director over a watched run, from what it sees after each step: START, then the shots based
- * on the shown vehicle in the table's order, then GOAL. A camera stands only while the run's resident route holds what
- * it sees, from its station on along the way it looks; one that would not ends its shot, standing at the last station
- * that holds it.
+ * The race film's camera director over a watched run, from what it sees after each step: START, then shots based on
+ * the shown vehicle, each drawn by `random` other than the one before or cut to by hand (`cut`, the shot before or
+ * after in the table), then GOAL. A camera stands only while the run's resident route holds what it sees, from its
+ * station on along the way it looks; a shot whose camera cannot stand is not taken, and one whose camera no longer can
+ * stands at the last station that holds it and ends.
  */
-export function createDemoDirector(definition: CameraDefinition) {
+export function createDemoDirector(definition: CameraDefinition, random: () => number) {
   const START = 0,
     GOAL = DEMO_SHOTS.length - 1;
   let index = START,
@@ -183,6 +200,8 @@ export function createDemoDirector(definition: CameraDefinition) {
     cutNow = false,
     place: RoutePlace = { s: 0, l: 0, height: 0, aim: 0 },
     previousShown: number | null = null,
+    // A cut by hand waiting for the next step: to the shot before or after.
+    asked: -1 | 0 | 1 = 0,
     camera: CameraState | null = null;
   // Which side of the shown vehicle's line a camera beside it stands: toward the road's centre, on the road.
   const side = (l: number) => (l > 0 ? -1 : 1);
@@ -199,14 +218,24 @@ export function createDemoDirector(definition: CameraDefinition) {
   const cut = (next: number, at: RoutePlace) => {
     [index, steps, cutNow, place] = [next, 0, true, at];
   };
-  // The next shot based on the shown vehicle, in the table's order, whose camera can stand.
-  const advance = (sight: RunSight) => {
-    for (let next = index + 1; ; next++) {
-      const row = DEMO_SHOTS[next % GOAL]!;
-      if (row.base !== 'VEHICLE' && row.base !== 'PLAYER') continue;
-      const at = placeOf(row, sight);
-      if (row.base === 'PLAYER' || stands(at, sight)) return cut(next % GOAL, at);
-    }
+  // The shots based on the shown vehicle whose cameras can stand now, in the table's order.
+  const open = (sight: RunSight) =>
+    DEMO_SHOTS.flatMap((row, at) =>
+      row.base === 'PLAYER' || (row.base === 'VEHICLE' && stands(placeOf(row, sight), sight)) ? [at] : [],
+    );
+  // Cut to one of them: drawn other than the shot shown, or by hand the one before or after it in the table's order.
+  const advance = (sight: RunSight, by: -1 | 0 | 1) => {
+    const shots = open(sight),
+      at = shots.indexOf(index);
+    const next =
+      by === 0
+        ? shots[drawOther(shots.length, at, random)]!
+        : at >= 0
+          ? shots[(at + by + shots.length) % shots.length]!
+          : by > 0
+            ? (shots.find((shot) => shot > index) ?? shots[0]!)
+            : (shots.filter((shot) => shot < index).at(-1) ?? shots.at(-1)!);
+    cut(next, placeOf(DEMO_SHOTS[next]!, sight));
   };
   return Object.freeze({
     get shot() {
@@ -216,6 +245,10 @@ export function createDemoDirector(definition: CameraDefinition) {
     get camera(): CameraState | null {
       return camera;
     },
+    /** Cut by hand, at the next step, to the shot before (-1) or after (1) the one shown; its cut runs from there. */
+    cut(by: -1 | 1) {
+      asked = by;
+    },
     /** One step, after the run's, with what it sees of the run; whether it cut to a new shot. */
     step(sight: RunSight): boolean {
       cutNow = false;
@@ -224,20 +257,23 @@ export function createDemoDirector(definition: CameraDefinition) {
       if (previousShown === null) cut(START, placeOf(DEMO_SHOTS[START]!, sight));
       previousShown = s;
       steps++;
+      // A cut by hand takes the shot before or after; the next cut is the cut's time from it.
+      if (asked !== 0) advance(sight, asked);
+      asked = 0;
       let row = DEMO_SHOTS[index]!;
       if (row.speed > 0) place = { ...placeOf(row, sight), s: place.s + row.speed * moved };
       const gone = s - place.s >= row.away || !stands(place, sight);
       const { next } = sight;
       if (row.base === 'REARMOST') {
-        if (sight.status === 'RUNNING' && gone) advance(sight);
+        if (sight.status === 'RUNNING' && gone) advance(sight, 0);
       } else if (row.base !== 'GOAL') {
         const goal = next?.finish ? placeOf(DEMO_SHOTS[GOAL]!, sight) : null;
         if (goal && next!.s - s <= DEMO_FILM.goal.approach && goal.s - s >= DEMO_FILM.goal.clear) cut(GOAL, goal);
-        else if (steps * SIM_DT >= DEMO_FILM.cut) advance(sight);
+        else if (steps * SIM_DT >= DEMO_FILM.cut) advance(sight, 0);
         else if (row.base === 'VEHICLE' && gone) {
           // The vehicle has left the camera: the shot is set again on its row, keeping its time, if it can stand.
           const again = placeOf(row, sight);
-          if (!stands(again, sight)) advance(sight);
+          if (!stands(again, sight)) advance(sight, 0);
           else {
             const kept = steps;
             cut(index, again);

@@ -27,7 +27,7 @@ import {
 import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
 import { createMenuMusic } from './menu-music.js';
-import { attractClasses, createAttractDemo } from './attract-demo.js';
+import { attractClasses, createAttractDemo, createDemoRandom } from './attract-demo.js';
 import { createPreRaceScreen, preRaceCardOf } from './prerace-screen.js';
 import { createRunVehicle, runVehicleSha256 } from '../content/run-vehicle.js';
 import { SIM_DT } from '../race/fixed-step.js';
@@ -352,11 +352,18 @@ async function startPage(): Promise<void> {
     // The attract demo behind TITLE: at most the shown and the next class's watched runs, each holding its course's
     // compilation, which the classes of one course share; released with the page.
     const watchedCourses = createWatchedCourses();
-    const attractDemo = createAttractDemo(attractClasses(series.series), vehicles, courseIndex, async (next, words) => {
-      const state = createRunScreenState(() => {});
-      const run = await assembleRun(page, next, state, undefined, watchedCourses);
-      return createDemoReel(run, () => state.finished, vehicles, page.cameraDefinition(), words);
-    });
+    // The demo's one random source is seeded by the start time (K, 2026-11-14).
+    const attractDemo = createAttractDemo(
+      attractClasses(series.series),
+      vehicles,
+      courseIndex,
+      createDemoRandom(Date.now()),
+      async (next, words, random) => {
+        const state = createRunScreenState(() => {});
+        const run = await assembleRun(page, next, state, undefined, watchedCourses);
+        return createDemoReel(run, () => state.finished, vehicles, page.cameraDefinition(), words, random);
+      },
+    );
     window.addEventListener('pagehide', () => attractDemo.dispose());
     // The cards' style while their design is tried (K, 2026-11-12): SETTINGS' CARD DESIGN and the C key step it.
     let shownStyle = 0;
