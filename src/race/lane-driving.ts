@@ -51,8 +51,9 @@ export function createLaneDriving(options: {
   // Drivers follow and change lanes over the race's sightings of the present vehicles.
   const following = createLaneFollowing(forks, window);
   const sightings: VehicleSighting[] = [];
-  // Reused records for the standing objects drivers see: the object's footprint, at rest in line with the road, heading
-  // for their own lateral.
+  // Reused records for the standing objects drivers see, the fixed ones: the object's footprint, at rest in line with
+  // the road, heading for its own lateral. A driver does not see a movable object: it drives through it, and the
+  // physics knocks it away (K, 2026-11-13).
   const objectSightings: VehicleSighting[] = [];
   const roadSample = createPlanCoordinateSample();
   // The road's heading at a vehicle's route position (kept in `roadSample`).
@@ -61,8 +62,9 @@ export function createLaneDriving(options: {
   const byStation = (a: VehicleSighting, b: VehicleSighting) => a.s - b.s;
   const laneDomain = { start: 0, end: 0, terminal: null as number | null };
   const probe: LaneIntent = { lane: 0, at: 0, exit: () => 0 };
-  // Drivers see the present vehicles as they stand now, and the standing objects as stopped vehicles from the rearmost
-  // present vehicle to the driver lookahead beyond the foremost one, or beyond station `through` when that is farther.
+  // Drivers see the present vehicles as they stand now, and the fixed standing objects as stopped vehicles from the
+  // rearmost present vehicle to the driver lookahead beyond the foremost one, or beyond station `through` when that is
+  // farther.
   const observe = (through = -Infinity) => {
     sightings.length = 0;
     for (const body of bodies) {
@@ -87,6 +89,7 @@ export function createLaneDriving(options: {
     }
     let sighted = 0;
     roadsideObjects.sight(rearS, frontS + PLANNED_DRIVER.lookahead, (s, l, width, depth, fixed) => {
+      if (!fixed) return;
       if (sighted === objectSightings.length)
         objectSightings.push({
           s: 0,
@@ -98,7 +101,6 @@ export function createLaneDriving(options: {
           target: 0,
           driver: null,
           standing: true,
-          fixed: false,
         });
       const sighting = objectSightings[sighted++] as {
         s: number;
@@ -106,13 +108,11 @@ export function createLaneDriving(options: {
         length: number;
         width: number;
         target: number;
-        fixed: boolean;
       };
       sighting.s = s;
       sighting.l = sighting.target = l;
       sighting.length = depth;
       sighting.width = width;
-      sighting.fixed = fixed;
       sightings.push(sighting as VehicleSighting);
     });
     // Drivers judge the vehicles in station order (a stable sort keeps a row's order).
@@ -129,7 +129,6 @@ export function createLaneDriving(options: {
     target: 0,
     driver: null as PlannedDriver | null,
     standing: false,
-    fixed: false,
   };
   const appearanceDomain = { start: 0, end: 0, terminal: null as number | null };
   // The racing line of an intent's exits, without its offset.
@@ -206,7 +205,7 @@ export function createLaneDriving(options: {
     driven.sighting.target = driving.target(driven.sighting.s);
   };
   return Object.freeze({
-    /** Drivers see the present vehicles and the standing objects ahead as they stand at the step's start. */
+    /** Drivers see the present vehicles and the fixed standing objects ahead as they stand at the step's start. */
     observe: () => observe(),
     /**
      * A driver's input this step, for the present vehicle `driven` that its driver drives. A driver whose vehicle a

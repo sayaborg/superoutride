@@ -1518,11 +1518,13 @@ GOAL) a read-only list of the vehicles present in the run as they stand at the s
 route speed (its velocity along the road's tangent at its station, negative while it moves backward), travel
 direction relative to the road, dimensions, the lateral each is heading for at its station (its driver's
 target lateral; its own lateral while the player drives it) and the driver driving it, the player's vehicle included;
-drivers write no vehicle state. The list also holds the standing
-roadside objects ([Roadside objects](#roadside-objects)), fixed and movable, wall ends included, from the rearmost
+drivers write no vehicle state. The list also holds the fixed standing
+roadside objects ([Roadside objects](#roadside-objects)), wall ends included, from the rearmost
 present vehicle's station to the foremost one's plus the driver lookahead (`PLANNED_DRIVER.lookahead`), each read
 from its Section's station-ordered list: an object is a stopped vehicle of zero length and its width, heading for its
-own lateral, at rest in line with the road. Knocked objects and barrier lines are not in it. An object standing in a driver's lane is thus a stopped
+own lateral, at rest in line with the road. A driver sees a roadside object only where it is fixed: a movable object
+it drives through, and the physics does the rest (K, 2026-11-13); it is no vehicle ahead, ends no lane and bounds no
+path offset. Knocked objects and barrier lines are not in it. An object standing in a driver's lane is thus a stopped
 vehicle ahead to it, and one outside every lane occupies none. A vehicle occupies both the
 lanes it overlaps where it is and the lane it is heading for: it is in a lane for a driver when either its lateral or
 the lateral it is heading for lies nearer that lane's centre at its station than half the two vehicles' widths. Three
@@ -1584,14 +1586,14 @@ the lap length.
 3. Passing: when the vehicle ahead on its path lowers the driver's plan, the driver weighs the two constant offsets at
    which its path passes that vehicle's lateral by half the two widths plus `clearance` on either side, each within the
    road's edge margin, by the speed its plan allows behind the vehicle ahead on that path (the current curve speeds
-   serve). A side counts only while its path meets no fixed body (a standing object that is not movable) ahead within
-   the driver's lookahead: none occupies that path, and its steering path into it meets none, as the vehicle ahead is
-   judged; the racing line keeps clear of the bodies on the road ([Racing lines](#racing-lines)), and a driver leaves
-   it to pass only where the pass hits none. It takes the side exceeding its constrained plan by more than
+   serve). A side counts only while its path meets no standing object (a fixed one, the only kind drivers see) ahead
+   within the driver's lookahead: none occupies that path, and its steering path into it meets none, as the vehicle
+   ahead is judged; the racing line keeps clear of the bodies on the road ([Racing lines](#racing-lines)), and a driver
+   leaves it to pass only where the pass hits none. It takes the side exceeding its constrained plan by more than
    `passingMargin`, the left on a tie. The pass then holds while that vehicle is ahead, no farther than the gap the
-   pass began from plus half the two lengths, its side stays within the edge margin and its path still meets no fixed
-   body: the target stays while it clears that vehicle by the same distance, else moves out to clear it. Alongside,
-   giving room takes over.
+   pass began from plus half the two lengths, its side stays within the edge margin and its path still meets no
+   standing object: the target stays while it clears that vehicle by the same distance, else moves out to clear it.
+   Alongside, giving room takes over.
 
 Every target lies within the road's edge margin: half the driver's width plus `edgeClearance` (0.3 m) inside the edges
 of the road it drives; and the path keeps within it, holding at the margin wherever the line plus the offset would

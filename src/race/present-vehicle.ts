@@ -100,7 +100,6 @@ export function createPresentVehicle(
       target: 0,
       driver: null,
       standing: false,
-      fixed: false,
     },
     step: {
       get state() {

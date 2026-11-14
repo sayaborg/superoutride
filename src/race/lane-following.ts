@@ -17,7 +17,7 @@ import {
  * A present vehicle as drivers see it: its route footprint, speed (m/s), travel direction, the lateral it is heading
  * for at its station (`target`: its driver's target lateral, or its own lateral while the player drives it) and the
  * driver driving it (null while the player drives it, and for a standing object), and whether it is a standing
- * object. The race writes it; drivers only read.
+ * object, which drivers see only where it is fixed. The race writes it; drivers only read.
  */
 export interface VehicleSighting extends RouteFootprint {
   readonly speed: number;
@@ -25,10 +25,8 @@ export interface VehicleSighting extends RouteFootprint {
   readonly heading: number;
   readonly target: number;
   readonly driver: PlannedDriver | null;
-  /** Whether it is a standing roadside object. */
+  /** Whether it is a standing roadside object: a fixed one, which no vehicle knocks aside. */
   readonly standing: boolean;
-  /** Whether it is a fixed body: a standing object that is not movable, which no vehicle knocks aside. */
-  readonly fixed: boolean;
 }
 
 /**
@@ -294,10 +292,10 @@ export function createLaneFollowing(
       return heldLateral(l, candidate.value, candidate.edges(s), candidate.margin) - l;
     },
   };
-  const fixed = (other: VehicleSighting) => other.fixed;
-  // Whether the driver's path at the candidate offset meets a fixed body ahead within its lookahead.
+  const standing = (other: VehicleSighting) => other.standing;
+  // Whether the driver's path at the candidate offset meets a standing object ahead within its lookahead.
   const meetsBody = (self: VehicleSighting, sightings: readonly VehicleSighting[]) =>
-    nearestOnPath(self, candidate, LINE, sightings, fixed, self.s + PLANNED_DRIVER.lookahead) !== null;
+    nearestOnPath(self, candidate, LINE, sightings, standing, self.s + PLANNED_DRIVER.lookahead) !== null;
   /*
    * The offset from the racing line the driver `self`, which drives the line, heads for: the first of the path offset
    * rules that applies, else 0. `line` is the racing line's lateral and `path` the driver's path now, `edges` the road's
@@ -375,8 +373,8 @@ export function createLaneFollowing(
     // A driver that does not pass (traffic of the racing line) follows the vehicle ahead on its line.
     if (!self.driver?.passes) return 0;
     // 3. Passing. A pass holds while the vehicle it passes is ahead, no farther than the gap it began from plus half the
-    // two lengths, its side still lies within the road's edge margin and its path meets no fixed body: the target stays
-    // while it clears that vehicle, else moves out to clear it.
+    // two lengths, its side still lies within the road's edge margin and its path meets no standing object: the target
+    // stays while it clears that vehicle, else moves out to clear it.
     if (offset.passing) {
       const { vehicle, side, gap } = offset.passing;
       const { ds } = relative(vehicle);
@@ -392,8 +390,8 @@ export function createLaneFollowing(
       }
       offset.passing = null;
     }
-    // When the vehicle ahead on the racing line holds the plan back, the side that clears it, whose path meets no fixed
-    // body, and allows more speed by the passing margin, the left on a tie.
+    // When the vehicle ahead on the racing line holds the plan back, the side that clears it, whose path meets no
+    // standing object, and allows more speed by the passing margin, the left on a tie.
     candidate.value = 0;
     const behind = speedBehind(ahead(self, candidate, LINE, sightings));
     const blocking = aheadSighting;

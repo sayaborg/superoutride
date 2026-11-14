@@ -51,9 +51,10 @@ const WALL = { from: 20, to: 80, offset: 3 };
 /**
  * A synthetic flat circuit of three Sections, each a 200 m straight and a 120° right arc of 80 m radius with two lanes
  * and 8 m of runoff each side. Sector 2 has a hole in its right runoff and a solid wall beside its right lane; Sector 3
- * is DIRT on its left half and SAND on its right.
+ * is DIRT on its left half and SAND on its right. `objects` stand in Sector 2's straight, each a body of one part 1.5 m
+ * wide at `offset` metres into it and native lateral `l`, movable or fixed.
  */
-function ring() {
+function ring(objects = []) {
   const id = (k) => `sector-${k + 1}`;
   const strip = (k, start, end, left, right, material = 'ASPHALT') => ({
     kind: 'strip',
@@ -139,7 +140,31 @@ function ring() {
               },
             ]
           : [],
-      sprites: [],
+      sprites:
+        k === 1
+          ? objects.map(({ offset, l, movable }) => ({
+              kind: 'sprite',
+              image: 'outrun-015-shadowed',
+              palette: 'p054',
+              unselectedLink: null,
+              at: { joint: 's1', offset },
+              lateral: l,
+              groundOffset: 0,
+              body: [
+                {
+                  across: 0,
+                  width: 1.5,
+                  movable: movable
+                    ? {
+                        mass: 50,
+                        launchDegrees: 30,
+                        knocked: { airborne: 'outrun-015-shadowed', landed: 'outrun-015-shadowed' },
+                      }
+                    : null,
+                },
+              ],
+            }))
+          : [],
       environments: [
         {
           at: { joint: `s${k}`, offset: 0 },
@@ -199,18 +224,26 @@ function line() {
 const template = content.manifest.files.find((file) => file.kind === 'course' && file.id === 'tsukuba');
 // The fixtures are delivered alone, without measured products: their drivers drive their centre lines.
 const files = content.manifest.files.filter((file) => file.kind !== 'racing-line');
-const fixtures = { ring, line };
+const fixtures = { ring: () => ring(), line };
 const delivered = {
   ...content,
-  manifest: {
-    ...content.manifest,
-    files: [...files, ...Object.keys(fixtures).map((id) => ({ ...template, id }))],
+  get manifest() {
+    return {
+      ...content.manifest,
+      files: [...files, ...Object.keys(fixtures).map((id) => ({ ...template, id }))],
+    };
   },
   bytes: async (kind, id) =>
     kind === 'course' && id in fixtures
       ? new TextEncoder().encode(JSON.stringify(fixtures[id]()))
       : content.bytes(kind, id),
 };
+/** The ring with `objects` standing in Sector 2's straight, delivered as a fixture of its own. */
+async function ringWith(objects) {
+  const id = `ring-${Object.keys(fixtures).length}`;
+  fixtures[id] = () => ring(objects);
+  return loadDeliveredCourse(delivered, id, materials);
+}
 const course = await loadDeliveredCourse(delivered, 'ring', materials);
 const lineCourse = await loadDeliveredCourse(delivered, 'line', materials);
 
@@ -559,6 +592,48 @@ test('a driver whose vehicle stands 2 s asks for the player’s manual recovery'
   // The player's own input is no driver's: it stands braked and nothing recovers it.
   assert.equal(race.player.body.driving, null);
   assert.equal(actor.recovery.recoveries, 0);
+});
+
+/** Where the objects of the driver tests stand: metres into Sector 2's straight. */
+const OBJECT_AT = 120;
+
+/**
+ * A rival placed 20 m into Sector 2's straight at 25 m/s on its path, driving the racing line or keeping lane a: each
+ * step until it comes within 10 m of `OBJECT_AT`, its speed and the lateral its path heads for there. Also that lateral
+ * before the first step, as a native lateral (`native`).
+ */
+async function approach(on, keepsLane) {
+  const { race, scene } = await run({ rivals: 1, on });
+  const rival = race.rivals[0];
+  if (keepsLane) {
+    const driving = rival.body.driving;
+    Object.assign(driving.intent, { lane: 0, at: sector2(scene, 20), offset: undefined });
+    rival.body.driving = { ...driving, offset: null, target: (at) => race.forks.targetL(at, driving.intent) };
+  }
+  const s = sector2(scene, 20),
+    at = sector2(scene, OBJECT_AT);
+  const native = rival.body.driving.target(at) + scene.runtime.route.at(at).lateralOrigin;
+  place(scene, rival.body, s, rival.body.driving.target(s), { speed: 25 });
+  const trace = [];
+  while (rival.actor.vehicle.course.s < at - 10 && trace.length < 600) {
+    race.advance(idle);
+    trace.push([rival.actor.vehicle.speed, rival.body.driving.target(at)]);
+  }
+  return { trace, native };
+}
+
+test('a driver does not see a movable object, and sees a fixed one', async () => {
+  // A movable object on its way changes nothing a driver does before it, a racing line driver's or a lane driver's: it
+  // neither slows nor moves aside. A fixed one there holds it back or moves it aside.
+  for (const keepsLane of [false, true]) {
+    const free = await approach(course, keepsLane);
+    const object = (movable) => [{ offset: OBJECT_AT, l: free.native, movable }];
+    const movable = await approach(await ringWith(object(true)), keepsLane);
+    const fixed = await approach(await ringWith(object(false)), keepsLane);
+    assert.ok(free.trace.length > 60, `${free.trace.length} steps`);
+    assert.deepEqual(movable.trace, free.trace);
+    assert.notDeepEqual(fixed.trace, free.trace);
+  }
 });
 
 test("the Route's ends are limits across the road: fast, airborne or reversing, a vehicle stays inside", async (t) => {
