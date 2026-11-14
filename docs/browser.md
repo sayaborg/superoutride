@@ -331,26 +331,42 @@ loads behind the logo over black and its turn begins once it is loaded; each tur
 with no product class the main world stays black. A run's start ends the shown turn and releases its reel; returning
 resumes with the next class's turn. The reels are released when the page is left.
 
-The course film is INTRO below; the race film's director takes the other shots (K, 2026-11-12):
+The course film's camera travels the road's centre at 100 km/h, 4 m over it, from the front of the grid, over a course
+scene of its own with no vehicle, each fork taking its first exit; it ends when the course's description has run once on
+the ticker, or 50 m short of a route's end, and the run waits in READY meanwhile. The race film's director reads its
+shots from one table (K, 2026-11-14; the values are to be confirmed on a device), every row of one shape and none named
+in the code: a camera stands `ahead` of its base (the shown vehicle, the grid's rearmost vehicle, or the line the shown
+vehicle finishes at), `aside` of the base's line toward the road's centre (the road's centre for the rearmost) and
+`height` over the road, looking along that line forward or back; it travels at `speed` of the shown vehicle's speed (0
+stands), following the vehicle's line; when the vehicle is `away` past it, the shot is set again on its row, keeping its
+time. CHASE alone has no place: it is the player's camera, the one exception, showing the run as it is played.
 
-| Shot   | Camera                                                                                                                                                          | Ends                                                                                     |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| INTRO  | Travels the road's centre at 100 km/h, 4 m over it, from the front of the grid, over a course scene of its own with no vehicle, each fork taking its first exit | When the course's description has run once on the ticker, or 50 m short of a route's end |
-| START  | Stands 10 m behind the rearmost vehicle on the grid, 3 m over the road's centre, through READY and GO                                                           | When the shown vehicle is 150 m away                                                     |
-| FIXED  | Stands 30 m ahead of the shown vehicle, 3.5 m toward the road's centre from its line, 1.5 m over the road; the vehicle passes it and goes on                    | At 150 m the next point ahead of it; after 15 s, at its next point                       |
-| PASSED | Starts 25 m ahead of it, 2.5 m toward the centre, 1.2 m over the road, travelling at 70 % of its speed; it overtakes the camera                                 | When it is 120 m away, or after 15 s                                                     |
-| LEFT   | Starts 6 m right behind it, 2 m over the road, travelling at 80 % of its speed; it draws away                                                                   | At 60 m back right behind it; after 15 s                                                 |
-| CHASE  | The player's camera                                                                                                                                             | After 15 s                                                                               |
-| GOAL   | Stands 15 m before the line it finishes at, 3.5 m toward the centre, 1.5 m over the road, from when it has 150 m to go and is still 20 m short of the camera    | With the turn                                                                            |
+| Shot          | Base                | Ahead m | Aside m | Height m | Speed | Looks   | Away m |
+| ------------- | ------------------- | ------: | ------: | -------: | ----: | ------- | -----: |
+| START         | Rearmost on grid    |     −10 |       0 |        3 |     0 | forward |    150 |
+| FIXED         | Shown vehicle       |      30 |     3.5 |      1.5 |     0 | forward |    150 |
+| PASSED        | Shown vehicle       |      25 |     2.5 |      1.2 |   0.7 | forward |    120 |
+| LEFT          | Shown vehicle       |      −6 |       0 |        2 |   0.8 | forward |     60 |
+| CHASE         | The player's camera |         |         |          |       |         |        |
+| LOW           | Shown vehicle       |      −4 |       0 |      0.5 |     1 | forward |     60 |
+| QUARTER       | Shown vehicle       |      −5 |       3 |      1.2 |     1 | forward |     60 |
+| FRONT         | Shown vehicle       |       8 |       0 |      1.2 |     1 | back    |     60 |
+| FRONT QUARTER | Shown vehicle       |       6 |       3 |      1.2 |     1 | back    |     60 |
+| APPROACH      | Shown vehicle       |     120 |     3.5 |      1.5 |     0 | back    |      0 |
+| GOAL          | Finishing line      |     −15 |     3.5 |      1.5 |     0 | forward |        |
 
-After START the race's shots take turns in the order FIXED, PASSED, LEFT, CHASE; GOAL takes over any of them. A camera
-of the demo's stands on the route by itself ([route camera](../src/view/route-camera.ts)): over the road's height
-at its station, level, looking at the road 40 m ahead along its line (the intro's and START's the road's centre, the
-others the shown vehicle's), within 45° of the road's heading where it stands; its sky is its own place's. CHASE is
-the one exception: it shows the run as it is played, through the player's camera. The director gives the run one value
-after each step, its own camera or none for the player's, and the run's drawing decides from it alone that every shot
-but CHASE draws the player as any other vehicle, seen from where the camera stands. A camera the run's resident route
-no longer holds behind it stands at the route's first resident station, and the shot that needs it ends.
+The race film opens on START, through READY and GO, until the shown vehicle is its distance away; then the shots based
+on the shown vehicle follow in the table's order, each 15 s; GOAL takes any of them over once the shown vehicle has
+150 m to go to the line it finishes at, while GOAL's camera is still 20 m ahead of it, and lasts to the turn's end. A
+camera of the demo's stands on the route by itself ([route camera](../src/view/route-camera.ts)): over the road's height
+at its station, level, looking at the road 40 m ahead along its line, within 45° of the road's heading where it stands;
+its sky is its own place's; one that looks back is that camera on the road read the other way
+([Architecture](architecture.md#a-camera-looking-back)). A camera stands only while the run's resident route holds what
+it sees, from its station on along the way it looks (a camera looking back, to the drawing depth behind it); a shot
+whose camera cannot stand is passed over, and one whose camera no longer can stands at the last station that holds it
+and ends. The director gives the run one value after each step, its own camera or none for the player's, and the run's
+drawing decides from it alone that every shot but CHASE draws the player as any other vehicle, seen from where the
+camera stands.
 
 The ticker runs the shown film's words along row 27 from the right edge, a character every 3 fixed steps, until their
 last has left at the left, then again after four spaces: the course's description over the course film, the series'

@@ -249,10 +249,10 @@ of the [background transitions](image-assets.md#background-transitions), and onl
 
 Behind the main picture the attract demo runs from TITLE until a run starts (K, 2026-11-08): the RACE sessions of the
 product classes in series and class order, looping, with no HUD and no sound, its series, class, vehicle and color
-written on TITLE alone. A turn shows a real RACE of its class and field, its first vehicle in its first color driven
-by the player's run driver, filmed like television (K, 2026-11-12): a camera travels the course alone while a ticker
-runs the course's description, a camera behind the grid watches the start, the race is shown in turns by a camera
-beside the road, one the vehicle overtakes, one it leaves behind and the player's, and a camera before the line
+written on TITLE alone. A turn shows a real RACE of its class and field, its first vehicle in its first color driven by
+the player's run driver, filmed like television (K, 2026-11-12): a camera travels the course alone while a ticker runs
+the course's description, a camera behind the grid watches the start, the race is shown in turns by cameras beside the
+road, travelling with the vehicle, looking back at it and the player's own (K, 2026-11-14), and a camera before the line
 watches it finish, while the ticker runs the series' description; every cut is line thinning. A turn lasts to the race's
 end and its RESULT delay, or five minutes. The demo holds only the shown class's race and the next class's, and every
 turn starts its race anew: a class shown again starts a new race.

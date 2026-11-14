@@ -70,7 +70,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage AT](#stage-at--the-attract-demo-remade)'s AT-2 onward, by K's instruction of 2026-11-14; beside it
+Next PR: [Stage AT](#stage-at--the-attract-demo-remade)'s AT-3 onward, by K's instruction of 2026-11-14; beside it
 [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-3, beside [Stage
 RC](#stage-rc--one-recovery)'s RC-3 (awaiting K's word for main); in [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
@@ -86,17 +86,13 @@ K's requirements of 2026-11-14: the demo is random each time; more camera work, 
 vehicle (an unoriented standing board seen from behind is mirrored at half brightness); UP, DOWN, LEFT and RIGHT change
 it while it shows; no fixed text, everything a ticker of series, course and machine. The stage's first aim is that the
 demo, with these added, is smaller and has fewer rules than before: its shape was mended first (AT-0: films, the run
-only watched, one line thinning), and cameras look back through one reversed reader (AT-1); nothing is added by
-branches, exceptions or copies. Each PR states the line counts of the demo's files before and after; at the stage's end
-the demo's parts of `attract-demo.ts`, `demo-director.ts` and `run-assembly.ts` stay near the 560 lines they had, or the
-shape is reviewed and reported. K's decisions: CHASE stays the player's camera; UP and DOWN step the class. Awaiting K
-(the recommended default meanwhile): a machine's words are built from its listing's facts, with no new text.
+only watched, one line thinning), and cameras look back through one reversed reader (AT-1), and every shot is a row of
+one table (AT-2); nothing is added by branches, exceptions or copies. Each PR states the line counts of the demo's files
+before and after; at the stage's end the demo's parts of `attract-demo.ts`, `demo-director.ts` and `run-assembly.ts`
+stay near the 560 lines they had, or the shape is reviewed and reported. K's decisions: CHASE stays the player's camera;
+UP and DOWN step the class. Awaiting K (the recommended default meanwhile): a machine's words are built from its
+listing's facts, with no new text.
 
-- **AT-2 — Shots as one table.** Every shot is a row of one shape (base: the shown vehicle, the grid's rearmost or the
-  goal line; ahead, aside, height; speed as a share of the vehicle's, 0 standing; direction; distance it ends at), the
-  director reading the table and never a shot's name: START, FIXED, PASSED, LEFT, CHASE, LOW, QUARTER, FRONT, FRONT
-  QUARTER, APPROACH, GOAL. CHASE alone has no place. A standing shot the vehicle leaves is set again on the same row. The
-  race film starts at START, draws rows that take the vehicle as base, and ends at GOAL.
 - **AT-3 — One way to choose.** Two choices, two operations: cut to the next shot, and choose the next class; random
   draws call them on their own, UP/DOWN/LEFT/RIGHT by hand. One random rule, "draw one other than the last", for
   classes and shots; colors (and a class's vehicle) and the course film's start are drawn plainly. The demo holds the

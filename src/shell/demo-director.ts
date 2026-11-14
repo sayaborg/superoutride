@@ -11,40 +11,55 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 import type { Run, RunLook, RunSight } from './run-assembly.js';
 
 /**
- * The race film's shots (K, 2026-11-12): START stands behind the grid; the race cycles FIXED, PASSED, LEFT and CHASE;
- * GOAL stands before the line the shown vehicle finishes at.
+ * A shot of the race film (K, 2026-11-14), every shot a row of one shape: its camera stands `ahead` of its base (the
+ * shown vehicle, the grid's rearmost vehicle or the line the shown vehicle finishes at), `aside` of the base's line
+ * toward the road's centre and `height` over the road, looking along that line forward or `back`; it travels at `speed`
+ * of the shown vehicle's speed (0 stands), following the vehicle's line; the shown vehicle `away` past it, the shot is
+ * set again on its row. CHASE alone has no place: it is the player's camera, the run seen as it is played.
  */
-export type DemoShot = 'START' | 'FIXED' | 'PASSED' | 'LEFT' | 'CHASE' | 'GOAL';
+export interface DemoShot {
+  readonly name: string;
+  readonly base: 'VEHICLE' | 'REARMOST' | 'GOAL' | 'PLAYER';
+  readonly ahead: number;
+  readonly aside: number;
+  readonly height: number;
+  readonly speed: number;
+  readonly back: boolean;
+  readonly away: number;
+}
+
+const shot = (
+  name: string,
+  base: DemoShot['base'],
+  [ahead, aside, height, speed]: readonly [number, number, number, number],
+  back: boolean,
+  away: number,
+): DemoShot => Object.freeze({ name, base, ahead, aside, height, speed, back, away });
+
+/** The race film's shots: metres, and shares of the shown vehicle's speed. START opens it and GOAL closes it. */
+export const DEMO_SHOTS: readonly DemoShot[] = Object.freeze([
+  shot('START', 'REARMOST', [-10, 0, 3, 0], false, 150),
+  shot('FIXED', 'VEHICLE', [30, 3.5, 1.5, 0], false, 150),
+  shot('PASSED', 'VEHICLE', [25, 2.5, 1.2, 0.7], false, 120),
+  shot('LEFT', 'VEHICLE', [-6, 0, 2, 0.8], false, 60),
+  shot('CHASE', 'PLAYER', [0, 0, 0, 0], false, 0),
+  shot('LOW', 'VEHICLE', [-4, 0, 0.5, 1], false, 60),
+  shot('QUARTER', 'VEHICLE', [-5, 3, 1.2, 1], false, 60),
+  shot('FRONT', 'VEHICLE', [8, 0, 1.2, 1], true, 60),
+  shot('FRONT QUARTER', 'VEHICLE', [6, 3, 1.2, 1], true, 60),
+  shot('APPROACH', 'VEHICLE', [120, 3.5, 1.5, 0], true, 0),
+  shot('GOAL', 'GOAL', [-15, 3.5, 1.5, 0], false, 0),
+]);
 
 /**
- * How the shots are taken, metres, seconds and shares of the shown vehicle's speed:
- *
- * - `intro`: the course film's camera, along the centre of the road at `speed` m/s (100 km/h), `height` over it, from
- *   the front of the grid;
- * - `start`: `behind` the rearmost vehicle on the grid, `height` over the road's centre, until the shown vehicle is
- *   `away` from it;
- * - `fixed`: a point `ahead` of the shown vehicle and `aside` of its line toward the road's centre, `height` over the
- *   road, until it is `away`; then the next point ahead of it;
- * - `passed`: `ahead` of it and `aside`, `height` over the road, travelling at `speed` of its speed until it is `away`;
- * - `left`: right behind it from `behind`, `height` over the road, travelling at `speed` of its speed; back right
- *   behind it once it is `away`;
- * - `chase`: the player's camera;
- * - `goal`: `before` the finishing line and `aside` toward the centre, `height` over the road, from when the shown
- *   vehicle has `approach` to go to the line, if it is still `clear` short of the camera.
- *
- * Every camera but `chase` looks along the road ([route camera](../view/route-camera.ts)): the intro's and START's
- * along its centre, the others along the shown vehicle's line. The race's shots after START take turns, each `cut`
- * seconds; a shot that ends sooner ends there, and FIXED ends at its next point after its time.
+ * The films' timing: the course film's camera travels the road's centre at `intro.speed` m/s (100 km/h), `intro.height`
+ * over it, from the front of the grid; every shot but START and GOAL lasts `cut` seconds; GOAL takes over once the shown
+ * vehicle has `goal.approach` to go to the line it finishes at, while its camera is still `goal.clear` ahead of it.
  */
-export const DEMO_SHOTS = Object.freeze({
+export const DEMO_FILM = Object.freeze({
   intro: { speed: 100 / 3.6, height: 4 },
-  start: { behind: 10, height: 3, away: 150 },
-  fixed: { ahead: 30, aside: 3.5, height: 1.5, away: 150 },
-  passed: { ahead: 25, aside: 2.5, height: 1.2, speed: 0.7, away: 120 },
-  left: { behind: 6, height: 2, speed: 0.8, away: 60 },
-  goal: { before: 15, aside: 3.5, height: 1.5, approach: 150, clear: 20 },
   cut: 15,
-  race: ['FIXED', 'PASSED', 'LEFT', 'CHASE'] as const,
+  goal: { approach: 150, clear: 20 },
 });
 
 /**
@@ -69,7 +84,7 @@ export interface Film {
 }
 
 /**
- * The course film: a camera travelling the road's centre (`DEMO_SHOTS.intro`) over a course scene of its own with no
+ * The course film: a camera travelling the road's centre (`DEMO_FILM.intro`) over a course scene of its own with no
  * vehicle, its window following the camera, each fork taking its first exit. It ends when its `words` have run once on
  * the ticker, or short of a route's end.
  */
@@ -91,7 +106,7 @@ export function createCourseFilm(
     if (tail.section.outgoing.length > 1 && s + runtime.coverage.forwardMeters > runtime.route.end)
       runtime.selectSuccessor(tail.section.outgoing[0]!);
     runtime.refresh(s, s);
-    camera = routeCamera(scene.world, { s, l: 0, height: DEMO_SHOTS.intro.height, aim: 0 }, definition);
+    camera = routeCamera(scene.world, { s, l: 0, height: DEMO_FILM.intro.height, aim: 0 }, definition);
   };
   travel();
   return {
@@ -100,7 +115,7 @@ export function createCourseFilm(
       return ended;
     },
     step() {
-      s += DEMO_SHOTS.intro.speed * SIM_DT;
+      s += DEMO_FILM.intro.speed * SIM_DT;
       const end = runtime.route.terminal;
       if (++taken > steps || (end !== null && s + RENDER_FAR_DEPTH_METERS / 4 > end)) ended = true;
       else travel();
@@ -154,110 +169,86 @@ export function createDemoReel(
 }
 
 /**
- * The race film's camera director: START, the race's turns and GOAL over a watched run, from what it sees after each
- * step. It keeps every camera within the run's resident route: a shot that would leave it ends.
+ * The race film's camera director over a watched run, from what it sees after each step: START, then the shots based
+ * on the shown vehicle in the table's order, then GOAL. A camera stands only while the run's resident route holds what
+ * it sees, from its station on along the way it looks; one that would not ends its shot, standing at the last station
+ * that holds it.
  */
 export function createDemoDirector(definition: CameraDefinition) {
-  let shot: DemoShot = 'START',
-    shotSteps = 0,
+  const START = 0,
+    GOAL = DEMO_SHOTS.length - 1;
+  let index = START,
+    steps = 0,
     // Whether the latest step cut to a new shot.
     cutNow = false,
-    // The race's turn: which of `DEMO_SHOTS.race` is shown.
-    turn = -1,
-    place: RoutePlace = { s: 0, l: 0, height: DEMO_SHOTS.start.height, aim: 0 },
+    place: RoutePlace = { s: 0, l: 0, height: 0, aim: 0 },
     previousShown: number | null = null,
-    // Whether START has its place: behind the grid as the run first shows it.
-    started = false,
     camera: CameraState | null = null;
-  const cut = (next: DemoShot, at: RoutePlace) => {
-    shot = next;
-    shotSteps = 0;
-    cutNow = true;
-    place = at;
-  };
   // Which side of the shown vehicle's line a camera beside it stands: toward the road's centre, on the road.
   const side = (l: number) => (l > 0 ? -1 : 1);
-  // A camera beside the shown vehicle's line at `l`, `ahead` of it at `s`, looking along its line.
-  const beside = (s: number, l: number, at: { readonly aside: number; readonly height: number }, ahead: number) => ({
-    s: s + ahead,
-    l: l + side(l) * at.aside,
-    height: at.height,
-    aim: l,
-  });
-  const raceShot = (facts: RunSight) => {
-    turn = (turn + 1) % DEMO_SHOTS.race.length;
-    const next = DEMO_SHOTS.race[turn]!;
-    const { s, l } = facts.shown.course;
-    if (next === 'FIXED') cut(next, beside(s, l, DEMO_SHOTS.fixed, DEMO_SHOTS.fixed.ahead));
-    else if (next === 'PASSED') cut(next, beside(s, l, DEMO_SHOTS.passed, DEMO_SHOTS.passed.ahead));
-    else if (next === 'LEFT') cut(next, { s: s - DEMO_SHOTS.left.behind, l, height: DEMO_SHOTS.left.height, aim: l });
-    else cut(next, place);
+  // A shot's place from its base, its camera on the base's line or beside it.
+  const placeOf = (row: DemoShot, sight: RunSight): RoutePlace => {
+    const { s, l } = sight.shown.course;
+    const line = row.base === 'REARMOST' ? 0 : l;
+    const at = row.base === 'REARMOST' ? sight.rearmost : row.base === 'GOAL' ? sight.next!.s : s;
+    return { s: at + row.ahead, l: line + side(line) * row.aside, height: row.height, aim: line, back: row.back };
+  };
+  // The first station a camera at `place` must find resident: its own, or the drawing depth behind it looking back.
+  const needs = (place: RoutePlace) => place.s - (place.back ? RENDER_FAR_DEPTH_METERS : RENDER_NEAR_DEPTH_METERS);
+  const stands = (place: RoutePlace, sight: RunSight) => needs(place) >= sight.retainedFrom;
+  const cut = (next: number, at: RoutePlace) => {
+    [index, steps, cutNow, place] = [next, 0, true, at];
+  };
+  // The next shot based on the shown vehicle, in the table's order, whose camera can stand.
+  const advance = (sight: RunSight) => {
+    for (let next = index + 1; ; next++) {
+      const row = DEMO_SHOTS[next % GOAL]!;
+      if (row.base !== 'VEHICLE' && row.base !== 'PLAYER') continue;
+      const at = placeOf(row, sight);
+      if (row.base === 'PLAYER' || stands(at, sight)) return cut(next % GOAL, at);
+    }
   };
   return Object.freeze({
     get shot() {
-      return shot;
+      return DEMO_SHOTS[index]!.name;
     },
     /** The camera of the latest step; null in CHASE, the player's camera. */
     get camera(): CameraState | null {
       return camera;
     },
     /** One step, after the run's, with what it sees of the run; whether it cut to a new shot. */
-    step(facts: RunSight): boolean {
-      shotSteps++;
+    step(sight: RunSight): boolean {
       cutNow = false;
-      const { s, l } = facts.shown.course;
+      const { s } = sight.shown.course;
       const moved = previousShown === null ? 0 : s - previousShown;
+      if (previousShown === null) cut(START, placeOf(DEMO_SHOTS[START]!, sight));
       previousShown = s;
-      const lowest = facts.retainedFrom + RENDER_NEAR_DEPTH_METERS;
-      if (!started) {
-        started = true;
-        place = {
-          s: Math.max(lowest, facts.rearmost - DEMO_SHOTS.start.behind),
-          l: 0,
-          height: DEMO_SHOTS.start.height,
-          aim: 0,
-        };
-      }
-      // GOAL takes over the shot once the shown vehicle nears the line it finishes at, while it is short of the camera.
-      const { next } = facts;
-      if (
-        shot !== 'GOAL' &&
-        shot !== 'START' &&
-        next?.finish &&
-        next.s - s <= DEMO_SHOTS.goal.approach &&
-        next.s - DEMO_SHOTS.goal.before - s >= DEMO_SHOTS.goal.clear
-      )
-        cut('GOAL', beside(s, l, DEMO_SHOTS.goal, next.s - DEMO_SHOTS.goal.before - s));
-      const away = s - place.s;
-      const timeUp = shotSteps * SIM_DT >= DEMO_SHOTS.cut;
-      if (shot === 'START') {
-        if (facts.status === 'RUNNING' && (away >= DEMO_SHOTS.start.away || place.s < lowest)) raceShot(facts);
-      } else if (shot === 'FIXED') {
-        if (away >= DEMO_SHOTS.fixed.away || place.s < lowest) {
-          if (timeUp) raceShot(facts);
+      steps++;
+      let row = DEMO_SHOTS[index]!;
+      if (row.speed > 0) place = { ...placeOf(row, sight), s: place.s + row.speed * moved };
+      const gone = s - place.s >= row.away || !stands(place, sight);
+      const { next } = sight;
+      if (row.base === 'REARMOST') {
+        if (sight.status === 'RUNNING' && gone) advance(sight);
+      } else if (row.base !== 'GOAL') {
+        const goal = next?.finish ? placeOf(DEMO_SHOTS[GOAL]!, sight) : null;
+        if (goal && next!.s - s <= DEMO_FILM.goal.approach && goal.s - s >= DEMO_FILM.goal.clear) cut(GOAL, goal);
+        else if (steps * SIM_DT >= DEMO_FILM.cut) advance(sight);
+        else if (row.base === 'VEHICLE' && gone) {
+          // The vehicle has left the camera: the shot is set again on its row, keeping its time, if it can stand.
+          const again = placeOf(row, sight);
+          if (!stands(again, sight)) advance(sight);
           else {
-            const kept = shotSteps;
-            cut('FIXED', beside(s, l, DEMO_SHOTS.fixed, DEMO_SHOTS.fixed.ahead));
-            shotSteps = kept;
+            const kept = steps;
+            cut(index, again);
+            steps = kept;
           }
         }
-      } else if (shot === 'PASSED') {
-        place = { ...place, s: place.s + DEMO_SHOTS.passed.speed * moved };
-        if (away >= DEMO_SHOTS.passed.away || timeUp || place.s < lowest) raceShot(facts);
-      } else if (shot === 'LEFT') {
-        place = { s: place.s + DEMO_SHOTS.left.speed * moved, l, height: DEMO_SHOTS.left.height, aim: l };
-        if (timeUp) raceShot(facts);
-        else if (away >= DEMO_SHOTS.left.away || place.s < lowest) {
-          const kept = shotSteps;
-          cut('LEFT', { s: s - DEMO_SHOTS.left.behind, l, height: DEMO_SHOTS.left.height, aim: l });
-          shotSteps = kept;
-        }
-      } else if (shot === 'CHASE') {
-        if (timeUp) raceShot(facts);
       }
-      // A roadside camera the run's resident route no longer holds stands at its first station.
-      if (place.s < lowest) place = { ...place, s: lowest };
-      camera = shot === 'CHASE' ? null : routeCamera(facts.world, place, definition);
+      row = DEMO_SHOTS[index]!;
+      // A camera the run's resident route no longer holds stands at the last station that holds it.
+      if (!stands(place, sight)) place = { ...place, s: place.s + sight.retainedFrom - needs(place) };
+      camera = row.base === 'PLAYER' ? null : routeCamera(sight.world, place, definition);
       return cutNow;
     },
   });

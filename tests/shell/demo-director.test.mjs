@@ -13,7 +13,8 @@ import { createRaceSprites } from '../../src/view/race-sprites.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { gridRouteS } from '../../src/course/course-route.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
-import { createCourseFilm, createDemoDirector, DEMO_SHOTS, tickerSteps } from '../../src/shell/demo-director.js';
+import { createCourseFilm, createDemoDirector, DEMO_FILM, tickerSteps } from '../../src/shell/demo-director.js';
+import { RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
 import { routeCamera } from '../../src/view/route-camera.js';
 
 const content = await readDeliveredContent();
@@ -84,8 +85,14 @@ async function film(id, { speed, finish, steps }) {
         world: scene.world,
         retainedFrom: scene.runtime.window.occurrences[0].start,
       });
-      if (director.shot !== 'CHASE')
-        assert.ok(director.camera.s >= scene.runtime.window.occurrences[0].start, `${id} camera within the route`);
+      // A camera looking back reads the route the other way, as far back as it draws.
+      const { camera } = director;
+      if (camera)
+        assert.ok(
+          (camera.reversed ? -camera.s - RENDER_FAR_DEPTH_METERS : camera.s) >=
+            scene.runtime.window.occurrences[0].start - 1e-6,
+          `${id} ${director.shot} camera within the route`,
+        );
     }
     shots.push(courseFilm.ended ? director.shot : 'INTRO');
     if (step % 15 === 0) frame(step);
@@ -102,13 +109,10 @@ test('the demo introduces the course, then starts behind the grid and takes the 
   assert.deepEqual(shots.slice(0, INTRO), Array(INTRO).fill('INTRO'));
   assert.deepEqual(order(shots).slice(0, 6), ['INTRO', 'START', 'FIXED', 'PASSED', 'LEFT', 'CHASE']);
   assert.equal(order(shots).filter((shot) => shot === 'GOAL').length, 1);
-  // Each turn of the race lasts at most a cut, FIXED until its last point has seen the vehicle away; the goal stays
-  // to the end.
+  // Each shot after START lasts at most a cut; the goal stays to the end.
   const runs = [];
   shots.forEach((shot, i) => (shot === shots[i - 1] ? runs[runs.length - 1]++ : runs.push(1)));
-  const fixedPoint = (DEMO_SHOTS.fixed.ahead + DEMO_SHOTS.fixed.away) / 40;
-  assert.ok(runs.slice(3, 6).every((n) => n <= seconds(DEMO_SHOTS.cut) + 1));
-  assert.ok(runs[2] <= seconds(DEMO_SHOTS.cut + fixedPoint) + 1);
+  assert.ok(runs.slice(2, -1).every((n) => n <= seconds(DEMO_FILM.cut) + 1));
   assert.equal(shots.at(-1), 'GOAL');
 });
 
