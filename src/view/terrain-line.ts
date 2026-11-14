@@ -54,7 +54,7 @@ const THIN_SPAN_SCREEN_ROWS = 1;
  * so this clipping is not an ordinary gameplay special case.
  */
 function computeForwardVisibleInterval(
-  plan: { readonly coordinates: PlanCoordinateReader },
+  plan: { readonly coordinates: Pick<PlanCoordinateReader, 'forwardEnd'> },
   extent: { readonly start: number; readonly end: number },
   cameraYaw: number,
   sCamera: number,
@@ -127,7 +127,7 @@ const ascending = (a: number, b: number) => a - b;
 const painterOrder = (a: TerrainLine, b: TerrainLine) => b.d - a.d || a.y - b.y;
 
 export function generateTerrainLines(
-  plan: { readonly coordinates: PlanCoordinateReader },
+  plan: { readonly coordinates: Pick<PlanCoordinateReader, 'toWorld' | 'forwardEnd'> },
   camera: PseudoCamera,
   parameters: TerrainRenderParameters,
   workspace = createTerrainWorkspace(),
@@ -278,7 +278,7 @@ function depthAtScreenBoundary(screenY: number, aY: number, bY: number, dMin: nu
 }
 
 function createTerrainLine(
-  plan: { readonly coordinates: PlanCoordinateReader },
+  plan: { readonly coordinates: Pick<PlanCoordinateReader, 'toWorld'> },
   camera: PseudoCamera,
   parameters: TerrainRenderParameters,
   d: number,

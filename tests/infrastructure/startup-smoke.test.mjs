@@ -18,6 +18,7 @@ import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { gridRouteS } from '../../src/course/course-route.js';
+import { routeCamera } from '../../src/view/route-camera.js';
 
 const definitionContent = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
@@ -34,8 +35,9 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
     const steering = driverSteering(definitions.driving.compiledDriving.defaultSteering, model);
     // The player's grid slot, as a product run places it.
     const slot = courseStartGrid(course.gates, entry.listing.form === 'bike').at(-1);
+    const start = gridRouteS(scene.runtime.route, slot);
     const vehicle = createVehicle(model, scene.world, {
-      s: gridRouteS(scene.runtime.route, slot),
+      s: start,
       l: slot.l,
       initialSpeed: 0,
     });
@@ -62,5 +64,9 @@ for (const { id: stem } of content.manifest.files.filter((file) => file.kind ===
         target.pixels.some((pixel) => pixel !== 0),
         `frame ${frame} was not drawn`,
       );
+      // A camera ahead of the grid looking back draws the road it reads the other way.
+      const back = routeCamera(scene.world, { s: start + 20, l: 0, height: 2, aim: 0, back: true }, CAMERA_DEFINITION);
+      scene.render(target, null, back, [], [], [], result);
+      assert.ok(result.stripGround.outputPixels > 0, `backward frame ${frame} drew no ground`);
     }
   });

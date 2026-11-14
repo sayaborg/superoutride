@@ -441,6 +441,20 @@ camera height grows without bound, since `cos(phi)` approaches zero. The frequen
 value ([Calibration](calibration.md#camera-settings)). A new camera, recovery, a run rebuild and START place the
 sprung height at the base point, at rest relative to it; route seams need no reset.
 
+### A camera looking back
+
+A camera standing on the route by itself ([route camera](../src/view/route-camera.ts)) may look back along it (K,
+2026-11-14). It is a forward camera on the same road read the other way ([reversed view](../src/view/reversed-view.ts)):
+station s reversed, lateral l mirrored and the heading turned half round, world points the road's own; its `s` and
+`follows` are on that reversed ruler and it says so (`reversed`). The scene makes the one choice of ruler by the camera
+and reads everything the renderer draws through it: the plan, drawn height, extent, ground and walls follow the road,
+the sky stands where it stands and turns with the camera's yaw, and every picture stands at its reversed station
+([Image assets](image-assets.md#picture-contract) for what a picture shows from behind). The renderer, ground, walls
+and pictures have no direction of their own. The reversed plan finds where the road turns from the camera's yaw by
+stepping the turned heading a metre at a time and bisecting the step that turns it, the plan's own scan running forward
+alone. A reversed camera draws no player of its own: every vehicle is drawn as any other. Nothing widens the loading
+window for it: it shows what the resident route holds behind it.
+
 ## Ground and background
 
 BG is one infinite tiled plane, the frame's only picture layer, and no palette is rewritten while driving (K,

@@ -79,7 +79,7 @@ export function createRenderMeasurements(): RenderMeasurements {
 interface RenderScene {
   /** The frame's background: a map, or a transition between two. */
   readonly background: { draw(target: SoftwareSurface, camera: PseudoCamera): void };
-  readonly guide: { readonly coordinates: PlanCoordinateReader };
+  readonly guide: { readonly coordinates: Pick<PlanCoordinateReader, 'toWorld' | 'forwardEnd'> };
   readonly camera: PseudoCamera;
   /**
    * The player, drawn after the ground and walls and among the pictures by its base point's depth, before the nearer
@@ -182,6 +182,7 @@ export function renderDriving(
     const projected = pseudoProject(anchor, camera, workspace.shadowProjection);
     const shadow = (pool[shadows.length] ??= {
       frame: null!,
+      flip: false,
       left: 0,
       top: 0,
       scale: 0,

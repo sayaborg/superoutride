@@ -7,7 +7,7 @@ import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { TireObservation } from '../vehicle/physics/vehicle-tire-observation.js';
-import { RENDER_FAR_DEPTH_METERS, RENDER_NEAR_DEPTH_METERS } from './camera.js';
+import { RENDER_FAR_DEPTH_METERS, RENDER_NEAR_DEPTH_METERS, type CameraState } from './camera.js';
 import type { CourseSprite } from './course-sprite.js';
 
 /** The most puffs alive at once, an author's value for performance; a new puff replaces the oldest beyond it. */
@@ -37,10 +37,11 @@ interface PatchState {
   side: number;
 }
 
-/** The scene a step reads: the Route's coordinates and height, and its resident window. */
+/** The scene a step reads: the Route's coordinates and height, its resident window, and a station's camera depth. */
 interface PuffScene {
   readonly world: { readonly coordinates: PlanCoordinateReader; readonly height: ProfileReader };
   readonly runtime: { readonly window: { at(s: number): unknown } };
+  depth(camera: CameraState, s: number): number;
 }
 
 /**
@@ -160,7 +161,7 @@ export function createTirePuffs(
      * resident Route; then every vehicle of `actors` whose route position lies within the drawing depth of `camera`
      * throws its new puffs.
      */
-    advance(actors: readonly CompetitorObservation[], camera: { readonly s: number }, scene: PuffScene) {
+    advance(actors: readonly CompetitorObservation[], camera: CameraState, scene: PuffScene) {
       const { height } = scene.world;
       let kept = 0;
       for (const puff of live) {
@@ -190,7 +191,7 @@ export function createTirePuffs(
           rear: { rolling: 0, sliding: 0, side: 1 },
         };
         seen.set(actor.id, state);
-        const depth = actor.course.s - camera.s;
+        const depth = scene.depth(camera, actor.course.s);
         if (depth < RENDER_NEAR_DEPTH_METERS || depth > RENDER_FAR_DEPTH_METERS) continue;
         const { frontStation, rearStation } = vehicle;
         throwFrom(

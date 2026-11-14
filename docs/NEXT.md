@@ -70,7 +70,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage AT](#stage-at--the-attract-demo-remade)'s AT-1 onward, by K's instruction of 2026-11-14; beside it
+Next PR: [Stage AT](#stage-at--the-attract-demo-remade)'s AT-2 onward, by K's instruction of 2026-11-14; beside it
 [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving)'s AD-3, beside [Stage
 RC](#stage-rc--one-recovery)'s RC-3 (awaiting K's word for main); in [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
@@ -83,21 +83,15 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 ## Stage AT — The attract demo remade
 
 K's requirements of 2026-11-14: the demo is random each time; more camera work, with cameras that look back at the
-vehicle (an unoriented standing board seen from behind is mirrored at half brightness); UP, DOWN, LEFT and RIGHT
-change it while it shows; no fixed text, everything a ticker of series, course and machine. The stage's first aim is
-that the demo, with these added, is smaller and has fewer rules than before: its shape was mended first (AT-0: films,
-the run only watched, one line thinning), and nothing is added by branches, exceptions or copies. Each PR states the
-line counts of the demo's files before and after; at the stage's end the demo's parts of `attract-demo.ts`,
-`demo-director.ts` and `run-assembly.ts` stay near the 560 lines they had, or the shape is reviewed and reported. K's
-decisions: CHASE stays the player's camera; UP and DOWN step the class. Awaiting K (the recommended default
-meanwhile): a machine's words are built from its listing's facts, with no new text.
+vehicle (an unoriented standing board seen from behind is mirrored at half brightness); UP, DOWN, LEFT and RIGHT change
+it while it shows; no fixed text, everything a ticker of series, course and machine. The stage's first aim is that the
+demo, with these added, is smaller and has fewer rules than before: its shape was mended first (AT-0: films, the run
+only watched, one line thinning), and cameras look back through one reversed reader (AT-1); nothing is added by
+branches, exceptions or copies. Each PR states the line counts of the demo's files before and after; at the stage's end
+the demo's parts of `attract-demo.ts`, `demo-director.ts` and `run-assembly.ts` stay near the 560 lines they had, or the
+shape is reviewed and reported. K's decisions: CHASE stays the player's camera; UP and DOWN step the class. Awaiting K
+(the recommended default meanwhile): a machine's words are built from its listing's facts, with no new text.
 
-- **AT-1 — Cameras that look back.** A backward camera is a forward camera reading the same road through a reversed
-  reader (s reversed, l mirrored, heading turned half round); no renderer, ground, wall or sprite branches on the
-  direction. One added rule: an unoriented standing board seen from behind is drawn at half brightness, its palette made
-  once by `rgb555`'s halving; pictures lying on the road keep theirs. Sprite drawing gains a horizontal flip. A backward
-  camera stands only while what it sees is resident. The smoke renders a few backward frames; the PR shows TSUKUBA and
-  OUTRUN at one place forward and backward. Owners: [image assets](image-assets.md).
 - **AT-2 — Shots as one table.** Every shot is a row of one shape (base: the shown vehicle, the grid's rearmost or the
   goal line; ahead, aside, height; speed as a share of the vehicle's, 0 standing; direction; distance it ends at), the
   director reading the table and never a shot's name: START, FIXED, PASSED, LEFT, CHASE, LOW, QUARTER, FRONT, FRONT

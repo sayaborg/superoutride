@@ -46,14 +46,20 @@ export type SpriteExtend = 'left' | 'right';
 
 /**
  * An image the renderer draws: its levels, level `k` at `40 / 2^k` texels per metre, for a board extending sideways the
- * way it repeats, and whether all of it lies on the ground.
+ * way it repeats, whether all of it lies on the ground, and whether it is drawn flipped left to right about its base
+ * point, its shadow with it, as a late-1980s board's sprite hardware flips one.
  */
 export interface SpriteAsset {
   readonly name: string;
   readonly levels: readonly SpriteLevel[];
   readonly extend?: SpriteExtend;
   readonly lies?: true;
+  readonly flip?: true;
 }
+
+/** A frame's base point across, in texel-centre coordinates, as `flip` draws it. */
+export const frameAnchorX = (frame: SpriteFrame, flip: boolean | undefined) =>
+  flip ? frame.width - 1 - frame.anchorX : frame.anchorX;
 
 /** A shadow master and its build-generated levels: binary frames, nonzero opaque. */
 export interface SpriteShadowDocument {

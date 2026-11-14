@@ -1,4 +1,4 @@
-import { selectSpriteLevel, type SpriteAsset, type SpriteFrame } from '../image/sprite.js';
+import { frameAnchorX, selectSpriteLevel, type SpriteAsset, type SpriteFrame } from '../image/sprite.js';
 import { levelScale } from './sprite.js';
 
 /**
@@ -52,6 +52,8 @@ export function liesOn(place: GroundPlace, y: number, d: number): boolean {
  */
 export interface PlacedShadow extends GroundPlace {
   frame: SpriteFrame;
+  /** Whether the frame is flipped left to right, as its picture is. */
+  flip: boolean;
   left: number;
   top: number;
   scale: number;
@@ -75,8 +77,9 @@ export function placeShadow(
   if (!frame) return false;
   const scale = levelScale(pixelsPerMeter, levelIndex);
   out.frame = frame;
+  out.flip = asset.flip === true;
   out.scale = scale;
-  out.left = xAnchor - scale * (frame.anchorX + 0.5);
+  out.left = xAnchor - scale * (frameAnchorX(frame, asset.flip) + 0.5);
   out.top = yAnchor - scale * (frame.anchorY + 0.5);
   placeOnGround(terrain, d, yAnchor, out);
   return true;
@@ -114,7 +117,7 @@ export function shadowRowSpans(
   for (let i = 0; i < shadows.length; i++) {
     const shadow = shadows[i]!;
     if (!liesOn(shadow, row.y, row.d)) continue;
-    const { frame, left, top, scale } = shadow;
+    const { frame, flip, left, top, scale } = shadow;
     // The texel rows near this screen row; each takes the rows of its own span.
     const first = Math.max(0, Math.floor((row.y - top) / scale) - 1),
       last = Math.min(frame.height - 1, Math.floor((row.y + 1 - top) / scale) + 1);
@@ -129,7 +132,9 @@ export function shadowRowSpans(
         }
         const runStart = x;
         while (x < frame.width && frame.pattern.indexAt(base + x)) x++;
-        pixelSpan(left + runStart * scale, left + x * scale, span);
+        // A flipped frame's run of texels lies mirrored across the frame.
+        if (flip) pixelSpan(left + (frame.width - x) * scale, left + (frame.width - runStart) * scale, span);
+        else pixelSpan(left + runStart * scale, left + x * scale, span);
         const start = Math.max(0, span.start),
           end = Math.min(width, span.end);
         if (start < end) out.push(start, end);

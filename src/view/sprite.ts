@@ -1,6 +1,7 @@
 import { PIXEL_EDGE_TOLERANCE } from './pixel-coverage.js';
 import { SoftwareSurface } from './software-surface.js';
 import {
+  frameAnchorX,
   selectSpriteLevel,
   spriteRepeatPeriodMeters,
   SPRITE_SOURCE_TEXELS_PER_METER,
@@ -35,7 +36,7 @@ export function scaledSpriteBounds(
   const levelIndex = selectSpriteLevel(asset, pixelsPerMeter);
   const level = asset.levels[levelIndex]!;
   const scale = levelScale(pixelsPerMeter, levelIndex);
-  const left = -scale * (level.anchorX + 0.5),
+  const left = -scale * (frameAnchorX(level, asset.flip) + 0.5),
     top = -scale * (level.anchorY + 0.5);
   return { left, top, right: left + scale * level.width, bottom: top + scale * level.height };
 }
@@ -43,8 +44,8 @@ export function scaledSpriteBounds(
 /**
  * Draw an image's picture with its anchor at (`xAnchor`, `yAnchor`) and `pixelsPerMeter` at its base point: the
  * nearest-octave level, each pixel taking the texel under its centre; every row from `rowStart` to the one before
- * `rowEnd` is drawn, those below the anchor too. A board extending sideways repeats the level the way it extends, to the
- * frame's edge, every image width (`W / 40` m at every level).
+ * `rowEnd` is drawn, those below the anchor too, flipped about the anchor when the image flips. A board extending
+ * sideways repeats the level the way it extends, to the frame's edge, every image width (`W / 40` m at every level).
  */
 export function drawScaledSprite(
   target: SoftwareSurface,
@@ -62,7 +63,7 @@ export function drawScaledSprite(
     return { outputSamples: 0, writtenPixels: 0, clipped: true };
   }
 
-  const leftBoundary = xAnchor - scale * (level.anchorX + 0.5);
+  const leftBoundary = xAnchor - scale * (frameAnchorX(level, asset.flip) + 0.5);
   const topBoundary = yAnchor - scale * (level.anchorY + 0.5);
   const rightBoundary = leftBoundary + scale * level.width;
   const bottomBoundary = topBoundary + scale * level.height;
@@ -100,7 +101,7 @@ export function drawScaledSprite(
       const sx = Math.floor(u);
       if (sx < 0 || sx >= level.width) continue;
       outputSamples += 1;
-      const index = level.pattern.indexAt(patternRow + sx);
+      const index = level.pattern.indexAt(patternRow + (asset.flip ? level.width - 1 - sx : sx));
       if (index === SPRITE_TRANSPARENT_INDEX) continue;
       target.pixels[targetRow + x] = level.paletteRgb555[index]!;
       writtenPixels += 1;

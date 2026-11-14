@@ -571,6 +571,14 @@ generator follow this contract; this section is its only statement:
 Course images are saved with their pyramids, compiled from the master when written ([Completed sprite
 images](#completed-sprite-images)): a level is a reduction of the master, not a picture of its own; the movable objects' shadows follow the size-0 camera.
 
+A picture may be drawn flipped left to right about its anchor (`flip`), its shadow with it, as a late-1980s board's
+sprite hardware flips one. A camera looking back along the road ([Architecture](architecture.md#a-camera-looking-back))
+sees a picture with its own image for each direction, a vehicle's, by the direction rule above, and the front of a
+vehicle is its own picture. A standing board with no image for each direction (a course image, a tire puff, an
+explosion) shows its back: the picture flipped, extending sideways the other way, in its palettes at half brightness,
+made once by the one half-brightness operation of RGB555 (`boardBack`). A picture lying on the ground is no board and
+has no back: it is drawn as it is.
+
 ## Vehicle sprite sets
 
 Each vehicle sprite set is authored as one document, `content/sprites/<set>.json`, using

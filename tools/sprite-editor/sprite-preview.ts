@@ -86,7 +86,17 @@ export function createRoadPreview() {
     }),
   );
   const { focalLength, horizonRow, height } = CAMERA_DEFINITION;
-  const shadow: PlacedShadow = { frame: null!, left: 0, top: 0, scale: 0, d: 0, row: 0, dNear: 0, dFar: 0 };
+  const shadow: PlacedShadow = {
+    frame: null!,
+    flip: false,
+    left: 0,
+    top: 0,
+    scale: 0,
+    d: 0,
+    row: 0,
+    dNear: 0,
+    dFar: 0,
+  };
   const spans: number[] = [];
   // The picture asked for, the one last drawn, and whether the sizes are on the screen.
   type Wanted = { readonly asset: SpriteLodAsset; readonly palette: string };

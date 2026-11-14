@@ -67,6 +67,8 @@ export interface CameraState extends PseudoCamera {
    * right beyond the limit, -1 left, 0 while it is within the limit.
    */
   readonly heldAtLimit: -1 | 0 | 1;
+  /** It reads the road the other way, looking back along it: its `s` and `follows` are on the reversed ruler. */
+  readonly reversed?: true;
 }
 
 const planWorkspaces = new WeakMap<

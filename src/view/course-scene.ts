@@ -18,6 +18,7 @@ import type { KnockedObjectObservation } from '../race/object-contacts.js';
 import { createPlanCoordinateSample } from '../course/geometry/plan-coordinate.js';
 import { basePoint, type BaseBody, type BasePoint } from './base-point.js';
 import { drawSky } from './background-transition.js';
+import { reverseCourseView, type CourseView } from './reversed-view.js';
 
 /** The scene's loading window: the product camera stands `cameraDistance` behind the player's route position. */
 const COURSE_LOADING_WINDOW: CourseLoadingWindow = Object.freeze({
@@ -47,11 +48,57 @@ export function createCourseScene(
   let lastRenderData: ReturnType<typeof rendering.read> | null = null;
   let lastSelection: typeof runtime.route.occurrences | null = null;
   let staticSpriteCount = 0;
-  let terrainParameters: Parameters<typeof renderDriving>[1]['terrainParameters'];
+  // The course as a camera reads it, forward and the other way (made when first wanted), for the latest render data,
+  // with the terrain's parameters on each ruler; and the static pictures read the other way.
+  type Viewed = {
+    readonly view: CourseView;
+    readonly terrain: Parameters<typeof renderDriving>[1]['terrainParameters'];
+  };
+  let viewsOf: ReturnType<typeof rendering.read> | null = null,
+    forward: Viewed,
+    reversed: Viewed | null = null,
+    reversedStatic: CourseSprite[] | null = null;
+  const viewed = (view: CourseView): Viewed => ({
+    view,
+    terrain: {
+      screenHeight: LOGICAL_HEIGHT,
+      dMin: RENDER_NEAR_DEPTH_METERS,
+      dMax: RENDER_FAR_DEPTH_METERS,
+      height: view.renderHeight,
+      extent: view.extent,
+    },
+  });
+  // The one choice of ruler: a camera reads the course forward, or the other way when it is reversed.
+  const viewFor = (camera: CameraState): Viewed => {
+    const renderData = rendering.read();
+    if (viewsOf !== renderData) {
+      const { coordinates, height, renderHeight } = runtime.readers;
+      forward = viewed({
+        coordinates,
+        height,
+        renderHeight,
+        extent: runtime.window,
+        ground: renderData.ground,
+        walls: renderData.walls,
+        skyAt: renderData.skyAt,
+        skyYawAt: renderData.skyYawAt,
+        station: (s) => s,
+        picture: (sprite) => sprite,
+      });
+      [viewsOf, reversed] = [renderData, null];
+    }
+    return camera.reversed ? (reversed ??= viewed(reverseCourseView(forward.view))) : forward;
+  };
+  // The pictures as the frame's camera reads them.
+  const seen: CourseSprite[] = [];
   return Object.freeze({
     runtime,
     get world() {
       return runtime.readers;
+    },
+    /** A route station's depth from `camera`, on the ruler it reads the course by. */
+    depth(camera: CameraState, s: number) {
+      return viewFor(camera).view.station(s) - camera.s;
     },
     render(
       target: Parameters<typeof renderDriving>[0],
@@ -93,13 +140,7 @@ export function createCourseScene(
             shadow: Object.freeze({ y: readers.height.sample(footprint.s) }),
           }),
         }));
-        terrainParameters = {
-          screenHeight: LOGICAL_HEIGHT,
-          dMin: RENDER_NEAR_DEPTH_METERS,
-          dMax: RENDER_FAR_DEPTH_METERS,
-          height: readers.renderHeight,
-          extent: runtime.window,
-        };
+        reversedStatic = null;
         lastRenderData = renderData;
         lastSelection = selection;
       }
@@ -132,17 +173,30 @@ export function createCourseScene(
             show(occurrence.start + k.at!.s, k.at!.l - occurrence.lateralOrigin, pictures.landed);
       }
       for (const sprite of pictures) worldSprites.push(sprite);
+      const oriented = worldSprites.length;
       for (const sprite of vehicles) worldSprites.push(sprite);
       if (player) playerShadow.y = readers.height.sample(player.vehicle.course.s);
+      const { view, terrain } = viewFor(camera);
+      // A reversed camera reads every picture on its ruler, the vehicles' with their own pictures for each direction.
+      if (player && camera.reversed) throw new Error('A reversed camera draws the player as any other vehicle');
+      let shown: readonly CourseSprite[] = worldSprites;
+      if (camera.reversed) {
+        reversedStatic ??= worldSprites.slice(0, staticSpriteCount).map((sprite) => view.picture(sprite, false));
+        seen.length = 0;
+        seen.push(...reversedStatic);
+        for (let i = staticSpriteCount; i < worldSprites.length; i++)
+          seen.push(view.picture(worldSprites[i]!, i >= oriented));
+        shown = seen;
+      }
       return renderDriving(
         target,
         {
           // The sky at the point the camera follows, by its place alone: a still frame shows what a run shows there.
           background: {
-            draw: (surface, view) =>
-              drawSky(surface, renderData.skyAt(camera.follows), view, renderData.skyYawAt(camera.follows, camera.yaw)),
+            draw: (surface, pseudo) =>
+              drawSky(surface, view.skyAt(camera.follows), pseudo, view.skyYawAt(camera.follows, camera.yaw)),
           },
-          guide: readers,
+          guide: view,
           camera,
           player: player && {
             vehicle: player.vehicle,
@@ -150,11 +204,11 @@ export function createCourseScene(
             shadow: playerShadow,
             set: player.set,
           },
-          terrainParameters,
-          worldSprites,
-          walls: renderData.walls,
+          terrainParameters: terrain,
+          worldSprites: shown,
+          walls: view.walls,
         },
-        { ground: renderData.ground, workspace: renderWorkspace },
+        { ground: view.ground, workspace: renderWorkspace },
         measurements,
       );
     },
