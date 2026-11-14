@@ -2,13 +2,13 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "374f67fc54a533de0816fa3d6c682494e4c94a58f0d0dfeb7cad379f8984d6f8",
-  "procedureSha256": "b6499575d4d611f0278d33244b87d3806998c59c04e966a886e51a75db616102",
+  "procedureSha256": "60a5881ec2e98d2d8c17b5695b41151dc0720fdd0a9ef5fd2c9c1aad5195533d",
   "vehicles": [
     {
       "vehicleId": "LOTUS_79_SPECIAL",
       "vehicleSha256": "127a4bb5171a54a73b40a1666899fcf253b97f54671deffe8d7c74014800b9e6",
-      "initialSeconds": 58.808958560858585,
-      "after": [["test-GOAL", [53.66160569367544, 53.48833129919123, 53.79173836572366]]]
+      "initialSeconds": 58.98460461368681,
+      "after": [["test-GOAL", [53.94614853747741, 54.00311977556524, 53.97544295569651]]]
     }
   ]
 }

@@ -2,13 +2,13 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "cb8ce56f98b197a0350223b5a03ebb2654188ac28e86e7751399dee19d307057",
-  "procedureSha256": "b6499575d4d611f0278d33244b87d3806998c59c04e966a886e51a75db616102",
+  "procedureSha256": "60a5881ec2e98d2d8c17b5695b41151dc0720fdd0a9ef5fd2c9c1aad5195533d",
   "vehicles": [
     {
       "vehicleId": "LOTUS_79_SPECIAL",
       "vehicleSha256": "127a4bb5171a54a73b40a1666899fcf253b97f54671deffe8d7c74014800b9e6",
-      "initialSeconds": 139.08673263262273,
-      "after": [["suzuka-GOAL", [133.86763989388345, 134.0167029862435, 134.04860522648136]]]
+      "initialSeconds": 139.55353506577345,
+      "after": [["suzuka-GOAL", [134.13914231884652, 134.02841960463138, 134.16608907082343]]]
     }
   ]
 }

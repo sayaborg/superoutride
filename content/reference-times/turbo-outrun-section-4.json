@@ -2,16 +2,16 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "0badf1f5217d258d44d6cf0af323bc37222f19e88ba0eeba8902aede985eea7e",
-  "procedureSha256": "b6499575d4d611f0278d33244b87d3806998c59c04e966a886e51a75db616102",
+  "procedureSha256": "60a5881ec2e98d2d8c17b5695b41151dc0720fdd0a9ef5fd2c9c1aad5195533d",
   "vehicles": [
     {
       "vehicleId": "FERRARI_F40_1990",
       "vehicleSha256": "314746003813df4ac11e203564ee2aaef0f227e99ae1383c51dd7ef5336c9534",
-      "initialSeconds": 90.88081182128063,
+      "initialSeconds": 85.3714859568046,
       "after": [
-        ["oklahoma-city-CP", [57.30995882735293]],
-        ["denver-CP", [86.67974727171293]],
-        ["grand-canyon-CP", [60.090863317880206]]
+        ["oklahoma-city-CP", [57.32844681505165]],
+        ["denver-CP", [88.78721851648956]],
+        ["grand-canyon-CP", [65.0823197357478]]
       ]
     }
   ]

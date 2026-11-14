@@ -2,13 +2,13 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "33cc6c836d0f72e03da9b0bf242838b82ee802bc1699bb18b48ee23f55804fff",
-  "procedureSha256": "b6499575d4d611f0278d33244b87d3806998c59c04e966a886e51a75db616102",
+  "procedureSha256": "60a5881ec2e98d2d8c17b5695b41151dc0720fdd0a9ef5fd2c9c1aad5195533d",
   "vehicles": [
     {
       "vehicleId": "LOTUS_79_SPECIAL",
       "vehicleSha256": "127a4bb5171a54a73b40a1666899fcf253b97f54671deffe8d7c74014800b9e6",
-      "initialSeconds": 103.66060461728233,
-      "after": [["seaside-GOAL", [99.65058395258387, 99.65130052221576, 99.69523638389347]]]
+      "initialSeconds": 103.84908467162187,
+      "after": [["seaside-GOAL", [99.89323195003938, 99.74190594021769, 99.8399064527672]]]
     }
   ]
 }

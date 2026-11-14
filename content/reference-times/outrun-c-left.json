@@ -2,17 +2,17 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "d02c13ef210518540241929ee62363bba156e3ea1b1945bc821fd64133e5f375",
-  "procedureSha256": "b6499575d4d611f0278d33244b87d3806998c59c04e966a886e51a75db616102",
+  "procedureSha256": "60a5881ec2e98d2d8c17b5695b41151dc0720fdd0a9ef5fd2c9c1aad5195533d",
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
       "vehicleSha256": "cd4d4a8e8372dcb647b785b081acd328e89bf638a3cda6c55f38c603164899fe",
-      "initialSeconds": 111.31002379487933,
+      "initialSeconds": 109.63666690515217,
       "after": [
-        ["GATEWAY-CP", [145.33913192928145]],
-        ["ALPS-CP", [113.76731774457977]],
-        ["WHEAT FIELD-CP", [131.31060712867446]],
-        ["DESOLATION HILL-CP", [103.49436442764909]]
+        ["GATEWAY-CP", [148.36511759778094]],
+        ["ALPS-CP", [113.3648991200651]],
+        ["WHEAT FIELD-CP", [134.78336114744462]],
+        ["DESOLATION HILL-CP", [102.68394467298788]]
       ]
     }
   ]

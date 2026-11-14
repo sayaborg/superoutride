@@ -2,13 +2,13 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "50ace334ee690c9707bb9fc285b14c2fb4c0b2da991a2b0350d1560b66c703ed",
-  "procedureSha256": "b6499575d4d611f0278d33244b87d3806998c59c04e966a886e51a75db616102",
+  "procedureSha256": "60a5881ec2e98d2d8c17b5695b41151dc0720fdd0a9ef5fd2c9c1aad5195533d",
   "vehicles": [
     {
       "vehicleId": "MCLAREN_MP4_4",
       "vehicleSha256": "e10cac154b4cd46c84d005f2df0fff408a4c2b10b2b75a0962cbfab733c3a972",
-      "initialSeconds": 86.95463150524965,
-      "after": [["monaco-GOAL", [82.82662212595882, 82.87505266377164, 82.62100023987583]]]
+      "initialSeconds": 87.49058136870855,
+      "after": [["monaco-GOAL", [83.22440391390151, 83.51251823427097, 83.45933289991166]]]
     }
   ]
 }
