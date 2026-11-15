@@ -72,9 +72,9 @@ Each line is one area as it stands, with the document that owns it.
 
 Next PR: [Stage AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage
 RC](#stage-rc--one-recovery) and [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving) are made and await K's
-DEV check; in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
-CS](#stage-cs--cisco-heat-from-the-roms)'s raising; [RD-6e](#courses-of-the-originals) once K's recordings come; then
-[Stage 16](#stage-16--produce-product-courses).
+DEV check and K's choice of the replanning interval (AD-5's reports); in [Stage
+RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
+[RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
@@ -467,6 +467,13 @@ clears before any other path rule, over the whole ground inside the course limit
 clearing path is open; lane drivers merge past it as now (AD-4, after AD-3). AD-4 also examines, without changing
 them, why a pack of one model laps about 12 s slower than one alone at TSUKUBA, and reports what to change.
 
+K's decisions of 2026-11-15. The safety net gains a second count: a driver whose vehicle has gone 10 s without
+passing the farthest point it has reached asks for the same recovery, the reference run's driver too (AD-5; the
+10 s provisional, K decides it in DEV). AD-5 also reports, without changing them, what FL2 JAPAN's reference driver did
+in the 120 s it went backwards along the limit, why a plan held three steps runs wide in that corner, and how many of
+the VFR750R's 30 TSUKUBA laps leave the pavement when it plans every step. The replanning interval stays 3 until K
+decides it from those reports.
+
 The auditor's choices (reported to K): the stage's name and PRs; utilization read in steps of 0.01; a rival's
 utilization starting at its level. Provisional numbers: the lag 6 s and the span 200 m, which K can change in DEV.
 The replanning interval is measured (K, 2026-11-13): the largest of 2, 3 and 4 steps at which every reference run
@@ -475,7 +482,8 @@ finishes on the pavement, 3 (`PLANNED_DRIVER.replanSteps`).
 Order with Stage RC (K, 2026-11-12, revised 2026-11-13): RC-1, AD-1, AD-2 with the safety net, AD-2 and RC-2 into main,
 RC-3, AD-3, AD-4. RC-3 changes formats and went into main by K's word (2026-11-14), before AD-3's lane-position part.
 
-Not decided, for later: whether the protection solvers can be skipped with the same results (AD-3.4's report);
+Not decided, for later: the replanning interval and the no-progress count (AD-5's reports, K's DEV check); whether the
+protection solvers can be skipped with the same results (AD-3.4's report);
 simpler traffic and unseen rivals (not now, K); small differences between rivals, should their order set too firmly.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls

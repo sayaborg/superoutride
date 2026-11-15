@@ -12,6 +12,8 @@ import type { RacingLines } from '../../src/content/racing-line.js';
 import type { RacingLineProcedure } from './racing-line.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
+import { countSafetyNet, createSafetyNet, placeSafetyNet } from '../../src/race/safety-net.js';
+import { contactResponseStopped } from '../../src/race/contact-response.js';
 import { resolveRunSetup } from '../../src/race/run-setup.js';
 import { compileRunConfiguration } from '../../src/race/run-configuration.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../../src/content/free-play-rules.js';
@@ -86,6 +88,8 @@ export function runCourseReference(
   const workspace = createPlannedDriverWorkspace();
   // The standard driver: the standard role's utilization at the vehicle's speed cap.
   const driver = setup.driverOf(vehicleConfiguration);
+  // Its safety net, every driver's (`countSafetyNet`): it asks for the player's manual recovery.
+  const net = createSafetyNet();
   race.start();
   // Work bound, not a replacement finish. A timed-out run publishes no reference product; a recovered one goes on, its
   // times including the recovery, and counts its recoveries.
@@ -96,7 +100,13 @@ export function runCourseReference(
       race.outcome.status === 'READY'
         ? REVVING
         : samplePlannedDrivingInput(scene.world, vehicle, driver, lane, workspace, scene.runtime.window, true);
-    race.advance(input);
+    const running = race.outcome.status === 'RUNNING';
+    const { recovered } = race.advance(input);
+    const exploding = contactResponseStopped(actor.contactResponse);
+    if (countSafetyNet(net, vehicle, { running, recovered, exploding, terminal: workspace.plan.terminal })) {
+      race.recoverPlayer();
+      if (race.player.body.recovered) placeSafetyNet(net, vehicle.course.s);
+    }
     distance += vehicle.speed * SIM_DT;
     maximumSpeed = Math.max(maximumSpeed, vehicle.speed);
     // The friction-ellipse fraction of the more used tire.

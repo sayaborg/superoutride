@@ -143,10 +143,11 @@ Drivers' rules read the following time and the terminal clearance
 planning, following, lane choice and merging, pedals and steering. It rises by one with every change that alters a
 driver's input for the same vehicle state and observations, whether the change is to a value or to that law, and with
 every field added to or removed from the record; a change that leaves every input the same keeps it. The reference
-driver's record, part of the reference run's procedure record, contains it. It is 6: the plan corners at the driver's
+driver's record, part of the reference run's procedure record, contains it. It is 7: the plan corners at the driver's
 utilization of the limit itself, with no margin and no capacity correction, a driver whose vehicle has stood 2 s
-(`standingSeconds`, K's, 2026-11-13) asks for the player's manual recovery, and a driver plans once in three of its
-steps, driving its held plan between.
+(`standingSeconds`, K's, 2026-11-13) or has not passed its farthest point for 10 s (`progressSeconds`, K's,
+2026-11-15) asks for the player's manual recovery, and a driver plans once in three of its steps, driving its held plan
+between.
 
 The planned driver's other values ([`PLANNED_DRIVER`](../src/race/planned-driver.ts) and the path offset rules'
 [`PATH_OFFSET`](../src/race/lane-following.ts)) are author values: chosen by the implementer, neither derived from a

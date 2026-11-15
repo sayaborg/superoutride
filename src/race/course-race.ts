@@ -28,12 +28,7 @@ import {
 } from './present-vehicle.js';
 import { RUN_RULE_LIMITS } from '../course/run-rules.js';
 import { createRivalPace } from './rival-pace.js';
-import {
-  createPlannedDriverWorkspace,
-  createVariablePlannedDriver,
-  drivingDomainBefore,
-  PLANNED_DRIVER,
-} from './planned-driver.js';
+import { createPlannedDriverWorkspace, createVariablePlannedDriver, drivingDomainBefore } from './planned-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
 import { createVehicle, updateVehicle, type VehicleState } from '../vehicle/physics/vehicle-physics.js';
 import { createStartPhase, type StartStatus } from './start-phase.js';
@@ -46,6 +41,7 @@ import {
   type CompetitorObservation,
 } from './competitor-observation.js';
 import { SIM_DT } from './fixed-step.js';
+import { countSafetyNet, createSafetyNet, placeSafetyNet } from './safety-net.js';
 import { createBarrierContacts } from './barrier-contacts.js';
 import { createRoadsideObjects, type KnockedObjectObservation } from './object-contacts.js';
 import type { createRouteRuntime } from './route-runtime.js';
@@ -93,6 +89,8 @@ export function createCourseRace(options: {
   readonly playerSteering?: SteeringRule;
   /** The player's SLOW DOWN stages' utilizations; the owner's (`SLOW_DOWN.utilizations`) when absent. */
   readonly slowDownUtilizations?: SlowDownUtilizations;
+  /** The safety net's progress count in seconds; the owner's (`PLANNED_DRIVER.progressSeconds`) when absent. */
+  readonly progressSeconds?: number;
 }) {
   const { course, configuration, budgets, entries, rankLimits } = options.setup;
   const { initialSpeed } = configuration;
@@ -261,7 +259,7 @@ export function createCourseRace(options: {
         // Drivers plan in turn: the player's at phase 0, each rival's at its place on the entry list.
         workspace: createPlannedDriverWorkspace(rivalIndex + 1),
         target: (s: number) => laneField.targetL(s, intent),
-        standing: 0,
+        net: createSafetyNet(),
       },
       { pace, set },
       entry.stages,
@@ -384,32 +382,25 @@ export function createCourseRace(options: {
     }
     startPhase.advance();
   };
-  /*
-   * The AI's safety net, a driver's rule (K, 2026-11-13): a driver whose vehicle has stood below the speed deadzone for
-   * `standingSeconds` of running steps asks for the player's manual recovery, whatever holds it; with no free place
-   * behind it, it asks again the next step. A vehicle at its plan's terminal (the road's end, a lane's end it waits to
-   * merge at, the takeover's stop) stands by design, and an exploding vehicle has its own recovery: neither counts.
-   */
-  const standingSteps = Math.round(PLANNED_DRIVER.standingSeconds / SIM_DT);
-  const safetyNet = (body: PresentVehicle) => {
+  // The AI's safety net (`countSafetyNet`): a driver asks for the player's manual recovery; with no free place behind
+  // its vehicle, it asks again the next step.
+  const { progressSeconds } = options;
+  const safetyNet = (body: PresentVehicle, running: boolean) => {
     const { vehicle, driving } = body;
     if (!driving) return;
-    const { terminalClearance, spacing, speedDeadzone } = PLANNED_DRIVER;
-    const atTerminal = driving.workspace.plan.terminal - vehicle.course.s <= terminalClearance + spacing;
-    const standing =
-      !body.recovered &&
-      !contactResponseStopped(body.actor.contactResponse) &&
-      !atTerminal &&
-      Math.hypot(vehicle.longitudinalSpeed, vehicle.lateralSpeed) < speedDeadzone;
-    driving.standing = standing ? driving.standing + 1 : 0;
-    if (driving.standing < standingSteps) return;
+    const step = {
+      running,
+      recovered: body.recovered,
+      exploding: contactResponseStopped(body.actor.contactResponse),
+      terminal: driving.workspace.plan.terminal,
+    };
+    if (!countSafetyNet(driving.net, vehicle, step, progressSeconds)) return;
     body.recovered = recoverVehicle(runtime.readers, vehicle, body.model, {
       state: body.step.state,
       reason: 'manual',
       place: body.step.place,
     });
-    // The recovered vehicle stands at rest by design: its count starts again.
-    if (body.recovered) driving.standing = 0;
+    if (body.recovered) placeSafetyNet(driving.net, vehicle.course.s);
   };
   const move = (body: PresentVehicle, input: DrivingInput, steering = steeringOf(body)) =>
     advancePresentVehicle(runtime.readers, body, input, steering);
@@ -519,7 +510,7 @@ export function createCourseRace(options: {
       offset,
       workspace: takeoverWorkspace,
       target: (station: number) => laneField.targetL(station, takeoverIntent),
-      standing: 0,
+      net: createSafetyNet(),
     };
   };
   // Before GOAL the player's run driver drives the player when the composition asks (an advance without input), as
@@ -541,7 +532,7 @@ export function createCourseRace(options: {
       offset,
       workspace: playerWorkspace,
       target: (station: number) => laneField.targetL(station, playerIntent),
-      standing: 0,
+      net: createSafetyNet(),
     };
   };
   // The player's input this step: its own, or its driver's. After GOAL the takeover drives the player and its input no
@@ -595,8 +586,7 @@ export function createCourseRace(options: {
     // Traffic drives as rivals do.
     trafficField.advance();
     // Only a running step counts: READY holds the field, and after the run ends nothing counts.
-    if (stepStart !== null) for (const body of bodies) safetyNet(body);
-    else for (const body of bodies) if (body.driving) body.driving.standing = 0;
+    for (const body of bodies) safetyNet(body, stepStart !== null);
     roadsideObjects.advance();
     for (const body of activeBodies) {
       minS = Math.min(minS, body.vehicle.course.s);

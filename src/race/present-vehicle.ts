@@ -6,6 +6,7 @@ import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { DriverSteering } from '../vehicle/physics/vehicle-calibration.js';
 import type { createPlannedDriverWorkspace, PlannedDriver } from './planned-driver.js';
 import type { LaneIntent, PathOffset, VehicleSighting } from './lane-following.js';
+import type { SafetyNet } from './safety-net.js';
 import type { VehicleWorld } from '../course/vehicle-world.js';
 import { advanceVehicleWithRecovery, recoverVehicle, type RecoveryState, type RecoveryTarget } from './recovery.js';
 import { advanceContactResponse, contactResponseStopped, type ContactResponseState } from './contact-response.js';
@@ -30,8 +31,8 @@ export interface VehicleDriving {
   readonly offset: PathOffset | null;
   readonly workspace: ReturnType<typeof createPlannedDriverWorkspace>;
   target: (s: number) => number;
-  /** Consecutive running steps the vehicle has stood, away from its plan's terminal (the safety net's count). */
-  standing: number;
+  /** Its safety net's counts (`countSafetyNet`). */
+  readonly net: SafetyNet;
 }
 
 /**

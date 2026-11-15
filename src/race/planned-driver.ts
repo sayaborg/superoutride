@@ -19,7 +19,7 @@ import type { VehicleLimits } from '../vehicle/vehicle-limits.js';
  * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
  */
 export const PLANNED_DRIVER = Object.freeze({
-  version: 6,
+  version: 7,
   /**
    * Every planned driver's one steering rule, a driver's aid and not physics: the centre reference, full steering
    * input reaching the front tire's whole lateral force bound. It is independent of the driver's utilization, which
@@ -84,6 +84,12 @@ export const PLANNED_DRIVER = Object.freeze({
    * the player's manual recovery: the AI's safety net, whatever holds it (K, 2026-11-13).
    */
   standingSeconds: 2,
+  /**
+   * Seconds a driven vehicle goes without passing the farthest route station it has reached, laps included, before its
+   * driver asks for the player's manual recovery: the safety net's second count, which catches a vehicle that moves
+   * but does not get on (K, 2026-11-15; provisional, K decides in DEV). Moving backwards is free within it.
+   */
+  progressSeconds: 10,
   /**
    * Fixed steps from one plan to the next (K 2026-11-13: the largest of 2, 3 and 4 at which every reference run
    * finishes on the pavement): a driver plans its speed and makes its decisions about other vehicles once in this many

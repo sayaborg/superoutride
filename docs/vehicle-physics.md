@@ -215,7 +215,7 @@ first three conditions in order; race composition and the player request the las
 | `fallen`     | The CG lies more than `RECOVERY_POLICY.fallDepth` (3 m) below the heightfield along its normal, supported or not                           |
 | `stuck`      | Drive reaches the driven wheels and the vehicle's speed is below `RECOVERY_POLICY.stuckSpeed` (0.15 m/s), for 44 consecutive fixed steps   |
 | `explosion`  | Race composition: the authored contact response's stopped interval has ended                                                               |
-| `manual`     | The player's request, or a driver's: the safety net after its vehicle has stood 2 s                                                        |
+| `manual`     | The player's request, or a driver's: the safety net after its vehicle has stood 2 s or not passed its farthest point for 10 s              |
 
 A vehicle whose centre of gravity is more than 3 m below the ground's height there recovers, supported or not
 (K, 2026-11-12). The heightfield is the one at the center's route coordinate, material-free ground included, so a

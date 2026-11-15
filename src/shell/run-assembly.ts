@@ -114,6 +114,8 @@ export interface RunPage {
   crestKmh(): number | null;
   /** The SLOW DOWN stages' utilizations in use: the owner's until DEV changes them. */
   slowDownUtilizations(): SlowDownUtilizations;
+  /** The safety net's progress count in seconds: the owner's until DEV changes it. */
+  progressSeconds(): number;
   /** A new run seed; only the composition root draws randomness. */
   drawSeed(): number;
   /** New slices for a run's loading work, which yield to the page's frame loop between them. */
@@ -291,6 +293,7 @@ async function assembleCourseRun(
       runtime: scene.runtime,
       playerSteering: page.player.settings.steering[entry.listing.form],
       slowDownUtilizations: page.slowDownUtilizations(),
+      progressSeconds: page.progressSeconds(),
     });
     // The run's records; a DEV-tuned run compares with and records nothing.
     const records = selection && !tuned ? createRunRecords(page.player, selection) : null;

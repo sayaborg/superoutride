@@ -248,7 +248,7 @@ const course = await loadDeliveredCourse(delivered, 'ring', materials);
 const lineCourse = await loadDeliveredCourse(delivered, 'line', materials);
 
 /** A FREE PLAY run on the ring (or `on`) with `rivals` rivals, through READY to GO. */
-async function run({ rivals = 0, entry = TESTAROSSA, ready = idle, on = course } = {}) {
+async function run({ rivals = 0, entry = TESTAROSSA, ready = idle, on = course, progressSeconds } = {}) {
   const course = on;
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   const prepared = await prepareRun(delivered, catalog, course, null, {
@@ -260,7 +260,7 @@ async function run({ rivals = 0, entry = TESTAROSSA, ready = idle, on = course }
     rivalPool: formPool(freePlay, entry).id,
     traffic: 'OFF',
   });
-  const race = createCourseRace({ setup: prepared.resolve(0), runtime: scene.runtime });
+  const race = createCourseRace({ setup: prepared.resolve(0), runtime: scene.runtime, progressSeconds });
   race.start();
   while (race.outcome.status === 'READY') race.advance(ready);
   return { race, scene, actor: race.player.actor };
@@ -578,7 +578,7 @@ test('a driver whose vehicle stands 2 s asks for the player’s manual recovery'
   const counts = [];
   for (let step = 0; step < 900 && !rival.actor.recovery.recoveries; step++) {
     race.advance(braked);
-    counts.push(rival.body.driving.standing);
+    counts.push(rival.body.driving.net.standing);
   }
   assert.equal(rival.actor.recovery.lastReason, 'manual');
   // It asked on its 120th standing step (2 s), having stood each step before it, and its count starts again.
@@ -591,6 +591,56 @@ test('a driver whose vehicle stands 2 s asks for the player’s manual recovery'
   assert.equal(rival.actor.recovery.recoveries, 1);
   // The player's own input is no driver's: it stands braked and nothing recovers it.
   assert.equal(race.player.body.driving, null);
+  assert.equal(actor.recovery.recoveries, 0);
+});
+
+/**
+ * Moves `body` along the road each step as `path(step)` gives it, a route station offset from Sector 2's start at a
+ * speed along the road (moving it there, not driving it), for `steps` steps; the safety net counts after each.
+ */
+function driveAlong(race, scene, body, steps, path) {
+  let behind = 0;
+  for (let step = 0; step < steps && !body.actor.recovery.recoveries; step++) {
+    const { offset, speed } = path(step);
+    place(scene, body, sector2(scene, offset), lane('a'), { speed });
+    race.advance(braked);
+    behind = Math.max(behind, body.driving?.net.behind ?? 0);
+  }
+  return behind;
+}
+
+test('a driver whose vehicle goes on backwards asks for recovery once it has not got on for 1 s', async () => {
+  // A second's count, so that the vehicle moving backwards, never standing, is caught by this count alone.
+  const { race, scene } = await run({ rivals: 1, progressSeconds: 1 });
+  const rival = race.rivals[0];
+  const steps = Math.round(1 / SIM_DT);
+  const behind = driveAlong(race, scene, rival.body, 10 * steps, (k) => ({ offset: 100 - 0.05 * k, speed: -3 }));
+  assert.equal(rival.actor.recovery.recoveries, 1);
+  assert.equal(rival.actor.recovery.lastReason, 'manual');
+  // It asked on its 60th step behind the farthest station it reached, its first; then its counts start again.
+  assert.equal(behind, steps - 1);
+  assert.equal(rival.body.driving.net.behind, 0);
+  assert.equal(rival.body.driving.net.farthest, rival.actor.vehicle.course.s);
+});
+
+test('a driver whose vehicle goes back and then on past where it had been asks for nothing', async () => {
+  const { race, scene } = await run({ rivals: 1, progressSeconds: 1 });
+  const rival = race.rivals[0];
+  // 50 steps backwards, 2.5 m, then on at 0.5 m a step: it passes its farthest station in its 56th step.
+  const back = (k) => ({ offset: 100 - 0.05 * k, speed: -3 });
+  const on = (k) => ({ offset: 97.5 + 0.5 * (k - 50), speed: 30 });
+  const behind = driveAlong(race, scene, rival.body, 300, (k) => (k < 50 ? back(k) : on(k)));
+  assert.equal(rival.actor.recovery.recoveries, 0);
+  assert.ok(behind < Math.round(1 / SIM_DT), `${behind} steps behind`);
+});
+
+test('the player driving its own vehicle backwards is no driver: nothing asks for its recovery', async () => {
+  const { race, scene, actor } = await run({ progressSeconds: 1 });
+  assert.equal(race.player.body.driving, null);
+  driveAlong(race, scene, race.player.body, 10 * Math.round(1 / SIM_DT), (k) => ({
+    offset: 100 - 0.05 * k,
+    speed: -3,
+  }));
   assert.equal(actor.recovery.recoveries, 0);
 });
 
@@ -716,7 +766,7 @@ test('a driver with no side open stops behind a fixed object, and the safety net
   let standing = 0;
   for (let step = 0; step < 15 * 60 && !rival.actor.recovery.recoveries; step++) {
     race.advance(braked);
-    standing = rival.body.driving.standing || standing;
+    standing = rival.body.driving.net.standing || standing;
   }
   assert.ok(rival.actor.vehicle.course.s < sector2(scene, OBJECT_AT));
   assert.equal(rival.actor.recovery.lastReason, 'manual');

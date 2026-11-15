@@ -5,6 +5,8 @@ import { DEFAULT_RESULT_DELAY_SECONDS, mountResultDelayControls } from './result
 import { mountCrestControls } from './crest-controls.js';
 import { mountSlowDownControls } from './slow-down-controls.js';
 import { SLOW_DOWN } from '../race/slow-down.js';
+import { mountSafetyNetControls } from './safety-net-controls.js';
+import { PLANNED_DRIVER } from '../race/planned-driver.js';
 import { mountCameraControls } from './camera-controls.js';
 import { CAMERA_DEFINITION } from '../view/camera-definition.js';
 import { createBrowserDevices } from './driving-shell.js';
@@ -212,12 +214,15 @@ async function startPage(): Promise<void> {
     let resultDelaySeconds = DEFAULT_RESULT_DELAY_SECONDS;
     // The player's SLOW DOWN stages: the owner's utilizations until DEV changes them for the next runs.
     let slowDownUtilizations = SLOW_DOWN.utilizations;
+    // The safety net's progress count: the owner's until DEV changes it for the next runs.
+    let progressSeconds: number = PLANNED_DRIVER.progressSeconds;
     // The crests rule's speed the next course loaded is laid with: none, the courses as saved, until DEV sets it.
     let crestKmh: number | null = null;
     if (dev) {
       mountCrestControls((kmh) => (crestKmh = kmh));
       mountResultDelayControls(resultDelaySeconds, (seconds) => (resultDelaySeconds = seconds));
       mountSlowDownControls((utilizations) => (slowDownUtilizations = utilizations));
+      mountSafetyNetControls((seconds) => (progressSeconds = seconds));
       mountCameraControls((definition) => (cameraDefinition = definition));
     }
 
@@ -250,6 +255,7 @@ async function startPage(): Promise<void> {
       resultDelaySeconds: () => resultDelaySeconds,
       crestKmh: () => crestKmh,
       slowDownUtilizations: () => slowDownUtilizations,
+      progressSeconds: () => progressSeconds,
       drawSeed: () => crypto.getRandomValues(new Uint32Array(1))[0]!,
       workSlices: () => createWorkSlices(LOADING_SLICE_MILLISECONDS, () => performance.now(), nextTask),
     };

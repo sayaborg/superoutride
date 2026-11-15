@@ -6,6 +6,7 @@ import type { createLaneDriving } from './lane-driving.js';
 import type { createVehiclePlacement } from './vehicle-placement.js';
 import { createPlannedDriverWorkspace } from './planned-driver.js';
 import { createRecoveryState } from './recovery.js';
+import { createSafetyNet } from './safety-net.js';
 import { createContactResponse } from './contact-response.js';
 import {
   advancePresentVehicle,
@@ -160,7 +161,7 @@ export function createTrafficField(options: {
           // Traffic plans in turn by its position on the Route.
           workspace: createPlannedDriverWorkspace(position),
           target: lane,
-          standing: 0,
+          net: createSafetyNet(),
         };
         const motion: TrafficMotion = Object.assign(
           createPresentVehicle(

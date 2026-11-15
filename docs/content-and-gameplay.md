@@ -1804,14 +1804,23 @@ preserving steering/tire calibration and earned gates, locks and laps. Manual re
 player: the ordinary recovery toward the centre of its road, a progress baseline reset that awards
 no progress, then a fresh player observation.
 
-A driver asks for the player's manual recovery too (K, 2026-11-13): a safety net that asks no cause, and a driver's
-rule, not a recovery condition. A driver (a rival's, traffic's, the player's run driver or the takeover) whose vehicle
-has stood, `hypot(longitudinalSpeed, lateralSpeed)` below the speed deadzone (0.15 m/s), for
-`PLANNED_DRIVER.standingSeconds` (2 s, 120 fixed steps) asks for it in the step it reaches the count (reason `manual`,
-the one recovery method); with no free place it asks again the next step. Only running steps count: not READY, not
-after the run ends, not while a vehicle explodes until its explosion's recovery, and not while it stands at its plan's
+A driver asks for the player's manual recovery too (K, 2026-11-13 and 2026-11-15): a safety net that asks no cause,
+and a driver's rule, not a recovery condition (`countSafetyNet`). A driver (a rival's, traffic's, the player's run
+driver, the takeover or the reference run's) asks for it in the step either of two counts fills (reason `manual`, the
+one recovery method); with no free place it asks again the next step.
+
+- **Standing:** its vehicle has stood, `hypot(longitudinalSpeed, lateralSpeed)` below the speed deadzone (0.15 m/s),
+  for `PLANNED_DRIVER.standingSeconds` (2 s, 120 fixed steps).
+- **No progress:** its vehicle has gone `PLANNED_DRIVER.progressSeconds` (10 s, provisional; K decides it in DEV) of
+  steps without passing the farthest route station it has reached on this drive, laps included. A recovery sets that
+  station again where it places the vehicle. Moving backwards is free within the count: one that gets past its
+  farthest station before it fills asks for nothing.
+
+Only running steps count: not READY, not after the run ends, not a step that recovered the vehicle, and not while it
+explodes until its explosion's recovery (its no-progress count holds). Neither counts while it stands at its plan's
 terminal (within `terminalClearance` and a cell of it: the road's end, a lane's end it waits to merge at, the
-takeover's stop). The player's own input is no driver's and asks for nothing.
+takeover's stop), where it waits by design. The player's own input is no driver's and asks for nothing. DEV sets the
+no-progress count for the next runs (SAFETY NET); a reload restores `PLANNED_DRIVER`'s.
 
 The fixed recovery policy is one immutable record (`RECOVERY_POLICY`) shared by every competitor; it holds
 rules only, no live state or target resolution:
