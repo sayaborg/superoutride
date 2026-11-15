@@ -5,6 +5,7 @@
 import { micrometre } from './section-writing.js';
 import { computedValue } from '../../authoring/course-joints.js';
 import { WRITTEN_SLACK } from './shared-constants.js';
+import { COURSE_LINK_RECIPE } from '../../../src/course/compiler/course-links.js';
 
 /** A stretch of constant vertical curvature (1/m) over stations `[from, to)`, metres. */
 export interface Bend {
@@ -230,14 +231,18 @@ export function sectionProfile(
   }
   if (n === 3 && joinsBefore && joinsAfter) {
     // One bend over the whole Section: its knot where the tangents at both its ends meet, so both grades hold.
-    const g0 = profile.grade(from);
     const s = tangentsMeet(profile, from, to, size, knots);
     // Its curve as long as the nearer end leaves room for, as the Section is written.
     const room = micrometre(2 * Math.min(s - from, from + size - s) - 2 * CURVE_GAP);
+    // On the start's tangent; but on the end's at its station as written where that station's step would tip the
+    // end's grade beyond a seam's tolerance, as it does a knot very near the end.
+    const onStart = knots[0]!.y + profile.grade(from) * (s - from);
+    const after = computedValue(size) - computedValue(s - from);
+    const tipped = Math.abs((knots[2]!.y - onStart) / after - profile.grade(to)) > COURSE_LINK_RECIPE.gradeTolerance;
     knots[1] = {
       ...knots[1]!,
       s,
-      y: knots[0]!.y + g0 * (s - from),
+      y: tipped ? knots[2]!.y - profile.grade(to) * after : onStart,
       curveLength: Math.min(knots[1]!.curveLength, room),
     };
     return knots;

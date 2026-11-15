@@ -944,8 +944,9 @@ A road's profile is its grades by the [grades' rule](#profile-from-the-originals
   Sections' cuts, and a knot next to a cut lies on the cut's tangent at its station as written, a road laid out
   (`road-layout`) taking its Section's end as its plan writes it, its one curve fitted between its ends, so joined
   Sections' heights and grades agree; a Section joined at both ends whose one stretch spans it has its knot where the
-  tangents at its two cuts meet, so both grades hold, and none where they meet beyond the room its curve has, its
-  grades differing by rounding alone (TOP SPEED's level runs joined across a fixed point).
+  tangents at its two cuts meet, on the first cut's tangent or, where its station's step as written would tip the
+  second's grade beyond a seam's tolerance, on the second's, so both grades hold, and none where they meet beyond the
+  room its curve has, its grades differing by rounding alone (TOP SPEED's level runs joined across a fixed point).
 
 COCONUT BEACH's profile against the original's is OUTRUN's ([COCONUT BEACH's
 profile](outrun-road-data.md#coconut-beachs-profile)).
