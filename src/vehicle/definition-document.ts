@@ -161,8 +161,9 @@ export function compileVehicleMechanicsDocument(
   sha256: string | null,
 ): AdmissionResult<CompiledVehicleMechanics> {
   return admit(document, () => {
-    // Its own wheel slip protection and tire are optional; the driving definition's serve a vehicle without them.
-    const own = (['wheelSlip', 'tire'] as const).filter(
+    // Its own wheel slip protection and tire are optional; the driving definition's serve a vehicle without them. Its
+    // grip balance is optional, 0 without one.
+    const own = (['wheelSlip', 'tire', 'gripBalance'] as const).filter(
       (key) => typeof value === 'object' && value !== null && Object.hasOwn(value, key),
     );
     const v = readDocument(
@@ -175,6 +176,7 @@ export function compileVehicleMechanicsDocument(
     const owned = {
       ...(own.includes('wheelSlip') ? { wheelSlip: readWheelSlip(v.wheelSlip, '/wheelSlip') } : {}),
       ...(own.includes('tire') ? { tire: readTire(v.tire, '/tire') } : {}),
+      ...(own.includes('gripBalance') ? { gripBalance: readNumber(v.gripBalance, '/gripBalance') } : {}),
     };
     const p = readRecord(v.powertrain, '/powertrain', [...powertrainNumbers, 'gearRatios', 'torqueCurve']);
     const powertrain = {

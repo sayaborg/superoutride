@@ -1,5 +1,10 @@
 import { sampleEngineTorque } from './physics/automatic-powertrain.js';
-import { brushSlipAtForce, effectiveTireLoad, tirePeakSlip } from './physics/tire-friction-calibration.js';
+import {
+  brushSlipAtForce,
+  effectiveTireLoad,
+  tirePeakSlip,
+  type CompiledTireCharacteristics,
+} from './physics/tire-friction-calibration.js';
 import { rollingDrivenWheelOmega } from './physics/vehicle-definitions.js';
 import { VEHICLE_GRAVITY } from './physics/vehicle-state.js';
 import type { VehicleModel } from './physics/vehicle-model.js';
@@ -11,15 +16,16 @@ const LOAD_TRANSFER_ITERATIONS = 12;
 
 /**
  * A vehicle's limits as a point mass on two axles, per unit mass (m/s²), the one model a planned driver plans with.
- * Each axle's tire forms a friction circle whose radius is its grip `mu` times gravity, the surface grip, the axle's
- * static share of the weight and its effective load factor: its load over its static load, read through the game-wide
- * load sensitivity, `n/(1+r(n-1))`, as the wheel solve reads loads. Both axles share the vehicle's load factor
- * `n`, which the tires' longitudinal force moves between them by its moment at the centre of mass's height. Drive is
- * the best full-throttle wheel force over the gears (a gear whose engine speed would pass redline is not available but
- * the top gear's, up to fuel cut; below the clutch lock the slipping clutch holds the engine at its maximum-torque
- * speed), bounded by the driven axles' circles under the drive split; braking is each axle's brake torque at its
- * rolling radius, bounded by its circle. The lesser axle's circle bounds the lateral acceleration, and the tires'
- * lateral slip drags. Drag acts as the mechanics apply it, and the wheels' rotational inertia adds to the mass.
+ * Each axle's tire forms a friction circle whose radius is the axle's grip `mu` times gravity, the surface grip, the
+ * axle's static share of the weight and its effective load factor: its load over its static load, read through the
+ * game-wide load sensitivity, `n/(1+r(n-1))`, as the wheel solve reads loads. Both axles share the vehicle's load
+ * factor `n`, which the tires' longitudinal force moves between them by its moment at the centre of mass's height.
+ * Drive is the best full-throttle wheel force over the gears (a gear whose engine speed would pass redline is not
+ * available but the top gear's, up to fuel cut; below the clutch lock the slipping clutch holds the engine at its
+ * maximum-torque speed), bounded by the driven axles' circles under the drive split; braking is each axle's brake
+ * torque at its rolling radius, bounded by its circle. The lesser axle's circle bounds the lateral acceleration, and
+ * the tires' lateral slip drags. Drag acts as the mechanics apply it, and the wheels' rotational inertia adds to the
+ * mass.
  */
 export interface VehicleLimits {
   readonly mass: number;
@@ -36,7 +42,7 @@ export interface VehicleLimits {
   drive(v: number): number;
   /**
    * m/s²: the lateral limit at utilization `utilization` on `grip` at load factor `n` while the tires' longitudinal force
-   * is `longitudinal` (m/s², drive positive): the lesser axle's lateral semi-axis, each axle carrying the lateral in
+   * is `longitudinal` (m/s², drive positive): the lesser axle's circle, each axle carrying the lateral in
    * proportion to its static share.
    */
   lateralLimit(utilization: number, grip: number, n: number, longitudinal: number): number;
@@ -84,7 +90,7 @@ export interface VehicleLimits {
 }
 
 export function createVehicleLimits(model: VehicleModel): VehicleLimits {
-  const { compiledVehicle: vehicle, tire, tireLoadSensitivity, powertrain: constants } = model;
+  const { compiledVehicle: vehicle, tires, tireLoadSensitivity, powertrain: constants } = model;
   const { mass, frontDriveTorqueFraction: split, powertrain, frontStation, rearStation } = vehicle;
   const wheelbase = vehicle.frontAxle + vehicle.rearAxle;
   // Static weight shares, and each axle's load factor change per unit tire force (m/s²) toward the front.
@@ -113,15 +119,15 @@ export function createVehicleLimits(model: VehicleModel): VehicleLimits {
   // Each axle carries the lateral acceleration in proportion to its static share, so its lateral fraction is the
   // lateral over its own circle's radius; what that leaves of it along the road, per unit vehicle mass, while the
   // tires' longitudinal force is `force`. An axle the lateral overloads leaves nothing: -Infinity.
-  const remaining = (share: number, axleN: number, scale: number, lateral: number) => {
-    const radius = friction(tire.grip, axleN);
+  const remaining = (mu: number, share: number, axleN: number, scale: number, lateral: number) => {
+    const radius = friction(mu, axleN);
     const fraction = lateral / (scale * radius);
     return fraction < 1 ? share * scale * radius * Math.sqrt(1 - fraction * fraction) : -Infinity;
   };
   const front = (n: number, force: number, scale: number, lateral: number) =>
-    remaining(frontShare, n - force * frontTransfer, scale, lateral);
+    remaining(tires.front.grip, frontShare, n - force * frontTransfer, scale, lateral);
   const rear = (n: number, force: number, scale: number, lateral: number) =>
-    remaining(rearShare, n + force * rearTransfer, scale, lateral);
+    remaining(tires.rear.grip, rearShare, n + force * rearTransfer, scale, lateral);
 
   const drag = (v: number) => (vehicle.quadraticDrag * v * v) / mass;
   const drive = (v: number) => {
@@ -139,8 +145,8 @@ export function createVehicleLimits(model: VehicleModel): VehicleLimits {
     utilization *
     grip *
     Math.min(
-      friction(tire.grip, n - longitudinal * frontTransfer),
-      friction(tire.grip, n + longitudinal * rearTransfer),
+      friction(tires.front.grip, n - longitudinal * frontTransfer),
+      friction(tires.rear.grip, n + longitudinal * rearTransfer),
     );
   // A longitudinal force within the axles' circles whose own load transfer bounds it: the largest `force` at or below
   // `bound(force)`, by bisection from `most`.
@@ -172,12 +178,19 @@ export function createVehicleLimits(model: VehicleModel): VehicleLimits {
         Math.min(utilization * rearBrake, rear(n, -force, scale, lateral)),
     );
   };
-  const corneringDrag = (lateral: number, n: number, grip: number) => {
-    if (lateral === 0) return 0;
+  // An axle's tire's drag: the lateral times the pure-lateral slip at which the tire carries it.
+  const axleDrag = (tire: CompiledTireCharacteristics, lateral: number, n: number, grip: number) => {
     const capacity = grip * friction(tire.grip, n);
     if (!(capacity > 0)) return 0;
     const theta = brushSlipAtForce(Math.min(1, Math.abs(lateral) / capacity));
     return Math.abs(lateral) * tirePeakSlip(tire, grip) * theta;
+  };
+  // Each axle carries its static share of the lateral, so the drag is the axles' drags by those shares; alike axles
+  // give the front's drag itself.
+  const corneringDrag = (lateral: number, n: number, grip: number) => {
+    if (lateral === 0) return 0;
+    const front = axleDrag(tires.front, lateral, n, grip);
+    return front + rearShare * (axleDrag(tires.rear, lateral, n, grip) - front);
   };
   // The fastest speed on a path of curvature `curvature` whose lateral demand lies within the lateral limit under the
   // longitudinal force a steady speed needs there, and, when `steady`, whose drive covers that force.

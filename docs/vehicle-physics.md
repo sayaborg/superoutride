@@ -17,29 +17,31 @@ mechanics document does not give its own `wheelSlip` or `tire` ([documents](#mat
 and the game-wide tire load sensitivity (LS=0.15), which serves every vehicle.
 [Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
 
-Driving compilation, [`compileDriving`](../src/vehicle/physics/compiled-driving.ts), converts degrees and
-traversal times to runtime angles/rates and compiles the tire law once. Its product, `CompiledDriving`, holds every
-converted driving fact once: powertrain rules, the steering/throttle/brake actuator rates (one steering rate; a
-single traversal time makes steering response symmetric by construction), steering geometry (the rack bound M), the tire characteristics and the
-torque-protection policy `{wheelSlip: {drive, brake}, pitchLimit}`.
-[`createVehicleModel`](../src/vehicle/physics/vehicle-model.ts) is the single place that builds a vehicle model,
-from the compiled vehicle, the compiled driving product and the fixed outer update step, which its caller supplies
+Driving compilation, [`compileDriving`](../src/vehicle/physics/compiled-driving.ts), converts degrees and traversal
+times to runtime angles/rates and compiles the tire law once. Its product, `CompiledDriving`, holds every converted
+driving fact once: powertrain rules, the steering/throttle/brake actuator rates (one steering rate; a single traversal
+time makes steering response symmetric by construction), steering geometry (the rack bound M), the tire characteristics
+and the torque-protection policy `{wheelSlip: {drive, brake}, pitchLimit}`.
+[`createVehicleModel`](../src/vehicle/physics/vehicle-model.ts) is the single place that builds a vehicle model, from
+the compiled vehicle, the compiled driving product and the fixed outer update step, which its caller supplies
 (`SIM_DT`). The step must be finite and positive. It is also the one place that chooses each vehicle's tire and
 `wheelSlip`: the compiled vehicle's own where it has them, else the driving product's; the pitch limit is always the
-driving product's. The model is one immutable value, frozen throughout: the compiled vehicle, the step and its
-integration substep (step divided by the mechanics substep count), the driving product's actuator, steering and
-suspension-progression values unchanged, the chosen tire and torque-protection policy, and the powertrain constants. It reads no driving source field. Model construction admits [suspension stability](#suspension-stability)
-for both stations and revalidates no admitted value. Updates never recheck compiled values (step, actuator rates,
-steering, tires, stations, materials or numerical constants). They check the canonical pedal input once per update
-and the finiteness of wheel state, contact observations and torque requests once per wheel and substep; numerical
-solvers keep guards on the values they generate.
-Browser, race, reference tools, scenarios, startup smoke and image generation use the same
-input. Creation, updates and recovery receive the vehicle state and its model separately;
-nothing copies a model value into state. Updates take no step argument; they integrate the
-model's step and substep. Both stations' wheel solves and the steering limit read the model's one tire, and so do the
-vehicle's limits model, planned drivers, steering rules, torque protection, the tire observations and their sound and
-the HUD's tire gauge. DEV tuning edits the driving definition, or the vehicle's own tire or `wheelSlip` in its mechanics document, and
-rebuilds the player's model from them; the next step uses the replacement.
+driving product's. It divides the chosen tire's grip between the axles by the vehicle's grip balance ([tire
+law](#tire-law)), the model's two axle tires. The model is one immutable value, frozen throughout: the compiled vehicle,
+the step and its integration substep (step divided by the mechanics substep count), the driving product's actuator,
+steering and suspension-progression values unchanged, the two axle tires and the torque-protection policy, and the
+powertrain constants. It reads no driving source field. Model construction admits [suspension
+stability](#suspension-stability) for both stations and revalidates no admitted value. Updates never recheck compiled
+values (step, actuator rates, steering, tires, stations, materials or numerical constants). They check the canonical
+pedal input once per update and the finiteness of wheel state, contact observations and torque requests once per wheel
+and substep; numerical solvers keep guards on the values they generate. Browser, race, reference tools, scenarios,
+startup smoke and image generation use the same input. Creation, updates and recovery receive the vehicle state and its
+model separately; nothing copies a model value into state. Updates take no step argument; they integrate the model's
+step and substep. Each station's wheel solve reads its axle's tire, and so do the vehicle's limits model, planned
+drivers, torque protection, the tire observations and their sound, smoke and the HUD's tire gauge; the steering limit
+reads the front tire, and the steering rules both. DEV tuning edits the driving definition, or the vehicle's own tire,
+grip balance or `wheelSlip` in its mechanics document, and rebuilds the player's model from them; the next step uses the
+replacement.
 
 `RunVehicle` holds the admitted vehicle and driving definitions; `createVehicleModel` derives nothing from the
 vehicle's listing. Its reference identity `vehicleSha256` (`runVehicleSha256`, with the surface material catalog it
@@ -260,6 +262,11 @@ across it. `theta`, its slip over its peak slip, is the part of its contact that
 
 A tire may give its sliding ratio; it is 1 without one (K, 2026-11-16). The load sensitivity is the game's, not a
 tire's: it bounds what a landing's load can raise (K, 2026-11-16).
+
+A vehicle's grip balance `b` gives its front tires the grip `mu*(1-b)` and its rear tires `mu*(1+b)`, the stiffness
+alike (K, 2026-11-16). It is 0 unless the vehicle gives one, and not below 0 but for a vehicle built to slide its rear.
+So the axles' peak slips differ too, the front's `P*(1-b)` and the rear's `P*(1+b)`, while a small slip's force is the
+same on both. Admission takes `-0.5 < b < 0.5`, so each axle keeps more than half the tire's grip.
 
 Positive grip `mu` (G), positive stiffness `c` (C) and sliding ratio `0 < s <= 1` (SR) define a tire; the game-wide
 load sensitivity `0 <= r < 1` (LS) serves every tire. The slips are dimensionless; on a dry road (unit grip factor) the
@@ -584,19 +591,19 @@ the pure-lateral force is the fraction `f` is the inverse of `H` ([tire law](#ti
 
 ```text
 theta(f) = 1-(1-f)^(1/3)
-S(f)     = P*theta(f)          P = grip*3*mu/c
+S(f)     = P*theta(f)          P = grip*3*muFront/c
 ```
 
-`theta(1) = 1`, so at full input and `X = 1` the slip `S` is the peak `P`. `grip` is the gripFactor of the material
-sampled under the front wheel's reach point, airborne or not, and 1 where there is none (outside the coordinate domain
-or on no material), so the angle changes only where the material changes and not at landing. With the steering
-actuator `u` in `[-1,1]`, the body's yaw rate `r`, rack bound `M` in `(0, pi/2)`, the steering low-speed
-regularization `steeringV0`, gravity `g`, the wheelbase `frontAxle + rearAxle` and the lever `lever`:
+`theta(1) = 1`, so at full input and `X = 1` the slip `S` is the front tire's peak `P`, with `muFront` its grip. `grip`
+is the gripFactor of the material sampled under the front wheel's reach point, airborne or not, and 1 where there is
+none (outside the coordinate domain or on no material), so the angle changes only where the material changes and not at
+landing. With the steering actuator `u` in `[-1,1]`, the body's yaw rate `r`, rack bound `M` in `(0, pi/2)`, the
+steering low-speed regularization `steeringV0`, gravity `g`, the wheelbase `frontAxle + rearAxle` and the lever `lever`:
 
 ```text
 slip(u)    = sign(u)*min(M, atan(S(|u|*X)))
 L          = slip(1)
-wGrip      = X*grip*mu*g/hypot(bodyForwardSpeed,bodyLateralSpeed,steeringV0)
+wGrip      = grip*g*min(X*muFront,muRear)/hypot(bodyForwardSpeed,bodyLateralSpeed,steeringV0)
 wRack      = hypot(bodyForwardSpeed,steeringV0)*tan(M-L)/wheelbase
 w(u)       = u*min(wGrip, wRack)
 lat        = frontLateralSpeed - lever*(r - w(u))
@@ -631,7 +638,9 @@ steering angle, never as a force or moment, and its strength is a length, not a 
 
 `w(u)` is the yaw rate the input asks for: the fraction `u` of the tightest steady turn the vehicle holds, by definition
 on flat ground at constant speed with the static loads, the looser of its grip's turn and its rack's. In the grip's turn
-the front tire is at the fraction `X` of its bound: its lateral acceleration is `X*grip*mu*g`, at the yaw rate `wGrip`.
+the weaker of the front tire at the fraction `X` of its bound and the rear tire at its whole bound holds the turn: its
+lateral acceleration is `grip*g*min(X*muFront, muRear)` (the auditor's choice), at the yaw rate `wGrip`; with a grip
+balance of 0 or more it is the front tire's, `X*grip*muFront*g`.
 In the rack's turn, with the rear wheel rolling, the front wheel's travel direction stands at `M-L`
 (`tan(M-L) = wheelbase*w/bodyForwardSpeed`), so with the slip `L` the front wheel reaches the rack `M`. The grip's turn
 is the looser at speed, and in it `r = w(u)` at full input, the term is zero and full input uses the front tire at `X`
@@ -723,6 +732,7 @@ admitted sprite set `spriteSet`, the HUD picture `steeringPicture` and the engin
 | `format`, `version` | `superoutride.vehicle-mechanics`, `8`                                                                                                                                                         |
 | `wheelSlip`         | Optional: the vehicle's own wheel slip protection, `drive` (TCS and MSR) and `brake` (ABS), both boolean; absent, the driving definition's                                                    |
 | `tire`              | Optional: the vehicle's own tire, all three values (grip/stiffness/slidingRatio) in the driving definition's domains, compiled once at admission; absent, the driving definition's whole tire |
+| `gripBalance`       | Optional: the vehicle's grip balance `b`, finite with `-0.5 < b < 0.5`: front grip `mu*(1-b)`, rear `mu*(1+b)`; absent, 0                                                                     |
 | Remaining fields    | All other `VehicleDefinition` fields except `id`, including `powertrain`, at the root                                                                                                         |
 
 | Listing field       | Contract                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |

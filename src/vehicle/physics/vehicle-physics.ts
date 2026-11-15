@@ -254,7 +254,7 @@ export function updateVehicle(
       tightestSteadyYawRate(
         dot3(body.velocity, body.forward),
         dot3(body.velocity, body.right),
-        utilization * grip * model.tire.grip * VEHICLE_GRAVITY,
+        steadyTurnAcceleration(model, utilization, grip),
         automaticMax,
         compiledVehicle.frontAxle + compiledVehicle.rearAxle,
       );
@@ -313,7 +313,7 @@ export function updateVehicle(
         )
       : 0;
     frontRequest.gripFactor = front.surface.material?.gripFactor ?? 0;
-    frontRequest.characteristics = model.tire;
+    frontRequest.characteristics = model.tires.front;
     frontRequest.rollingResistance = front.tireFrameValid ? (front.surface.material?.rollingResistance ?? 0) : 0;
     frontRequest.driveTorque = 0;
     frontRequest.brakeTorque = vehicle.actuator.brake * compiledVehicle.frontStation.maxBrakeTorque;
@@ -328,7 +328,7 @@ export function updateVehicle(
       ? effectiveTireLoad(model.tireLoadSensitivity, rear.normalLoad, compiledVehicle.rearStation.suspension.staticLoad)
       : 0;
     rearRequest.gripFactor = rear.surface.material?.gripFactor ?? 0;
-    rearRequest.characteristics = model.tire;
+    rearRequest.characteristics = model.tires.rear;
     rearRequest.rollingResistance = rear.tireFrameValid ? (rear.surface.material?.rollingResistance ?? 0) : 0;
     rearRequest.driveTorque = 0;
     rearRequest.brakeTorque = vehicle.actuator.brake * compiledVehicle.rearStation.maxBrakeTorque;
@@ -417,6 +417,16 @@ function appliedShare(applied: number, requested: number): number {
 const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });
 
 /**
+ * The lateral acceleration of the tightest steady turn on flat ground on a front surface of `grip` whose front tire is
+ * at `utilization` of its bound: `grip*g*min(X*muFront, muRear)`, the front tire's turn unless the rear's grip is the
+ * lesser (a grip balance below 0).
+ */
+function steadyTurnAcceleration(model: VehicleModel, utilization: number, grip: number): number {
+  const { front, rear } = model.tires;
+  return Math.min(utilization * grip * front.grip, grip * rear.grip) * VEHICLE_GRAVITY;
+}
+
+/**
  * The front tire's pure-lateral slip angle that steering input `input` asks under `steering` on `grip`, within the rack:
  * the slip at which its lateral force is the part `|input| X` of its bound, the part of the yaw rate the input asks, with
  * the input's sign. Full input gives the rule's limit `L`.
@@ -424,7 +434,8 @@ const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });
 function steeringSlip(model: VehicleModel, steering: DriverSteering, grip: number, input: number): number {
   const theta = brushSlipAtForce(Math.abs(input) * steering.utilization);
   return (
-    Math.sign(input) * Math.min(model.steering.maxRoadWheelSteer, Math.atan(tirePeakSlip(model.tire, grip) * theta))
+    Math.sign(input) *
+    Math.min(model.steering.maxRoadWheelSteer, Math.atan(tirePeakSlip(model.tires.front, grip) * theta))
   );
 }
 
@@ -461,7 +472,7 @@ export function fullSteeringYawRate(
   return tightestSteadyYawRate(
     forward,
     lateral,
-    steering.utilization * grip * model.tire.grip * VEHICLE_GRAVITY,
+    steadyTurnAcceleration(model, steering.utilization, grip),
     model.steering.maxRoadWheelSteer - steeringSlip(model, steering, grip, 1),
     compiledVehicle.frontAxle + compiledVehicle.rearAxle,
   );
@@ -541,8 +552,8 @@ function createStepWorkspace(model: VehicleModel) {
     dt: 1,
     characteristics,
   });
-  const frontRequest = request(model.tire),
-    rearRequest = request(model.tire);
+  const frontRequest = request(model.tires.front),
+    rearRequest = request(model.tires.rear);
   return {
     projection: createPlanProjectionWorkspace(),
     velocityDelta: { x: 0, y: 0, z: 0 },

@@ -24,7 +24,11 @@ export interface VehicleModel {
   readonly substep: number;
   readonly actuator: Readonly<CompiledDrivingActuators>;
   readonly steering: Readonly<CompiledVehicleSteeringCalibration>;
-  readonly tire: Readonly<CompiledTireCharacteristics>;
+  /**
+   * The tires of its two axles: its own tire, else the driving definition's, with the front's grip times `1-b` and the
+   * rear's times `1+b` for its grip balance `b`; stiffness and sliding ratio alike.
+   */
+  readonly tires: Readonly<{ front: CompiledTireCharacteristics; rear: CompiledTireCharacteristics }>;
   /** The game-wide load sensitivity `r` the tire law reads its effective load with; no vehicle gives its own. */
   readonly tireLoadSensitivity: number;
   readonly powertrain: Readonly<PowertrainConstants>;
@@ -54,15 +58,18 @@ export function createVehicleModel(input: VehicleModelInput, step: number): Vehi
   for (const station of [compiledVehicle.frontStation, compiledVehicle.rearStation])
     assertSuspensionStability(compiledVehicle.id, station, substep);
   // The one choice between the vehicle's own tire and wheel slip protection and the driving definition's game-wide
-  // ones: the vehicle's where it has them. The pitch limit stays game-wide.
-  const { wheelSlip } = compiledVehicle;
+  // ones: the vehicle's where it has them. The pitch limit stays game-wide. The grip balance divides the tire's grip
+  // between the axles.
+  const { wheelSlip, gripBalance } = compiledVehicle;
+  const tire = compiledVehicle.tire ?? driving.tire;
+  const axle = (factor: number) => Object.freeze({ ...tire, grip: tire.grip * factor });
   return Object.freeze({
     compiledVehicle,
     step,
     substep,
     actuator: driving.actuator,
     steering: driving.steering,
-    tire: compiledVehicle.tire ?? driving.tire,
+    tires: Object.freeze({ front: axle(1 - gripBalance), rear: axle(1 + gripBalance) }),
     tireLoadSensitivity: driving.tireLoadSensitivity,
     powertrain: resolvePowertrainConstants(compiledVehicle.powertrain, driving.powertrain),
     torqueProtection:

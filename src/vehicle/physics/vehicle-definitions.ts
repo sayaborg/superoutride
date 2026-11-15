@@ -84,6 +84,11 @@ export interface VehicleDefinition {
   readonly wheelSlip?: Readonly<WheelSlipProtection>;
   /** The vehicle's own tire, every value of it; the driving definition's when absent. */
   readonly tire?: TireCharacteristics;
+  /**
+   * The grip balance `b` in (-0.5, 0.5): its front tires' grip is the tire's times `1-b`, its rear tires' times `1+b`;
+   * 0 when absent.
+   */
+  readonly gripBalance?: number;
   readonly powertrain: AutomaticPowertrainDefinition;
 }
 
@@ -117,10 +122,15 @@ export interface CompiledVehicle extends Pick<
   readonly wheelSlip: Readonly<WheelSlipProtection> | null;
   /** The vehicle's own compiled tire; null leaves the driving definition's. */
   readonly tire: Readonly<CompiledTireCharacteristics> | null;
+  /** The grip balance `b`: front grip `mu*(1-b)`, rear `mu*(1+b)`; 0 unless the vehicle gives one. */
+  readonly gripBalance: number;
   readonly powertrain: CompiledAutomaticPowertrainDefinition;
   readonly frontStation: CompiledContactStation;
   readonly rearStation: CompiledContactStation;
 }
+
+/** The grip balance's admitted bound: each axle keeps more than half its tire's grip and less than one and a half. */
+const GRIP_BALANCE_BOUND = 0.5;
 
 export function compileVehicle(definition: VehicleDefinition): Readonly<CompiledVehicle> {
   if (typeof definition.id !== 'string' || definition.id.length === 0 || definition.id.trim() !== definition.id) {
@@ -183,6 +193,12 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
           () => compileTireCharacteristics(definition.tire!),
           (path) => `tire/${path}`,
         );
+  const gripBalance = definition.gripBalance ?? 0;
+  if (!(gripBalance > -GRIP_BALANCE_BOUND && gripBalance < GRIP_BALANCE_BOUND))
+    throw new DefinitionDomainError(
+      'gripBalance',
+      `vehicle grip balance must lie in (-${GRIP_BALANCE_BOUND},${GRIP_BALANCE_BOUND})`,
+    );
   const powertrain = withDefinitionPath(
     () => compileAutomaticPowertrainDefinition(definition.powertrain),
     (path) => `powertrain/${path}`,
@@ -267,6 +283,7 @@ export function compileVehicle(definition: VehicleDefinition): Readonly<Compiled
         ? null
         : Object.freeze({ drive: definition.wheelSlip.drive, brake: definition.wheelSlip.brake }),
     tire,
+    gripBalance,
     powertrain,
     frontStation,
     rearStation,

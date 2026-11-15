@@ -57,8 +57,8 @@ Each line is one area as it stands, with the document that owns it.
   limits and objects through one external force ([Drivers](content-and-gameplay.md#drivers),
   [Traffic](content-and-gameplay.md#traffic), [Body contact](content-and-gameplay.md#body-contact)).
 - **Vehicle physics.** Five-point torque curves, fuel cut, the brush tire law (a tire's grip and stiffness, one
-  friction circle, the game-wide load sensitivity), protection, steering and recovery
-  ([Vehicle physics](vehicle-physics.md)); [Stage TR](#stage-tr--the-brush-tire) awaits K's DEV check.
+  friction circle, the game-wide load sensitivity, a vehicle's grip balance between its axles), protection, steering
+  and recovery ([Vehicle physics](vehicle-physics.md)); [Stage TR](#stage-tr--the-brush-tire)'s values await K's DEV.
 - **Audio.** The audio scene and sound graph, engine sounds by exhaust graphs to a measured loudness, tire audio
   (UNIFIED), recordings and music, effects and contact sound; the recordings are placeholders until K's files replace
   them ([Audio](audio.md), [Tire audio](tire-audio.md), [placeholder recordings](#placeholder-recordings)).
@@ -445,6 +445,15 @@ a condition; the limits across the road are limits as the side ones are, for con
   and one Link per Section stay. Its lists of what goes and what stays are written in its PR first, split if that
   reads better.
 
+Two CHASE H.Q. faults Stage TR's field runs found, both on main before it (the auditor's addition, 2026-11-16), each
+its own PR after Stage TR:
+
+- **RC-4, a lane handed across a seam.** `carryAcross` (`src/race/course-lane-field.ts`) throws on CHASE H.Q. 2 to 5
+  right (and 2 left after TR): the lane it is handed is not one of the Section's before the seam.
+- **RC-5, a recovery outside the coordinate domain.** On CHASE H.Q. 4 right a rival recovers `outside-domain` every
+  step at one place (s 1,758 m, l 5.4 m): the recovery places its centre outside the domain again. A recovered
+  vehicle's centre is always inside it.
+
 Not decided, for later: after a recovery a vehicle stands at rest with its engine at idle, and the slipping clutch
 delivers nothing until the engine has risen (NSR500 stands about 0.7 s); K judges it in DEV. A course with holes needs
 its recovery places on material (`supportedTargetSurface` stops a recovery there now); what AI drivers do before the
@@ -495,16 +504,17 @@ sensitivity (0.15) is the game's, not a tire's; a vehicle's grip balance gives i
 rear `grip*(1+b)`, 0 by default; the HUD's tire gauge shows the part of the contact that slides. G, C, SR, LS and BAL
 are DEV's ([Tire law](vehicle-physics.md#tire-law)).
 
-- TR-1, the law and its values: made, with every measured product measured again; it awaits K's DEV check and K's word
-  on when it may go to main, as it changes the driving and vehicle formats and every reference run with them (Stage
-  AD's third addition changes `PLANNED_DRIVER` and measures them again too).
-- TR-2, the grip balance: follows TR-1 on its branch.
+- TR-1, the law and its values, and TR-2, the grip balance, are on main (K's word, 2026-11-16), every vehicle at
+  grip balance 0; the values below are K's to set in DEV.
 
 Not decided, for K in DEV after the stage:
 
 - The tires of the three F1 cars and the two GP motorcycles, their grip balance and how downforce is treated (their
   values are provisional, [Racing vehicles](racing-vehicles.md)).
 - Each production vehicle's grip balance; BAL leaves DEV once every vehicle's is decided.
+- At grip balance 0 the rear steps out further than on main when the throttle is lifted at full steering input
+  (TESTAROSSA at 160 km/h: the body slip angle reaches 13.0° against main's 7.9°); at 0.05 it is about main's. The
+  default stays 0 (K, 2026-11-16).
 - A vehicle whose drive reaches its tires' limit is held by TCS at the peak slip, so its engine turns faster than its
   road speed by that slip; a tire whose peak slip passes 5 % reaches the fuel cut (1.05) before the shift.
 

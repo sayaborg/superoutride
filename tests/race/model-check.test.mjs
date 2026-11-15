@@ -4,6 +4,7 @@ import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { createRunVehicle } from '../../src/content/run-vehicle.js';
+import { compileVehicleMechanicsDocument } from '../../src/vehicle/definition-document.js';
 import { createPlanCoordinateReader } from '../../src/course/geometry/plan-coordinate-reader.js';
 import { compilePlanPath } from '../../src/course/geometry/plan-path.js';
 import { Profile } from '../../src/course/geometry/profile.js';
@@ -27,7 +28,8 @@ import { wrapAngle } from '../../src/core/math.js';
 
 // The plan's model against the mechanics, for each catalog vehicle on a flat reference surface of unit grip and no
 // rolling resistance: a steady 100 m circle at the plan's cornering speed, and a straight full stop from 30 m/s. Each
-// drives as planned drivers do, with wheel slip protection on both sides whatever the vehicle's own `wheelSlip`.
+// drives as planned drivers do, with wheel slip protection on both sides whatever the vehicle's own `wheelSlip`. A
+// TESTAROSSA with the grip balance 0.1, made here alone, is checked as well.
 const content = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
 const reference = Object.freeze({ id: 'REFERENCE', gripFactor: 1, rollingResistance: 0 });
@@ -56,10 +58,25 @@ function flatWorld(shape = { kind: 'straight', length: 20000 }) {
   };
 }
 
-for (const entry of definitions.vehicles) {
+const testarossa = definitions.vehicles.find((entry) => entry.compiledVehicle.id === 'TESTAROSSA');
+const balanced = compileVehicleMechanicsDocument(
+  { ...testarossa.mechanics, gripBalance: 0.1 },
+  'TESTAROSSA',
+  'TESTAROSSA.json',
+  null,
+);
+assert.ok(balanced.ok);
+const checked = [
+  ...definitions.vehicles.map((entry) => [entry.compiledVehicle.id, entry]),
+  [
+    'TESTAROSSA at grip balance 0.1',
+    { ...testarossa, mechanics: balanced.value.source, compiledVehicle: balanced.value.compiledVehicle },
+  ],
+];
+
+for (const [id, entry] of checked) {
   const model = createVehicleModel(createRunVehicle(entry, definitions.driving), SIM_DT);
   const limits = createVehicleLimits(model);
-  const id = entry.compiledVehicle.id;
 
   test(`${id} holds a 100 m circle at the plan's cornering speed`, () => {
     const world = flatWorld();

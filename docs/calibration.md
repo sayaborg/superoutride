@@ -27,6 +27,7 @@ steps and never rejects a driving definition.
 | Tires¹     | C     | `tire.stiffness`                            | Force over the load at unit slip             | 40      | 10–150 / 1             |
 | Tires¹     | SR    | `tire.slidingRatio`                         | Force far past the peak, × the peak force    | 1       | 0.50–1.00 / 0.01       |
 | Tires      | LS    | `tireLoadSensitivity`                       | Tire force's sublinearity in load (r)        | 0.15    | 0.00–0.50 / 0.01       |
+| Tires²     | BAL   | `gripBalance` (mechanics)                   | Front grip × (1 − BAL), rear × (1 + BAL)     | 0       | −0.10–+0.20 / 0.01     |
 | Powertrain | FMEP0 | `idleFrictionMeanEffectivePressureBar`      | Friction mean effective pressure at idle     | 1.0 bar | 0.5–3.0 bar / 0.1 bar  |
 | Powertrain | FMEP1 | `redlineFrictionMeanEffectivePressureBar`   | Friction mean effective pressure at redline  | 2.5 bar | 1.0–5.0 bar / 0.1 bar  |
 | Powertrain | J     | `engineInertiaKilogramSquareMetersPerLitre` | Engine inertia per litre (kg m²/L)           | 0.04    | 0.010–0.100 / 0.005    |
@@ -51,6 +52,10 @@ values) or `wheelSlip` (both sides); a vehicle that gives one uses its own. They
 the defaults follows the game-wide tuning, its identity changing with the driving definition's. The load sensitivity
 LS is the game's, not a tire's (K, 2026-11-16): every vehicle reads the driving definition's, and no mechanics document
 gives one.
+
+² BAL is the player vehicle's grip balance in its mechanics document, whatever owns its tire; DEV writes it there.
+Every vehicle's is 0 until K sets it in DEV; a rear grip below the front's (BAL below 0) is for a vehicle built to
+slide its rear (K, 2026-11-16).
 
 `fuelCutEnterRedlineRatio` (1.05), `fuelCutClearRedlineRatio` (1.03) and `clutchLockIdleMargin` (0.02) set the
 latches' thresholds and keep them from chattering; they are edited only in the file.

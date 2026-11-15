@@ -25,10 +25,10 @@ test('the tire gauge is green with no contact sliding, yellow with half of it an
   }
 });
 
-test('DEV tunes the tire by its grip, stiffness and sliding ratio and the game-wide load sensitivity', () => {
+test('DEV tunes the tire by its grip, stiffness and sliding ratio, the game-wide load sensitivity and the balance', () => {
   assert.deepEqual(
     drivingTuningItems('TIRES').map(({ id }) => id),
-    ['G', 'C', 'SR', 'LS'],
+    ['G', 'C', 'SR', 'LS', 'BAL'],
   );
   // A vehicle with its own tire has G, C and SR tuned in its mechanics; LS is always the driving definition's.
   const tuned = ['G', 'C', 'SR', 'LS'].reduce((documents, id) => stepDrivingTuning(documents, id, 1), {
@@ -48,4 +48,18 @@ test('DEV tunes the tire by its grip, stiffness and sliding ratio and the game-w
   assert.ok(compiled.ok, JSON.stringify(compiled));
   assert.equal(compiled.value.compiledDriving.tire.grip, 2.55);
   assert.equal(compiled.value.compiledDriving.tireLoadSensitivity, 0.15);
+});
+
+test("DEV's BAL steps the player vehicle's grip balance in its mechanics, from 0 where it gives none", () => {
+  let documents = { driving, mechanics: plain };
+  documents = stepDrivingTuning(documents, 'BAL', 1);
+  assert.equal(documents.mechanics.gripBalance, 0.01);
+  assert.equal(documents.driving, driving);
+  documents = stepDrivingTuning(stepDrivingTuning(documents, 'BAL', -1), 'BAL', -1);
+  assert.equal(documents.mechanics.gripBalance, -0.01);
+  // The grid runs from -0.10 to +0.20 and wraps.
+  assert.equal(
+    stepDrivingTuning({ driving, mechanics: { ...plain, gripBalance: 0.2 } }, 'BAL', 1).mechanics.gripBalance,
+    -0.1,
+  );
 });

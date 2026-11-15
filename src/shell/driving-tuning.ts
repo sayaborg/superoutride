@@ -3,16 +3,17 @@ import type { VehicleMechanicsDocument } from '../vehicle/definition-document.js
 import type { WheelSlipProtection } from '../vehicle/physics/torque-protection.js';
 
 /**
- * DEV tuning of the game-wide driving definition and the player vehicle's own tire and wheel slip, in their saved
- * units. Only author-facing design values are listed; numerical margins (fuel-cut and clutch-lock idle margins) stay
- * file-only.
+ * DEV tuning of the game-wide driving definition and the player vehicle's own tire, grip balance and wheel slip, in
+ * their saved units. Only author-facing design values are listed; numerical margins (fuel-cut and clutch-lock idle
+ * margins) stay file-only.
  */
 export type DrivingTuningGroup = 'STEERING' | 'PEDALS' | 'TIRES' | 'POWERTRAIN' | 'RIVALS' | 'CONTACT';
 
 /**
  * The two documents DEV tunes: the game-wide driving definition and the player vehicle's mechanics. TIRES and the wheel
  * slip switch tune the vehicle's own tire and wheel slip where its mechanics give them, as its model uses them, else
- * the driving definition's; every other value is the driving definition's.
+ * the driving definition's; LS is always the driving definition's and BAL always the vehicle's; every other value is
+ * the driving definition's.
  */
 export interface TuningDocuments {
   readonly driving: DrivingDocument;
@@ -62,6 +63,14 @@ const tire = (key: keyof DrivingDefinition['tire']) => ({
       ? { ...documents, driving: { ...driving, tire: { ...driving.tire, [key]: value } } }
       : { ...documents, mechanics: { ...mechanics, tire: { ...mechanics.tire, [key]: value } } };
   },
+});
+/** A vehicle value: read and written in the player vehicle's mechanics document, `fallback` where it gives none. */
+const vehicle = (key: 'gripBalance', fallback: number) => ({
+  read: ({ mechanics }: TuningDocuments) => mechanics[key] ?? fallback,
+  write: (documents: TuningDocuments, value: number): TuningDocuments => ({
+    ...documents,
+    mechanics: { ...documents.mechanics, [key]: value },
+  }),
 });
 const pedal = (pedalKey: 'throttle' | 'brake', key: 'applySeconds' | 'releaseSeconds') =>
   driving(
@@ -205,6 +214,18 @@ const DRIVING_TUNING_ITEMS: readonly NumericTuningItem[] = Object.freeze([
     max: 50,
     step: 1,
     ...field('tireLoadSensitivity'),
+  }),
+  item({
+    id: 'BAL',
+    group: 'TIRES',
+    label: 'BAL',
+    description: "the vehicle's grip balance: front grip × (1 − BAL), rear × (1 + BAL)",
+    unit: '',
+    scale: 100,
+    min: -10,
+    max: 20,
+    step: 1,
+    ...vehicle('gripBalance', 0),
   }),
   item({
     id: 'FMEP0',

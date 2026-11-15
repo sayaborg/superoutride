@@ -1570,11 +1570,11 @@ begin and end only inside a Section: across a seam every lane continues with its
 
 #### Vehicle limits and planned control
 
-Every driver plans with one model of its vehicle's limits,
-`createVehicleLimits` in `src/vehicle/vehicle-limits.ts`, built from the vehicle model alone: a point mass on two axles,
-per unit mass. Each axle's tire is a friction circle of radius `mu·g` times the surface grip, the axle's static share
-of the weight and its effective load factor: the axle's load over its static load read through the game-wide load
-sensitivity, `n/(1+r(n-1))`, as the wheel solve reads loads. Both axles share the vehicle's load factor
+Every driver plans with one model of its vehicle's limits, `createVehicleLimits` in `src/vehicle/vehicle-limits.ts`,
+built from the vehicle model alone: a point mass on two axles, per unit mass. Each axle's tire is a friction circle of
+radius `mu·g` times the surface grip, with `mu` the axle's grip (the vehicle's grip balance divides it), the axle's
+static share of the weight and its effective load factor: the axle's load over its static load read through the
+game-wide load sensitivity, `n/(1+r(n-1))`, as the wheel solve reads loads. Both axles share the vehicle's load factor
 `n = cos θ + v²·kv/g`, which the tires' longitudinal force moves between them by its moment at the centre of mass's
 height, amplified by the suspension's pitch compliance (the pitch the moved load sets moves the contacts under the
 centre of mass). From it:
@@ -1590,7 +1590,8 @@ centre of mass). From it:
   than the lateral is not available.
 - Braking: each axle's brake torque at `u` at its rolling radius, bounded by its circle alike.
 - Resistances: drag `quadraticDrag·v²`, grade `g·sin θ`, rolling `Cr·g·n`, and the cornering drag of the tires'
-  lateral slip, the lateral acceleration times the pure-lateral slip the tire law needs for it.
+  lateral slip, the lateral acceleration times the pure-lateral slip each axle's tire needs for its share of it, by the
+  axles' static shares.
 - Inertia: the wheels' rotational inertia at their rolling radii adds to the mass along the travel.
 - Steady speed: the fastest speed whose lateral demand on a path of curvature `κ` lies within the lateral limit and
   whose drive covers drag, grade, rolling and cornering drag; the speed cap is its value on a level straight at full
