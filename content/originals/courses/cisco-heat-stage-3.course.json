@@ -179,7 +179,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -222,7 +222,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": { "boundary": "road-1-centre", "offset": -5.666398 },
           "right": { "boundary": "road-1-centre", "offset": -3.480788 },
@@ -256,7 +256,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": { "boundary": "road-1-centre", "offset": -3.480788 },
           "right": { "boundary": "road-1-centre", "offset": -3.237942 },
@@ -290,7 +290,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": { "boundary": "road-1-centre", "offset": -3.237942 },
           "right": { "boundary": "road-1-centre", "offset": -2.914148 },
@@ -324,7 +324,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": { "boundary": "road-1-centre", "offset": 2.914148 },
           "right": { "boundary": "road-1-centre", "offset": 3.237942 },
@@ -358,7 +358,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": { "boundary": "road-1-centre", "offset": 3.237942 },
           "right": { "boundary": "road-1-centre", "offset": 3.480788 },
@@ -392,7 +392,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": { "boundary": "road-1-centre", "offset": 3.480788 },
           "right": { "boundary": "road-1-centre", "offset": 5.666398 },
@@ -471,7 +471,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": -8.256752,
           "right": 8.256752,
@@ -514,7 +514,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": -5.666398,
           "right": -3.480788,
@@ -548,7 +548,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": -3.480788,
           "right": -3.237942,
@@ -582,7 +582,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": -3.237942,
           "right": -2.914148,
@@ -616,7 +616,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": 2.914148,
           "right": 3.237942,
@@ -650,7 +650,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": 3.237942,
           "right": 3.480788,
@@ -684,7 +684,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 264.75 },
+          "start": { "joint": "s0", "offset": 264.750004 },
           "end": { "joint": "s0", "offset": 267.018519 },
           "left": 3.480788,
           "right": 5.666398,
@@ -2793,7 +2793,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -2836,7 +2836,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": { "boundary": "road-1-centre", "offset": -5.666398 },
           "right": { "boundary": "road-1-centre", "offset": -3.480788 },
@@ -2870,7 +2870,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": { "boundary": "road-1-centre", "offset": -3.480788 },
           "right": { "boundary": "road-1-centre", "offset": -3.237942 },
@@ -2904,7 +2904,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": { "boundary": "road-1-centre", "offset": -3.237942 },
           "right": { "boundary": "road-1-centre", "offset": -2.914148 },
@@ -2938,7 +2938,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": { "boundary": "road-1-centre", "offset": 2.914148 },
           "right": { "boundary": "road-1-centre", "offset": 3.237942 },
@@ -2972,7 +2972,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": { "boundary": "road-1-centre", "offset": 3.237942 },
           "right": { "boundary": "road-1-centre", "offset": 3.480788 },
@@ -3006,7 +3006,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": { "boundary": "road-1-centre", "offset": 3.480788 },
           "right": { "boundary": "road-1-centre", "offset": 5.666398 },
@@ -3085,7 +3085,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": -8.256752,
           "right": 8.256752,
@@ -3128,7 +3128,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": -5.666398,
           "right": -3.480788,
@@ -3162,7 +3162,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": -3.480788,
           "right": -3.237942,
@@ -3196,7 +3196,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": -3.237942,
           "right": -2.914148,
@@ -3230,7 +3230,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": 2.914148,
           "right": 3.237942,
@@ -3264,7 +3264,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": 3.237942,
           "right": 3.480788,
@@ -3298,7 +3298,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.416667 },
+          "start": { "joint": "end", "offset": -202.416666 },
           "end": { "joint": "end", "offset": -201.217593 },
           "left": 3.480788,
           "right": 5.666398,
@@ -3388,7 +3388,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -191.236112 },
+          "start": { "joint": "end", "offset": -191.236111 },
           "end": { "joint": "end", "offset": -191.106482 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -3685,7 +3685,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -191.236112 },
+          "start": { "joint": "end", "offset": -191.236111 },
           "end": { "joint": "end", "offset": -191.106482 },
           "left": -8.256752,
           "right": 8.256752,
@@ -6589,7 +6589,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 33.347222 },
+          "start": { "joint": "s0", "offset": 33.347223 },
           "end": { "joint": "s0", "offset": 35.162037 },
           "left": -2.995096,
           "right": -2.752251,
@@ -6662,7 +6662,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 33.347222 },
+          "start": { "joint": "s0", "offset": 33.347223 },
           "end": { "joint": "s0", "offset": 35.162037 },
           "left": -0.121423,
           "right": 0.121423,
@@ -6735,7 +6735,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 33.347222 },
+          "start": { "joint": "s0", "offset": 33.347223 },
           "end": { "joint": "s0", "offset": 35.162037 },
           "left": 2.752251,
           "right": 2.995096,
@@ -6887,7 +6887,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.273148 },
+          "start": { "joint": "end", "offset": -3.273146 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -6930,7 +6930,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.273148 },
+          "start": { "joint": "end", "offset": -3.273146 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -7012,7 +7012,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.356481 },
+          "start": { "joint": "end", "offset": -0.356479 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -7094,7 +7094,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.356481 },
+          "start": { "joint": "end", "offset": -0.356479 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -7176,7 +7176,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.356481 },
+          "start": { "joint": "end", "offset": -0.356479 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -7210,7 +7210,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.273148 },
+          "start": { "joint": "end", "offset": -3.273146 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -7289,7 +7289,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.273148 },
+          "start": { "joint": "end", "offset": -3.273146 },
           "end": { "joint": "end", "offset": 0 },
           "left": -8.256752,
           "right": 8.256752,
@@ -7332,7 +7332,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.273148 },
+          "start": { "joint": "end", "offset": -3.273146 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.342604,
           "right": -5.099759,
@@ -7414,7 +7414,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.356481 },
+          "start": { "joint": "end", "offset": -0.356479 },
           "end": { "joint": "end", "offset": 0 },
           "left": -2.995096,
           "right": -2.752251,
@@ -7496,7 +7496,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.356481 },
+          "start": { "joint": "end", "offset": -0.356479 },
           "end": { "joint": "end", "offset": 0 },
           "left": -0.121423,
           "right": 0.121423,
@@ -7578,7 +7578,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.356481 },
+          "start": { "joint": "end", "offset": -0.356479 },
           "end": { "joint": "end", "offset": 0 },
           "left": 2.752251,
           "right": 2.995096,
@@ -7612,7 +7612,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.273148 },
+          "start": { "joint": "end", "offset": -3.273146 },
           "end": { "joint": "end", "offset": 0 },
           "left": 5.099759,
           "right": 5.342604,
@@ -8334,7 +8334,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 166.37963 },
+          "start": { "joint": "s0", "offset": 166.379632 },
           "end": { "joint": "s0", "offset": 168.226852 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -8416,7 +8416,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 166.37963 },
+          "start": { "joint": "s0", "offset": 166.379632 },
           "end": { "joint": "s0", "offset": 168.226852 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -8498,7 +8498,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 166.37963 },
+          "start": { "joint": "s0", "offset": 166.379632 },
           "end": { "joint": "s0", "offset": 168.226852 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -8709,7 +8709,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 166.37963 },
+          "start": { "joint": "s0", "offset": 166.379632 },
           "end": { "joint": "s0", "offset": 168.226852 },
           "left": -2.995096,
           "right": -2.752251,
@@ -8791,7 +8791,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 166.37963 },
+          "start": { "joint": "s0", "offset": 166.379632 },
           "end": { "joint": "s0", "offset": 168.226852 },
           "left": -0.121423,
           "right": 0.121423,
@@ -8873,7 +8873,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 166.37963 },
+          "start": { "joint": "s0", "offset": 166.379632 },
           "end": { "joint": "s0", "offset": 168.226852 },
           "left": 2.752251,
           "right": 2.995096,
@@ -10186,7 +10186,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.627315 },
+          "start": { "joint": "end", "offset": -202.627313 },
           "end": { "joint": "end", "offset": -201.217592 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -10238,7 +10238,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.627315 },
+          "start": { "joint": "end", "offset": -202.627313 },
           "end": { "joint": "end", "offset": -201.217592 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -10473,7 +10473,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.627315 },
+          "start": { "joint": "end", "offset": -202.627313 },
           "end": { "joint": "end", "offset": -201.217592 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -10561,7 +10561,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.627315 },
+          "start": { "joint": "end", "offset": -202.627313 },
           "end": { "joint": "end", "offset": -201.217592 },
           "left": -8.256752,
           "right": 8.256752,
@@ -10613,7 +10613,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.627315 },
+          "start": { "joint": "end", "offset": -202.627313 },
           "end": { "joint": "end", "offset": -201.217592 },
           "left": -5.342604,
           "right": -5.099759,
@@ -10848,7 +10848,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -202.627315 },
+          "start": { "joint": "end", "offset": -202.627313 },
           "end": { "joint": "end", "offset": -201.217592 },
           "left": 5.099759,
           "right": 5.342604,
@@ -11008,7 +11008,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.55787 },
+          "start": { "joint": "end", "offset": -12.557868 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -11060,7 +11060,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.55787 },
+          "start": { "joint": "end", "offset": -12.557868 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -11322,7 +11322,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.55787 },
+          "start": { "joint": "end", "offset": -12.557868 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -11410,7 +11410,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.55787 },
+          "start": { "joint": "end", "offset": -12.557868 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": -8.256752,
           "right": 8.256752,
@@ -11462,7 +11462,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.55787 },
+          "start": { "joint": "end", "offset": -12.557868 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": -5.342604,
           "right": -5.099759,
@@ -11724,7 +11724,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.55787 },
+          "start": { "joint": "end", "offset": -12.557868 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": 5.099759,
           "right": 5.342604,
@@ -13071,7 +13071,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 111.400463 },
+          "start": { "joint": "s0", "offset": 111.400464 },
           "end": { "joint": "s0", "offset": 112.858796 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -13114,7 +13114,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 111.400463 },
+          "start": { "joint": "s0", "offset": 111.400464 },
           "end": { "joint": "s0", "offset": 112.858796 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -13340,7 +13340,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 111.400463 },
+          "start": { "joint": "s0", "offset": 111.400464 },
           "end": { "joint": "s0", "offset": 112.858796 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -13419,7 +13419,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 111.400463 },
+          "start": { "joint": "s0", "offset": 111.400464 },
           "end": { "joint": "s0", "offset": 112.858796 },
           "left": -8.256752,
           "right": 8.256752,
@@ -13462,7 +13462,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 111.400463 },
+          "start": { "joint": "s0", "offset": 111.400464 },
           "end": { "joint": "s0", "offset": 112.858796 },
           "left": -5.342604,
           "right": -5.099759,
@@ -13688,7 +13688,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 111.400463 },
+          "start": { "joint": "s0", "offset": 111.400464 },
           "end": { "joint": "s0", "offset": 112.858796 },
           "left": 5.099759,
           "right": 5.342604,
@@ -15557,7 +15557,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -197.18287 },
+          "start": { "joint": "end", "offset": -197.182869 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -15600,7 +15600,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -197.18287 },
+          "start": { "joint": "end", "offset": -197.182869 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": { "boundary": "road-1-centre", "offset": -5.666398 },
           "right": { "boundary": "road-1-centre", "offset": -3.480788 },
@@ -15634,7 +15634,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -197.18287 },
+          "start": { "joint": "end", "offset": -197.182869 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": { "boundary": "road-1-centre", "offset": -3.480788 },
           "right": { "boundary": "road-1-centre", "offset": -3.237942 },
@@ -15668,7 +15668,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -197.18287 },
+          "start": { "joint": "end", "offset": -197.182869 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": { "boundary": "road-1-centre", "offset": -3.237942 },
           "right": { "boundary": "road-1-centre", "offset": -2.914148 },
@@ -15702,7 +15702,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -197.18287 },
+          "start": { "joint": "end", "offset": -197.182869 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": { "boundary": "road-1-centre", "offset": 2.914148 },
           "right": { "boundary": "road-1-centre", "offset": 3.237942 },
@@ -15736,7 +15736,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -197.18287 },
+          "start": { "joint": "end", "offset": -197.182869 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": { "boundary": "road-1-centre", "offset": 3.237942 },
           "right": { "boundary": "road-1-centre", "offset": 3.480788 },
@@ -15770,7 +15770,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -197.18287 },
+          "start": { "joint": "end", "offset": -197.182869 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": { "boundary": "road-1-centre", "offset": 3.480788 },
           "right": { "boundary": "road-1-centre", "offset": 5.666398 },
@@ -15849,7 +15849,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -197.18287 },
+          "start": { "joint": "end", "offset": -197.182869 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": -8.256752,
           "right": 8.256752,
@@ -15892,7 +15892,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -197.18287 },
+          "start": { "joint": "end", "offset": -197.182869 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": -5.342604,
           "right": -5.099759,
@@ -15958,7 +15958,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -195.724537 },
+          "start": { "joint": "end", "offset": -195.724536 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": -2.995096,
           "right": -2.752251,
@@ -16040,7 +16040,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -195.724537 },
+          "start": { "joint": "end", "offset": -195.724536 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": -0.121423,
           "right": 0.121423,
@@ -16122,7 +16122,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -195.724537 },
+          "start": { "joint": "end", "offset": -195.724536 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": 2.752251,
           "right": 2.995096,
@@ -16172,7 +16172,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -197.18287 },
+          "start": { "joint": "end", "offset": -197.182869 },
           "end": { "joint": "end", "offset": -194.865741 },
           "left": 5.099759,
           "right": 5.342604,
@@ -16319,7 +16319,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -143.224537 },
+          "start": { "joint": "end", "offset": -143.224536 },
           "end": { "joint": "end", "offset": -142.997685 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -16401,7 +16401,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -143.224537 },
+          "start": { "joint": "end", "offset": -143.224536 },
           "end": { "joint": "end", "offset": -142.997685 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -16483,7 +16483,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -143.224537 },
+          "start": { "joint": "end", "offset": -143.224536 },
           "end": { "joint": "end", "offset": -142.997685 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -16721,7 +16721,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -143.224537 },
+          "start": { "joint": "end", "offset": -143.224536 },
           "end": { "joint": "end", "offset": -142.997685 },
           "left": -2.995096,
           "right": -2.752251,
@@ -16803,7 +16803,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -143.224537 },
+          "start": { "joint": "end", "offset": -143.224536 },
           "end": { "joint": "end", "offset": -142.997685 },
           "left": -0.121423,
           "right": 0.121423,
@@ -16885,7 +16885,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -143.224537 },
+          "start": { "joint": "end", "offset": -143.224536 },
           "end": { "joint": "end", "offset": -142.997685 },
           "left": 2.752251,
           "right": 2.995096,
@@ -17168,7 +17168,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.738426 },
+          "start": { "joint": "end", "offset": -2.738424 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -17250,7 +17250,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.738426 },
+          "start": { "joint": "end", "offset": -2.738424 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -17332,7 +17332,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.738426 },
+          "start": { "joint": "end", "offset": -2.738424 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -17543,7 +17543,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.738426 },
+          "start": { "joint": "end", "offset": -2.738424 },
           "end": { "joint": "end", "offset": 0 },
           "left": -2.995096,
           "right": -2.752251,
@@ -17625,7 +17625,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.738426 },
+          "start": { "joint": "end", "offset": -2.738424 },
           "end": { "joint": "end", "offset": 0 },
           "left": -0.121423,
           "right": 0.121423,
@@ -17707,7 +17707,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.738426 },
+          "start": { "joint": "end", "offset": -2.738424 },
           "end": { "joint": "end", "offset": 0 },
           "left": 2.752251,
           "right": 2.995096,
@@ -19766,7 +19766,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 116.844907 },
+          "start": { "joint": "s0", "offset": 116.844909 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -19818,7 +19818,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 116.844907 },
+          "start": { "joint": "s0", "offset": 116.844909 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -19900,7 +19900,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 119.761574 },
+          "start": { "joint": "s0", "offset": 119.761576 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -19982,7 +19982,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 119.761574 },
+          "start": { "joint": "s0", "offset": 119.761576 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -20064,7 +20064,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 119.761574 },
+          "start": { "joint": "s0", "offset": 119.761576 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -20107,7 +20107,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 116.844907 },
+          "start": { "joint": "s0", "offset": 116.844909 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -20195,7 +20195,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 116.844907 },
+          "start": { "joint": "s0", "offset": 116.844909 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": -8.256752,
           "right": 8.256752,
@@ -20247,7 +20247,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 116.844907 },
+          "start": { "joint": "s0", "offset": 116.844909 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": -5.342604,
           "right": -5.099759,
@@ -20329,7 +20329,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 119.761574 },
+          "start": { "joint": "s0", "offset": 119.761576 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": -2.995096,
           "right": -2.752251,
@@ -20411,7 +20411,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 119.761574 },
+          "start": { "joint": "s0", "offset": 119.761576 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": -0.121423,
           "right": 0.121423,
@@ -20493,7 +20493,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 119.761574 },
+          "start": { "joint": "s0", "offset": 119.761576 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": 2.752251,
           "right": 2.995096,
@@ -20536,7 +20536,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 116.844907 },
+          "start": { "joint": "s0", "offset": 116.844909 },
           "end": { "joint": "s0", "offset": 120.118056 },
           "left": 5.099759,
           "right": 5.342604,
@@ -21911,7 +21911,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.6875 },
+          "start": { "joint": "end", "offset": -12.687496 },
           "end": { "joint": "end", "offset": -11.342593 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -21954,7 +21954,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.6875 },
+          "start": { "joint": "end", "offset": -12.687496 },
           "end": { "joint": "end", "offset": -11.342593 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -22207,7 +22207,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.6875 },
+          "start": { "joint": "end", "offset": -12.687496 },
           "end": { "joint": "end", "offset": -11.342593 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -22286,7 +22286,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.6875 },
+          "start": { "joint": "end", "offset": -12.687496 },
           "end": { "joint": "end", "offset": -11.342593 },
           "left": -8.256752,
           "right": 8.256752,
@@ -22329,7 +22329,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.6875 },
+          "start": { "joint": "end", "offset": -12.687496 },
           "end": { "joint": "end", "offset": -11.342593 },
           "left": -5.342604,
           "right": -5.099759,
@@ -22582,7 +22582,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -12.6875 },
+          "start": { "joint": "end", "offset": -12.687496 },
           "end": { "joint": "end", "offset": -11.342593 },
           "left": 5.099759,
           "right": 5.342604,
@@ -24961,7 +24961,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 86.479167 },
+          "start": { "joint": "s0", "offset": 86.479168 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -25004,7 +25004,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 86.479167 },
+          "start": { "joint": "s0", "offset": 86.479168 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -25086,7 +25086,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 89.395833 },
+          "start": { "joint": "s0", "offset": 89.395834 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -25168,7 +25168,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 89.395833 },
+          "start": { "joint": "s0", "offset": 89.395834 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -25250,7 +25250,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 89.395833 },
+          "start": { "joint": "s0", "offset": 89.395834 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -25284,7 +25284,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 86.479167 },
+          "start": { "joint": "s0", "offset": 86.479168 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -25363,7 +25363,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 86.479167 },
+          "start": { "joint": "s0", "offset": 86.479168 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": -8.256752,
           "right": 8.256752,
@@ -25406,7 +25406,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 86.479167 },
+          "start": { "joint": "s0", "offset": 86.479168 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": -5.342604,
           "right": -5.099759,
@@ -25488,7 +25488,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 89.395833 },
+          "start": { "joint": "s0", "offset": 89.395834 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": -2.995096,
           "right": -2.752251,
@@ -25570,7 +25570,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 89.395833 },
+          "start": { "joint": "s0", "offset": 89.395834 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": -0.121423,
           "right": 0.121423,
@@ -25652,7 +25652,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 89.395833 },
+          "start": { "joint": "s0", "offset": 89.395834 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": 2.752251,
           "right": 2.995096,
@@ -25686,7 +25686,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 86.479167 },
+          "start": { "joint": "s0", "offset": 86.479168 },
           "end": { "joint": "s0", "offset": 89.509259 },
           "left": 5.099759,
           "right": 5.342604,
@@ -26571,7 +26571,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -59.775463 },
+          "start": { "joint": "end", "offset": -59.775462 },
           "end": { "joint": "end", "offset": -59.564814 },
           "left": null,
           "right": null,
@@ -26607,7 +26607,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -59.775463 },
+          "start": { "joint": "end", "offset": -59.775462 },
           "end": { "joint": "end", "offset": -59.564814 },
           "left": null,
           "right": null,
@@ -29646,7 +29646,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 151.196759 },
+          "start": { "joint": "s0", "offset": 151.196761 },
           "end": { "joint": "s0", "offset": 151.293981 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -29728,7 +29728,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 151.196759 },
+          "start": { "joint": "s0", "offset": 151.196761 },
           "end": { "joint": "s0", "offset": 151.293981 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -29810,7 +29810,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 151.196759 },
+          "start": { "joint": "s0", "offset": 151.196761 },
           "end": { "joint": "s0", "offset": 151.293981 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -30569,7 +30569,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 460.849537 },
+          "start": { "joint": "s0", "offset": 460.849541 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -30612,7 +30612,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 460.849537 },
+          "start": { "joint": "s0", "offset": 460.849541 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -30694,7 +30694,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 463.766204 },
+          "start": { "joint": "s0", "offset": 463.766208 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -30776,7 +30776,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 463.766204 },
+          "start": { "joint": "s0", "offset": 463.766208 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -30858,7 +30858,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 463.766204 },
+          "start": { "joint": "s0", "offset": 463.766208 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -30892,7 +30892,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 460.849537 },
+          "start": { "joint": "s0", "offset": 460.849541 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -30971,7 +30971,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 460.849537 },
+          "start": { "joint": "s0", "offset": 460.849541 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": -8.256752,
           "right": 8.256752,
@@ -31014,7 +31014,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 460.849537 },
+          "start": { "joint": "s0", "offset": 460.849541 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": -5.666398,
           "right": -3.480788,
@@ -31048,7 +31048,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 460.849537 },
+          "start": { "joint": "s0", "offset": 460.849541 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": -3.480788,
           "right": -3.237942,
@@ -31082,7 +31082,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 460.849537 },
+          "start": { "joint": "s0", "offset": 460.849541 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": -3.237942,
           "right": -2.914148,
@@ -31116,7 +31116,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 460.849537 },
+          "start": { "joint": "s0", "offset": 460.849541 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": 2.914148,
           "right": 3.237942,
@@ -31150,7 +31150,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 460.849537 },
+          "start": { "joint": "s0", "offset": 460.849541 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": 3.237942,
           "right": 3.480788,
@@ -31184,7 +31184,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 460.849537 },
+          "start": { "joint": "s0", "offset": 460.849541 },
           "end": { "joint": "s0", "offset": 463.944444 },
           "left": 3.480788,
           "right": 5.666398,
@@ -36893,7 +36893,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.840278 },
+          "start": { "joint": "end", "offset": -10.840275 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -36936,7 +36936,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.840278 },
+          "start": { "joint": "end", "offset": -10.840275 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -36986,7 +36986,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.597223 },
+          "start": { "joint": "end", "offset": -10.597219 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -37068,7 +37068,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.597223 },
+          "start": { "joint": "end", "offset": -10.597219 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -37150,7 +37150,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.597223 },
+          "start": { "joint": "end", "offset": -10.597219 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -37216,7 +37216,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.840278 },
+          "start": { "joint": "end", "offset": -10.840275 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -37295,7 +37295,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.840278 },
+          "start": { "joint": "end", "offset": -10.840275 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": -8.256752,
           "right": 8.256752,
@@ -37338,7 +37338,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.840278 },
+          "start": { "joint": "end", "offset": -10.840275 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": -5.342604,
           "right": -5.099759,
@@ -37388,7 +37388,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.597223 },
+          "start": { "joint": "end", "offset": -10.597219 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": -2.995096,
           "right": -2.752251,
@@ -37470,7 +37470,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.597223 },
+          "start": { "joint": "end", "offset": -10.597219 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": -0.121423,
           "right": 0.121423,
@@ -37552,7 +37552,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.597223 },
+          "start": { "joint": "end", "offset": -10.597219 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": 2.752251,
           "right": 2.995096,
@@ -37618,7 +37618,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -10.840278 },
+          "start": { "joint": "end", "offset": -10.840275 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": 5.099759,
           "right": 5.342604,
@@ -43938,7 +43938,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -234.645833 },
+          "start": { "joint": "end", "offset": -234.64583 },
           "end": { "joint": "end", "offset": -233.527778 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -43990,7 +43990,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -234.645833 },
+          "start": { "joint": "end", "offset": -234.64583 },
           "end": { "joint": "end", "offset": -233.527778 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -44225,7 +44225,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -234.645833 },
+          "start": { "joint": "end", "offset": -234.64583 },
           "end": { "joint": "end", "offset": -233.527778 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -44313,7 +44313,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -234.645833 },
+          "start": { "joint": "end", "offset": -234.64583 },
           "end": { "joint": "end", "offset": -233.527778 },
           "left": -8.256752,
           "right": 8.256752,
@@ -44365,7 +44365,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -234.645833 },
+          "start": { "joint": "end", "offset": -234.64583 },
           "end": { "joint": "end", "offset": -233.527778 },
           "left": -5.342604,
           "right": -5.099759,
@@ -44600,7 +44600,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -234.645833 },
+          "start": { "joint": "end", "offset": -234.64583 },
           "end": { "joint": "end", "offset": -233.527778 },
           "left": 5.099759,
           "right": 5.342604,
@@ -44760,7 +44760,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.256945 },
+          "start": { "joint": "end", "offset": -3.256942 },
           "end": { "joint": "end", "offset": -3.240741 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -44812,7 +44812,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.256945 },
+          "start": { "joint": "end", "offset": -3.256942 },
           "end": { "joint": "end", "offset": -3.240741 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -45074,7 +45074,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.256945 },
+          "start": { "joint": "end", "offset": -3.256942 },
           "end": { "joint": "end", "offset": -3.240741 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -45162,7 +45162,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.256945 },
+          "start": { "joint": "end", "offset": -3.256942 },
           "end": { "joint": "end", "offset": -3.240741 },
           "left": -8.256752,
           "right": 8.256752,
@@ -45214,7 +45214,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.256945 },
+          "start": { "joint": "end", "offset": -3.256942 },
           "end": { "joint": "end", "offset": -3.240741 },
           "left": -5.342604,
           "right": -5.099759,
@@ -45476,7 +45476,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -3.256945 },
+          "start": { "joint": "end", "offset": -3.256942 },
           "end": { "joint": "end", "offset": -3.240741 },
           "left": 5.099759,
           "right": 5.342604,
@@ -48415,7 +48415,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -29.409722 },
+          "start": { "joint": "end", "offset": -29.409718 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -48467,7 +48467,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -29.409722 },
+          "start": { "joint": "end", "offset": -29.409718 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -48524,7 +48524,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -27.951389 },
+          "start": { "joint": "end", "offset": -27.951385 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -48606,7 +48606,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -27.951389 },
+          "start": { "joint": "end", "offset": -27.951385 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -48688,7 +48688,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -27.951389 },
+          "start": { "joint": "end", "offset": -27.951385 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -48756,7 +48756,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -29.409722 },
+          "start": { "joint": "end", "offset": -29.409718 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -48844,7 +48844,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -29.409722 },
+          "start": { "joint": "end", "offset": -29.409718 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": -8.256752,
           "right": 8.256752,
@@ -48896,7 +48896,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -29.409722 },
+          "start": { "joint": "end", "offset": -29.409718 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": -5.342604,
           "right": -5.099759,
@@ -48953,7 +48953,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -27.951389 },
+          "start": { "joint": "end", "offset": -27.951385 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": -2.995096,
           "right": -2.752251,
@@ -49035,7 +49035,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -27.951389 },
+          "start": { "joint": "end", "offset": -27.951385 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": -0.121423,
           "right": 0.121423,
@@ -49117,7 +49117,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -27.951389 },
+          "start": { "joint": "end", "offset": -27.951385 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": 2.752251,
           "right": 2.995096,
@@ -49185,7 +49185,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -29.409722 },
+          "start": { "joint": "end", "offset": -29.409718 },
           "end": { "joint": "end", "offset": -27.935185 },
           "left": 5.099759,
           "right": 5.342604,
@@ -51605,7 +51605,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -508.780092 },
+          "start": { "joint": "end", "offset": -508.780084 },
           "end": { "joint": "end", "offset": -506.333333 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -51687,7 +51687,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -508.780092 },
+          "start": { "joint": "end", "offset": -508.780084 },
           "end": { "joint": "end", "offset": -506.333333 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -51769,7 +51769,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -508.780092 },
+          "start": { "joint": "end", "offset": -508.780084 },
           "end": { "joint": "end", "offset": -506.333333 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -51980,7 +51980,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -508.780092 },
+          "start": { "joint": "end", "offset": -508.780084 },
           "end": { "joint": "end", "offset": -506.333333 },
           "left": -2.995096,
           "right": -2.752251,
@@ -52062,7 +52062,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -508.780092 },
+          "start": { "joint": "end", "offset": -508.780084 },
           "end": { "joint": "end", "offset": -506.333333 },
           "left": -0.121423,
           "right": 0.121423,
@@ -52144,7 +52144,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -508.780092 },
+          "start": { "joint": "end", "offset": -508.780084 },
           "end": { "joint": "end", "offset": -506.333333 },
           "left": 2.752251,
           "right": 2.995096,
@@ -52436,7 +52436,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -335.238426 },
+          "start": { "joint": "end", "offset": -335.238424 },
           "end": { "joint": "end", "offset": -334.185185 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -52518,7 +52518,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -335.238426 },
+          "start": { "joint": "end", "offset": -335.238424 },
           "end": { "joint": "end", "offset": -334.185185 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -52600,7 +52600,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -335.238426 },
+          "start": { "joint": "end", "offset": -335.238424 },
           "end": { "joint": "end", "offset": -334.185185 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -52838,7 +52838,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -335.238426 },
+          "start": { "joint": "end", "offset": -335.238424 },
           "end": { "joint": "end", "offset": -334.185185 },
           "left": -2.995096,
           "right": -2.752251,
@@ -52920,7 +52920,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -335.238426 },
+          "start": { "joint": "end", "offset": -335.238424 },
           "end": { "joint": "end", "offset": -334.185185 },
           "left": -0.121423,
           "right": 0.121423,
@@ -53002,7 +53002,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -335.238426 },
+          "start": { "joint": "end", "offset": -335.238424 },
           "end": { "joint": "end", "offset": -334.185185 },
           "left": 2.752251,
           "right": 2.995096,
@@ -53285,7 +53285,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -269.127315 },
+          "start": { "joint": "end", "offset": -269.127314 },
           "end": { "joint": "end", "offset": -265.935185 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -53367,7 +53367,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -269.127315 },
+          "start": { "joint": "end", "offset": -269.127314 },
           "end": { "joint": "end", "offset": -265.935185 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -53449,7 +53449,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -269.127315 },
+          "start": { "joint": "end", "offset": -269.127314 },
           "end": { "joint": "end", "offset": -265.935185 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -53660,7 +53660,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -269.127315 },
+          "start": { "joint": "end", "offset": -269.127314 },
           "end": { "joint": "end", "offset": -265.935185 },
           "left": -2.995096,
           "right": -2.752251,
@@ -53742,7 +53742,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -269.127315 },
+          "start": { "joint": "end", "offset": -269.127314 },
           "end": { "joint": "end", "offset": -265.935185 },
           "left": -0.121423,
           "right": 0.121423,
@@ -53824,7 +53824,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -269.127315 },
+          "start": { "joint": "end", "offset": -269.127314 },
           "end": { "joint": "end", "offset": -265.935185 },
           "left": 2.752251,
           "right": 2.995096,
@@ -55245,7 +55245,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.793981 },
+          "start": { "joint": "end", "offset": -0.793978 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -55297,7 +55297,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.793981 },
+          "start": { "joint": "end", "offset": -0.793978 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -55338,7 +55338,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.550926 },
+          "start": { "joint": "end", "offset": -0.550923 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -55411,7 +55411,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.550926 },
+          "start": { "joint": "end", "offset": -0.550923 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -55484,7 +55484,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.550926 },
+          "start": { "joint": "end", "offset": -0.550923 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -55559,7 +55559,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.793981 },
+          "start": { "joint": "end", "offset": -0.793978 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -55647,7 +55647,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.793981 },
+          "start": { "joint": "end", "offset": -0.793978 },
           "end": { "joint": "end", "offset": 0 },
           "left": -8.256752,
           "right": 8.256752,
@@ -55699,7 +55699,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.793981 },
+          "start": { "joint": "end", "offset": -0.793978 },
           "end": { "joint": "end", "offset": 0 },
           "left": -5.342604,
           "right": -5.099759,
@@ -55740,7 +55740,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.550926 },
+          "start": { "joint": "end", "offset": -0.550923 },
           "end": { "joint": "end", "offset": 0 },
           "left": -2.995096,
           "right": -2.752251,
@@ -55813,7 +55813,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.550926 },
+          "start": { "joint": "end", "offset": -0.550923 },
           "end": { "joint": "end", "offset": 0 },
           "left": -0.121423,
           "right": 0.121423,
@@ -55886,7 +55886,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.550926 },
+          "start": { "joint": "end", "offset": -0.550923 },
           "end": { "joint": "end", "offset": 0 },
           "left": 2.752251,
           "right": 2.995096,
@@ -55961,7 +55961,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -0.793981 },
+          "start": { "joint": "end", "offset": -0.793978 },
           "end": { "joint": "end", "offset": 0 },
           "left": 5.099759,
           "right": 5.342604,
@@ -58470,7 +58470,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 168.858796 },
+          "start": { "joint": "s0", "offset": 168.858798 },
           "end": { "joint": "s0", "offset": 172.148148 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -58543,7 +58543,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 168.858796 },
+          "start": { "joint": "s0", "offset": 168.858798 },
           "end": { "joint": "s0", "offset": 172.148148 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -58616,7 +58616,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 168.858796 },
+          "start": { "joint": "s0", "offset": 168.858798 },
           "end": { "joint": "s0", "offset": 172.148148 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -58845,7 +58845,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 168.858796 },
+          "start": { "joint": "s0", "offset": 168.858798 },
           "end": { "joint": "s0", "offset": 172.148148 },
           "left": -2.995096,
           "right": -2.752251,
@@ -58918,7 +58918,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 168.858796 },
+          "start": { "joint": "s0", "offset": 168.858798 },
           "end": { "joint": "s0", "offset": 172.148148 },
           "left": -0.121423,
           "right": 0.121423,
@@ -58991,7 +58991,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s0", "offset": 168.858796 },
+          "start": { "joint": "s0", "offset": 168.858798 },
           "end": { "joint": "s0", "offset": 172.148148 },
           "left": 2.752251,
           "right": 2.995096,
@@ -61153,7 +61153,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -11.520833 },
+          "start": { "joint": "end", "offset": -11.52083 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -61205,7 +61205,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -11.520833 },
+          "start": { "joint": "end", "offset": -11.52083 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -61467,7 +61467,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -11.520833 },
+          "start": { "joint": "end", "offset": -11.52083 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -61555,7 +61555,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -11.520833 },
+          "start": { "joint": "end", "offset": -11.52083 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": -8.256752,
           "right": 8.256752,
@@ -61607,7 +61607,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -11.520833 },
+          "start": { "joint": "end", "offset": -11.52083 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": -5.342604,
           "right": -5.099759,
@@ -61869,7 +61869,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -11.520833 },
+          "start": { "joint": "end", "offset": -11.52083 },
           "end": { "joint": "end", "offset": -10.111111 },
           "left": 5.099759,
           "right": 5.342604,
@@ -63308,7 +63308,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s3", "offset": -2.673611 },
+          "start": { "joint": "s3", "offset": -2.673601 },
           "end": { "joint": "s3", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -63390,7 +63390,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s3", "offset": -2.673611 },
+          "start": { "joint": "s3", "offset": -2.673601 },
           "end": { "joint": "s3", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -63472,7 +63472,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s3", "offset": -2.673611 },
+          "start": { "joint": "s3", "offset": -2.673601 },
           "end": { "joint": "s3", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -63710,7 +63710,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s3", "offset": -2.673611 },
+          "start": { "joint": "s3", "offset": -2.673601 },
           "end": { "joint": "s3", "offset": 0 },
           "left": -2.995096,
           "right": -2.752251,
@@ -63792,7 +63792,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s3", "offset": -2.673611 },
+          "start": { "joint": "s3", "offset": -2.673601 },
           "end": { "joint": "s3", "offset": 0 },
           "left": -0.121423,
           "right": 0.121423,
@@ -63874,7 +63874,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s3", "offset": -2.673611 },
+          "start": { "joint": "s3", "offset": -2.673601 },
           "end": { "joint": "s3", "offset": 0 },
           "left": 2.752251,
           "right": 2.995096,
@@ -64184,7 +64184,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s6", "offset": -2.900463 },
+          "start": { "joint": "s6", "offset": -2.900458 },
           "end": { "joint": "s6", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -64266,7 +64266,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s6", "offset": -2.900463 },
+          "start": { "joint": "s6", "offset": -2.900458 },
           "end": { "joint": "s6", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -64348,7 +64348,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s6", "offset": -2.900463 },
+          "start": { "joint": "s6", "offset": -2.900458 },
           "end": { "joint": "s6", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -64586,7 +64586,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s6", "offset": -2.900463 },
+          "start": { "joint": "s6", "offset": -2.900458 },
           "end": { "joint": "s6", "offset": 0 },
           "left": -2.995096,
           "right": -2.752251,
@@ -64668,7 +64668,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s6", "offset": -2.900463 },
+          "start": { "joint": "s6", "offset": -2.900458 },
           "end": { "joint": "s6", "offset": 0 },
           "left": -0.121423,
           "right": 0.121423,
@@ -64750,7 +64750,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s6", "offset": -2.900463 },
+          "start": { "joint": "s6", "offset": -2.900458 },
           "end": { "joint": "s6", "offset": 0 },
           "left": 2.752251,
           "right": 2.995096,
@@ -65001,7 +65001,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s12", "offset": -2.851852 },
+          "start": { "joint": "s12", "offset": -2.851844 },
           "end": { "joint": "s12", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -8.256752 },
           "right": { "boundary": "road-1-centre", "offset": 8.256752 },
@@ -65053,7 +65053,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s12", "offset": -2.851852 },
+          "start": { "joint": "s12", "offset": -2.851844 },
           "end": { "joint": "s12", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -5.342604 },
           "right": { "boundary": "road-1-centre", "offset": -5.099759 },
@@ -65315,7 +65315,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s12", "offset": -2.851852 },
+          "start": { "joint": "s12", "offset": -2.851844 },
           "end": { "joint": "s12", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": 5.099759 },
           "right": { "boundary": "road-1-centre", "offset": 5.342604 },
@@ -65403,7 +65403,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s12", "offset": -2.851852 },
+          "start": { "joint": "s12", "offset": -2.851844 },
           "end": { "joint": "s12", "offset": 0 },
           "left": -8.256752,
           "right": 8.256752,
@@ -65455,7 +65455,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s12", "offset": -2.851852 },
+          "start": { "joint": "s12", "offset": -2.851844 },
           "end": { "joint": "s12", "offset": 0 },
           "left": -5.342604,
           "right": -5.099759,
@@ -65717,7 +65717,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s12", "offset": -2.851852 },
+          "start": { "joint": "s12", "offset": -2.851844 },
           "end": { "joint": "s12", "offset": 0 },
           "left": 5.099759,
           "right": 5.342604,
@@ -65927,7 +65927,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.75463 },
+          "start": { "joint": "end", "offset": -2.754628 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -2.995096 },
           "right": { "boundary": "road-1-centre", "offset": -2.752251 },
@@ -66009,7 +66009,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.75463 },
+          "start": { "joint": "end", "offset": -2.754628 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": -0.121423 },
           "right": { "boundary": "road-1-centre", "offset": 0.121423 },
@@ -66091,7 +66091,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.75463 },
+          "start": { "joint": "end", "offset": -2.754628 },
           "end": { "joint": "end", "offset": 0 },
           "left": { "boundary": "road-1-centre", "offset": 2.752251 },
           "right": { "boundary": "road-1-centre", "offset": 2.995096 },
@@ -66302,7 +66302,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.75463 },
+          "start": { "joint": "end", "offset": -2.754628 },
           "end": { "joint": "end", "offset": 0 },
           "left": -2.995096,
           "right": -2.752251,
@@ -66384,7 +66384,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.75463 },
+          "start": { "joint": "end", "offset": -2.754628 },
           "end": { "joint": "end", "offset": 0 },
           "left": -0.121423,
           "right": 0.121423,
@@ -66466,7 +66466,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "end", "offset": -2.75463 },
+          "start": { "joint": "end", "offset": -2.754628 },
           "end": { "joint": "end", "offset": 0 },
           "left": 2.752251,
           "right": 2.995096,

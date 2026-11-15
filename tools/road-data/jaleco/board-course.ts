@@ -58,21 +58,23 @@ function periodic<T>(
   strip: (from: number, to: number) => T,
 ) {
   const out: (T | { kind: 'repeat'; every: number; count: number; elements: T[] })[] = [];
-  const length = run.to - run.from;
-  const phase = zero + run.from;
-  let first = phase + Math.ceil((a - phase) / period - 1e-9) * period;
+  // The m-th run's ends, each from its own end of the run, so that one part's end is the next part's start exactly.
+  const from = (m: number) => zero + run.from + m * period;
+  const to = (m: number) => zero + run.to + m * period;
+  const m0 = Math.ceil((a - from(0)) / period - 1e-9);
   // A run begun before `a`.
-  if (first - period + length > a + 1e-6) out.push(strip(a, Math.min(b, first - period + length)));
+  if (to(m0 - 1) > a + 1e-6) out.push(strip(a, Math.min(b, to(m0 - 1))));
   const every = micrometre(period);
   let count = 0;
-  while (first + count * period + length <= b + 1e-9) count++;
-  if (count > 0 && micrometre(first + length) + (count - 1) * every > b) count--;
+  while (to(m0 + count) <= b + 1e-9) count++;
+  if (count > 0 && micrometre(to(m0)) + (count - 1) * every > b) count--;
   if (count > 0) {
-    const element = strip(first, first + length);
+    const element = strip(from(m0), to(m0));
     out.push(count === 1 ? element : { kind: 'repeat', every, count, elements: [element] });
   }
-  first += count * period;
-  if (first < b - 1e-6) out.push(strip(first, Math.min(b, first + length)));
+  // What is left to `b`, on from the repeats at their period as written, as every part's is.
+  const left = from(m0) + count * every;
+  if (left < b - 1e-6) out.push(strip(left, Math.min(b, to(m0) + count * every)));
   return out;
 }
 

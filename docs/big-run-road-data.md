@@ -159,7 +159,8 @@ Its six courses (`big-run-course`, each laid as the board's, `jaleco/board-cours
 - **Its pictures.** Each road's picture across, its nearest line's runs, is laid at its centre, cut where either road's
   picture changes: road 2's clear runs first, road 1's picture over them, then road 2's own, as MAME draws the second
   road layer over the first at one priority. Each run's colors are its stripes' over 510 positions, the most common laid
-  over the whole and the others repeated, in its layer's palette as its stage loads it. A picture's most common inner run
+  over the whole and the others repeated, in its layer's palette as its stage loads it; a part's ends are the next
+  part's own, and what is left after a repeat lies on at its period as written, so that no two parts overlap. A picture's most common inner run
   across, its stripes and its ground, is laid beneath each stretch of its inner runs, and each other inner run over it
   only where it differs: its ground where that differs, and its stripes' parts that differ, or its own colors where those
   are no more, so that two pictures keep within the format's 64 active strips; they show as before. Road 1 is drawn at
