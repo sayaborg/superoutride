@@ -156,6 +156,18 @@ test("a heading's jump beside an arc is a turn added to it, over the fewest whol
   assert.equal(plan.elements.at(-1).to - plan.elements[0].from, 4000);
 });
 
+test("a jump's turn reaches on over the records of its curvature beside it", () => {
+  const records = table(
+    [0, 1000, 1050, 3000].map((start) => ({ start, radius: 0, side: 'left' })),
+    4000,
+    0.3,
+    { 2: 0.2 },
+  );
+  const [turn] = arcPlan(records, 4000, METRES, LEAST, LIMITS).turns;
+  assert.ok(turn.from < 1000 && turn.to > 1050);
+  assert.equal(turn.from + turn.to, 2 * 1050);
+});
+
 test('a plan from arcs stops where its table cannot be laid by the rule', () => {
   const stops = (records, end, re, limits = LIMITS, least = LEAST) =>
     assert.throws(() => arcPlan(records, end, METRES, least, limits), re);
@@ -166,8 +178,22 @@ test('a plan from arcs stops where its table cannot be laid by the rule', () => 
       0.3,
       jumps,
     );
-  // A turn taking more than the record before it holds.
-  stops(straights([0, 1000, 1050, 3000], 4000, { 2: 0.2 }), 4000, /more than the records/);
+  // A turn taking more than the records before it hold, the one before them of another curvature.
+  stops(
+    table(
+      [
+        { start: 0, radius: 50000, side: 'left' },
+        { start: 1000, radius: 0, side: 'left' },
+        { start: 1050, radius: 0, side: 'left' },
+        { start: 3000, radius: 0, side: 'left' },
+      ],
+      4000,
+      0.3,
+      { 2: 0.2 },
+    ),
+    4000,
+    /more than the records/,
+  );
   // Two turns that overlap.
   stops(straights([0, 1000, 1150, 3000], 4000, { 1: 0.2, 2: 0.2 }), 4000, /overlap/);
   // A turn reaching the table's start.

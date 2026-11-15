@@ -534,10 +534,11 @@ K decided (2026-11-12):
   RUN's raised again then.
 - **STAGE 5's end.** Its course follows road 1 there, as its main program holds the car on it from 507,330 past its
   goal; road 2 is the road not taken from there, drawn clear to 515,706 and going on 16° right of road 1 from 556,330.
-- **Its right-angle turns.** Where its heading jumps between straights the original shows a turn at right angles (the
-  wharf STAGE 1 runs onto, the corners its signs mark), its tables turning 4° to 20° there. The course lays a 90° arc
-  there instead, as tight as its limits allow, the street ahead ended and the street across painted as ground. It is
-  tried first at STAGE 1's wharf (K, 2026-11-13), its other jumps laid as its tables give them until K has driven it.
+- **Its right-angle turns.** The main program's first plan list marks them: a record whose last word has bit 14 set is a
+  turn of 90° about that record's start, left with bit 11 and right with bit 10, 29 over its five stages, which its road
+  tables run straight through. The course lays a 90° arc there, as tight as its inside limit allows, the street across
+  painted as ground. Its tables' own jumps, STAGE 1's two of 10° among them, stay as the tables give them (K,
+  2026-11-15, replacing the trial of 2026-11-13 at those two).
 
 The stage starts by reading how its screen draws its two roads where their order changes, which one's paint shows over
 the other's, and its courses' PR measures its own car's width again.

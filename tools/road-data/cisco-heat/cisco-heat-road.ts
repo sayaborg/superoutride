@@ -101,3 +101,37 @@ export function ciscoHeatHeld(main: Uint8Array, stage: number): readonly HeldStr
   instruction(main, 0x7718, [0x206e, 0x0058, 0x3028, 0x0008, 0x0800, 0x0001], "road 1's hold (btst #1)");
   return heldStretches(main, 0x2210 + ((disp << 16) >> 16), HELD_BYTES, stage);
 }
+
+/** A stage's turn at right angles: its marked record's start, positions, and its side. */
+export interface CiscoHeatRightAngle {
+  readonly at: number;
+  readonly side: 'left' | 'right';
+}
+
+/**
+ * A stage's turns at right angles, as its main program marks them
+ * ([research](../../../docs/research/cisco-heat.md#its-right-angles)): M 0x2212 copies a stage's four lists from
+ * the table its `lea` at 0x220E names (16 bytes a stage, by `$f011a`), the first road 1's plan, 12 bytes a record (its
+ * start the long at +4); M 0x6222 takes a record whose last word (+10) has bit 14 set as a turn about its start, and
+ * M 0x6276 its side by bit 11, left where it is set, right where bit 10 is.
+ */
+export function ciscoHeatRightAngles(main: Uint8Array, stage: number): readonly CiscoHeatRightAngle[] {
+  if (!(Number.isInteger(stage) && stage >= 0 && stage < STAGES))
+    throw new RangeError(`CISCO HEAT has no stage ${stage}`);
+  const [disp] = instruction(main, 0x220e, [0x41fa, null], "the stages' plan lists (lea pc)");
+  instruction(main, 0x2212, [0x43f9, 0x000f, 0x0240], 'to $f0240 (lea.l)');
+  instruction(main, 0x221e, [0xe940], '16 bytes a stage (asl.w #4)');
+  instruction(main, 0x6222, [0x3229, 0x000a, 0x0241, 0x4000], "a record's mark (move.w $a(a1), andi.w #$4000)");
+  instruction(main, 0x6276, [0x3229, 0x000a, 0x0241, 0x0800], 'its side (move.w $a(a1), andi.w #$800)');
+  const table = 0x2210 + ((disp << 16) >> 16) + 16 * stage;
+  const [first, second] = [long(main, table), long(main, table + 4)];
+  const angles: CiscoHeatRightAngle[] = [];
+  for (let at = first; at + 12 <= second; at += 12) {
+    const last = word(main, at + 10);
+    if (!(last & 0x4000)) continue;
+    const left = (last & 0x800) !== 0;
+    if (left === ((last & 0x400) !== 0)) throw new Error(`A right angle's side at ${at} is ${last.toString(16)}`);
+    angles.push({ at: long(main, at + 4), side: left ? 'left' : 'right' });
+  }
+  return angles;
+}

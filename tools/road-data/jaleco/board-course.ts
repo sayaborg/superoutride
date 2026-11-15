@@ -151,7 +151,7 @@ export interface BoardStage {
   readonly planLimits: ArcPlanLimits;
   /** Its two roads' tables to `end`, road 1's and road 2's. */
   readonly roads: readonly [RoadTables, RoadTables];
-  /** The jumps its original shows as turns at right angles, each laid as a quarter turn (K, 2026-11-13). */
+  /** The turns its original shows at right angles, each a quarter turn about its record's start (K, 2026-11-15). */
   readonly rightAngles: readonly RightAngle[];
   readonly goal: number;
   readonly end: number;

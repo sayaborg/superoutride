@@ -479,7 +479,8 @@ its records draw (`arcPlan`, `arc-plan`) (K, 2026-11-09):
   either side, straight or arc: over the fewest whole positions alike either side of the record's start at which the
   curvature they add up to keeps, at every position, the least radius its lanes on the inside keep
   (`leastLaneRadius`), so that the distance along the road is the table's and the heading after it the next record's.
-  Between two straights it is [a heading table's turn](#plan-from-a-heading-table).
+  It reaches into the records either side and on over those of their curvature that run on from them, as far as the
+  next jump or meeting. Between two straights it is [a heading table's turn](#plan-from-a-heading-table).
 - **A second road** from its own table beside P's (`secondRoad`; BIG RUN's and CISCO HEAT's two roads, each a road
   CPU's): where the two tables hold one record, its start, arc, heading, position and end, the two roads are one. Where
   they part, the second is laid by its own arcs from P's point and heading where they part, and where the tables are one

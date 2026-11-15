@@ -135,6 +135,7 @@ export function arcPlan(
   }
   // Each jump a turn added to the records either side, over the fewest whole positions alike either side of it at which
   // the curvature on each side keeps the lanes' least radius: between straights, the turn's own over both sides.
+  const jumpAt = new Set([...jumps.map((j) => j.at), ...records.flatMap((r, i) => (meeting.has(r.start) ? [i] : []))]);
   const turns: ArcTurn[] = jumps.map(({ at, turn }) => {
     const s = records[at]!.start;
     const [before, after] = [curvatureOf(at - 1), curvatureOf(at)];
@@ -144,7 +145,11 @@ export function arcPlan(
       before === after
         ? keeps(s - n, s + n, turn / (2 * n) + before)
         : keeps(s - n, s, turn / (2 * n) + before) && keeps(s, s + n, turn / (2 * n) + after);
-    const holds = (n: number) => s - n >= records[at - 1]!.start && s + n <= endOf(at);
+    // The records beside it, and on over those of their curvature that run on from them with no jump between.
+    let [first, last] = [at - 1, at];
+    while (first > 0 && !jumpAt.has(first) && curvatureOf(first - 1) === before) first--;
+    while (last + 1 < records.length && !jumpAt.has(last + 1) && curvatureOf(last + 1) === after) last++;
+    const holds = (n: number) => s - n >= records[first]!.start && s + n <= endOf(last);
     let n = 1;
     while (holds(n) && !kept(n)) n++;
     if (!holds(n)) throw contractUnmet(`The turn at ${s} takes more than the records beside it hold`);

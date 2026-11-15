@@ -40,19 +40,16 @@ export function twoRoadPlan(
   return { p: pPlan, road1: qPlan, beside: secondRoad(p!, pPlan, q!, qPlan, end) };
 }
 
-/**
- * A turn the original shows at right angles (K, 2026-11-13): its tables' heading jump at `at`, and the jumps after it
- * that the same corner takes in (`joins`).
- */
+/** A turn the original shows at right angles (K, 2026-11-15): about the start of the record at `at`, to `side`. */
 export interface RightAngle {
   readonly at: number;
-  readonly joins: readonly number[];
+  readonly side: 'left' | 'right';
 }
 
 /**
- * A road's records with each right angle a quarter turn to its jump's side: the records from its jump on turned about
- * the jump's start by what the quarter turn adds to the jump, and those from each joined jump on turned back by that
- * jump, so that the plan lays the corner as one turn and the road on from it as its tables run.
+ * A road's records with each right angle a quarter turn to its side: the records from its record on turned a quarter
+ * turn about that record's start, so that the plan lays the corner as a turn about it and the road on from it as its
+ * tables run.
  */
 export function rightAngled(
   records: readonly RoadPlanRecord[],
@@ -60,17 +57,14 @@ export function rightAngled(
   tables: RoadTablesAt,
 ): readonly RoadPlanRecord[] {
   const units = tables.turnUnits;
-  const wrap = (u: number) => ((((u + units / 2) % units) + units) % units) - units / 2;
-  const jumpAt = (rs: readonly RoadPlanRecord[], at: number) => {
-    const k = rs.findIndex((r) => r.start === at);
-    if (k < 1) throw new RangeError(`No record starts a jump at ${at}`);
-    return { k, by: wrap(rs[k]!.heading - rs[k - 1]!.heading) };
-  };
-  // The records from the k-th on turned by `by` units about the k-th's start.
-  const turned = (rs: readonly RoadPlanRecord[], k: number, by: number) => {
-    const [px, py] = [rs[k]!.x, rs[k]!.y];
+  let out = records;
+  for (const angle of angles) {
+    const k = out.findIndex((r) => r.start === angle.at);
+    if (k < 1) throw new RangeError(`No record starts a right angle at ${angle.at}`);
+    const by = angle.side === 'right' ? units / 4 : -units / 4;
+    const [px, py] = [out[k]!.x, out[k]!.y];
     const [c, s] = [Math.cos(by * angleRadians(tables)), Math.sin(by * angleRadians(tables))];
-    return rs.map((r, i) =>
+    out = out.map((r, i) =>
       i < k
         ? r
         : {
@@ -80,15 +74,6 @@ export function rightAngled(
             y: py + (r.x - px) * s + (r.y - py) * c,
           },
     );
-  };
-  let out = records;
-  for (const angle of angles) {
-    const { k, by } = jumpAt(out, angle.at);
-    out = turned(out, k, Math.sign(by) * (units / 4) - by);
-    for (const at of angle.joins) {
-      const joined = jumpAt(out, at);
-      out = turned(out, joined.k, -joined.by);
-    }
   }
   return out;
 }
