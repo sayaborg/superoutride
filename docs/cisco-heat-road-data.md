@@ -179,7 +179,8 @@ Its five courses (`cisco-heat-course`, each laid as the board's, `jaleco/board-c
   (21 m) bound every other turn, and the Sections near it, cut at its middle and its ends, reach their inside's limit
   alone. Outside it the street across, its road's surface, reaches three limits' reach beyond the course's limit. Its
   objects stand at their stations, its sky turns with the road. Its tables' own jumps, STAGE 1's two of 10° at 147,760
-  and 155,760 among them, are laid as its tables give them. STAGE 1's three are laid first.
+  and 155,760 among them, are laid as its tables give them. All 29 are laid: STAGE 1's 3, STAGE 2's 8, STAGE 3's 12,
+  STAGE 4's 4 and STAGE 5's 2.
 - **Its lanes** are its most common picture's ([its road across](#its-road-across)) over its two roads, each at its
   own centre ([two roads](original-road-data.md#two-roads)).
 - **Its pictures.** Each road's picture across, its nearest line's runs, is laid at its centre as BIG RUN's are, road 2's

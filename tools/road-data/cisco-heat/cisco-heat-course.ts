@@ -65,8 +65,6 @@ const OPEN: ReadonlySet<number> = new Set([0x0ff0, 0x5484, 0x5490]);
 /** The conversion's version: its outputs' format. */
 export const CISCO_HEAT_CONVERSION_VERSION = 3;
 
-/** The stages whose turns at right angles are laid so far: STAGE 1's first (K, 2026-11-15). */
-const RIGHT_ANGLED_STAGES: ReadonlySet<number> = new Set([0]);
 /** How far a record may depart from its table's next heading and position: BIG RUN's (K, 2026-11-09). */
 const PLAN_LIMITS = Object.freeze({ heading: (0.03 * Math.PI) / 180, position: 14 });
 
@@ -270,7 +268,7 @@ export function ciscoHeatCourses(set: RomSet) {
       name,
       tables: CISCO_HEAT_TABLES,
       planLimits: PLAN_LIMITS,
-      rightAngles: RIGHT_ANGLED_STAGES.has(stage) ? ciscoHeatRightAngles(main, stage).filter((a) => a.at < end) : [],
+      rightAngles: ciscoHeatRightAngles(main, stage).filter((a) => a.at < end),
       roads,
       goal,
       end,
