@@ -15,43 +15,42 @@ stored as versioned JSON. Derived radians, actuator rates and tire coefficients 
 DEV tunes the author-facing values below in their saved units; each grid wraps at its ends. A grid only places
 steps and never rejects a driving definition.
 
-| Group      | Key   | Definition field                            | Meaning                                      | Default | DEV range / step           |
-| ---------- | ----- | ------------------------------------------- | -------------------------------------------- | ------- | -------------------------- |
-| Steering   | M     | `maxRoadWheelSteerDegrees`                  | Mechanical road-wheel rack bound             | 65°     | 50–80° / 5°                |
-| Steering   | ACT   | `steeringTraversalSeconds`                  | Symmetric normalized steering traversal time | 0.30 s  | 0.20–0.40 s / 0.025 s      |
-| Pedals     | THR+  | `throttle.applySeconds`                     | Throttle apply time                          | 0.25 s  | 0.05–0.50 s / 0.025 s      |
-| Pedals     | THR-  | `throttle.releaseSeconds`                   | Throttle release time                        | 0.125 s | 0.025–0.50 s / 0.025 s     |
-| Pedals     | BRK+  | `brake.applySeconds`                        | Brake apply time                             | 0.15 s  | 0.05–0.50 s / 0.025 s      |
-| Pedals     | BRK-  | `brake.releaseSeconds`                      | Brake release time                           | 0.10 s  | 0.025–0.50 s / 0.025 s     |
-| Tires¹     | GX    | `tire.gripX`                                | Longitudinal reference friction              | 5       | 0.5–8 / 0.05               |
-| Tires¹     | PX    | `tire.peakSlipX`                            | Longitudinal pure-slip peak                  | 20%     | 2–40% / 1 percentage point |
-| Tires¹     | GY    | `tire.gripY`                                | Lateral reference friction                   | 2.5     | 0.5–4 / 0.05               |
-| Tires¹     | PY    | `tire.peakSlipY`                            | Lateral pure-slip peak                       | 10%     | 2–20% / 1 percentage point |
-| Tires¹     | KN    | `tire.knee`                                 | Normalized radial knee start                 | 0.74    | 0.10–0.95 / 0.01           |
-| Tires¹     | LS    | `tire.loadSensitivity`                      | Tire force's sublinearity in load (r)        | 0.15    | 0.00–0.50 / 0.01           |
-| Tires¹     | SR    | `tire.slidingRatio`                         | Force far past the peak, × the peak force    | 1       | 0.50–1.00 / 0.01           |
-| Powertrain | FMEP0 | `idleFrictionMeanEffectivePressureBar`      | Friction mean effective pressure at idle     | 1.0 bar | 0.5–3.0 bar / 0.1 bar      |
-| Powertrain | FMEP1 | `redlineFrictionMeanEffectivePressureBar`   | Friction mean effective pressure at redline  | 2.5 bar | 1.0–5.0 bar / 0.1 bar      |
-| Powertrain | J     | `engineInertiaKilogramSquareMetersPerLitre` | Engine inertia per litre (kg m²/L)           | 0.04    | 0.010–0.100 / 0.005        |
-| Powertrain | ETA   | `drivelineEfficiency`                       | Driveline efficiency                         | 0.90    | 0.70–1.00 / 0.01           |
-| Powertrain | CLU   | `clutchCapacityFactor`                      | Clutch capacity × maximum curve torque       | 1.5     | 1.1–3.0 / 0.1              |
-| Rivals     | ULVL  | `roles.rival.utilization`                   | Rival utilization level with the player      | 0.85    | 0.30–1.00 / 0.01           |
-| Rivals     | UMIN  | `roles.rival.leastUtilization`              | Rival utilization at the span ahead          | 0.70    | 0.30–1.00 / 0.01           |
-| Rivals     | UMAX  | `roles.rival.mostUtilization`               | Rival utilization at the span behind         | 0.98    | 0.30–1.00 / 0.01           |
-| Rivals     | SPAN  | `roles.rival.spanMeters`                    | Lead at which a rival's target is a bound    | 200 m   | 20–1000 m / 10 m           |
-| Rivals     | RESP  | `roles.rival.responseSeconds`               | Rival utilization response time constant     | 6.0 s   | 0.5–30.0 s / 0.5 s         |
-| Contact    | BCF   | `bodyContact.frequencyHertz`                | Body contact natural frequency (Hz)          | 3.0 Hz  | 1.0–6.0 Hz / 0.5 Hz        |
-| Contact    | BCZ   | `bodyContact.dampingRatio`                  | Body contact damping ratio                   | 1.0     | 0.2–1.5 / 0.1              |
-| Contact    | BWF   | `bodyContact.barrierFriction`               | Wall friction, as a fraction of the push     | 0.30    | 0.00–1.00 / 0.05           |
-| Assists¹   | —     | `wheelSlip.drive`                           | TCS and MSR with the player's input          | on      | on / off                   |
-| Assists¹   | —     | `wheelSlip.brake`                           | ABS with the player's input                  | on      | on / off                   |
+| Group      | Key   | Definition field                            | Meaning                                      | Default | DEV range / step       |
+| ---------- | ----- | ------------------------------------------- | -------------------------------------------- | ------- | ---------------------- |
+| Steering   | M     | `maxRoadWheelSteerDegrees`                  | Mechanical road-wheel rack bound             | 65°     | 50–80° / 5°            |
+| Steering   | ACT   | `steeringTraversalSeconds`                  | Symmetric normalized steering traversal time | 0.30 s  | 0.20–0.40 s / 0.025 s  |
+| Pedals     | THR+  | `throttle.applySeconds`                     | Throttle apply time                          | 0.25 s  | 0.05–0.50 s / 0.025 s  |
+| Pedals     | THR-  | `throttle.releaseSeconds`                   | Throttle release time                        | 0.125 s | 0.025–0.50 s / 0.025 s |
+| Pedals     | BRK+  | `brake.applySeconds`                        | Brake apply time                             | 0.15 s  | 0.05–0.50 s / 0.025 s  |
+| Pedals     | BRK-  | `brake.releaseSeconds`                      | Brake release time                           | 0.10 s  | 0.025–0.50 s / 0.025 s |
+| Tires¹     | G     | `tire.grip`                                 | Tire grip, the force bound over the load     | 2.5     | 0.5–4 / 0.05           |
+| Tires¹     | C     | `tire.stiffness`                            | Force over the load at unit slip             | 40      | 10–150 / 1             |
+| Tires¹     | SR    | `tire.slidingRatio`                         | Force far past the peak, × the peak force    | 1       | 0.50–1.00 / 0.01       |
+| Tires      | LS    | `tireLoadSensitivity`                       | Tire force's sublinearity in load (r)        | 0.15    | 0.00–0.50 / 0.01       |
+| Powertrain | FMEP0 | `idleFrictionMeanEffectivePressureBar`      | Friction mean effective pressure at idle     | 1.0 bar | 0.5–3.0 bar / 0.1 bar  |
+| Powertrain | FMEP1 | `redlineFrictionMeanEffectivePressureBar`   | Friction mean effective pressure at redline  | 2.5 bar | 1.0–5.0 bar / 0.1 bar  |
+| Powertrain | J     | `engineInertiaKilogramSquareMetersPerLitre` | Engine inertia per litre (kg m²/L)           | 0.04    | 0.010–0.100 / 0.005    |
+| Powertrain | ETA   | `drivelineEfficiency`                       | Driveline efficiency                         | 0.90    | 0.70–1.00 / 0.01       |
+| Powertrain | CLU   | `clutchCapacityFactor`                      | Clutch capacity × maximum curve torque       | 1.5     | 1.1–3.0 / 0.1          |
+| Rivals     | ULVL  | `roles.rival.utilization`                   | Rival utilization level with the player      | 0.85    | 0.30–1.00 / 0.01       |
+| Rivals     | UMIN  | `roles.rival.leastUtilization`              | Rival utilization at the span ahead          | 0.70    | 0.30–1.00 / 0.01       |
+| Rivals     | UMAX  | `roles.rival.mostUtilization`               | Rival utilization at the span behind         | 0.98    | 0.30–1.00 / 0.01       |
+| Rivals     | SPAN  | `roles.rival.spanMeters`                    | Lead at which a rival's target is a bound    | 200 m   | 20–1000 m / 10 m       |
+| Rivals     | RESP  | `roles.rival.responseSeconds`               | Rival utilization response time constant     | 6.0 s   | 0.5–30.0 s / 0.5 s     |
+| Contact    | BCF   | `bodyContact.frequencyHertz`                | Body contact natural frequency (Hz)          | 3.0 Hz  | 1.0–6.0 Hz / 0.5 Hz    |
+| Contact    | BCZ   | `bodyContact.dampingRatio`                  | Body contact damping ratio                   | 1.0     | 0.2–1.5 / 0.1          |
+| Contact    | BWF   | `bodyContact.barrierFriction`               | Wall friction, as a fraction of the push     | 0.30    | 0.00–1.00 / 0.05       |
+| Assists¹   | —     | `wheelSlip.drive`                           | TCS and MSR with the player's input          | on      | on / off               |
+| Assists¹   | —     | `wheelSlip.brake`                           | ABS with the player's input                  | on      | on / off               |
 
 ¹ `wheelSlip` is the protection the player's input drives with, each side its own switch; planned drivers always drive
 with both sides on ([Vehicle physics](vehicle-physics.md#actuators-and-steering)). The driving definition's tire and `wheelSlip` are the
 game-wide defaults: they serve every vehicle whose
-[mechanics document](vehicle-physics.md#material-vehicle-and-driving-documents) does not give its own `tire` (all seven
+[mechanics document](vehicle-physics.md#material-vehicle-and-driving-documents) does not give its own `tire` (all three
 values) or `wheelSlip` (both sides); a vehicle that gives one uses its own. They are not difficulty or player choices. A vehicle on
-the defaults follows the game-wide tuning, its identity changing with the driving definition's.
+the defaults follows the game-wide tuning, its identity changing with the driving definition's. The load sensitivity
+LS is the game's, not a tire's (K, 2026-11-16): every vehicle reads the driving definition's, and no mechanics document
+gives one.
 
 `fuelCutEnterRedlineRatio` (1.05), `fuelCutClearRedlineRatio` (1.03) and `clutchLockIdleMargin` (0.02) set the
 latches' thresholds and keep them from chattering; they are edited only in the file.
@@ -59,7 +58,8 @@ latches' thresholds and keep them from chattering; they are edited only in the f
 steering rule, a driver's rule rather than a vehicle value ([Vehicle physics](vehicle-physics.md#actuators-and-steering));
 DEV does not tune them, so they too are edited only in the file.
 
-PX and PY are dimensionless slips. The defaults give `kX = kY = 31.5` under the
+C is a force over the load per unit of the dimensionless slip (across the wheel, per radian of small slip angle). The
+peak slip `3*G/C` is not a value of its own: the defaults put it at 0.1875 on unit grip under the
 [tire law](vehicle-physics.md#tire-law). Full steering input sets the front tire's pure-lateral slip at which its lateral force reaches the fraction X of its
 bound on the material under the front wheel (at X = 100%, the peak), measured from the front wheel's travel
 direction turned back by the steering rule's lever times the yaw rate's departure from the steady turn asked for. The
@@ -176,13 +176,14 @@ screen.
 
 ## Vehicle values
 
-The [vehicle mechanics documents](../content/vehicles/) and [vehicle listings](../content/vehicle-listings/)
-are the sole authority for per-vehicle values. A mechanics document may give the vehicle its own tire and `wheelSlip`
-in place of the game-wide defaults ([Vehicle settings](#vehicle-settings)). The DRIFT TUNED vehicles (S13_DRIFT_TUNED
-and AE86_DRIFT_TUNED) give both: `wheelSlip` with its drive side (TCS and MSR) off and ABS on, and a drift tire: S13 GX=GY=0.8 and AE86 GX=GY=0.7, both with
-PX=PY=0.1, KN=0.74, LS=0.15 and SR=0.85 (so `kX = kY ≈ 10.1` and 8.8); a DRIFT TUNED vehicle's tires and engine need not be the real car's. Their masses add
-the 75 kg occupant to the notified weight, which includes fuel; AE86's torque curve takes its gross rating as C and D. Production gameplay tuning edits those documents directly. [Vehicle physics](vehicle-physics.md)
-owns document admission and structural/domain validation.
+The [vehicle mechanics documents](../content/vehicles/) and [vehicle listings](../content/vehicle-listings/) are the
+sole authority for per-vehicle values. A mechanics document may give the vehicle its own tire and `wheelSlip` in place
+of the game-wide defaults ([Vehicle settings](#vehicle-settings)). The DRIFT TUNED vehicles (S13_DRIFT_TUNED and
+AE86_DRIFT_TUNED) give both: `wheelSlip` with its drive side (TCS and MSR) off and ABS on, and a drift tire: S13 G=0.8
+and C=24 and AE86 G=0.7 and C=21, both with SR=0.85 (so both reach their peak at the slip 0.1 on unit grip); a DRIFT
+TUNED vehicle's tires and engine need not be the real car's. Their masses add the 75 kg occupant to the notified weight,
+which includes fuel; AE86's torque curve takes its gross rating as C and D. Production gameplay tuning edits those
+documents directly. [Vehicle physics](vehicle-physics.md) owns document admission and structural/domain validation.
 
 Mass (kg) and CG height (m) describe one running rigid body including a 75 kg occupant and fuel.
 The provisional bike CG height is wheelbase × 0.3 for gameplay, including occupant and fuel in that
@@ -413,13 +414,13 @@ Dust is fine and settles slowly. Per surface:
 | WATER       | spray | spray   | 1               | 10000           |
 | SNOW        | dust  | smoke   | 2               | 10000           |
 
-With the game-wide tire (GY = 2.5, PY = 0.1) and TESTAROSSA's static rear load of about 9.6 kN, the peak lies at a
-lateral slip speed of 3 m/s at 30 m/s; a drift at a slip speed of 10 m/s gives a sliding power of about 170 kW, about
-17 puffs a second, and a light slide at 5 m/s about 5 a second. Rolling at 30 m/s throws 10 a second per axle on a
-surface of 3 m per puff. WATER throws spray rolling every metre, three times as often as WET_ASPHALT: a tire rolling
-through standing water lifts it all the time, not only from a film. SNOW throws a white powder: of today's kinds and
-colors the nearest are dust (fine, settling slowly) in the smoke's white, every 2 m rolling as the loose dirt and sand
-throw theirs.
+With the game-wide tire (G = 2.5, C = 40, a peak slip of 0.1875) and TESTAROSSA's static rear load of about 9.6 kN, the
+peak lies at a lateral slip speed of about 5.6 m/s at 30 m/s; a drift at a slip speed of 10 m/s gives a sliding power of
+about 105 kW, about 10 puffs a second, and a light slide at 7 m/s about 3 a second. Rolling at 30 m/s throws 10 a second
+per axle on a surface of 3 m per puff. WATER throws spray rolling every metre, three times as often as WET_ASPHALT: a
+tire rolling through standing water lifts it all the time, not only from a film. SNOW throws a white powder: of today's
+kinds and colors the nearest are dust (fine, settling slowly) in the smoke's white, every 2 m rolling as the loose dirt
+and sand throw theirs.
 
 ## Surface materials
 

@@ -6,9 +6,9 @@
   "vehicles": [
     {
       "vehicleId": "MCLAREN_MP4_4",
-      "vehicleSha256": "e10cac154b4cd46c84d005f2df0fff408a4c2b10b2b75a0962cbfab733c3a972",
-      "initialSeconds": 150.53402834405176,
-      "after": [["japan-GOAL", [133.00412398565004, 133.14736129798638, 132.8786623208578]]]
+      "vehicleSha256": "a5eb523377f0836bb2ed9fb05a5c6a06cb4fd55bef64a927ffda732c800591a6",
+      "initialSeconds": 134.10880413776167,
+      "after": [["japan-GOAL", [128.71525600807726, 128.76697647510952, 128.84658284645036]]]
     }
   ]
 }

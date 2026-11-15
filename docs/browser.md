@@ -880,13 +880,10 @@ The tire gauge, above the speed, draws the player vehicle's axles from above in 
 [tire gauge](image-assets.md#text-tiles)'s pattern for its form: a car's front and rear axles as an H, each a line between
 its two tires, and a bike's two tires joined by one line. Each axle's tires take one palette of the gauge from the
 player observation's tire on that axle (`tires.front`, `tires.rear`); the vehicle physics solves one tire per axle, so
-a car's left and right tires always share a color. A loaded tire's `utilization`, the fraction of its friction ellipse
-the braking or driving and cornering force together use before the force's fall past the peak (clamped to 0–1, and 1
-at and past the peak, [Vehicle physics](vehicle-physics.md#observations)), picks the nearest of the gauge's tire
-colors: green at 0, yellow at the tire's knee and red at 1, the step `utilization / knee` of the way from green to
-yellow up to the knee and `(utilization - knee) / (1 - knee)` of the way from yellow to red beyond it. The knee is the
-player vehicle's tire `rhoKnee`, where the tire's force stops growing in proportion to its slip; up to the knee the
-force's fraction equals the tire's radial demand `rho`, so the knee in force is the knee in `rho`. A tire without load (`load` 0), in
+a car's left and right tires always share a color. A loaded tire's `slidingFraction`, the part of its contact that
+slides (its slip over its peak slip, 1 at and past the peak, [Vehicle physics](vehicle-physics.md#observations)),
+picks the nearest of the gauge's tire colors: green at 0, yellow at 0.5 and red at 1, the steps from green to yellow
+evenly over the first half and from yellow to red over the second. A tire without load (`load` 0), in
 flight, is grey. A tile holds one palette, so the front tires lie in the gauge's top row of tiles and the rear in its
 bottom row; its middle row holds only the line, which every palette draws alike.
 
@@ -1052,7 +1049,7 @@ minus/value/plus control in its document's units, wrapping at range endpoints; S
 (M) and the traversal time (ACT), and ASSISTS toggles each side of wheel slip protection, TCS/MSR and ABS. TIRES F/R
 and ASSISTS tune the run vehicle's own tire and wheel slip where its mechanics document gives them, as its model uses
 them, and the driving definition's game-wide defaults otherwise; each group's label names which (the vehicle ID or
-`game-wide`). Every other
+`game-wide`). TIRES F/R's LS, the load sensitivity, is always the driving definition's, every vehicle's. Every other
 group tunes the driving definition. RIVAL PACE drives no vehicle in a tuned run, which has no rivals: it takes effect once the exported definition
 is adopted as content. BODY CONTACT is the rebuilt run's own: its walls, course limits and objects push with the
 tuned values at once. Each adjustment is admitted by the

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-mechanics",
-  "version": 7,
+  "version": 8,
   "overallLength": 4.47,
   "overallWidth": 1.69,
   "overallHeight": 1.29,
@@ -28,12 +28,8 @@
   "quadraticDrag": 0.33,
   "wheelSlip": { "drive": false, "brake": true },
   "tire": {
-    "gripX": 0.8,
-    "peakSlipX": 0.1,
-    "gripY": 0.8,
-    "peakSlipY": 0.1,
-    "knee": 0.74,
-    "loadSensitivity": 0.15,
+    "grip": 0.8,
+    "stiffness": 24,
     "slidingRatio": 0.85
   },
   "powertrain": {

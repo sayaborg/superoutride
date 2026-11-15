@@ -12,9 +12,9 @@ use a local heightfield approximation. The model separates these inputs:
 The [driving definition](../content/driving/default.json) holds the game-wide driving values
 ([Calibration](calibration.md) owns value authority); these are design values, not difficulty settings. Its immutable, nested plain data contains
 M=65 degrees, ACT=0.3 seconds, throttle/brake traversal times,
-and the game-wide defaults `wheelSlip` with both sides on and one tire (GX=5, PX=0.2, GY=2.5, PY=0.1, KN=0.74, LS=0.15,
-SR=1), which serve every vehicle whose mechanics document does not give its own `wheelSlip` or `tire`
-([documents](#material-vehicle-and-driving-documents)).
+the game-wide defaults `wheelSlip` with both sides on and one tire (G=2.5, C=40, SR=1), which serve every vehicle whose
+mechanics document does not give its own `wheelSlip` or `tire` ([documents](#material-vehicle-and-driving-documents)),
+and the game-wide tire load sensitivity (LS=0.15), which serves every vehicle.
 [Calibration](calibration.md) describes units, pedal values and the shell-owned DEV grids.
 
 Driving compilation, [`compileDriving`](../src/vehicle/physics/compiled-driving.ts), converts degrees and
@@ -254,42 +254,51 @@ start. Reset steps award no crossing credit.
 
 ## Tire law
 
-Positive GX/PX/GY/PY, `0 < KN < 1`, load sensitivity `0 <= r < 1` (LS) and sliding ratio `0 < s <= 1` (SR) define:
+The tire is a brush (K, 2026-11-16): its grip `mu` and its stiffness `c`, the force over the load at unit slip, are
+its two values, and its peak slip `3*mu/c` follows from them. Its force opposes its slip, alike along the wheel and
+across it. `theta`, its slip over its peak slip, is the part of its contact that slides.
+
+A tire may give its sliding ratio; it is 1 without one (K, 2026-11-16). The load sensitivity is the game's, not a
+tire's: it bounds what a landing's load can raise (K, 2026-11-16).
+
+Positive grip `mu` (G), positive stiffness `c` (C) and sliding ratio `0 < s <= 1` (SR) define a tire; the game-wide
+load sensitivity `0 <= r < 1` (LS) serves every tire. The slips are dimensionless; on a dry road (unit grip factor) the
+game-wide tire's peak slip is `3*2.5/40 = 0.1875`. With wheel radius `r`, angular speed `Omega`, contact velocities
+`vx,vy` and low-speed regularization `v0`:
 
 ```text
-muX = GX                  kX = (2-KN)*GX/PX
-muY = GY                  kY = (2-KN)*GY/PY
+U     = hypot(vx,v0)
+sx    = (r*Omega-vx)/U         sy = -vy/U
+sigma = hypot(sx,sy)
+P     = gripFactor*3*mu/c      the peak slip
+theta = sigma/P
 ```
 
-PX/PY are dimensionless longitudinal/lateral slips. With wheel radius `r`, angular speed `Omega`,
-contact velocities `vx,vy` and low-speed regularization `v0`:
+The brush's force rises to its bound at the peak:
 
 ```text
-U = hypot(vx,v0)
-sx = (r*Omega-vx)/U         sy = -vy/U
-x = kX*sx/muX              y = kY*sy/muY
-rho = hypot(x,y)/gripFactor
+H(theta) = 1-(1-theta)^3                  theta < 1
+         = 1                              theta >= 1
 ```
 
-For `a=KN`, the smooth radial knee is:
+Past the peak the force falls toward the sliding ratio `s`, the force sliding far past the peak over the peak's:
 
 ```text
-H(rho) = rho                              rho <= a
-       = rho-(rho-a)^2/(4*(1-a))          a < rho < 2-a
-       = 1                                rho >= 2-a
+D(theta) = 1                              theta <= 1
+         = s+(1-s)/(1+u^2)                theta > 1,  u = theta-1
 ```
 
-`H` reaches the peak, the tire's whole capacity, at `rho = 2-a`. Past it the force falls toward the sliding ratio `s`,
-the force sliding far past the peak over the peak's:
+`H` reaches the peak with zero slope and `D` leaves it with zero slope, so the force and its slope are continuous
+there; `D` falls monotonically toward `s` over the width of the peak slip, and `s = 1` holds the peak, `D = 1` at every
+slip. The force is radial:
 
 ```text
-D(rho) = 1                                rho <= 2-a
-       = s+(1-s)/(1+u^2)                  rho > 2-a,  u = (rho-(2-a))/(2*(1-a))
+(Fx,Fy) = Ne*gripFactor*mu*H(theta)*D(theta)*(sx,sy)/sigma
 ```
 
-`D` leaves the peak with zero slope, as `H` reaches it, so the force and its slope are continuous there; it falls
-monotonically toward `s` over the knee's width `2*(1-a)`, and `s = 1` holds the peak, `D = 1` at every demand. The force
-is radial: `H*D` scales the longitudinal and lateral force alike.
+so it opposes the slip velocity, and `hypot(Fx,Fy) <= Ne*gripFactor*mu`. `H` has slope 3 at zero slip, so a small slip
+gives the force `Ne*c*sigma` whatever the surface's grip factor, and the peak slip is proportional to the grip factor;
+zero load or grip returns zero force. Slip work is dissipative.
 
 The force law reads the tire's effective load rather than the contact's normal load `N`. With `N0` the station's
 static load (its share of the vehicle's weight at rest, derived from mass and axle distances):
@@ -299,21 +308,16 @@ Ne = N/(1+r*(N/N0-1))
 ```
 
 `Ne` equals `N0` at rest, rises with slope `1-r` there, keeps rising with load and approaches `N0/r`, so the force a
-load several times static (a landing) can raise stays bounded. Real tires lose friction coefficient with load: in
-Milliken's _Race Car Vehicle Dynamics_ (Fig. 2.9) the peak lateral force per load falls from 1.10 to 0.97 as the load
-doubles from 900 to 1800 lbf, and published Magic Formula coefficients for car and truck tires give a slope of 0.07 to
-0.20 per reference load. The Magic Formula's linear friction falls to zero at 6 to 11 times the reference load, so it
-does not serve landing loads; this rational form has the same slope near static load and stays monotonic. The peak
-slips do not depend on load. Demand, capacity, rolling resistance and the torque protections all read `Ne`; the
+load several times static (a landing) can raise stays bounded. The load sensitivity is the driving definition's
+`tireLoadSensitivity`, one value for every vehicle; no vehicle gives its own. Real tires lose friction coefficient with
+load: in Milliken's _Race Car Vehicle Dynamics_ (Fig. 2.9) the peak lateral force per load falls from 1.10 to 0.97 as
+the load doubles from 900 to 1800 lbf, and published Magic Formula coefficients for car and truck tires give a slope of
+0.07 to 0.20 per reference load. The Magic Formula's linear friction falls to zero at 6 to 11 times the reference load,
+so it does not serve landing loads; this rational form has the same slope near static load and stays monotonic. The
+peak slip does not depend on load. Force, bound, rolling resistance and the torque protections all read `Ne`; the
 suspension and the body's vertical force, and the tire observation's `load`, keep `N`. The formula has one owner,
 `effectiveTireLoad`: the physics, the vehicle limits model (with the load in units of `N0`) and the planned driver's
 steering read it there.
-
-For nonzero demand, `(Fx,Fy)=Ne*gripFactor*H*D*(muX*x,muY*y)/hypot(x,y)`, with demand `(Ne*kX*sx, Ne*kY*sy)`.
-The linear region returns linear demand; zero load/grip returns zero force. For positive load/grip,
-`(Fx/(Ne*grip*muX))^2+(Fy/(Ne*grip*muY))^2 <= 1`. Slip work is dissipative.
-Pure-axis peaks lie at `gripFactor*PX/PY`, from where the force holds its bound (`s = 1`) or falls toward `s` times it;
-simultaneous slip shares the ellipse and changes force direction.
 
 ## Wheel and powertrain
 
@@ -325,14 +329,15 @@ I*(Omega-OmegaOld)/dt+r*Fx(Omega)+rollingTorque(Omega)
 rollingTorque = Cr*N*r*(r*Omega)/hypot(r*Omega,v0)
 ```
 
-Zero wheel speed is the solution when it satisfies the static brake interval. Otherwise a finite
-bracket and at most 60 bisections solve the monotone residual, with early return below 1e-10 N m
-absolute torque residual. Contact reference speed stays fixed during the scalar solve, and so does the fall: the solve
-takes `D` at the slip of the substep's starting wheel speed `OmegaOld` under the substep's contact velocities, and
-solves `H` implicitly, so its force is `Ne*gripFactor*H(rho(Omega))*D(rho(OmegaOld))` in the law's direction. The
-residual then increases with `Omega` whatever the sliding ratio, as it does with `H` alone, and its root is unique: the
-torque protections' bounds and the locked engine's root search below rely on that. A fall taken at `Omega` itself would
-let the residual decrease where `I/dt < r^2*Ne*kX*|dD/drho|/U` (at pure longitudinal slip), at low speed under load, and
+Zero wheel speed is the solution when it satisfies the static brake interval. Otherwise a finite bracket and at most 60
+bisections solve the monotone residual, with early return below 1e-10 N m absolute torque residual. Contact reference
+speed stays fixed during the scalar solve, and so does the fall: the solve takes `D` at the slip of the substep's
+starting wheel speed `OmegaOld` under the substep's contact velocities, and solves `H` implicitly, so its force is
+`Ne*gripFactor*mu*H(theta(Omega))*D(theta(OmegaOld))` in the law's direction. The residual then increases with `Omega`
+whatever the sliding ratio, as it does with `H` alone: with `f(sigma)` the force's magnitude, increasing and concave,
+`dFx/dsx = f'(sigma)*sx^2/sigma^2 + (f(sigma)/sigma)*sy^2/sigma^2 >= 0`. Its root is unique: the torque protections'
+bounds and the locked engine's root search below rely on that. A fall taken at `Omega` itself would let the residual
+decrease where `I/dt < r^2*Ne*gripFactor*mu*|dD/dtheta|/(P*U)` (at pure longitudinal slip), at low speed under load, and
 give the solve several roots. The fall so takes the wheel's own speed change one substep late; a sliding ratio of 1
 changes nothing.
 
@@ -497,13 +502,13 @@ signed engine term `clutchTorque * gearRatio * finalDriveRatio * drivelineEffici
 inertia torque. Each bound below is found on the delivered total drive and becomes the engine term that delivers it
 with the locked engine's inertia; the opening's inverse keeps inverting the engine's own torque.
 
-Wheel slip protection has two sides, each acting when the rule of whoever drives the vehicle asks for it
-([Actuators and steering](#actuators-and-steering)): the drive side, TCS and MSR, which bounds the engine's effective
-opening, and the brake side, ABS, which bounds the pedal brake. The player's input drives with the vehicle's
-`wheelSlip`, every planned driver with both sides on. They only bound the opening and the pedal brake, so they are an
-aid on the input side; pitch protection always acts. TCS, MSR and ABS invert the wheel residual at the peak's longitudinal slip `grip*(2-KN)*muX/kX`. With
-the pedal brake request and zero drive, a station's brake at zero drive is its ABS-limited brake where ABS acts, else
-its pedal brake:
+Wheel slip protection has two sides, each acting when the rule of whoever drives the vehicle asks for it ([Actuators and
+steering](#actuators-and-steering)): the drive side, TCS and MSR, which bounds the engine's effective opening, and the
+brake side, ABS, which bounds the pedal brake. The player's input drives with the vehicle's `wheelSlip`, every planned
+driver with both sides on. They only bound the opening and the pedal brake, so they are an aid on the input side; pitch
+protection always acts. TCS, MSR and ABS invert the wheel residual at the peak slip `P = grip*3*mu/c`, along the wheel.
+With the pedal brake request and zero drive, a station's brake at zero drive is its ABS-limited brake where ABS acts,
+else its pedal brake:
 
 - TCS gives each forward-moving driven station an upper drive-torque bound: the net torque that
   reaches maximum rolling speed in the step, plus that station's brake at zero drive.
@@ -574,16 +579,15 @@ name becomes a length once, outside physics: `front` (the front wheel) is 0 and 
 `frontAxle`, the front axle's distance from the centre of mass. Cars and bikes share the rule and its law.
 
 The input decides the front tire's force: input `u` uses the front tire up to the fraction `|u|*X` of its lateral
-bound, the same part of the yaw rate the input asks for (`w(u)` below). With the tire law's knee `H` and `a = KN`, the
-demand `rho(f)` at which the pure-lateral force is the fraction `f` is the inverse of `H` ([tire law](#tire-law)):
+bound, the same part of the yaw rate the input asks for (`w(u)` below). The slip over the peak slip `theta(f)` at which
+the pure-lateral force is the fraction `f` is the inverse of `H` ([tire law](#tire-law)):
 
 ```text
-rho(f) = f                               f <= a
-       = 2-a-2*sqrt((1-a)*(1-f))         a < f <= 1
-S(f)   = grip*rho(f)*muY/kY
+theta(f) = 1-(1-f)^(1/3)
+S(f)     = P*theta(f)          P = grip*3*mu/c
 ```
 
-`rho(1) = 2-a`, so at full input and `X = 1` the slip `S` is the peak, `grip*PY`. `grip` is the gripFactor of the material
+`theta(1) = 1`, so at full input and `X = 1` the slip `S` is the peak `P`. `grip` is the gripFactor of the material
 sampled under the front wheel's reach point, airborne or not, and 1 where there is none (outside the coordinate domain
 or on no material), so the angle changes only where the material changes and not at landing. With the steering
 actuator `u` in `[-1,1]`, the body's yaw rate `r`, rack bound `M` in `(0, pi/2)`, the steering low-speed
@@ -592,7 +596,7 @@ regularization `steeringV0`, gravity `g`, the wheelbase `frontAxle + rearAxle` a
 ```text
 slip(u)    = sign(u)*min(M, atan(S(|u|*X)))
 L          = slip(1)
-wGrip      = X*grip*muY*g/hypot(bodyForwardSpeed,bodyLateralSpeed,steeringV0)
+wGrip      = X*grip*mu*g/hypot(bodyForwardSpeed,bodyLateralSpeed,steeringV0)
 wRack      = hypot(bodyForwardSpeed,steeringV0)*tan(M-L)/wheelbase
 w(u)       = u*min(wGrip, wRack)
 lat        = frontLateralSpeed - lever*(r - w(u))
@@ -605,19 +609,19 @@ of a slip angle (the tire law's `sy = -vy/U`), so `slip(u)` is that angle: zero 
 monotonically with `|u|` to `L` at full input, and `|frontSteer| <= M` by construction. `L` does not depend on speed.
 What widens the angle is the travel-direction term: while the vehicle moves, it turns the travel direction the rack
 follows, up to its range `M-L`. With the front reference the front wheel turns through `slip(u)` alone only at
-standstill (`L`, 4.7° on dry asphalt at 95 % and 5.7° at 100 %); once the vehicle moves, the turn it starts turns the
-front wheel's travel direction, and full input reaches the whole rack (65°) from about 10–12 km/h. With the centre
+standstill (`L`, 6.7° on dry asphalt at 95 % and 10.6° at 100 %); once the vehicle moves, the turn it starts turns the
+front wheel's travel direction, and full input reaches the whole rack (65°) from about 7–9 km/h. With the centre
 reference the yaw rate asked for turns it even at standstill: `lat = frontAxle*w(u)`, with `w` the rack's turn at
 `steeringV0`, moves the front wheel through 38–52° at 95 % (by vehicle, with its front axle's share of the wheelbase),
-and full input reaches the whole rack from about 8–10 km/h.
+and full input reaches the whole rack from about 6.5–8 km/h.
 
 The front wheel is the rule's essence. With `lever = 0`, while the travel direction is within the rack and the speed is
 well above `steeringV0`, the tangent of the front tire's slip is `S(|u|*X)`: zero input leaves the front tire without
 slip and input `u` sets it at the fraction `|u|*X` of its lateral bound, whatever the yaw rate. Since `w(u)` asks the
 same fraction of the grip's turn, the steady turn on flat ground meets the yaw rate asked for at every input, and the
 yaw-rate term below stays zero there. Scaling the full input's slip `L` by `u` instead would ask more force than that
-below full input wherever `rho(X)` lies beyond the knee, the linear part's force being `u*rho(X)` against `u*X`: 26 %
-more at `X = 1` and 8.6 % at 95 %. The knee stays for the feel of the limit coming. Measuring from the front
+below full input, the small slip's force being `3*u*theta(X)` against `u*X`: three times as much at `X = 1` and twice
+at 95 %. The brush's rounding toward the peak stays for the feel of the limit coming. Measuring from the front
 wheel's own travel direction also takes away the front tire's yaw damping, which a fixed steering angle has: the front
 tire's slip `frontSteer - beta - frontAxle*r/V` falls as the yaw rate rises. The yaw-rate term `lever*(r - w(u))`
 restores that damping against the departure from the turn the input asks for: it turns the direction the slip is
@@ -627,7 +631,7 @@ steering angle, never as a force or moment, and its strength is a length, not a 
 
 `w(u)` is the yaw rate the input asks for: the fraction `u` of the tightest steady turn the vehicle holds, by definition
 on flat ground at constant speed with the static loads, the looser of its grip's turn and its rack's. In the grip's turn
-the front tire is at the fraction `X` of its bound: its lateral acceleration is `X*grip*muY*g`, at the yaw rate `wGrip`.
+the front tire is at the fraction `X` of its bound: its lateral acceleration is `X*grip*mu*g`, at the yaw rate `wGrip`.
 In the rack's turn, with the rear wheel rolling, the front wheel's travel direction stands at `M-L`
 (`tan(M-L) = wheelbase*w/bodyForwardSpeed`), so with the slip `L` the front wheel reaches the rack `M`. The grip's turn
 is the looser at speed, and in it `r = w(u)` at full input, the term is zero and full input uses the front tire at `X`
@@ -651,29 +655,33 @@ lean display is
 discrete bank images that the sprite set's `bankDegrees` calibrates; physical state contains yaw and pitch. Yaw images
 are chosen by the body's yaw as seen along the direction of view ([Architecture](architecture.md#sprites-and-painter)).
 
-Vehicle state holds one read-only tire observation per station, written only by vehicle physics. The last
-substep of every update writes it for every vehicle from the accepted wheel solve: contact longitudinal and
-lateral velocity, wheel speed and angular speed, dissipated longitudinal and lateral slip power, the sliding power, the
-utilization and the surface material ID, all zero (surface null) when the contact transmits no force or has no valid tire frame, and the
-contact normal load in every case. Spawn starts every value at zero; recovery initializes the loads to the
-static axle loads and every other value to zero. Graphics, HUD and sound consume
-mechanical observations without contributing forces or alternate mechanical state.
+Vehicle state holds one read-only tire observation per station, written only by vehicle physics. The last substep of
+every update writes it for every vehicle from the accepted wheel solve: contact longitudinal and lateral velocity, wheel
+speed and angular speed, dissipated longitudinal and lateral slip power, the sliding power, the utilization, the sliding
+fraction and the surface material ID, all zero (surface null) when the contact transmits no force or has no valid tire
+frame, and the contact normal load in every case. Spawn starts every value at zero; recovery initializes the loads to
+the static axle loads and every other value to zero. Graphics, HUD and sound consume mechanical observations without
+contributing forces or alternate mechanical state.
 
-The utilization is how far up the [tire law](#tire-law) the tire is: its force's fraction of its friction ellipse before
-the fall past the peak, `hypot(fx/capacityX, fy/capacityY)/D` with the solve's `D`, which is `H`: 1 at and past the
-peak whatever the sliding ratio. A tire sliding past the peak therefore reads as saturated, as it is, though its force
+The utilization is how far up the [tire law](#tire-law) the tire is: its force's fraction of its bound before the fall
+past the peak, `hypot(fx,fy)/(Ne*gripFactor*mu)/D` with the solve's `D`, which is `H`: 1 at and past the peak whatever
+the sliding ratio. A tire sliding past the peak therefore reads as saturated, as it is, though its force
 has fallen.
+
+The sliding fraction `slidingFraction` is the part of the contact that slides, `min(1, theta)` with the accepted solve's
+`theta`: 0 rolling without slip, 1 at and past the peak. The HUD's tire gauge shows it
+([HUD design sources](image-assets.md#hud-design-sources)).
 
 The sliding power `slidingPower` is the slip power beyond the [tire law](#tire-law)'s peak:
 
 ```text
-slidingPower = (longitudinalPower + lateralPower) * max(0, 1 - (2-KN)/rho)
+slidingPower = (longitudinalPower + lateralPower) * max(0, 1 - 1/theta)
 ```
 
-It is the force times the slip speed beyond the peak's along the slip's own direction (the peak at `rho = 2-KN`): zero
+It is the force times the slip speed beyond the peak's along the slip's own direction (the peak at `theta = 1`): zero
 before the peak and at it, where the torque protections hold a tire, and approaching the whole slip power as the slip
-grows. It reads the accepted solve's `rho` rather than the utilization, whose `hypot` need not reach exactly 1 where a
-protection holds the tire. Physics does not read it; the competitor observations copy it with the other tire
+grows. It reads the accepted solve's `theta` rather than the utilization, whose `hypot` need not reach exactly 1 where
+a protection holds the tire. Physics does not read it; the competitor observations copy it with the other tire
 observations.
 
 ## Material, vehicle and driving documents
@@ -692,12 +700,12 @@ document, named `surface`. It publishes one immutable catalog. Course compilatio
 runtime physics receives the resolved object or `null`, never a fixed material enum.
 
 A vehicle is two documents with the same identifier. `content/vehicles/<id>.json` stores its
-`superoutride.vehicle-mechanics` version 7 document: the vehicle's physical description — the values
+`superoutride.vehicle-mechanics` version 8 document: the vehicle's physical description — the values
 vehicle physics reads and its overall dimensions.
 `content/vehicle-listings/<id>.json` stores its `superoutride.vehicle-listing` version 5 document:
 everything else players see or hear of it. A value belongs to the mechanics document when it describes
 the physical vehicle and to the listing otherwise; `form` and the metadata's `physicsAnchor` therefore
-belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 22.
+belong to the listing. `content/driving/default.json` stores the sole `superoutride.driving-definition` version 24.
 A material, vehicle or driving document's only identifier is its file name without `.json`, which is
 also its manifest ID; the documents carry none. The content layer's `compileVehicleDefinitions` admits
 the catalog from the build's files or delivery's manifest entries alike: exactly one driving definition,
@@ -710,12 +718,12 @@ vehicle definition publishes each fact once: its two admitted documents (`mechan
 and metadata are read), the vehicle the mechanics compile to (`compiledVehicle`), and what the listing's IDs name (the
 admitted sprite set `spriteSet`, the HUD picture `steeringPicture` and the engine sound `sound`).
 
-| Mechanics field     | Contract                                                                                                                                                                                                                            |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`, `version` | `superoutride.vehicle-mechanics`, `7`                                                                                                                                                                                               |
-| `wheelSlip`         | Optional: the vehicle's own wheel slip protection, `drive` (TCS and MSR) and `brake` (ABS), both boolean; absent, the driving definition's                                                                                          |
-| `tire`              | Optional: the vehicle's own tire, all seven values (gripX/peakSlipX/gripY/peakSlipY/knee/loadSensitivity/slidingRatio) in the driving definition's domains, compiled once at admission; absent, the driving definition's whole tire |
-| Remaining fields    | All other `VehicleDefinition` fields except `id`, including `powertrain`, at the root                                                                                                                                               |
+| Mechanics field     | Contract                                                                                                                                                                                      |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`, `version` | `superoutride.vehicle-mechanics`, `8`                                                                                                                                                         |
+| `wheelSlip`         | Optional: the vehicle's own wheel slip protection, `drive` (TCS and MSR) and `brake` (ABS), both boolean; absent, the driving definition's                                                    |
+| `tire`              | Optional: the vehicle's own tire, all three values (grip/stiffness/slidingRatio) in the driving definition's domains, compiled once at admission; absent, the driving definition's whole tire |
+| Remaining fields    | All other `VehicleDefinition` fields except `id`, including `powertrain`, at the root                                                                                                         |
 
 | Listing field       | Contract                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -757,7 +765,7 @@ fields: `maxRoadWheelSteerDegrees`,
 `clutchLockIdleMargin`, `clutchCapacityFactor` above 1,
 `pitchLimitDegrees` in (0,45], `throttle`
 and `brake` (each applySeconds/releaseSeconds),
-`wheelSlip` (drive/brake, both boolean), `tire` (gripX/peakSlipX/gripY/peakSlipY/knee/loadSensitivity/slidingRatio),
+`wheelSlip` (drive/brake, both boolean), `tire` (grip/stiffness/slidingRatio), `tireLoadSensitivity`,
 `roles` (`rival`: utilization/leastUtilization/mostUtilization/spanMeters/responseSeconds, with 0 < least ≤ utilization
 ≤ most ≤ 1 and a positive finite span and response time; `standard` and `traffic`: utilization in (0,1]) and
 `bodyContact`
@@ -767,7 +775,8 @@ vehicle mechanics: drivers read it ([Driver roles](content-and-gameplay.md#drive
 definition, and admits its stability at the race's fixed step. Angles are degrees, traversal times are seconds,
 pressures are bar, inertia is kg m² per litre, and tire, fuel-cut and efficiency values are dimensionless. Require
 0 < offset < maximum < 90 degrees, positive finite actuator rates and finite pressures in pascals after conversion, positive finite
-tire capacities/stiffness, 0 < knee < 1, 0 ≤ loadSensitivity < 1 and 0 < slidingRatio ≤ 1.
+tire grip and stiffness, 0 < slidingRatio ≤ 1 and 0 ≤ tireLoadSensitivity < 1. A document that gives a tire any
+other value (the earlier gripX, peakSlipX, gripY, peakSlipY, knee or loadSensitivity among them) is not admitted.
 Later game-wide launch and pitch rules extend this same document rather than creating separate
 assist configuration files.
 
@@ -778,8 +787,8 @@ or an array element, never a containing document record. Mechanics reports slash
 relative to the definition it receives, without a leading slash (for example `mass` or
 `powertrain/gearRatios/2`). Nested compilers prepend their own field or map derived inputs back to
 authored fields: station fields map to front/rear suspension fields, static load to `mass`, actuator
-rates to traversal seconds, steering radians to degree fields, and tire stiffness to the corresponding
-peak slip (with grip and knee named in the message). A nonrepresentable static compression points
+rates to traversal seconds and steering radians to degree fields; tire values are their own fields. A
+nonrepresentable static compression points
 to ride frequency; otherwise a travel not beyond the static compression points to the travel field.
 Relationships identify an actionable field and name related inputs: gear ordering points to the
 violating element, the point count and the idle and redline ends to `torqueCurve`, a point

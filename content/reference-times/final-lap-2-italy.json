@@ -6,9 +6,9 @@
   "vehicles": [
     {
       "vehicleId": "MCLAREN_MP4_4",
-      "vehicleSha256": "e10cac154b4cd46c84d005f2df0fff408a4c2b10b2b75a0962cbfab733c3a972",
-      "initialSeconds": 99.43543523831275,
-      "after": [["italy-GOAL", [92.88068940628787, 93.1097680138393, 93.22505301582913]]]
+      "vehicleSha256": "a5eb523377f0836bb2ed9fb05a5c6a06cb4fd55bef64a927ffda732c800591a6",
+      "initialSeconds": 99.46718636403347,
+      "after": [["italy-GOAL", [92.8677910860485, 93.08326362303762, 92.99597292931128]]]
     }
   ]
 }

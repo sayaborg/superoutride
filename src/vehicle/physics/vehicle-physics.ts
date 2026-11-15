@@ -20,7 +20,7 @@ import { createDrivingActuatorState, updateDrivingActuators, type DrivingActuato
 import type { WheelSolveInput } from './tire-wheel.js';
 import { VEHICLE_SUBSTEPS, type VehicleModel } from './vehicle-model.js';
 import type { DriverSteering } from './vehicle-calibration.js';
-import { effectiveTireLoad, lateralSlipAtDemand, radialKneeInverse } from './tire-friction-calibration.js';
+import { brushSlipAtForce, effectiveTireLoad, tirePeakSlip } from './tire-friction-calibration.js';
 import type { VehicleWorld } from '../../course/vehicle-world.js';
 import {
   bodyFrameVelocity,
@@ -254,7 +254,7 @@ export function updateVehicle(
       tightestSteadyYawRate(
         dot3(body.velocity, body.forward),
         dot3(body.velocity, body.right),
-        utilization * grip * model.tire.muY * VEHICLE_GRAVITY,
+        utilization * grip * model.tire.grip * VEHICLE_GRAVITY,
         automaticMax,
         compiledVehicle.frontAxle + compiledVehicle.rearAxle,
       );
@@ -306,7 +306,11 @@ export function updateVehicle(
     frontRequest.lateralVelocity = front.lateralVelocity;
     // The wheel solve reads the tire's effective load; suspension and body keep the contact's normal load.
     frontRequest.normalLoad = front.tireFrameValid
-      ? effectiveTireLoad(model.tire, front.normalLoad, compiledVehicle.frontStation.suspension.staticLoad)
+      ? effectiveTireLoad(
+          model.tireLoadSensitivity,
+          front.normalLoad,
+          compiledVehicle.frontStation.suspension.staticLoad,
+        )
       : 0;
     frontRequest.gripFactor = front.surface.material?.gripFactor ?? 0;
     frontRequest.characteristics = model.tire;
@@ -321,7 +325,7 @@ export function updateVehicle(
     rearRequest.longitudinalVelocity = rear.longitudinalVelocity;
     rearRequest.lateralVelocity = rear.lateralVelocity;
     rearRequest.normalLoad = rear.tireFrameValid
-      ? effectiveTireLoad(model.tire, rear.normalLoad, compiledVehicle.rearStation.suspension.staticLoad)
+      ? effectiveTireLoad(model.tireLoadSensitivity, rear.normalLoad, compiledVehicle.rearStation.suspension.staticLoad)
       : 0;
     rearRequest.gripFactor = rear.surface.material?.gripFactor ?? 0;
     rearRequest.characteristics = model.tire;
@@ -392,7 +396,7 @@ export function updateVehicle(
       vehicle.control.frontBrakeApplied = appliedShare(resolved.frontInput.brakeTorque, frontRequest.brakeTorque);
       vehicle.control.rearBrakeApplied = appliedShare(resolved.rearInput.brakeTorque, rearRequest.brakeTorque);
       vehicle.control.driveTorque = delivered;
-      recordVehicleTireObservation(vehicle.tires, model.tire.rhoKnee, front, frontWheel, rear, rearWheel);
+      recordVehicleTireObservation(vehicle.tires, front, frontWheel, rear, rearWheel);
     }
   }
   const velocityDelta = workspace.velocityDelta;
@@ -418,10 +422,9 @@ const UNBOUNDED_DRIVE = Object.freeze({ upper: Infinity, lower: -Infinity });
  * the input's sign. Full input gives the rule's limit `L`.
  */
 function steeringSlip(model: VehicleModel, steering: DriverSteering, grip: number, input: number): number {
-  const demand = radialKneeInverse(model.tire.rhoKnee, Math.abs(input) * steering.utilization);
+  const theta = brushSlipAtForce(Math.abs(input) * steering.utilization);
   return (
-    Math.sign(input) *
-    Math.min(model.steering.maxRoadWheelSteer, Math.atan(lateralSlipAtDemand(model.tire, grip, demand)))
+    Math.sign(input) * Math.min(model.steering.maxRoadWheelSteer, Math.atan(tirePeakSlip(model.tire, grip) * theta))
   );
 }
 
@@ -458,7 +461,7 @@ export function fullSteeringYawRate(
   return tightestSteadyYawRate(
     forward,
     lateral,
-    steering.utilization * grip * model.tire.muY * VEHICLE_GRAVITY,
+    steering.utilization * grip * model.tire.grip * VEHICLE_GRAVITY,
     model.steering.maxRoadWheelSteer - steeringSlip(model, steering, grip, 1),
     compiledVehicle.frontAxle + compiledVehicle.rearAxle,
   );

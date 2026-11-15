@@ -1300,7 +1300,7 @@ together (Kapania et al., "A sequential two-step algorithm for fast generation o
 2016, arXiv:1902.00606; van den Eshof et al., minimum time by sequential convex optimisation, 2025,
 arXiv:2511.13522; Betz et al., "Autonomous vehicles on the edge: a survey on autonomous vehicle racing", 2022,
 arXiv:2202.07008). It is not used: its optimisation needs a vehicle limits model whose gradients are continuous,
-which the vehicle limits (drive by gear, each axle's friction ellipse) are not, so it would be a second model of the
+which the vehicle limits (drive by gear, each axle's friction circle) are not, so it would be a second model of the
 same limits beside the one every driver plans with. Timing needs no gradient, so the one limits model times the lines.
 
 The saved product (`superoutride.racing-line` version 3) has `courseBuildSha256`, `procedureSha256` (the racing line
@@ -1363,7 +1363,7 @@ protection on both sides (TCS and MSR, and ABS), whatever its vehicle's `wheelSl
 player's input reaches the vehicle. A steering rule and wheel slip protection are a driver's aids, not
 physics; the player and the planned drivers share the physics, and the utilization plans speed alone. A planned driver
 catches no slide past the tire's peak: on a tire whose force falls there (a sliding ratio below 1), braking at the limit
-in a corner, which protection bounds at the peak's longitudinal slip alone, can take a wheel past it and spin the
+in a corner, which protection bounds at the peak slip along the wheel alone, can take a wheel past it and spin the
 vehicle. Its path is its lane's
 centre: rivals and the player's run driver (the attract demo and the takeover after GOAL) drive the racing line,
 the `LINE` lane, and traffic its lane. A driver of the line drives the line plus its path offset
@@ -1572,23 +1572,23 @@ begin and end only inside a Section: across a seam every lane continues with its
 
 Every driver plans with one model of its vehicle's limits,
 `createVehicleLimits` in `src/vehicle/vehicle-limits.ts`, built from the vehicle model alone: a point mass on two axles,
-per unit mass. Each axle's tire is a friction ellipse with semi-axes `muX·g` and `muY·g` times the surface grip, the
-axle's static share of the weight and its effective load factor: the axle's load over its static load read through the
-tire's load sensitivity, `n/(1+r(n-1))`, as the wheel solve reads loads. Both axles share the vehicle's load factor
+per unit mass. Each axle's tire is a friction circle of radius `mu·g` times the surface grip, the axle's static share
+of the weight and its effective load factor: the axle's load over its static load read through the game-wide load
+sensitivity, `n/(1+r(n-1))`, as the wheel solve reads loads. Both axles share the vehicle's load factor
 `n = cos θ + v²·kv/g`, which the tires' longitudinal force moves between them by its moment at the centre of mass's
 height, amplified by the suspension's pitch compliance (the pitch the moved load sets moves the contacts under the
 centre of mass). From it:
 
 - Lateral limit: each axle carries the lateral acceleration in proportion to its static share, so the lateral limit is
-  the lesser axle's lateral semi-axis at utilization `u` under the longitudinal force the tires carry.
+  the lesser axle's circle at utilization `u` under the longitudinal force the tires carry.
 - Drive: the best full-throttle wheel force over the gears at the speed (each gear's engine speed is its rolling RPM,
   the driven wheels rolling without slip, as the shifts read it
   ([Vehicle physics](vehicle-physics.md#wheel-and-powertrain)); a gear whose engine speed would pass redline
   is unavailable but the top gear's, up to fuel cut; below the clutch lock first gear's slipping clutch holds the
-  engine at its maximum-torque speed), bounded by the driven axles' longitudinal ellipses under the drive split, of
+  engine at its maximum-torque speed), bounded by the driven axles' circles under the drive split, of
   which each axle's lateral fraction `f` leaves `sqrt(1 − f²)`; a force whose load transfer leaves either axle less
   than the lateral is not available.
-- Braking: each axle's brake torque at `u` at its rolling radius, bounded by its ellipse alike.
+- Braking: each axle's brake torque at `u` at its rolling radius, bounded by its circle alike.
 - Resistances: drag `quadraticDrag·v²`, grade `g·sin θ`, rolling `Cr·g·n`, and the cornering drag of the tires'
   lateral slip, the lateral acceleration times the pure-lateral slip the tire law needs for it.
 - Inertia: the wheels' rotational inertia at their rolling radii adds to the mass along the travel.

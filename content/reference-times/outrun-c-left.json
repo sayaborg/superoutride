@@ -6,13 +6,13 @@
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
-      "vehicleSha256": "cd4d4a8e8372dcb647b785b081acd328e89bf638a3cda6c55f38c603164899fe",
-      "initialSeconds": 109.63666690515217,
+      "vehicleSha256": "eeaa2f7b2a3c9bc8d32927f1a0a7263dcd1b30fcff4e1faa1d102fee87eca370",
+      "initialSeconds": 110.32842671827629,
       "after": [
-        ["GATEWAY-CP", [148.36511759778094]],
-        ["ALPS-CP", [113.3648991200651]],
-        ["WHEAT FIELD-CP", [134.78336114744462]],
-        ["DESOLATION HILL-CP", [102.68394467298788]]
+        ["GATEWAY-CP", [147.0006130679773]],
+        ["ALPS-CP", [115.53823502998955]],
+        ["WHEAT FIELD-CP", [132.29843817468287]],
+        ["DESOLATION HILL-CP", [105.77367910108654]]
       ]
     }
   ]

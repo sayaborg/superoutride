@@ -6,9 +6,9 @@
   "vehicles": [
     {
       "vehicleId": "LOTUS_79_SPECIAL",
-      "vehicleSha256": "127a4bb5171a54a73b40a1666899fcf253b97f54671deffe8d7c74014800b9e6",
-      "initialSeconds": 82.9770911070288,
-      "after": [["fuji-GOAL", [76.26929298959385, 76.35562285733545, 76.44078802618947]]]
+      "vehicleSha256": "19074473f8d21db727a3fb61a3faaf5c1b0141f8d1caaff2bc82c03f0b723c63",
+      "initialSeconds": 82.55187405078772,
+      "after": [["fuji-GOAL", [75.77348449155085, 75.7646158414172, 75.75025534650791]]]
     }
   ]
 }

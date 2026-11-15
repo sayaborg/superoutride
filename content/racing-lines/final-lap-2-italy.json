@@ -8,9 +8,9 @@
   "vehicles": [
     {
       "vehicleId": "MCLAREN_MP4_4",
-      "vehicleSha256": "e10cac154b4cd46c84d005f2df0fff408a4c2b10b2b75a0962cbfab733c3a972",
-      "seconds": 97.31,
-      "minimumCurvatureSeconds": 97.31
+      "vehicleSha256": "a5eb523377f0836bb2ed9fb05a5c6a06cb4fd55bef64a927ffda732c800591a6",
+      "seconds": 97.047,
+      "minimumCurvatureSeconds": 97.047
     }
   ],
   "lines": [

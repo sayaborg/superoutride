@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-mechanics",
-  "version": 7,
+  "version": 8,
   "frontDriveTorqueFraction": 0,
   "overallLength": 2,
   "overallWidth": 0.65,
@@ -27,12 +27,8 @@
   "rearBrakeTorqueMax": 240,
   "quadraticDrag": 0.18,
   "tire": {
-    "gripX": 1.3,
-    "peakSlipX": 0.05,
-    "gripY": 1.25,
-    "peakSlipY": 0.09,
-    "knee": 0.74,
-    "loadSensitivity": 0.15,
+    "grip": 1.25,
+    "stiffness": 75,
     "slidingRatio": 0.9
   },
   "powertrain": {

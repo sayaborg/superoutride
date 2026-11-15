@@ -28,6 +28,11 @@ export interface DrivingDefinition {
   readonly wheelSlip: Readonly<WheelSlipProtection>;
   readonly tire: Readonly<TireCharacteristics>;
   /**
+   * The game-wide tire load sensitivity `r` in [0,1): how much less than in proportion every tire's force grows with
+   * its load (0 is in proportion).
+   */
+  readonly tireLoadSensitivity: number;
+  /**
    * The drivers' roles: a rival's utilization, `utilization` level with the player, from `mostUtilization` as far
    * behind as `spanMeters` to `leastUtilization` as far ahead, followed with the time constant `responseSeconds`; the
    * standard driver's utilization; traffic's utilization.
@@ -52,7 +57,7 @@ export interface DrivingDefinition {
 }
 
 export const DRIVING_DOCUMENT_FORMAT = 'superoutride.driving-definition';
-export const DRIVING_DOCUMENT_VERSION = 23;
+export const DRIVING_DOCUMENT_VERSION = 24;
 
 export interface DrivingDocument extends DrivingDefinition {
   readonly format: typeof DRIVING_DOCUMENT_FORMAT;

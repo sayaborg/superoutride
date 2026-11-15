@@ -6,9 +6,9 @@
   "vehicles": [
     {
       "vehicleId": "LOTUS_79_SPECIAL",
-      "vehicleSha256": "127a4bb5171a54a73b40a1666899fcf253b97f54671deffe8d7c74014800b9e6",
-      "initialSeconds": 139.55353506577345,
-      "after": [["suzuka-GOAL", [134.13914231884652, 134.02841960463138, 134.16608907082343]]]
+      "vehicleSha256": "19074473f8d21db727a3fb61a3faaf5c1b0141f8d1caaff2bc82c03f0b723c63",
+      "initialSeconds": 137.6116696181796,
+      "after": [["suzuka-GOAL", [132.3178046602582, 132.41571692474133, 132.39823511293815]]]
     }
   ]
 }

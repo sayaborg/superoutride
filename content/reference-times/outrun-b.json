@@ -6,13 +6,13 @@
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
-      "vehicleSha256": "cd4d4a8e8372dcb647b785b081acd328e89bf638a3cda6c55f38c603164899fe",
-      "initialSeconds": 109.61592480312693,
+      "vehicleSha256": "eeaa2f7b2a3c9bc8d32927f1a0a7263dcd1b30fcff4e1faa1d102fee87eca370",
+      "initialSeconds": 110.11309977311727,
       "after": [
-        ["GATEWAY-CP", [146.62193024015585]],
-        ["ALPS-CP", [114.81655308598278]],
-        ["OLD CAPITAL-CP", [115.07228290688352]],
-        ["DEATH VALLEY-CP", [106.36254512020457]]
+        ["GATEWAY-CP", [147.0872061470368]],
+        ["ALPS-CP", [119.40045352910823]],
+        ["OLD CAPITAL-CP", [107.88635154110904]],
+        ["DEATH VALLEY-CP", [105.80549910378079]]
       ]
     }
   ]

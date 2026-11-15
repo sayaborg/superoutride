@@ -6,9 +6,9 @@
   "vehicles": [
     {
       "vehicleId": "MCLAREN_MP4_4",
-      "vehicleSha256": "e10cac154b4cd46c84d005f2df0fff408a4c2b10b2b75a0962cbfab733c3a972",
-      "initialSeconds": 54.5696734405813,
-      "after": [["usa-GOAL", [47.994579218800894, 48.04911276993195, 47.92800162631565]]]
+      "vehicleSha256": "a5eb523377f0836bb2ed9fb05a5c6a06cb4fd55bef64a927ffda732c800591a6",
+      "initialSeconds": 54.35490859867874,
+      "after": [["usa-GOAL", [47.792475936018555, 47.79467969495451, 47.79077887746749]]]
     }
   ]
 }

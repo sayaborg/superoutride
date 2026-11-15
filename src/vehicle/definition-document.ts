@@ -59,7 +59,7 @@ export interface VehicleMetadata {
   readonly engine: string;
 }
 export const VEHICLE_MECHANICS_FORMAT = 'superoutride.vehicle-mechanics';
-export const VEHICLE_MECHANICS_VERSION = 7;
+export const VEHICLE_MECHANICS_VERSION = 8;
 export const VEHICLE_LISTING_FORMAT = 'superoutride.vehicle-listing';
 export const VEHICLE_LISTING_VERSION = 5;
 /** The mechanics document: the vehicle's physical description, the values physics reads and its dimensions. */
@@ -401,9 +401,9 @@ function readNumbers<K extends string>(record: Record<string, unknown>, keys: re
   return Object.fromEntries(keys.map((key) => [key, readNumber(record[key], `${path}/${key}`)])) as Record<K, number>;
 }
 
-const TIRE_KEYS = ['gripX', 'peakSlipX', 'gripY', 'peakSlipY', 'knee', 'loadSensitivity', 'slidingRatio'] as const;
+const TIRE_KEYS = ['grip', 'stiffness', 'slidingRatio'] as const;
 
-/** A tire's seven values, all of them: the driving definition's and a vehicle's alike. */
+/** A tire's three values, all of them: the driving definition's and a vehicle's alike. */
 function readTire(value: unknown, path: string): TireCharacteristics {
   return readNumbers(readRecord(value, path, TIRE_KEYS), TIRE_KEYS, path);
 }
@@ -445,6 +445,7 @@ export function compileDrivingDocument(
         'brake',
         'wheelSlip',
         'tire',
+        'tireLoadSensitivity',
         'roles',
         'bodyContact',
       ],
@@ -460,6 +461,7 @@ export function compileDrivingDocument(
       };
     };
     const tire = readTire(v.tire, '/tire');
+    const tireLoadSensitivity = readNumber(v.tireLoadSensitivity, '/tireLoadSensitivity');
     const roleRecord = readRecord(v.roles, '/roles', ['rival', 'standard', 'traffic']);
     const rivalKeys = ['utilization', 'leastUtilization', 'mostUtilization', 'spanMeters', 'responseSeconds'] as const;
     const role = <K extends string>(name: 'rival' | 'standard' | 'traffic', keys: readonly K[]) =>
@@ -489,6 +491,7 @@ export function compileDrivingDocument(
       brake: pedal('brake'),
       wheelSlip,
       tire,
+      tireLoadSensitivity,
       roles,
       bodyContact,
     });

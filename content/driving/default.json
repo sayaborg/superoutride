@@ -1,6 +1,6 @@
 {
   "format": "superoutride.driving-definition",
-  "version": 23,
+  "version": 24,
   "maxRoadWheelSteerDegrees": 65,
   "steeringTraversalSeconds": 0.3,
   "steeringReference": "center",
@@ -17,15 +17,8 @@
   "throttle": { "applySeconds": 0.25, "releaseSeconds": 0.125 },
   "brake": { "applySeconds": 0.15, "releaseSeconds": 0.1 },
   "wheelSlip": { "drive": true, "brake": true },
-  "tire": {
-    "gripX": 5,
-    "peakSlipX": 0.2,
-    "gripY": 2.5,
-    "peakSlipY": 0.1,
-    "knee": 0.74,
-    "loadSensitivity": 0.15,
-    "slidingRatio": 1
-  },
+  "tire": { "grip": 2.5, "stiffness": 40, "slidingRatio": 1 },
+  "tireLoadSensitivity": 0.15,
   "roles": {"rival": {"utilization": 0.85, "leastUtilization": 0.7, "mostUtilization": 0.98, "spanMeters": 200, "responseSeconds": 6}, "standard": {"utilization": 0.9}, "traffic": {"utilization": 0.75}},
   "bodyContact": { "frequencyHertz": 3, "dampingRatio": 1, "barrierFriction": 0.3 }
 }

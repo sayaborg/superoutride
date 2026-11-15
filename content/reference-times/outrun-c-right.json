@@ -6,13 +6,13 @@
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
-      "vehicleSha256": "cd4d4a8e8372dcb647b785b081acd328e89bf638a3cda6c55f38c603164899fe",
-      "initialSeconds": 113.91401578464145,
+      "vehicleSha256": "eeaa2f7b2a3c9bc8d32927f1a0a7263dcd1b30fcff4e1faa1d102fee87eca370",
+      "initialSeconds": 115.04143636247375,
       "after": [
-        ["DEVIL'S CANYON-CP", [120.76588237933824]],
-        ["ALPS-CP", [113.99219638188848]],
-        ["OLD CAPITAL-CP", [113.86497896255202]],
-        ["DESOLATION HILL-CP", [106.57990681093673]]
+        ["DEVIL'S CANYON-CP", [119.07498784355406]],
+        ["ALPS-CP", [115.38024833652864]],
+        ["OLD CAPITAL-CP", [112.8526318303791]],
+        ["DESOLATION HILL-CP", [104.63230177427704]]
       ]
     }
   ]

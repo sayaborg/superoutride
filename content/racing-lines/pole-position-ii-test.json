@@ -8,9 +8,9 @@
   "vehicles": [
     {
       "vehicleId": "LOTUS_79_SPECIAL",
-      "vehicleSha256": "127a4bb5171a54a73b40a1666899fcf253b97f54671deffe8d7c74014800b9e6",
-      "seconds": 55.235,
-      "minimumCurvatureSeconds": 55.235
+      "vehicleSha256": "19074473f8d21db727a3fb61a3faaf5c1b0141f8d1caaff2bc82c03f0b723c63",
+      "seconds": 55.201,
+      "minimumCurvatureSeconds": 55.201
     }
   ],
   "lines": [

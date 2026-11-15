@@ -56,8 +56,9 @@ Each line is one area as it stands, with the document that owns it.
   driver drives rivals, traffic, reference runs, the attract demo and the takeover; footprints contact vehicles, walls,
   limits and objects through one external force ([Drivers](content-and-gameplay.md#drivers),
   [Traffic](content-and-gameplay.md#traffic), [Body contact](content-and-gameplay.md#body-contact)).
-- **Vehicle physics.** Five-point torque curves, fuel cut, the tire law, protection, steering and recovery
-  ([Vehicle physics](vehicle-physics.md)).
+- **Vehicle physics.** Five-point torque curves, fuel cut, the brush tire law (a tire's grip and stiffness, one
+  friction circle, the game-wide load sensitivity), protection, steering and recovery
+  ([Vehicle physics](vehicle-physics.md)); [Stage TR](#stage-tr--the-brush-tire) awaits K's DEV check.
 - **Audio.** The audio scene and sound graph, engine sounds by exhaust graphs to a measured loudness, tire audio
   (UNIFIED), recordings and music, effects and contact sound; the recordings are placeholders until K's files replace
   them ([Audio](audio.md), [Tire audio](tire-audio.md), [placeholder recordings](#placeholder-recordings)).
@@ -486,6 +487,27 @@ Not decided, for later: the replanning interval and the no-progress count (AD-5'
 protection solvers can be skipped with the same results (AD-3.4's report);
 simpler traffic and unseen rivals (not now, K); small differences between rivals, should their order set too firmly.
 
+## Stage TR — The brush tire
+
+K's decisions (2026-11-16): the tire law is a brush, the same along the wheel and across it, with no knee; a tire's
+values are its grip (2.5) and its stiffness (40), its peak slip their result, and its sliding ratio (1); the load
+sensitivity (0.15) is the game's, not a tire's; a vehicle's grip balance gives its front tires `grip*(1-b)` and its
+rear `grip*(1+b)`, 0 by default; the HUD's tire gauge shows the part of the contact that slides. G, C, SR, LS and BAL
+are DEV's ([Tire law](vehicle-physics.md#tire-law)).
+
+- TR-1, the law and its values: made, with every measured product measured again; it awaits K's DEV check and K's word
+  on when it may go to main, as it changes the driving and vehicle formats and every reference run with them (Stage
+  AD's third addition changes `PLANNED_DRIVER` and measures them again too).
+- TR-2, the grip balance: follows TR-1 on its branch.
+
+Not decided, for K in DEV after the stage:
+
+- The tires of the three F1 cars and the two GP motorcycles, their grip balance and how downforce is treated (their
+  values are provisional, [Racing vehicles](racing-vehicles.md)).
+- Each production vehicle's grip balance; BAL leaves DEV once every vehicle's is decided.
+- A vehicle whose drive reaches its tires' limit is held by TCS at the peak slip, so its engine turns faster than its
+  road speed by that slip; a tire whose peak slip passes 5 % reaches the fuel cut (1.05) before the shift.
+
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
 Stage RM makes what Stage PG left to later stages in [Courses of the originals](#courses-of-the-originals). BRANCH
@@ -636,8 +658,8 @@ K's decisions for the stage:
 - Wheel slip protection has two sides, each its own switch: the drive side, TCS and MSR (both bound the engine's
   effective opening), and the brake side, ABS (it bounds the pedal brake). A drift series too keeps ABS and drops TCS
   (DT-6b, in place of one switch for all three).
-- Drifting needs a tire of its own: S13 `gripX=gripY=0.8` and AE86 0.7, both with `peakSlipX=peakSlipY=0.1`,
-  `knee=0.74`, `loadSensitivity=0.15` and the sliding ratio 0.85 (DT-6; DT-2 started both at 1.1 with no fall), which K
+- Drifting needs a tire of its own: S13 grip 0.8 and AE86 0.7, both reaching their peak at the slip 0.1 (stiffness 24
+  and 21 since Stage TR's brush) with the sliding ratio 0.85 (DT-6; DT-2 started both at 1.1 with no fall), which K
   tunes in DEV; FC3S's is decided with DT-3.
 - `AE86_DRIFT_TUNED` (Corolla Levin 3-door GT-APEX, early, May 1983 – May 1985, 4A-GEU, 5MT), `S13_DRIFT_TUNED`
   (Silvia K's, early, May 1988 – January 1991, CA18DET, 5MT) and `FC3S_DRIFT_TUNED` (Savanna RX-7 GT-X, early,
@@ -661,7 +683,7 @@ K's decisions for the stage:
   braking at the limit in a corner takes a wheel past it (K's choice of the DT-6 report's options; DT-6).
 
 S13_DRIFT_TUNED and AE86_DRIFT_TUNED are in the catalog (DT-2) with the drift tire, TCS and MSR off and ABS on. K
-tries them in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRONT steering, S13 first, tuning GX, GY
+tries them in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRONT steering, S13 first, tuning G, C
 and SR in DEV and adopting the exported mechanics document. Until their own pictures and exhausts are made, they
 borrow:
 

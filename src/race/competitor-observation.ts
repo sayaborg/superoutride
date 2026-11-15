@@ -80,6 +80,7 @@ export function createCompetitorObservation(
     lateralPower: 0,
     slidingPower: 0,
     utilization: 0,
+    slidingFraction: 0,
     surface: null,
   });
   const slot: CompetitorObservationSlot = {

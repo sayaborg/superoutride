@@ -340,8 +340,8 @@ upper row and GOAL or GAME OVER large, the rest small; menus and screens keep th
 The lower row, from the left:
 
 - **Tires:** above the speed, the vehicle's axles seen from above, a car's an H and a bike's two tires in a line, each
-  axle's tires colored by how much of their grip they use: green, yellow at the tire's knee (where its grip begins to level
-  off) and red at its limit, changing smoothly between, and grey in the air.
+  axle's tires colored by how much of their contact slides (K, 2026-11-16): green rolling, yellow with half of it
+  sliding and red at the limit, changing smoothly between, and grey in the air.
 - **Speed:** three italic seven-segment digits in km/h, right-aligned, in the blue-green of a vacuum fluorescent display;
   an unused leading digit shows all its segments unlit, and unlit segments are a dark trace of the lit color.
 - **Steering:** a picture of the vehicle's steering wheel (a bike's top bridge), 48 pixels square, turned as the front

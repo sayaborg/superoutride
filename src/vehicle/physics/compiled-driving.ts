@@ -2,7 +2,11 @@ import { DefinitionDomainError, withDefinitionPath } from '../../core/admission.
 import type { DrivingDefinition } from '../driving-definition.js';
 import { validateCompiledDrivingActuators, type CompiledDrivingActuators } from './driving-actuator.js';
 import type { PowertrainRules } from './automatic-powertrain.js';
-import { compileTireCharacteristics, type CompiledTireCharacteristics } from './tire-friction-calibration.js';
+import {
+  compileTireCharacteristics,
+  validateTireLoadSensitivity,
+  type CompiledTireCharacteristics,
+} from './tire-friction-calibration.js';
 import type { TorqueProtectionPolicy } from './torque-protection.js';
 import { compileBodyContact, type CompiledBodyContact } from './body-contact.js';
 import { createVehicleSteeringCalibration, type CompiledVehicleSteeringCalibration } from './vehicle-calibration.js';
@@ -26,6 +30,8 @@ export interface CompiledDriving {
   readonly defaultSteering: Readonly<SteeringRule>;
   /** The game-wide tire, shared by both stations. */
   readonly tire: Readonly<CompiledTireCharacteristics>;
+  /** The game-wide load sensitivity `r` in [0,1), every tire's. */
+  readonly tireLoadSensitivity: number;
   readonly torqueProtection: Readonly<TorqueProtectionPolicy>;
   /**
    * The drivers' roles: each utilization in (0,1], a rival's least ≤ its level utilization ≤ its most; a rival's span
@@ -137,6 +143,7 @@ export function compileDriving(definition: DrivingDefinition): CompiledDriving {
       { reference: 'steeringReference', utilization: 'steeringUtilization' },
     ),
     tire,
+    tireLoadSensitivity: validateTireLoadSensitivity(definition.tireLoadSensitivity, 'tireLoadSensitivity'),
     torqueProtection: Object.freeze({
       wheelSlip: Object.freeze({ drive: definition.wheelSlip.drive, brake: definition.wheelSlip.brake }),
       pitchLimit: (definition.pitchLimitDegrees * Math.PI) / 180,

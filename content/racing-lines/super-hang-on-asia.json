@@ -8,9 +8,9 @@
   "vehicles": [
     {
       "vehicleId": "VFR750R",
-      "vehicleSha256": "d21a729f26d723ce13616258ab6f65fc3dcaed84a7817184dd73a34b878d5c88",
-      "seconds": 464.438,
-      "minimumCurvatureSeconds": 467.099
+      "vehicleSha256": "3f6597be260577e7d8318fcbbe753ea9c14e3977f692141776ab8c4dc74368de",
+      "seconds": 465.118,
+      "minimumCurvatureSeconds": 467.728
     }
   ],
   "lines": [

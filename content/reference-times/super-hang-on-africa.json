@@ -6,14 +6,14 @@
   "vehicles": [
     {
       "vehicleId": "VFR750R",
-      "vehicleSha256": "d21a729f26d723ce13616258ab6f65fc3dcaed84a7817184dd73a34b878d5c88",
-      "initialSeconds": 50.7501896688687,
+      "vehicleSha256": "3f6597be260577e7d8318fcbbe753ea9c14e3977f692141776ab8c4dc74368de",
+      "initialSeconds": 50.68176399662169,
       "after": [
-        ["africa-CP1", [47.60898012688493]],
-        ["africa-CP2", [49.92652299200152]],
-        ["africa-CP3", [47.843619756686536]],
-        ["africa-CP4", [45.07281090452565]],
-        ["africa-CP5", [56.71925055730256]]
+        ["africa-CP1", [47.584171704115384]],
+        ["africa-CP2", [53.14727462804471]],
+        ["africa-CP3", [47.77434569382163]],
+        ["africa-CP4", [45.39680103601842]],
+        ["africa-CP5", [49.637470449960915]]
       ]
     }
   ]

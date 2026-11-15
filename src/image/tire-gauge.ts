@@ -102,8 +102,8 @@ function steps(from: number, to: number): number[] {
 }
 const GREEN_TO_YELLOW = steps(rampColor('GREEN'), rampColor('YELLOW'));
 const YELLOW_TO_RED = steps(rampColor('YELLOW'), rampColor('RED'));
-/** The step at which the tires are yellow, the tire's knee. */
-const KNEE_STEP = GREEN_TO_YELLOW.length - 1;
+/** The step at which the tires are yellow, half their contact sliding. */
+const YELLOW_STEP = GREEN_TO_YELLOW.length - 1;
 const RED_STEPS = YELLOW_TO_RED.length - 1;
 /**
  * The tire colors in order, one palette each: the tachometer's green, yellow and red (each its ramp's `L2`), and every
@@ -112,11 +112,11 @@ const RED_STEPS = YELLOW_TO_RED.length - 1;
 export const TIRE_GAUGE_COLORS: readonly number[] = Object.freeze([...GREEN_TO_YELLOW, ...YELLOW_TO_RED.slice(1)]);
 
 /**
- * The step of `TIRE_GAUGE_COLORS` an axle's tires show at `utilization` of their friction ellipse: green at 0, yellow
- * at the tire's `knee` and red at 1, the nearest step of green to yellow at `utilization / knee` and of yellow to red
- * at `(utilization - knee) / (1 - knee)` beyond it.
+ * The step of `TIRE_GAUGE_COLORS` an axle's tires show when the part `sliding` of their contact slides: green at 0,
+ * yellow at 0.5 and red at 1, the steps of green to yellow evenly over the first half and of yellow to red over the
+ * second.
  */
-export function tireGaugeStep(utilization: number, knee: number): number {
-  const u = Math.min(1, Math.max(0, utilization));
-  return u <= knee ? Math.round((u / knee) * KNEE_STEP) : KNEE_STEP + Math.round(((u - knee) / (1 - knee)) * RED_STEPS);
+export function tireGaugeStep(sliding: number): number {
+  const u = Math.min(1, Math.max(0, sliding));
+  return u <= 0.5 ? Math.round(u * 2 * YELLOW_STEP) : YELLOW_STEP + Math.round((u * 2 - 1) * RED_STEPS);
 }

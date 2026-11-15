@@ -1,4 +1,5 @@
 import { TIRE_LOW_SPEED_REGULARIZATION } from './tire-wheel.js';
+import { tirePeakSlip } from './tire-friction-calibration.js';
 import { type Writable } from '../../core/writable.js';
 const PITCH_BISECTION_ITERATIONS = 12;
 // Rad/s: critically damped response of the pitch barrier; sets how early protection anticipates the limit. A value the
@@ -38,11 +39,9 @@ export interface TorqueProtectionPolicy {
   readonly pitchLimit: number;
 }
 
-/** Pure-axis slip at the control boundary. P is an explicitly selected control boundary, not a
- * claim of a universal optimal slip. */
+/** Pure longitudinal slip at the control boundary: the tire's peak slip on the station's surface. */
 function boundarySlip(input: WheelSolveInput): number {
-  const tire = input.characteristics;
-  return (input.gripFactor * (2 - tire.rhoKnee) * tire.muX) / tire.kX;
+  return tirePeakSlip(input.characteristics, input.gripFactor);
 }
 
 /** ABS: the largest brake magnitude keeping the station at or above its minimum rolling speed

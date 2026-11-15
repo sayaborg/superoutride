@@ -90,9 +90,11 @@ curves are continuous and nonzero. Their modest differences are estimates, not a
 `frontAxle + rearAxle` gives wheelbase. Static front fraction is `rearAxle / wheelbase`. Inertias use estimated mass
 radii `k = sqrt(I/m)`; wheel inertia uses equivalent rotating mass `I/r²`. Spring rate and damping are derived by the
 existing compiler from ride frequency, station mass and damping ratio. The numeric ledger records these assumptions;
-there are no hidden vehicle-ID multipliers. Ordinary tires use peak longitudinal slip 0.05, calibrated so wheelspin
-can settle before the existing rolling-speed shift threshold/fuel-cut gap. Lotus uses 0.12. These are **game tire
-calibration**, not manufacturer measurements. Grip is not raised to impersonate missing downforce.
+there are no hidden vehicle-ID multipliers. The F1 cars' tires have grip 1.5 and the GP motorcycles' 1.25; their
+stiffness puts the peak slip `3*grip/stiffness` at 0.05 on unit grip (stiffness 90 and 75), calibrated so wheelspin
+can settle before the existing rolling-speed shift threshold/fuel-cut gap. Lotus uses stiffness 37.5, a peak slip of
+0.12. All have sliding ratio 0.9. These are **provisional game tire calibration** (TR, until K sets them in DEV), not
+manufacturer measurements. Grip is not raised to impersonate missing downforce.
 
 MP4/4 and Lotus use estimated front/rear axle wheel inertias of 1.2/2.0 kg m², equivalent to about 12.9/19.3 kg
 and 12.9/19.2 kg of rotating mass at their adopted radii. These estimates also keep the existing planner-versus-solver

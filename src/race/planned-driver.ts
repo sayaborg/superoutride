@@ -882,7 +882,7 @@ export function plannedSteering(
   const { staticLoad } = model.compiledVehicle.frontStation.suspension;
   const front = Math.max(
     PLANNED_DRIVER.leastFrontLoadFactor,
-    effectiveTireLoad(model.tire, car.tires.front.load, staticLoad) / staticLoad,
+    effectiveTireLoad(model.tireLoadSensitivity, car.tires.front.load, staticLoad) / staticLoad,
   );
   const full = front * fullSteeringYawRate(model, steering, grip, car.longitudinalSpeed, car.lateralSpeed);
   return clamp(lateral / speed / full, -1, 1);

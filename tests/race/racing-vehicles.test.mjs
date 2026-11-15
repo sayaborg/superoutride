@@ -109,7 +109,6 @@ for (const [id, gears, cylinders, cycle, powerKW] of identities) {
           rules: 'FREE PLAY',
           redlineRpm: entry.compiledVehicle.powertrain.redlineRpm,
           steeringPicture: entry.steeringPicture,
-          tireKnee: race.player.actor.model.tire.rhoKnee,
           slowDown: false,
         },
         record: null,

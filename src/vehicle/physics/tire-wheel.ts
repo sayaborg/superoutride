@@ -6,7 +6,12 @@ export const TIRE_LOW_SPEED_REGULARIZATION = 1.0;
 import type { Writable } from '../../core/writable.js';
 const WHEEL_BISECTION_ITERATIONS = 60;
 
-import type { CompiledTireCharacteristics } from './tire-friction-calibration.js';
+import {
+  brushForce,
+  slidingFall,
+  tirePeakSlip,
+  type CompiledTireCharacteristics,
+} from './tire-friction-calibration.js';
 
 // N m: absolute bisection residual budget, ~55 ulps for a 10^4 N m torque balance.
 // The implied wheel-speed error is at most residual*dt/inertia for the monotone wheel equation.
@@ -17,19 +22,15 @@ interface TireSlip {
   readonly sy: number;
   readonly referenceSpeed: number;
 }
-interface TireDemand extends TireSlip {
-  readonly dx: number;
-  readonly dy: number;
-}
-interface TireForceResult extends TireDemand {
+interface TireForceResult extends TireSlip {
   readonly fx: number;
   readonly fy: number;
-  readonly capacityX: number;
-  readonly capacityY: number;
-  /** Demand in the capacity ellipse, not a force magnitude or a stored contact phase. */
-  readonly rho: number;
+  /** The force's bound, `Ne*gripFactor*mu`. */
+  readonly capacity: number;
+  /** The slip over the peak slip, not a force magnitude or a stored contact phase; 1 at the peak. */
+  readonly theta: number;
   /** The fall past the peak the force carries, taken at the substep's starting wheel speed; 1 up to the peak. */
-  readonly sliding: number;
+  readonly fall: number;
 }
 
 export interface WheelSolveInput {
@@ -61,14 +62,11 @@ export function createTireForceScratch() {
     sx: 0,
     sy: 0,
     referenceSpeed: 0,
-    dx: 0,
-    dy: 0,
     fx: 0,
     fy: 0,
-    capacityX: 0,
-    capacityY: 0,
-    rho: 0,
-    sliding: 1,
+    capacity: 0,
+    theta: 0,
+    fall: 1,
     omega: 0,
   };
 }
@@ -77,28 +75,22 @@ function createTireForceResult() {
     sx: 0,
     sy: 0,
     referenceSpeed: 0,
-    dx: 0,
-    dy: 0,
     fx: 0,
     fy: 0,
-    capacityX: 0,
-    capacityY: 0,
-    rho: 0,
-    sliding: 1,
+    capacity: 0,
+    theta: 0,
+    fall: 1,
   };
 }
 function readTireForce(s: TireForceScratch, out: Writable<TireForceResult>): TireForceResult {
   out.sx = s.sx;
   out.sy = s.sy;
   out.referenceSpeed = s.referenceSpeed;
-  out.dx = s.dx;
-  out.dy = s.dy;
   out.fx = s.fx;
   out.fy = s.fy;
-  out.capacityX = s.capacityX;
-  out.capacityY = s.capacityY;
-  out.rho = s.rho;
-  out.sliding = s.sliding;
+  out.capacity = s.capacity;
+  out.theta = s.theta;
+  out.fall = s.fall;
   return out;
 }
 function writeSlip(
@@ -113,72 +105,33 @@ function writeSlip(
   out.sy = -vy / referenceSpeed;
   out.referenceSpeed = referenceSpeed;
 }
-function writeDemand(
-  out: Writable<TireDemand>,
-  normalLoad: number,
-  characteristics: CompiledTireCharacteristics,
-): void {
-  const load = Math.max(0, normalLoad);
-  out.dx = load * characteristics.kX * out.sx;
-  out.dy = load * characteristics.kY * out.sy;
-}
 function evaluateTireForceValidated(input: WheelSolveInput, out: TireForceScratch): void {
   const omega = out.omega,
     referenceSpeed = out.referenceSpeed;
   if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
-  const characteristics = input.characteristics;
   writeSlip(omega, input.rollingRadius, input.longitudinalVelocity, input.lateralVelocity, referenceSpeed, out);
-  writeDemand(out, input.normalLoad, characteristics);
-  forceFromDemand(out, input.normalLoad, input.gripFactor, characteristics);
+  forceFromSlip(out, input.normalLoad, input.gripFactor, input.characteristics);
 }
-function forceFromDemand(
+/** The brush's force: its bound times `H(theta)` and the fall, opposing the slip; none without load or grip. */
+function forceFromSlip(
   out: TireForceScratch,
   normalLoad: number,
   gripFactor: number,
   characteristics: CompiledTireCharacteristics,
 ): void {
-  const capacityX = tireForceCapacity(normalLoad, gripFactor, characteristics.muX),
-    capacityY = tireForceCapacity(normalLoad, gripFactor, characteristics.muY);
-  out.capacityX = capacityX;
-  out.capacityY = capacityY;
+  const capacity = tireForceCapacity(normalLoad, gripFactor, characteristics.grip);
+  out.capacity = capacity;
   out.fx = 0;
   out.fy = 0;
-  out.rho = 0;
-  if (!(capacityX > 0) || !(capacityY > 0)) return;
-  const x = (characteristics.kX * out.sx) / characteristics.muX;
-  const y = (characteristics.kY * out.sy) / characteristics.muY;
-  const length = Math.hypot(x, y),
-    rho = length / gripFactor;
-  if (length === 0) return;
-  out.rho = rho;
-  if (rho <= characteristics.rhoKnee) {
-    out.fx = out.dx * out.sliding;
-    out.fy = out.dy * out.sliding;
-    return;
-  }
-  const h = radialC1Magnitude(rho, characteristics.rhoKnee) * out.sliding;
-  out.fx = capacityX * h * (x / length);
-  out.fy = capacityY * h * (y / length);
-}
-
-/** Exact algebraic simplification of the retained C1 Hermite shoulder, for any 0<a<1. */
-function radialC1Magnitude(rho: number, a: number): number {
-  if (Number.isNaN(rho)) throw new RangeError('tire demand cannot be NaN');
-  if (!(rho > 0)) return 0;
-  if (rho <= a) return rho;
-  if (rho >= 2 - a) return 1;
-  return rho - (rho - a) ** 2 / (4 * (1 - a));
-}
-
-/**
- * The force's fall past the peak at normalized radial demand `rho`: 1 up to the peak `2-a`, then `s+(1-s)/(1+u^2)` with
- * `u = (rho-(2-a))/(2(1-a))`, falling from the peak with zero slope toward the sliding ratio `s` over the knee's width.
- * A sliding ratio of 1 holds it at 1.
- */
-function slidingFall(rho: number, a: number, s: number): number {
-  if (!(rho > 2 - a)) return 1;
-  const u = (rho - (2 - a)) / (2 * (1 - a));
-  return s + (1 - s) / (1 + u * u);
+  out.theta = 0;
+  if (!(capacity > 0)) return;
+  const sigma = Math.hypot(out.sx, out.sy);
+  if (sigma === 0) return;
+  const theta = sigma / tirePeakSlip(characteristics, gripFactor);
+  out.theta = theta;
+  const magnitude = (capacity * brushForce(theta) * out.fall) / sigma;
+  out.fx = magnitude * out.sx;
+  out.fy = magnitude * out.sy;
 }
 
 /**
@@ -188,7 +141,6 @@ function slidingFall(rho: number, a: number, s: number): number {
  * speed under load and give the solve several roots.
  */
 function startingFall(input: WheelSolveInput, scratch: TireForceScratch): number {
-  const tire = input.characteristics;
   writeSlip(
     input.omegaPrevious,
     input.rollingRadius,
@@ -197,8 +149,10 @@ function startingFall(input: WheelSolveInput, scratch: TireForceScratch): number
     scratch.referenceSpeed,
     scratch,
   );
-  const demand = Math.hypot((tire.kX * scratch.sx) / tire.muX, (tire.kY * scratch.sy) / tire.muY) / input.gripFactor;
-  return slidingFall(demand, tire.rhoKnee, tire.slidingRatio);
+  const tire = input.characteristics;
+  if (!(input.gripFactor > 0)) return 1;
+  const theta = Math.hypot(scratch.sx, scratch.sy) / tirePeakSlip(tire, input.gripFactor);
+  return slidingFall(theta, tire.slidingRatio);
 }
 
 /** Surface rolling resistance remains a separate continuous wheel torque. */
@@ -245,7 +199,7 @@ export function solveWheelOmega(
   } = input;
   // Contact velocity and the fall are fixed throughout the scalar solve, including its final force evaluation.
   scratch.referenceSpeed = Math.hypot(input.longitudinalVelocity, TIRE_LOW_SPEED_REGULARIZATION);
-  scratch.sliding = startingFall(input, scratch);
+  scratch.fall = startingFall(input, scratch);
   scratch.omega = 0;
   netTorqueAtOmega(input, scratch, residual);
   const atZero = residual[0]! - driveTorque;
@@ -255,7 +209,7 @@ export function solveWheelOmega(
     omega = 0;
     locked = brakeTorque > 0;
   } else {
-    const maxRoadTorque = rollingRadius * tireForceCapacity(normalLoad, gripFactor, characteristics.muX);
+    const maxRoadTorque = rollingRadius * tireForceCapacity(normalLoad, gripFactor, characteristics.grip);
     const maxRollingTorque = rollingResistance * Math.max(0, normalLoad) * rollingRadius;
     const span =
       Math.abs(omegaPrevious) +
@@ -289,7 +243,7 @@ export function wheelRequiredNetTorque(
 ): number {
   if (!Number.isFinite(omega)) throw new RangeError('trial wheel speed must be finite');
   scratch.referenceSpeed = Math.hypot(input.longitudinalVelocity, TIRE_LOW_SPEED_REGULARIZATION);
-  scratch.sliding = startingFall(input, scratch);
+  scratch.fall = startingFall(input, scratch);
   scratch.omega = omega;
   netTorqueAtOmega(input, scratch, residual);
   return residual[0]!;

@@ -8,9 +8,9 @@
   "vehicles": [
     {
       "vehicleId": "R80_GS_PARIS_DAKAR",
-      "vehicleSha256": "2b408d3dd21e87e36b907c39427ebb9d240a8ccae299efac306c22eff2030a41",
-      "seconds": 484.163,
-      "minimumCurvatureSeconds": 488.646
+      "vehicleSha256": "080fb4a9faa3e06a2cda4e6dc9ebce279a4ad5ce2bd51f52049abda080e6fa70",
+      "seconds": 484.859,
+      "minimumCurvatureSeconds": 489.309
     }
   ],
   "lines": [

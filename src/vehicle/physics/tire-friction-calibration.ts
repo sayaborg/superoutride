@@ -1,91 +1,76 @@
-import { DefinitionDomainError, withDefinitionPath } from '../../core/admission.js';
-/** Authoring/UI values. P is pure-axis capacity onset at gripFactor=1, not body sideslip. */
+import { DefinitionDomainError } from '../../core/admission.js';
+
+/**
+ * A brush tire's authored values (K, 2026-11-16): its grip `mu`, the bound of its force over its load, and its
+ * stiffness `c`, its force over its load at unit slip; its peak slip `3*mu/c` follows from them. Its force opposes its
+ * slip, alike along the wheel and across it.
+ */
 export interface TireCharacteristics {
-  readonly gripX: number;
-  readonly peakSlipX: number;
-  readonly gripY: number;
-  readonly peakSlipY: number;
-  readonly knee: number;
-  /** r in [0,1): how much less than in proportion the tire force grows with load (0 is in proportion). */
-  readonly loadSensitivity: number;
+  readonly grip: number;
+  readonly stiffness: number;
   /** s in (0,1]: the force sliding far past the peak over the peak's force (1 holds the peak). */
   readonly slidingRatio: number;
 }
 
-/** Sole force-law input. G/P/UI IDs are not additional runtime state. */
-export interface CompiledTireCharacteristics {
-  readonly muX: number;
-  readonly muY: number;
-  readonly kX: number;
-  readonly kY: number;
-  readonly rhoKnee: number;
-  readonly loadSensitivity: number;
-  readonly slidingRatio: number;
-}
+/** The sole force-law input: the admitted values themselves. */
+export type CompiledTireCharacteristics = Readonly<TireCharacteristics>;
 
-export function compileTireCharacteristics(input: TireCharacteristics): Readonly<CompiledTireCharacteristics> {
-  const { gripX, peakSlipX, gripY, peakSlipY, knee, loadSensitivity, slidingRatio } = input;
-  for (const field of ['gripX', 'peakSlipX', 'gripY', 'peakSlipY'] as const) {
+export function compileTireCharacteristics(input: TireCharacteristics): CompiledTireCharacteristics {
+  const { grip, stiffness, slidingRatio } = input;
+  for (const field of ['grip', 'stiffness'] as const) {
     if (!Number.isFinite(input[field]) || !(input[field] > 0))
       throw new DefinitionDomainError(field, `${field} must be finite and > 0`);
   }
-  if (!Number.isFinite(knee) || !(knee > 0 && knee < 1))
-    throw new DefinitionDomainError('knee', 'knee must be finite and lie in (0,1)');
-  const compiled = {
-    muX: gripX,
-    muY: gripY,
-    kX: ((2 - knee) * gripX) / peakSlipX,
-    kY: ((2 - knee) * gripY) / peakSlipY,
-    rhoKnee: knee,
-    loadSensitivity,
-    slidingRatio,
-  };
-  withDefinitionPath(() => validateTireCharacteristics(compiled), {
-    muX: 'gripX',
-    muY: 'gripY',
-    kX: 'peakSlipX',
-    kY: 'peakSlipY',
-    rhoKnee: 'knee',
-    loadSensitivity: 'loadSensitivity',
-    slidingRatio: 'slidingRatio',
-  });
-  return Object.freeze(compiled);
-}
-
-/**
- * The normalized radial demand `rho` at which the smooth knee `H` of knee start `a` reaches the force fraction `h` in
- * (0,1]: `h` up to the knee, then `2-a-2*sqrt((1-a)*(1-h))`, which is `2-a` (the peak) at `h = 1`.
- */
-export function radialKneeInverse(a: number, h: number): number {
-  return h <= a ? h : 2 - a - 2 * Math.sqrt((1 - a) * (1 - h));
-}
-
-/** The pure-lateral slip at normalized radial demand `rho` on a surface of `gripFactor`: `gripFactor*rho*muY/kY`. */
-export function lateralSlipAtDemand(tire: CompiledTireCharacteristics, gripFactor: number, rho: number): number {
-  return (gripFactor * rho * tire.muY) / tire.kY;
-}
-
-function validateTireCharacteristics(tire: CompiledTireCharacteristics): void {
-  for (const field of ['muX', 'muY', 'kX', 'kY'] as const) {
-    if (!(tire[field] > 0) || !Number.isFinite(tire[field]))
-      throw new DefinitionDomainError(
-        field,
-        `${field} must be finite and > 0${field === 'kX' ? ' (from gripX, peakSlipX and knee)' : field === 'kY' ? ' (from gripY, peakSlipY and knee)' : ''}`,
-      );
-  }
-  if (!Number.isFinite(tire.rhoKnee) || !(tire.rhoKnee > 0 && tire.rhoKnee < 1))
-    throw new DefinitionDomainError('rhoKnee', 'rhoKnee must be finite and lie in (0,1)');
-  if (!(tire.loadSensitivity >= 0 && tire.loadSensitivity < 1))
-    throw new DefinitionDomainError('loadSensitivity', 'loadSensitivity must lie in [0,1)');
-  if (!(tire.slidingRatio > 0 && tire.slidingRatio <= 1))
+  if (!(slidingRatio > 0 && slidingRatio <= 1))
     throw new DefinitionDomainError('slidingRatio', 'slidingRatio must lie in (0,1]');
+  return Object.freeze({ grip, stiffness, slidingRatio });
+}
+
+/** The game-wide load sensitivity `r` in [0,1); a value outside it is a domain error at `path`. */
+export function validateTireLoadSensitivity(loadSensitivity: number, path: string): number {
+  if (!(loadSensitivity >= 0 && loadSensitivity < 1))
+    throw new DefinitionDomainError(path, `${path} must lie in [0,1)`);
+  return loadSensitivity;
+}
+
+/** The slip at which the tire reaches its peak on a surface of `gripFactor`: `gripFactor*3*mu/c`. */
+export function tirePeakSlip(tire: CompiledTireCharacteristics, gripFactor: number): number {
+  return (gripFactor * 3 * tire.grip) / tire.stiffness;
 }
 
 /**
- * The load the tire law reads for a contact's normal load `load` on a station whose static load is `staticLoad`:
- * `N/(1+r*(N/N0-1))`. It equals the static load there, rises with the load's slope `1-r` around it, and approaches
- * `N0/r` as the load grows (any load when r is 0).
+ * The brush's force over its peak force at `theta`, its slip over its peak slip: `1-(1-theta)^3` up to the peak, then
+ * 1. Its slope is 3 at zero slip and 0 at the peak.
  */
-export function effectiveTireLoad(tire: CompiledTireCharacteristics, load: number, staticLoad: number): number {
-  return load / (1 + tire.loadSensitivity * (load / staticLoad - 1));
+export function brushForce(theta: number): number {
+  if (Number.isNaN(theta)) throw new RangeError('tire slip cannot be NaN');
+  if (!(theta > 0)) return 0;
+  if (theta >= 1) return 1;
+  // The expanded form keeps the small-slip force exact.
+  return theta * (3 - 3 * theta + theta * theta);
+}
+
+/** The inverse of `brushForce` on [0,1]: the slip over the peak slip `1-(1-f)^(1/3)` at which the force is `f`. */
+export function brushSlipAtForce(f: number): number {
+  return f >= 1 ? 1 : f <= 0 ? 0 : 1 - Math.cbrt(1 - f);
+}
+
+/**
+ * The force's fall past the peak at `theta`: 1 up to the peak, then `s+(1-s)/(1+u^2)` with `u = theta-1`, falling from
+ * the peak with zero slope toward the sliding ratio `s` over the width of the peak slip. A sliding ratio of 1 holds it
+ * at 1.
+ */
+export function slidingFall(theta: number, slidingRatio: number): number {
+  if (!(theta > 1)) return 1;
+  const u = theta - 1;
+  return slidingRatio + (1 - slidingRatio) / (1 + u * u);
+}
+
+/**
+ * The load the tire law reads for a contact's normal load `load` on a station whose static load is `staticLoad`, under
+ * the game-wide load sensitivity `r`: `N/(1+r*(N/N0-1))`. It equals the static load there, rises with the load's slope
+ * `1-r` around it, and approaches `N0/r` as the load grows (any load when r is 0).
+ */
+export function effectiveTireLoad(loadSensitivity: number, load: number, staticLoad: number): number {
+  return load / (1 + loadSensitivity * (load / staticLoad - 1));
 }

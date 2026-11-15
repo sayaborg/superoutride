@@ -26,8 +26,9 @@ import { SIM_DT } from '../race/fixed-step.js';
 import { SLOW_DOWN, type SlowDownStage } from '../race/slow-down.js';
 
 /**
- * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the run's course, the name of its rules and the player vehicle's engine speeds, steering picture and tire knee from
- * its definitions, and the record the run compares against.
+ * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the run's
+ * course, the name of its rules and the player vehicle's engine speeds and steering picture from its definitions, and
+ * the record the run compares against.
  */
 export interface HudFacts {
   readonly race: RaceFacts;
@@ -42,8 +43,6 @@ export interface HudFacts {
     readonly redlineRpm: number;
     /** The picture of the player vehicle's steering wheel or top bridge, which its listing names. */
     readonly steeringPicture: HudPicture;
-    /** The player vehicle's tire knee (`rhoKnee`), where the tire gauge is yellow. */
-    readonly tireKnee: number;
     /** Whether the player's SETTINGS show SLOW DOWN. */
     readonly slowDown: boolean;
   };
@@ -232,9 +231,9 @@ const writePicture = (text: TextLayer, place: Place, picture: HudPicture, angle:
       text.put(column + x, row + y, base + y * HUD_PICTURE_TILES + x, picture.palette);
 };
 
-/** An axle's tires' palette: its utilization's step of the tire colors, or grey without load. */
-const tirePalette = ({ load, utilization }: CompetitorObservation['tires']['front'], knee: number) =>
-  load > 0 ? tireGaugePalette(tireGaugeStep(utilization, knee)) : TEXT_PALETTES.TIRES_AIR;
+/** An axle's tires' palette: its sliding fraction's step of the tire colors, or grey without load. */
+const tirePalette = ({ load, slidingFraction }: CompetitorObservation['tires']['front']) =>
+  load > 0 ? tireGaugePalette(tireGaugeStep(slidingFraction)) : TEXT_PALETTES.TIRES_AIR;
 
 const extended = ({ clock }: RaceFacts) => {
   const extension = clock.lastExtension;
@@ -384,10 +383,10 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     // The tire gauge in the vehicle's form, each axle's tires in its own palette; the middle row holds only lines,
     // which every palette draws alike.
     when: () => true,
-    write({ player: { form, tires }, run }, text) {
+    write({ player: { form, tires } }, text) {
       const [column, row] = HUD_LAYOUT.tires;
-      const front = tirePalette(tires.front, run.tireKnee),
-        rear = tirePalette(tires.rear, run.tireKnee);
+      const front = tirePalette(tires.front),
+        rear = tirePalette(tires.rear);
       for (let k = 0; k < TIRE_GAUGE.columns * TIRE_GAUGE.rows; k++) {
         const tileRow = Math.floor(k / TIRE_GAUGE.columns);
         text.put(

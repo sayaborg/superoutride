@@ -6,9 +6,9 @@
   "vehicles": [
     {
       "vehicleId": "LOTUS_79_SPECIAL",
-      "vehicleSha256": "127a4bb5171a54a73b40a1666899fcf253b97f54671deffe8d7c74014800b9e6",
-      "initialSeconds": 103.84908467162187,
-      "after": [["seaside-GOAL", [99.89323195003938, 99.74190594021769, 99.8399064527672]]]
+      "vehicleSha256": "19074473f8d21db727a3fb61a3faaf5c1b0141f8d1caaff2bc82c03f0b723c63",
+      "initialSeconds": 102.09700952407813,
+      "after": [["seaside-GOAL", [98.21798050516294, 98.03110416893179, 98.18049412640875]]]
     }
   ]
 }

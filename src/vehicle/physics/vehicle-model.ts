@@ -25,6 +25,8 @@ export interface VehicleModel {
   readonly actuator: Readonly<CompiledDrivingActuators>;
   readonly steering: Readonly<CompiledVehicleSteeringCalibration>;
   readonly tire: Readonly<CompiledTireCharacteristics>;
+  /** The game-wide load sensitivity `r` the tire law reads its effective load with; no vehicle gives its own. */
+  readonly tireLoadSensitivity: number;
   readonly powertrain: Readonly<PowertrainConstants>;
   /**
    * The vehicle's torque protection: its own wheel slip protection (else the game-wide default) and the game-wide pitch
@@ -61,6 +63,7 @@ export function createVehicleModel(input: VehicleModelInput, step: number): Vehi
     actuator: driving.actuator,
     steering: driving.steering,
     tire: compiledVehicle.tire ?? driving.tire,
+    tireLoadSensitivity: driving.tireLoadSensitivity,
     powertrain: resolvePowertrainConstants(compiledVehicle.powertrain, driving.powertrain),
     torqueProtection:
       wheelSlip === null
