@@ -55,7 +55,7 @@ const WALL = { from: 20, to: 80, offset: 3 };
  * is DIRT on its left half and SAND on its right. `objects` stand in Sector 2's straight, each a body at `offset`
  * metres into it and native lateral `l`, one part 1.5 m wide, movable or fixed.
  */
-function ring(objects = []) {
+function ring(objects = [], rightRunoff = [RUNOFF, RUNOFF, RUNOFF]) {
   const id = (k) => `sector-${k + 1}`;
   const strip = (k, start, end, left, right, material = 'ASPHALT') => ({
     kind: 'strip',
@@ -67,7 +67,7 @@ function ring(objects = []) {
     material,
   });
   const outerLeft = { lane: 'a', side: 'left', offset: -RUNOFF };
-  const outerRight = { lane: 'b', side: 'right', offset: RUNOFF };
+  const outerRight = (k) => ({ lane: 'b', side: 'right', offset: rightRunoff[k] });
   const document = {
     format: 'superoutride.course',
     version: 61,
@@ -118,17 +118,17 @@ function ring(objects = []) {
       strips:
         k === 1
           ? [
-              strip(k, 0, HOLE.open, outerLeft, outerRight),
+              strip(k, 0, HOLE.open, outerLeft, outerRight(k)),
               strip(k, HOLE.open, HOLE.close, outerLeft, { boundary: 'hole-left', offset: 0 }),
-              strip(k, HOLE.open, HOLE.close, { boundary: 'hole-right', offset: 0 }, outerRight),
-              strip(k, HOLE.close, null, outerLeft, outerRight),
+              strip(k, HOLE.open, HOLE.close, { boundary: 'hole-right', offset: 0 }, outerRight(k)),
+              strip(k, HOLE.close, null, outerLeft, outerRight(k)),
             ]
           : k === 2
             ? [
                 strip(k, 0, null, outerLeft, { lane: 'a', side: 'right', offset: 0 }, 'DIRT'),
-                strip(k, 0, null, { lane: 'b', side: 'left', offset: 0 }, outerRight, 'SAND'),
+                strip(k, 0, null, { lane: 'b', side: 'left', offset: 0 }, outerRight(k), 'SAND'),
               ]
-            : [strip(k, 0, null, outerLeft, outerRight)],
+            : [strip(k, 0, null, outerLeft, outerRight(k))],
       walls:
         k === 1
           ? [
@@ -239,9 +239,9 @@ const delivered = {
       : content.bytes(kind, id),
 };
 /** The ring with `objects` standing in Sector 2's straight, delivered as a fixture of its own. */
-async function ringWith(objects) {
+async function ringWith(objects, rightRunoff) {
   const id = `ring-${Object.keys(fixtures).length}`;
-  fixtures[id] = () => ring(objects);
+  fixtures[id] = () => ring(objects, rightRunoff);
   return loadDeliveredCourse(delivered, id, materials);
 }
 const course = await loadDeliveredCourse(delivered, 'ring', materials);
@@ -833,4 +833,62 @@ test('a recovery whose backtrack lies behind the resident Route places the vehic
   assert.ok(course.inDomain);
   for (let step = 0; step < 30; step++) race.advance(braked);
   assert.equal(rival.actor.recovery.recoveries, 1);
+});
+
+/**
+ * The ring with Sector 2's right course limit 20 m out (8 m elsewhere): it widens at Sector 2's start and narrows at
+ * its end, each step closed across the road.
+ */
+const wide = await ringWith([], [RUNOFF, 20, RUNOFF]);
+
+test('a seam whose course limits meet adds no step, and one whose right limit steps closes it', () => {
+  for (const section of [course.entry, ...course.entry.outgoing.map((link) => link.to.section)])
+    for (const link of section.outgoing) assert.deepEqual(link.limitSteps, []);
+  const sectors = new Map();
+  const visit = (section) => {
+    if (sectors.has(section.id)) return;
+    sectors.set(section.id, section);
+    for (const link of section.outgoing) visit(link.to.section);
+  };
+  visit(wide.entry);
+  const steps = (from) => sectors.get(from).outgoing[0].limitSteps;
+  const limit = lane('b') + LANE / 2;
+  assert.deepEqual(steps('sector-1'), [{ side: 'right', inner: limit + RUNOFF, outer: limit + 20, keep: 1 }]);
+  assert.deepEqual(steps('sector-2'), [{ side: 'right', inner: limit + RUNOFF, outer: limit + 20, keep: -1 }]);
+  assert.deepEqual(steps('sector-3'), []);
+});
+
+/** Sector 2's occurrence on the Route. */
+const sector2Occurrence = (scene) => scene.runtime.route.occurrences.find((o) => o.section.id === 'sector-2');
+
+test("a vehicle inside Sector 2's wide limit does not pass where the road narrows, head on or slanting", async () => {
+  for (const yawOffset of [0, 0.3]) {
+    const { race, scene, actor } = await run({ on: wide });
+    const seam = sector2Occurrence(scene).end;
+    // 22 m right of the road's centre lane, between the two Sections' limits, 12 m before the seam at 30 m/s, braked;
+    // heading along the road, or slanting toward the wide limit.
+    place(scene, race.player.body, seam - 12, lane('b') + 17, { speed: 30, yawOffset });
+    for (let step = 0; step < 240; step++) {
+      race.advance(braked);
+      assert.ok(actor.vehicle.course.inDomain, `outside the domain at step ${step}`);
+      assert.ok(
+        actor.vehicle.course.s < seam,
+        `past the seam at step ${step}, l ${actor.vehicle.course.l + sector2Occurrence(scene).lateralOrigin}, yaw offset ${yawOffset}`,
+      );
+    }
+    assert.equal(actor.recovery.recoveries, 0);
+    assert.ok(speedOf(actor.vehicle) < 1);
+  }
+});
+
+test("a vehicle going back inside Sector 2's wide limit does not pass where the road widened", async () => {
+  const { race, scene, actor } = await run({ on: wide });
+  const seam = sector2Occurrence(scene).start;
+  place(scene, race.player.body, seam + 10, lane('b') + 13, { speed: -15 });
+  for (let step = 0; step < 240; step++) {
+    race.advance(idle);
+    assert.ok(actor.vehicle.course.inDomain, `outside the domain at step ${step}`);
+    assert.ok(actor.vehicle.course.s > seam, `past the seam at step ${step}`);
+  }
+  assert.equal(actor.recovery.recoveries, 0);
 });

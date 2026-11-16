@@ -448,12 +448,17 @@ a condition; the limits across the road are limits as the side ones are, for con
   reads better.
 
 The two CHASE H.Q. faults Stage TR's field runs found are on main (RC-4, a lane handed across a seam, and RC-5, a
-recovery outside the coordinate domain; the auditor's additions and K's word, 2026-11-16). Next:
+recovery outside the coordinate domain; the auditor's additions and K's word, 2026-11-16), and so is RC-6, a seam's
+limit step closed across the road (K, 2026-11-16). For K in DEV: how a vehicle meets a step at CISCO HEAT 5
+(1,457.94 m) and 3 (2,274.12 m), where the road narrows from 72 m and 41 m to 10 m, and at CHASE H.Q. 2 left
+(1,758.46 m) and 1 left (3,453.77 m); where a step's wide side is no place for a wall, K decides that course's widths
+there later. A driver's path reads each station's own limits, so it steps in at a narrowing seam rather than easing
+in before it.
 
-- **RC-6, a seam's limit step closed (K, 2026-11-16).** Where a seam's two Sections hold a side's course limit at
-  different laterals, a limit across the road closes the step between them, placed by the compiler from the course's
-  shape (no format change). Four places let a vehicle out today: CISCO HEAT 5 (1,457.94 m), CHASE H.Q. 2 left
-  (1,758.46 m), CHASE H.Q. 1 left (3,453.77 m) and CISCO HEAT 3 (2,274.12 m).
+- **RC-7, CHASE H.Q. 2 left at 1,758 m (an investigation; K decides the rule after it).** Two rivals drive into the
+  right step there and are recovered again and again: which lanes they hold, what the lane's end names, where the
+  recovery places them, why their path runs 9 to 15 m right, and every place on the courses where a lane ends at a seam
+  with no lane to merge toward.
 
 Not decided, for later: after a recovery a vehicle stands at rest with its engine at idle, and the slipping clutch
 delivers nothing until the engine has risen (NSR500 stands about 0.7 s); K judges it in DEV. A course with holes needs

@@ -294,7 +294,10 @@ Solid walls and the course limits are the Section's barrier lines ([Body contact
 run along the left and right outer edges of the covered material — the material table's outermost finite covered edges
 as the compiler clips them, the lateral domain's edges before `MAXIMUM_VEHICLE_REACH` — and authors never write them.
 A vehicle does not leave its course: the course limits are closed everywhere, along both sides and across the road at
-the Route's start and at its end (K, 2026-11-12). A place to fall is material-free ground inside the limits. A course
+the Route's start and at its end (K, 2026-11-12). Where a seam's two Sections hold a side's course limit at different
+laterals, the limit is closed across the road there, between the two (K, 2026-11-16): a vehicle inside the wider
+Section's limit meets it as it meets a side limit ([Barrier lines](#barrier-lines)). A place to fall is material-free
+ground inside the limits. A course
 limit pushes and the ground supports: behind a limit the ground continues
 ([Architecture](architecture.md#material-cross-sections)); inside the limits it is the material table, where
 material-free ground is a hole that a vehicle falls through. A Section with `openLimits`, which earlier versions of the
@@ -1726,6 +1729,20 @@ road's horizontal tangent with the same spring-damper and approach speed, fricti
 and its contacts are recorded, sounded and explode an exploding vehicle as a side limit's do (the auditor's choice).
 They are not compiled lines: the race reads them from the Route (`createBarrierContacts`' `ends`), the one owner of
 where it starts and ends. Every grid slot lies within them.
+
+A seam's limit steps are course limits across the road as well (K, 2026-11-16). The compiler finds them from the
+course's shape alone, writing nothing in the course document: at each Link, a side whose course limit lies at
+laterals in the two Sections that differ by more than the seam's edge tolerance (`COURSE_LINK_RECIPE`'s
+`edgeToleranceMeters`, 10⁻⁷ m, which also matches the Sections' lanes there) has a step, from the narrower Section's
+limit to the wider's (`CompiledLink.limitSteps`), the road narrowing or widening alike. A step stands across the road
+at its seam alone: it acts on a vehicle whose centre's lateral lies between its two limits, beyond the narrower and
+within the wider, and whose centre lies within half its footprint of the seam, either side, as a Route end does across
+the road at the seam's station: it keeps the vehicle in the wider Section, pushing along the road's tangent
+away from the seam, with the same spring-damper, friction, contact records, sound and explosion. A vehicle reads the
+steps of the seams at its occurrence's start and end. Within the narrower limit, nothing stands at the seam: a vehicle
+there passes into the narrower Section, whose side limit then holds it, so the step's inner end, where it meets that
+side limit, holds no vehicle against a corner (the implementer's choice: a Route end's rule at each seam, rather than
+side limit lines joined across it).
 
 The contact faces record every line a vehicle touches (overlap positive), course limits included, so a line's contact
 begins as a pair's does: in the step it overlaps after a step it did not.

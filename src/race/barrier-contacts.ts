@@ -1,5 +1,6 @@
 import { createPlanCoordinateSample, type PlanCoordinateReader } from '../course/geometry/plan-coordinate.js';
 import { routeSectionS, type RouteView } from '../course/course-route.js';
+import type { CompiledLink } from '../course/compiler/course-graph.js';
 import {
   bodyContactDampingPower,
   bodyContactForce,
@@ -28,6 +29,12 @@ import type { ContactBody, createContactFaces } from './body-contacts.js';
  * side limit does, turned across the road: the overlap is half the footprint less the centre's route distance from the
  * end, the push is along the road's tangent with the same spring-damper and friction opposes the speed across the road;
  * contact records, sound and an exploding vehicle's explosion follow as for any limit.
+ *
+ * A seam's limit steps are course limits across the road too (K, 2026-11-16): where the seam's two Sections hold a side's
+ * limit at different laterals, a vehicle whose centre lies between the two laterals (beyond the narrower Section's limit,
+ * within the wider's) and within half its footprint of the seam meets the step as it meets a Route end, kept in the wider
+ * Section. A vehicle reads the steps at its occurrence's start (its incoming Link's) and at its end (the outgoing
+ * Link's), each in its own route laterals.
  */
 export function createBarrierContacts(
   coordinates: PlanCoordinateReader,
@@ -62,6 +69,24 @@ export function createBarrierContacts(
     body.contactForce.z += push * nz - friction * rz;
     pushed(body);
   };
+  // The limit steps of `link`, the seam at route station `station` whose `to` Section's laterals lie `origin` from the
+  // route's: those between whose two laterals `body`'s centre lies act as Route ends do.
+  const steps = (
+    body: ContactBody,
+    link: CompiledLink,
+    station: number,
+    origin: number,
+    pushed: (body: ContactBody) => void,
+  ) => {
+    const { vehicle } = body;
+    // A step stands across the road at its seam alone: it reaches a vehicle whose centre lies within half its footprint
+    // of the seam, either side; further from it, the Section the vehicle is in holds it by its own limits.
+    if (!(Math.abs(vehicle.course.s - station) < body.model.compiledVehicle.footprint / 2)) return;
+    const l = vehicle.course.l + origin;
+    for (const step of link.limitSteps)
+      if (step.side === 'left' ? l >= step.outer && l < step.inner : l > step.inner && l <= step.outer)
+        end(body, station, step.keep, `step ${link.id} ${step.side}`, pushed);
+  };
   return (bodies: readonly ContactBody[], pushed: (body: ContactBody) => void) => {
     for (const body of bodies) {
       end(body, ends.start, 1, 'route start', pushed);
@@ -69,6 +94,16 @@ export function createBarrierContacts(
       const vehicle = body.vehicle;
       const occurrence = route.at(vehicle.course.s);
       if (!occurrence) continue;
+      if (occurrence.incoming) steps(body, occurrence.incoming, occurrence.start, occurrence.lateralOrigin, pushed);
+      const outgoing = occurrence.section.outgoing[0];
+      if (outgoing)
+        steps(
+          body,
+          outgoing,
+          occurrence.end,
+          occurrence.lateralOrigin + outgoing.to.lateralOrigin - outgoing.from.lateralOrigin,
+          pushed,
+        );
       const s = routeSectionS(occurrence, vehicle.course.s),
         l = vehicle.course.l + occurrence.lateralOrigin;
       const { footprint, mass } = body.model.compiledVehicle;

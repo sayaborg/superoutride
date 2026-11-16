@@ -3,7 +3,7 @@ import { compilePlanarTransform, composePlanarTransforms } from '../../core/plan
 import { courseBoundaryAt } from '../course-boundaries.js';
 import { courseRoadOf, courseRoadsAt, type CompiledLane } from '../course-lanes.js';
 import { requireCourse } from '../course-diagnostics.js';
-import type { CompiledCut, CompiledLink, CompiledSection } from './course-graph.js';
+import type { CompiledCut, CompiledLimitStep, CompiledLink, CompiledSection } from './course-graph.js';
 
 /**
  * Roundoff of plan evaluation and rigid rotation over the checked domains: a Section's native coordinates lie within
@@ -98,7 +98,38 @@ export function compileCourseLink(id: string, from: CompiledCut, to: CompiledCut
     `Grade disagrees at Link ${id}`,
     'seam_grade_mismatch',
   );
-  return Object.freeze({ id, from, to, toFromFrom });
+  return Object.freeze({ id, from, to, toFromFrom, limitSteps: limitSteps(from, to) });
+}
+
+/**
+ * The course limits' steps at the seam from cut `from` to cut `to`: each side whose limit lies at laterals that differ by
+ * more than the seam's edge tolerance in the two Sections, in the `to` Section's lateral at its start.
+ */
+function limitSteps(from: CompiledCut, to: CompiledCut): readonly CompiledLimitStep[] {
+  const end = from.section.coordinates.domain.end;
+  // A Section's course limits are its barrier lines keeping vehicles right of them (left) and left of them (right).
+  const limit = (section: CompiledSection, keep: 1 | -1, s: number) =>
+    section.barriers.find((line) => line.keep === keep)!.lateralAt(s);
+  const steps: CompiledLimitStep[] = [];
+  for (const [side, keep, outward] of [
+    ['left', 1, -1],
+    ['right', -1, 1],
+  ] as const) {
+    const before = limit(from.section, keep, end) - from.lateralOrigin + to.lateralOrigin,
+      after = limit(to.section, keep, 0);
+    if (!(Math.abs(before - after) > COURSE_LINK_RECIPE.edgeToleranceMeters)) continue;
+    // The Section whose limit lies further out is the wider; the step keeps vehicles in it.
+    const widerBefore = outward * (before - after) > 0;
+    steps.push(
+      Object.freeze({
+        side,
+        inner: widerBefore ? after : before,
+        outer: widerBefore ? before : after,
+        keep: widerBefore ? (-1 as const) : (1 as const),
+      }),
+    );
+  }
+  return Object.freeze(steps);
 }
 
 export function compileCourseTopology(entry: CompiledSection, sections: readonly CompiledSection[]) {

@@ -47,6 +47,19 @@ export interface CompiledCut {
   readonly pose: PlanarPose;
 }
 
+/**
+ * A step of a side's course limit at a seam: the two Sections hold that side's limit at different laterals, and the
+ * limit is closed across the road between them (K, 2026-11-16). Laterals are the `to` Section's at its start: `inner`
+ * is the narrower Section's limit, `outer` the wider's. `keep` is the side of the seam it keeps vehicles on: −1 before
+ * it (the road narrows), +1 after it (the road widens).
+ */
+export interface CompiledLimitStep {
+  readonly side: 'left' | 'right';
+  readonly inner: number;
+  readonly outer: number;
+  readonly keep: -1 | 1;
+}
+
 /** A seam's geometry: the cut it leaves by, the cut it enters by and the frame map between. */
 export interface CompiledLink {
   readonly id: string;
@@ -54,4 +67,6 @@ export interface CompiledLink {
   readonly to: CompiledCut;
   /** Maps the `from` Section's frame to the `to` Section's frame, like `worldFromSection`. */
   readonly toFromFrom: PlanarTransform;
+  /** The steps of the course limits at the seam, none where both sides' limits meet. */
+  readonly limitSteps: readonly CompiledLimitStep[];
 }
