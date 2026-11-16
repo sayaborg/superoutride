@@ -47,24 +47,26 @@ export function createVehiclePlacement(options: {
     });
     return object;
   };
-  // Recovery places no vehicle on another's footprint: from station s it backs along the Route behind each vehicle in
-  // the way, by the policy's clearance, until the place in its lane there is free; null when the resident Route begins
-  // first, and the place is not free there.
-  const vacantPlace = (
-    self: PresentVehicle,
-    s: number,
-    lane: (s: number) => number,
-    l = lane(s),
-  ): RecoveryTarget | null => {
+  // The first route station at which the resident Route holds a vehicle of `model` whole: the resident start plus its
+  // reach, so its centre and body lie in the coordinate domain however it stands there.
+  const firstPlace = (model: VehicleModel) => window.start + model.compiledVehicle.reach;
+  // Recovery places no vehicle on another's footprint, nor where the resident Route does not hold it: from station s,
+  // no earlier than its first place, it backs along the Route behind each vehicle in the way, by the policy's
+  // clearance, until the place in its lane there is free; null when it reaches its first place and the place is not
+  // free there.
+  const vacantPlace = (self: PresentVehicle, from: number, lane: (s: number) => number): RecoveryTarget | null => {
+    const first = firstPlace(self.model);
+    let s = Math.max(first, from),
+      l = lane(s);
     for (
       let other = occupant(self.model, s, l, self.vehicle);
       other;
       other = occupant(self.model, s, l, self.vehicle)
     ) {
-      if (s <= window.start) return null;
+      if (s <= first) return null;
       const behind =
         other.s - (self.model.compiledVehicle.footprint + other.length) / 2 - RECOVERY_POLICY.placementClearance;
-      s = Math.max(window.start, behind);
+      s = Math.max(first, behind);
       l = lane(s);
     }
     return { s, l };
@@ -75,7 +77,8 @@ export function createVehiclePlacement(options: {
     vacantPlace,
     /**
      * Where a recovery from route station `s` places `self`, every vehicle alike: the centre of the lane nearest it
-     * there (`recoveryL`), behind any vehicle or standing object in the way; null when no place is free.
+     * there (`recoveryL`), no earlier than where the resident Route holds it whole, behind any vehicle or standing
+     * object in the way; null when no place is free.
      */
     recoveryPlace: (self: PresentVehicle, s: number) =>
       vacantPlace(self, s, (at) =>

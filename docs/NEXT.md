@@ -447,14 +447,13 @@ a condition; the limits across the road are limits as the side ones are, for con
   and one Link per Section stay. Its lists of what goes and what stays are written in its PR first, split if that
   reads better.
 
-Two CHASE H.Q. faults Stage TR's field runs found, both on main before it (the auditor's addition, 2026-11-16), each
-its own PR after Stage TR:
+A CHASE H.Q. fault Stage TR's field runs found, on main before it (the auditor's addition, 2026-11-16; RC-5, a recovery
+outside the coordinate domain, is on main):
 
 - **RC-4, a lane handed across a seam.** `carryAcross` (`src/race/course-lane-field.ts`) throws on CHASE H.Q. 2 to 5
-  right (and 2 left after TR): the lane it is handed is not one of the Section's before the seam.
-- **RC-5, a recovery outside the coordinate domain.** On CHASE H.Q. 4 right a rival recovers `outside-domain` every
-  step at one place (s 1,758 m, l 5.4 m): the recovery places its centre outside the domain again. A recovered
-  vehicle's centre is always inside it.
+  right (and 2 left after TR): the lane it is handed is not one of the Section's before the seam. Its fix (a lane's
+  end names the lane to merge toward where the driver is) awaits K: it also changes how drivers merge on 22 other
+  courses, where the old numbering moved them toward their own lane, the wrong side or a lane not yet there.
 
 Not decided, for later: after a recovery a vehicle stands at rest with its engine at idle, and the slipping clutch
 delivers nothing until the engine has risen (NSR500 stands about 0.7 s); K judges it in DEV. A course with holes needs

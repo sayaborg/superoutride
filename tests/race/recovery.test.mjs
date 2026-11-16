@@ -810,3 +810,27 @@ test("the Route's ends are limits across the road: fast, airborne or reversing, 
   assert.ok(nearest > start, `${nearest - start}`);
   assert.equal(actor.recovery.recoveries, 0);
 });
+
+test('a recovery whose backtrack lies behind the resident Route places the vehicle where the Route holds it', async () => {
+  // The field stands in Sector 2, so the resident Route lets Sector 1 go and does not take it back. A rival then
+  // stands 3 m into Sector 2 and falls: 8 m behind it lies behind the resident Route's start.
+  const { race, scene } = await run({ rivals: 1 });
+  const rival = race.rivals[0];
+  place(scene, race.player.body, sector2(scene, 150), lane('a'));
+  place(scene, rival.body, sector2(scene, 160), lane('b'));
+  race.advance(braked);
+  const start = scene.runtime.window.start;
+  assert.equal(start, sector2(scene, 0));
+  place(scene, rival.body, sector2(scene, 3), lane('b'));
+  race.advance(braked);
+  assert.equal(scene.runtime.window.start, start);
+  place(scene, rival.body, sector2(scene, 3), lane('b'), { drop: RECOVERY_POLICY.fallDepth + 1 });
+  race.advance(braked);
+  assert.equal(rival.actor.recovery.lastReason, 'fallen');
+  // Placed no earlier than its reach after the resident start, its centre lies in the coordinate domain.
+  const { course } = rival.actor.vehicle;
+  assert.ok(course.s >= start + rival.actor.model.compiledVehicle.reach - 1e-9, `placed at ${course.s - start} m`);
+  assert.ok(course.inDomain);
+  for (let step = 0; step < 30; step++) race.advance(braked);
+  assert.equal(rival.actor.recovery.recoveries, 1);
+});

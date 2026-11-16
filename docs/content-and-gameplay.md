@@ -1739,11 +1739,13 @@ objects. It changes no mechanics; it reports quantities the contacts already com
   stores energy and is not included. A pair's and a line's contact begins as the contact faces say; a movable object's
   contact is the step it is pushed and knocked.
 
-Recovery and appearance place no vehicle on another present vehicle's footprint. Recovery backs its target along
-the Route behind each vehicle in the way, by `placementClearance`, until the place in its lane there is free. A recovery
-that reaches the start of the resident Route
-without a free place, like an appearance whose place is occupied, waits: the vehicle does not recover that step, and
-the next step judges it again. A manual recovery without a free place does nothing. These choose where a vehicle is placed; they move no vehicle.
+Recovery and appearance place no vehicle on another present vehicle's footprint. Recovery places no vehicle where the
+resident Route does not hold it whole either: its target lies at least the vehicle's reach after the resident Route's
+start, so a recovered vehicle's centre is always inside the coordinate domain (the auditor's addition, 2026-11-16). A
+vehicle behind that, which recoveries backing 8 m each can walk back to after the Route behind it has been let go, is
+placed there. Recovery backs its target along the Route behind each vehicle in the way, by `placementClearance`, until
+the place in its lane there is free. A recovery that reaches that first place without a free place, like an appearance
+whose place is occupied, waits: the vehicle does not recover that step, and the next step judges it again. A manual recovery without a free place does nothing. These choose where a vehicle is placed; they move no vehicle.
 
 ### Authored contact response
 
