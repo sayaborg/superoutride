@@ -23,7 +23,7 @@ uncertainty of their inputs. Authored JSON remains the runtime authority; this C
 | `MCLAREN_MP4_4` / McLaren Honda MP4/4       | 1988 Ayrton Senna #12, Italian GP body target; low rear wing incidence approximated from team photographs, exact Monza dimensions unverified       | Slicks; carbon discs; six manual forward gears, conventional clutch; low three-shaft layout is not three speeds | 540 kg secondary-source base + 10 operating allowance + 20 fuel + 75 driver/equipment = **645 kg** |
 | `FERRARI_640` / Ferrari 640 / F1-89         | 1989 Nigel Mansell #27, Belgian GP later high-airbox body; **dry practice setup**, not the wet race tires in the reference photos                  | Slicks; carbon discs; seven electrohydraulic semi-automatic forward gears, steering-wheel commands; no DCT      | 505 kg manufacturer “with liquids” + 30 fuel + 80 driver/equipment = **615 kg**                    |
 | `LOTUS_79_SPECIAL` / Lotus 79 SPECIAL       | 1978 Mario Andretti #5, black/gold JPS, Dutch GP exterior **setup estimate**; long sidepods, skirts, exposed wheels, front/rear wings              | Slicks, steel disc estimate; project **two actual forward gears**, rear drive; contact explosion                | 575 kg base + 10 fluids + 30 fuel + 80 driver/equipment = **695 kg**                               |
-| `MCLAREN_M23_PP_SPEC` / McLaren M23 PP SPEC | 1976 James Hunt M23 (M23D), low airbox after the Spanish GP; exposed wheels, front and rear wings; pictures borrowed from the Lotus until M23-2    | Slicks, steel disc estimate; **two of its six gears**, 3rd shown `L` and 6th `H`, rear drive; contact explosion | 587 kg official + 10 fluids + 30 fuel + 80 driver/equipment = **707 kg**                           |
+| `MCLAREN_M23_PP_SPEC` / McLaren M23 PP SPEC | 1976 James Hunt M23 (M23D), low airbox after the Spanish GP; exposed wheels, front and rear wings; pictures baked from K's model in eight colors   | Slicks, steel disc estimate; **two of its six gears**, 3rd shown `L` and 6th `H`, rear drive; contact explosion | 587 kg official + 10 fluids + 30 fuel + 80 driver/equipment = **707 kg**                           |
 
 The GP choices pin one authored configuration; they do not establish inaccessible GP-specific gear sheets or wing
 angles. All fuel and occupants stay fixed. Bike fuel is an estimated 16 L × 0.75 kg/L; the cars use fixed fuel mass
@@ -64,8 +64,8 @@ POLE POSITION II's car for the McLaren M23 of 1976 (K, 2026-11-16); nothing here
 The McLaren M23 PP spec is the M23 of 1976 as built, but for two things (K, 2026-11-16): it has two of that car's
 gears, shown as `L` and `H`, and whatever it touches, it explodes. Its pictures alone are to be in eight colors, each
 channel off or on (K, 2026-11-16): a white body, a second color, a helmet, cyan for its windscreen and its machinery,
-and black; its four liveries are white with blue, red, green and yellow. Until its pictures are baked from K's model
-(M23-2) it borrows the Lotus's set, so its four color names do not match what is drawn.
+and black; its four liveries are white with blue, red, green and yellow. They are baked from K's GLB model by roles
+([Model solids](image-assets.md#model-solids)).
 
 ## Engine and chassis assumptions
 
@@ -169,6 +169,9 @@ npm run contact-explosion
 npm run measure -- generate
 npm test
 ```
+
+The M23 PP SPEC's set is not among them: it is baked from K's model, which is kept off main, by
+`npm run pictures -- mclaren-m23-pp-spec replace --model <file.glb>` ([Model solids](image-assets.md#model-solids)).
 
 `npm run contact-explosion` makes the explosion's sound alone; its pictures are POLE POSITION II's, which the road data
 tool writes ([Authored contact response](content-and-gameplay.md#authored-contact-response)).

@@ -4,6 +4,7 @@ import { cameraDistance, type CameraDefinition } from '../../src/view/camera.js'
 import { PLAYER_DEPTH_PIXELS_PER_METER } from '../../src/view/display-scale.js';
 import type { Rgb, VehiclePictureRecipe } from './vehicle-picture-recipe.js';
 import type { VehicleSolid } from './vehicle-solid.js';
+import type { VehicleModelRecipe } from './vehicle-model-recipe.js';
 
 /** The drawing style shared by four-view solids and authored procedural solids. */
 export interface VehiclePictureStyle extends Pick<
@@ -55,8 +56,27 @@ function normalize(v: readonly [number, number, number]): readonly [number, numb
 
 type Frame = VehicleSpriteSetDocument['pictures'][number]['sizes'][number];
 
+/**
+ * How a size's texels take their slots in place of the style's palette: by role, with a brightness of their own. Each
+ * surface point has its role (`points`, from 0), its albedo (three channels, 0–1) and its gloss; it is lit by `light`,
+ * fixed to the picture, and darkened by `hollows` from the picture's depths ([Model solids](../../docs/image-assets.md#model-solids)).
+ * A texel takes the role most of its visible points have (the first of equals). It then holds its role plus one, its
+ * brightness (the largest channel of the mean lit color of its role's points, 0–1), the share of its points whose
+ * role is `kept`, and on the steps' sizes the share of its role's points lying in step cells.
+ */
+export interface TexelRoles {
+  readonly points: Uint8Array;
+  readonly count: number;
+  readonly kept: number;
+  readonly albedo: Float32Array;
+  readonly gloss: Float32Array;
+  readonly light: VehicleModelRecipe['light'];
+  readonly hollows: VehicleModelRecipe['hollows'];
+  readonly steps: VehicleModelRecipe['steps'];
+}
+
 /** One drawn size before it is cropped: slot indices and the shadow on one texel grid, anchored at (`anchorX`, `anchorY`). */
-interface DrawnSize {
+export interface DrawnSize {
   readonly width: number;
   readonly height: number;
   /** The base point's projection, in texel-edge coordinates. */
@@ -64,6 +84,13 @@ interface DrawnSize {
   readonly anchorY: number;
   readonly indices: Uint8Array;
   readonly shadow: Uint8Array;
+  /**
+   * With roles, each texel's brightness (0–1), its kept role's share and its role's share in step cells (0 on sizes
+   * without steps); else empty.
+   */
+  readonly brightness: Float32Array;
+  readonly keptShare: Float32Array;
+  readonly stepShare: Float32Array;
 }
 
 /** The colors of the slots a texel can take, in slot order, and the ranges of each kind. */
@@ -88,12 +115,144 @@ function slotColors(recipe: VehiclePictureStyle) {
 }
 
 /**
- * Draw one size of one direction. The camera stands `distance` behind the base point and the camera definition's
- * height above it, level, with the definition's focal length; the vehicle is turned right by `yaw`.
+ * Light point `n` by roles: `(cx, cy, cz)` is its unit normal in the picture's axes (x right, y up, z towards the
+ * viewer), `upward` its height in the vehicle's. Writes its albedo times its diffuse light to `shaded` and its specular
+ * light to `specular`.
  */
-function drawSize(
+function lightByRole(
+  roles: TexelRoles,
+  n: number,
+  cx: number,
+  cy: number,
+  cz: number,
+  upward: number,
+  shaded: Float32Array,
+  specular: Float32Array,
+) {
+  const { main, fill, ambient, sky, mainWeight, fillWeight, shininess } = roles.light;
+  const up = upward * 0.5 + 0.5;
+  const diffuse =
+    ambient +
+    sky * up +
+    mainWeight * Math.max(0, cx * main[0] + cy * main[1] + cz * main[2]) +
+    fillWeight * Math.max(0, cx * fill[0] + cy * fill[1] + cz * fill[2]);
+  // The half-way direction of the main light and the view, (0, 0, 1).
+  const hx = main[0],
+    hy = main[1],
+    hz = main[2] + 1;
+  const hl = Math.hypot(hx, hy, hz);
+  specular[n] = roles.gloss[n]! * Math.max(0, (cx * hx + cy * hy + cz * hz) / hl) ** shininess;
+  for (let c = 0; c < 3; c++) shaded[n * 3 + c] = roles.albedo[n * 3 + c]! * diffuse;
+}
+
+/** A Gaussian blur of `values` (`columns` by `rows`) by `sigma` cells, outside the grid taken as 0. */
+function blur(values: Float64Array, columns: number, rows: number, sigma: number): Float64Array {
+  const radius = Math.ceil(3 * sigma);
+  const kernel = Float64Array.from({ length: 2 * radius + 1 }, (_, k) =>
+    Math.exp(-((k - radius) ** 2) / (2 * sigma * sigma)),
+  );
+  const across = new Float64Array(values.length),
+    out = new Float64Array(values.length);
+  for (let y = 0; y < rows; y++)
+    for (let x = 0; x < columns; x++) {
+      let sum = 0;
+      for (let k = Math.max(0, radius - x); k < Math.min(kernel.length, columns - x + radius); k++)
+        sum += kernel[k]! * values[y * columns + x + k - radius]!;
+      across[y * columns + x] = sum;
+    }
+  for (let y = 0; y < rows; y++)
+    for (let x = 0; x < columns; x++) {
+      let sum = 0;
+      for (let k = Math.max(0, radius - y); k < Math.min(kernel.length, rows - y + radius); k++)
+        sum += kernel[k]! * across[(y + k - radius) * columns + x]!;
+      out[y * columns + x] = sum;
+    }
+  return out;
+}
+
+/**
+ * The hollows' darkening, by cells of camera pixels (`hollows.cells` to a texel a side): each covered cell's mean depth
+ * against its surroundings', blurred by each width (metres at the base point, `texelsPerMetre` texels to a metre) over
+ * the covered cells alone; 1 where nothing lies deeper than its surroundings. With `steps`, also each covered cell
+ * lying more than `steps.depth` behind the nearest covered cell of the square `steps.reach` about it (1 a step cell).
+ */
+function hollowsOf(
+  nearest: Float32Array,
+  point: Int32Array,
+  w: number,
+  h: number,
+  sub: number,
+  texelsPerMetre: number,
+  hollows: VehicleModelRecipe['hollows'],
+  steps: VehicleModelRecipe['steps'] | null,
+) {
+  const cellPixels = sub / hollows.cells;
+  if (!Number.isInteger(cellPixels)) throw new RangeError('A texel holds a whole number of hollow cells');
+  const columns = w / cellPixels,
+    rows = h / cellPixels,
+    perCell = cellPixels * cellPixels;
+  const depth = new Float64Array(columns * rows),
+    cover = new Float64Array(columns * rows);
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      if (point[y * w + x]! < 0) continue;
+      const cell = Math.floor(y / cellPixels) * columns + Math.floor(x / cellPixels);
+      depth[cell]! += nearest[y * w + x]! / perCell;
+      cover[cell]! += 1 / perCell;
+    }
+  const values = new Float32Array(columns * rows).fill(1);
+  for (const width of hollows.widths) {
+    const sigma = width * texelsPerMetre * hollows.cells;
+    const blurredDepth = blur(depth, columns, rows, sigma),
+      blurredCover = blur(cover, columns, rows, sigma);
+    for (let cell = 0; cell < values.length; cell++) {
+      if (!(cover[cell]! > 0) || !(blurredCover[cell]! > 0)) continue;
+      const deeper = (depth[cell]! / cover[cell]! - blurredDepth[cell]! / blurredCover[cell]!) / hollows.depth;
+      values[cell]! -= hollows.weight * Math.min(hollows.most, Math.max(0, deeper));
+    }
+  }
+  return {
+    values,
+    columns,
+    cellPixels,
+    steps: steps && stepCells(depth, cover, columns, rows, texelsPerMetre, hollows, steps),
+  };
+}
+
+/** Each covered cell lying more than `steps.depth` behind the nearest covered cell within `steps.reach` (1), else 0. */
+function stepCells(
+  depth: Float64Array,
+  cover: Float64Array,
+  columns: number,
+  rows: number,
+  texelsPerMetre: number,
+  hollows: VehicleModelRecipe['hollows'],
+  steps: VehicleModelRecipe['steps'],
+): Uint8Array {
+  const reach = Math.round(steps.reach * texelsPerMetre * hollows.cells);
+  const z = Float64Array.from(depth, (d, cell) => (cover[cell]! > 0 ? d / cover[cell]! : Infinity));
+  // The nearest depth within the square: across, then along.
+  const across = new Float64Array(z.length).fill(Infinity),
+    near = new Float64Array(z.length).fill(Infinity);
+  for (let y = 0; y < rows; y++)
+    for (let x = 0; x < columns; x++)
+      for (let k = Math.max(0, x - reach); k <= Math.min(columns - 1, x + reach); k++)
+        across[y * columns + x] = Math.min(across[y * columns + x]!, z[y * columns + k]!);
+  for (let y = 0; y < rows; y++)
+    for (let x = 0; x < columns; x++)
+      for (let k = Math.max(0, y - reach); k <= Math.min(rows - 1, y + reach); k++)
+        near[y * columns + x] = Math.min(near[y * columns + x]!, across[k * columns + x]!);
+  return Uint8Array.from(z, (d, cell) => +(Number.isFinite(d) && d - near[cell]! > steps.depth));
+}
+
+/**
+ * Draw one size of one direction. The camera stands `distance` behind the base point and the camera definition's
+ * height above it, level, with the definition's focal length; the vehicle is turned right by `yaw`. With `TexelRoles`
+ * in place of a style, its texels take roles.
+ */
+export function drawSize(
   solid: VehicleSolid,
-  recipe: VehiclePictureStyle,
+  recipe: VehiclePictureStyle | TexelRoles,
   camera: Pick<CameraDefinition, 'focalLength' | 'height'>,
   yaw: number,
   size: number,
@@ -122,6 +281,9 @@ function drawSize(
   const nearest = new Float32Array(w * h).fill(Infinity);
   const point = new Int32Array(w * h).fill(-1);
   const shaded = new Float32Array(solid.count * 3);
+  const roles = 'points' in recipe ? recipe : null;
+  // With roles, `shaded` holds each point's albedo times its diffuse light, and this its specular light.
+  const specular = new Float32Array(roles ? solid.count : 0);
   const { positions, normals, colors, edge, paint, glass } = solid;
   for (let n = 0; n < solid.count; n++) {
     const px = positions[n * 3]!,
@@ -153,6 +315,10 @@ function drawSize(
     const nx = normals[n * 3]! * cos + normals[n * 3 + 2]! * sin,
       ny = normals[n * 3 + 1]!,
       nz = -normals[n * 3]! * sin + normals[n * 3 + 2]! * cos;
+    if (roles) {
+      lightByRole(roles, n, nx, ny, -nz, ny, shaded, specular);
+      continue;
+    }
     let vx = x,
       vy = y - camera.height,
       vz = depth;
@@ -191,7 +357,10 @@ function drawSize(
           ridge * RIDGE_COLOR[c]! * GLOSS;
       } else if (glass[n]) value = color * 0.5 + GLASS_TINT[c]! + surroundings * (0.09 + 0.55 * fresnel) * GLOSS;
       else value = color * (0.8 + 0.3 * lambert);
-      shaded[n * 3 + c] = Math.min(Math.max(value * near * (paint[n] ? recipe.paint.exposure : 1), 0), 255);
+      shaded[n * 3 + c] = Math.min(
+        Math.max(value * near * (paint[n] ? (recipe as VehiclePictureStyle).paint.exposure : 1), 0),
+        255,
+      );
     }
   }
 
@@ -213,10 +382,20 @@ function drawSize(
       }
   }
 
+  // With roles, the hollows' darkening of each cell of camera pixels.
+  const hollow =
+    roles &&
+    hollowsOf(nearest, point, w, h, sub, scale, roles.hollows, roles.steps.sizes.includes(size) ? roles.steps : null);
   // Each texel from its camera pixels: what it is, and its mean color.
-  const slots = slotColors(recipe);
+  const slots = roles ? null : slotColors(recipe as VehiclePictureStyle);
   const indices = new Uint8Array(width * height),
-    shadow = new Uint8Array(width * height);
+    shadow = new Uint8Array(width * height),
+    brightness = new Float32Array(roles ? width * height : 0),
+    keptShare = new Float32Array(roles ? width * height : 0),
+    stepShare = new Float32Array(roles ? width * height : 0);
+  // With roles, each role's point count and lit sums in the texel at hand, and its points in step cells.
+  const byRole = new Float64Array(roles ? roles.count * 4 : 0),
+    stepped = new Float64Array(roles ? roles.count : 0);
   const lampShare = new Float32Array(width * height);
   const pixels = sub * sub;
   let fullestCoverage = 0,
@@ -233,6 +412,8 @@ function drawSize(
         r = 0,
         g = 0,
         b = 0;
+      byRole.fill(0);
+      stepped.fill(0);
       for (let sy = 0; sy < sub; sy++) {
         const row = (ty * sub + sy) * w + tx * sub;
         for (let sx = 0; sx < sub; sx++) {
@@ -246,6 +427,17 @@ function drawSize(
           r += shaded[n * 3]!;
           g += shaded[n * 3 + 1]!;
           b += shaded[n * 3 + 2]!;
+          if (roles && hollow) {
+            const at = roles.points[n]! * 4,
+              y = ty * sub + sy,
+              x = tx * sub + sx;
+            const cell = Math.floor(y / hollow.cellPixels) * hollow.columns + Math.floor(x / hollow.cellPixels);
+            const darkening = hollow.values[cell]!;
+            if (hollow.steps?.[cell]) stepped[roles.points[n]!]!++;
+            byRole[at]!++;
+            for (let c = 0; c < 3; c++)
+              byRole[at + 1 + c]! += Math.min(1, shaded[n * 3 + c]! * darkening + specular[n]!);
+          }
         }
       }
       const texelAt = ty * width + tx;
@@ -256,11 +448,19 @@ function drawSize(
       b /= covered;
       lampShare[texelAt] = lamp / covered;
       let slot: number;
-      if (lamp / covered >= SHARE) slot = 15;
+      if (roles) {
+        let best = 0;
+        for (let role = 1; role < roles.count; role++) if (byRole[role * 4]! > byRole[best * 4]!) best = role;
+        const n = byRole[best * 4]!;
+        slot = best + 1;
+        brightness[texelAt] = Math.max(byRole[best * 4 + 1]!, byRole[best * 4 + 2]!, byRole[best * 4 + 3]!) / n;
+        keptShare[texelAt] = byRole[roles.kept * 4]! / covered;
+        stepShare[texelAt] = stepped[best]! / n;
+      } else if (lamp / covered >= SHARE) slot = 15;
       else if (painted / covered >= SHARE) {
         // Paint takes the body slot whose key brightness is nearest.
         const brightness = 0.45 * r + 0.35 * g + 0.2 * b;
-        const keys = recipe.bodyKeys;
+        const keys = (recipe as VehiclePictureStyle).bodyKeys;
         let at = keys.length - 1;
         if (brightness >= keys[0]!) at = 0;
         else
@@ -273,17 +473,21 @@ function drawSize(
       } else if (glazed / covered >= SHARE) {
         const mean = (r + g + b) / 3;
         slot =
-          mean > recipe.glass.glint ? slots.lightestNeutral : mean > GLASS_LIGHT ? slots.glassLight : slots.glassDark;
+          mean > (recipe as VehiclePictureStyle).glass.glint
+            ? slots!.lightestNeutral
+            : mean > GLASS_LIGHT
+              ? slots!.glassLight
+              : slots!.glassDark;
       } else {
         // Everything else takes the nearest color that is neither body nor glass. Brightness counts for less than
         // chromaticity, so a shaded amber stays amber rather than turning the darker red; chromaticity counts in
         // proportion to the texel's brightness, so a dark texel stays a dark neutral.
-        slot = slots.others[0]!;
+        slot = slots!.others[0]!;
         let best = Infinity;
         const sum = r + g + b || 1;
         const chromaticity = (CHROMATICITY_WEIGHT * sum) / 765;
-        for (const candidate of slots.others) {
-          const [cr, cg, cb] = slots.reference[candidate - 1]!;
+        for (const candidate of slots!.others) {
+          const [cr, cg, cb] = slots!.reference[candidate - 1]!;
           const candidateSum = cr + cg + cb || 1;
           const error =
             BRIGHTNESS_WEIGHT * ((sum - candidateSum) / 3) ** 2 +
@@ -333,11 +537,11 @@ function drawSize(
         }
       if (!kept && fullest >= 0) indices[fullest] = 15;
     }
-  return { width, height, anchorX: halfWidth, anchorY: above, indices, shadow };
+  return { width, height, anchorX: halfWidth, anchorY: above, indices, shadow, brightness, keptShare, stepShare };
 }
 
 /** The opaque texels' frame: its rows as hexadecimal digits and its anchor in texel-centre coordinates. */
-function frame(cells: Uint8Array, width: number, height: number, anchorX: number, anchorY: number) {
+export function frame(cells: Uint8Array, width: number, height: number, anchorX: number, anchorY: number) {
   let left = width,
     right = -1,
     top = height,
@@ -379,9 +583,15 @@ function drawPicture(
   camera: Pick<CameraDefinition, 'focalLength' | 'height'>,
   yaw: number,
 ): { sizes: Frame[] } {
+  return framePicture(
+    Array.from({ length: VEHICLE_PICTURE_SIZES }, (_, size) => drawSize(solid, recipe, camera, yaw, size)),
+  );
+}
+
+/** A direction's drawn sizes as its picture: each cropped to its opaque texels, with its shadow. */
+export function framePicture(drawnSizes: readonly DrawnSize[]): { sizes: Frame[] } {
   const sizes: Frame[] = [];
-  for (let size = 0; size < VEHICLE_PICTURE_SIZES; size++) {
-    const drawn = drawSize(solid, recipe, camera, yaw, size);
+  for (const drawn of drawnSizes) {
     const picture = frame(drawn.indices, drawn.width, drawn.height, drawn.anchorX, drawn.anchorY);
     const shadow = frame(drawn.shadow, drawn.width, drawn.height, drawn.anchorX, drawn.anchorY);
     // A shadow keeps at least one opaque texel at every size.

@@ -4,10 +4,15 @@
   "form": "car",
   "selectionOrder": 25,
   "visuals": {
-    "spriteSet": "lotus-79-special",
-    "palette": "race",
+    "spriteSet": "mclaren-m23-pp-spec",
+    "palette": "white-blue",
     "steeringPicture": "montecarlo",
-    "colorNames": { "race": "WHITE/BLUE", "race-2": "WHITE/RED", "race-3": "WHITE/GREEN", "race-4": "WHITE/YELLOW" },
+    "colorNames": {
+      "white-blue": "WHITE/BLUE",
+      "white-red": "WHITE/RED",
+      "white-green": "WHITE/GREEN",
+      "white-yellow": "WHITE/YELLOW"
+    },
     "gearNames": ["L", "H"]
   },
   "sound": "LOTUS_79_SPECIAL",

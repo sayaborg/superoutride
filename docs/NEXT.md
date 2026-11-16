@@ -10,8 +10,9 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
 - The [six racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
   Lotus 79 SPECIAL and McLaren M23 PP SPEC have two actual forward ratios and opt into contact explosion/recovery; the
-  M23's are two of its six, named `L` and `H` ([Stage M23](#stage-m23--the-mclaren-m23-pp-spec)). The owner's scope
-  is vehicle content and this contact response; any other physics addition needs prior confirmation.
+  M23's are two of its six, named `L` and `H`, and its pictures, baked from K's model, are in eight colors
+  ([Racing vehicles](racing-vehicles.md#mclaren-m23-historical-reference-versus-pp-spec)). The owner's scope is
+  vehicle content and this contact response; any other physics addition needs prior confirmation.
 - The [five production road motorcycles](road-bikes.md) are FREE PLAY entries with original provisional sprites,
   four colors and four-stroke sound. Their source ledger and shared-solver measurements distinguish verified
   specifications from estimates. Existing traffic policy and series eligibility remain unchanged; new physics
@@ -74,8 +75,7 @@ Each line is one area as it stands, with the document that owns it.
 
 Next PR: [Stage AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage
 RC](#stage-rc--one-recovery) and [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving) are made and await K's
-DEV check and K's choice of the replanning interval (AD-5's reports); [Stage
-M23](#stage-m23--the-mclaren-m23-pp-spec)'s M23-2, the M23's pictures; in [Stage
+DEV check and K's choice of the replanning interval (AD-5's reports); in [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -510,7 +510,7 @@ are DEV's ([Tire law](vehicle-physics.md#tire-law)).
 
 Not decided, for K in DEV after the stage:
 
-- The tires of the three F1 cars and the two GP motorcycles, their grip balance and how downforce is treated (their
+- The tires of the four F1 cars and the two GP motorcycles, their grip balance and how downforce is treated (their
   values are provisional, [Racing vehicles](racing-vehicles.md)).
 - Each production vehicle's grip balance; BAL leaves DEV once every vehicle's is decided.
 - At grip balance 0 the rear steps out further than on main when the throttle is lifted at full steering input
@@ -518,24 +518,6 @@ Not decided, for K in DEV after the stage:
   default stays 0 (K, 2026-11-16).
 - A vehicle whose drive reaches its tires' limit is held by TCS at the peak slip, so its engine turns faster than its
   road speed by that slip; a tire whose peak slip passes 5 % reaches the fuel cut (1.05) before the shift.
-
-## Stage M23 — The McLaren M23 PP spec
-
-K takes POLE POSITION II's car for the McLaren M23 of 1976 and adds it as a vehicle of its own, the M23 as built but
-for two of its gears, shown `L` and `H`, and its explosion on any solid contact (K, 2026-11-16;
-[Racing vehicles](racing-vehicles.md#mclaren-m23-historical-reference-versus-pp-spec)). M23-1, the vehicle and its
-driving, is made; its pictures are the Lotus's until M23-2.
-
-- **M23-2** A third picture source, a GLB model made a solid, and the M23's set baked from K's model, which stays on
-  K's branch `codex/m23-glb-source`, off main: eight colors, each channel off or on, by five roles (K, 2026-11-16).
-
-Not decided, for K:
-
-- The tires of the M23, with the other F1 cars' ([Stage TR](#stage-tr--the-brush-tire)).
-- Whether the M23 joins a series (ARCADE TRIBUTE's POLE POSITION II among them), its name (`M23 PP SPEC` is the
-  auditor's), and its own engine sound (it borrows the Lotus's DFV).
-- `npm run measure -- generate` runs out of memory in a 16 GB session: each of its workers compiles the whole content
-  again (about 6 GB). Not changed in this stage.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 
@@ -716,7 +698,8 @@ tries them in FREE PLAY with no rivals on TSUKUBA with the MOVING camera and FRO
 and SR in DEV and adopting the exported mechanics document. Until their own pictures and exhausts are made, they
 borrow:
 
-- Pictures: GOLF GTI 16V's set. Their own come from GLB models, with their own exhausts at the same time. The color
+- Pictures: GOLF GTI 16V's set. Their own come from GLB models by the [model solid](image-assets.md#model-solids)
+  path, with their own exhausts at the same time. The color
   names stand for the real paints, the borrowed pictures' colors do not match them: S13 CRANBERRY RED, WARM WHITE,
   BLUISH SILVER and LIME GREEN (the two-tones named without "two-tone"); AE86 HIGH FLASH, HIGH TECH, HIGH METAL and
   PENDING. AE86's fourth color awaits K: the early GT-APEX may have had only the three two-tones.
@@ -1062,6 +1045,13 @@ and switching is a cut.
     scenarios are split in two files, neither over about 30 s.
   - `WET_ASPHALT` (OT-4): grip 0.7 and rolling resistance as ASPHALT. Its sound has a +6 dB high band and
     susceptibility 0.7, to tune on real devices.
+
+- The McLaren M23 PP SPEC (Stage M23, K, 2026-11-16): its tires, with the other F1 cars'
+  ([Stage TR](#stage-tr--the-brush-tire)); whether it joins a series (ARCADE TRIBUTE's POLE POSITION II among them);
+  its name (`M23 PP SPEC` is the auditor's); its own engine sound (it borrows the Lotus's DFV).
+
+- `npm run measure -- generate` runs out of memory in a 16 GB session: each of its workers compiles the whole content
+  again (about 6 GB). Not changed in Stage M23.
 
 - Vehicle sprite resolution: generated picture sets have 64 yaw images (5.625° apart; the provisional ones 48); the
   two-wheeler bank count (VFR750R's provisional set has 7) is still to decide before producing final bike art. The sprite set format

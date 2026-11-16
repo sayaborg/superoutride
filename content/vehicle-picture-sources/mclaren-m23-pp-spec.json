@@ -1,0 +1,139 @@
+{
+  "format": "superoutride.vehicle-model-recipe",
+  "version": 1,
+  "vehicle": "MCLAREN_M23_PP_SPEC",
+  "yawVariants": 64,
+  "model": {
+    "sha256": "450fa9eecf56b40a02399e954cfc6ad065d9f39d0fdfc5a8a026c8180d1e60bd",
+    "right": "-x",
+    "up": "+y",
+    "forward": "+z",
+    "frontWheels": ["wheel_FL", "wheel_FR"]
+  },
+  "spacing": 0.008,
+  "colors": ["white", "second", "helmet", "cyan", "black"],
+  "rest": "black",
+  "shade": "black",
+  "bright": 0.9,
+  "isolatedSizes": [0, 1],
+  "keep": { "role": "helmet", "toSize": 4, "shows": 0.02 },
+  "roles": [
+    {
+      "name": "second color",
+      "when": [
+        { "largest": "r" },
+        { "term": "saturation", "above": 0.5 },
+        { "term": "value", "above": 0.25 },
+        { "term": "g/r", "below": 0.45 }
+      ],
+      "albedo": { "of": "color", "times": 1 },
+      "gloss": 0.35,
+      "color": "second",
+      "dark": 0.42
+    },
+    {
+      "name": "body",
+      "when": [
+        { "term": "saturation", "below": 0.2 },
+        { "term": "value", "above": 0.88 }
+      ],
+      "albedo": { "of": "luma", "times": 1.05 },
+      "gloss": 0.35,
+      "color": "white",
+      "dark": 0.3
+    },
+    {
+      "name": "helmet",
+      "when": [
+        { "term": "r", "above": 0.7 },
+        { "term": "g", "above": 0.6 },
+        { "term": "b", "below": 0.35 }
+      ],
+      "albedo": { "of": "color", "times": 1 },
+      "gloss": 0.35,
+      "color": "helmet",
+      "dark": 0.4
+    },
+    {
+      "name": "windscreen",
+      "when": [
+        { "term": "b", "above": 0.6 },
+        { "term": "r", "below": 0.5 },
+        { "term": "g", "above": 0.45 }
+      ],
+      "albedo": { "of": "color", "times": 1 },
+      "gloss": 0.5,
+      "color": "cyan",
+      "dark": 0.38
+    },
+    {
+      "name": "machinery",
+      "when": [{ "term": "luma", "above": 0.3 }],
+      "albedo": { "of": "luma", "times": 1 },
+      "gloss": 0.55,
+      "color": "cyan",
+      "dark": 0.3
+    },
+    {
+      "name": "black",
+      "when": [],
+      "albedo": { "of": "luma", "times": 1 },
+      "gloss": 0,
+      "color": "black",
+      "dark": 0
+    }
+  ],
+  "luma": [0.3, 0.59, 0.11],
+  "light": {
+    "main": [-0.4, 0.7, 0.59],
+    "fill": [0.6, 0.2, 0.5],
+    "ambient": 0.34,
+    "sky": 0.18,
+    "mainWeight": 0.68,
+    "fillWeight": 0.1,
+    "shininess": 36
+  },
+  "hollows": {
+    "cells": 6,
+    "widths": [0.0375, 0.125],
+    "depth": 0.1,
+    "most": 0.55,
+    "weight": 0.5
+  },
+  "steps": {
+    "sizes": [0, 1],
+    "reach": 0.025,
+    "depth": 0.12,
+    "share": 0.5
+  },
+  "palettes": {
+    "white-blue": {
+      "white": [255, 255, 255],
+      "second": [0, 0, 255],
+      "helmet": [255, 255, 0],
+      "cyan": [0, 255, 255],
+      "black": [0, 0, 0]
+    },
+    "white-red": {
+      "white": [255, 255, 255],
+      "second": [255, 0, 0],
+      "helmet": [0, 0, 255],
+      "cyan": [0, 255, 255],
+      "black": [0, 0, 0]
+    },
+    "white-green": {
+      "white": [255, 255, 255],
+      "second": [0, 255, 0],
+      "helmet": [255, 0, 0],
+      "cyan": [0, 255, 255],
+      "black": [0, 0, 0]
+    },
+    "white-yellow": {
+      "white": [255, 255, 255],
+      "second": [255, 255, 0],
+      "helmet": [0, 255, 0],
+      "cyan": [0, 255, 255],
+      "black": [0, 0, 0]
+    }
+  }
+}

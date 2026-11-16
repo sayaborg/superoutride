@@ -616,7 +616,8 @@ domain owns the admitted sets at run time: for a vehicle's color and lamp state 
 once and draws every picture with it, and it selects yaw/bank pictures. The image domain supplies only the generic
 sprite reader.
 
-`testarossa`, `911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)). The other sets are provisional,
+`testarossa`, `911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
+and `mclaren-m23-pp-spec` is made from a model ([Model solids](#model-solids)). The other sets are provisional,
 one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by code, original, for an
 earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
 octave `k` of a full-size picture whose anchor sits at the vehicle's base point (where a camera 1.75 m up and 6 m
@@ -766,6 +767,101 @@ The existing picture baker accepts either one solid or an array of banks ordered
 evenly spaced across the declared `bankDegrees`. It draws every yaw and all six sizes with the same camera, lighting,
 palette quantization, anchors and shadow projection as a four-view solid. The saved sprite contract is unchanged;
 procedural geometry is authoring input only and is never delivered or used by vehicle physics.
+
+### Model solids
+
+A set can be made from a GLB model, the third source beside four views and procedural shapes. A set made from a GLB
+model keeps its recipe here and not its model (K, 2026-11-16): K holds the model, the recipe names it by its SHA-256,
+and the command takes its place as an argument and refuses any other. The saved set is the authority for its
+pictures; the build, the tests and CI never read a model. `npm run pictures -- <set> [replace] --model <file.glb>`
+([Development](development.md#pictures-command)) takes this path when `<set>.json` is a model recipe.
+
+The model ([`glb-model.ts`](../tools/graphics/glb-model.ts)) is read as glTF 2.0 binary: its default scene's triangle
+primitives through their nodes' transforms, each material's base color texture (PNG) and factor; nothing else of it
+is used, with its vertex normals where it gives them. Its triangles are sampled evenly by area at the recipe's spacing,
+the samples following the triangles' order, so the same model and recipe always make the same solid; each sample takes
+its texture's base color (the nearest texel) and its normal: the vertex normals interpolated across its triangle, else
+its face's by its winding. The recipe's axes turn the model to the vehicle's right, up and forward;
+it then stands with its front wheels' mean node origin the mechanics document's `frontAxle` ahead of the base point and
+its lowest sample on the road. Its wheels are drawn as they stand.
+
+**Recipe.** `superoutride.vehicle-model-recipe` version 1, saved as `content/vehicle-picture-sources/<set>.json`:
+
+```text
+{format, version, vehicle: "MCLAREN_M23_PP_SPEC", yawVariants: 64,
+ model: {sha256, right: "-x", up: "+y", forward: "+z", frontWheels: ["wheel_FL", "wheel_FR"]},
+ spacing: 0.008, colors: [entry, ...], rest: entry, shade: entry, bright: 0.9, isolatedSizes: [0, 1],
+ keep: {role, toSize, shows},
+ roles: [{name, when: [clause, ...], albedo: {of: "color" | "luma", times}, gloss, color: entry, dark}, ...],
+ luma: [0.30, 0.59, 0.11],
+ light: {main: [x, y, z], fill: [x, y, z], ambient, sky, mainWeight, fillWeight, shininess},
+ hollows: {cells, widths: [metres, ...], depth, most, weight},
+ steps: {sizes: [0, 1], reach, depth, share},
+ palettes: {name: {entry: [r, g, b], ...}, ...}}
+clause = {term, above} | {term, below} | {largest: "r" | "g" | "b"}
+term   = r | g | b | value | saturation | luma | g/r   (of the base color, each channel 0–1)
+```
+
+**Roles.** A model recipe's set does not take the palette quantization of the sets above: its texels take colors by
+role, the recipe's alone, and no other set's pictures change. Each sample takes the first role whose clauses its base
+color passes (the last role passes every color). A texel takes the role most of its visible samples have, and its
+brightness is the largest channel of those samples' mean lit color. It is drawn in its role's color, or in the shade color where its brightness is below the role's `dark` share of
+the role's bright texels: the `bright` quantile of that role's texels over every direction at size 0. On the
+`isolatedSizes` a texel none of whose eight neighbours shares its color takes the color most of them have. Up to size
+`keep.toSize`, a picture that shows the kept role in no texel, while a texel's samples are at least `keep.shows` of it,
+draws its fullest such texel in the role's color. No color between two is made and no dither is drawn. Slots 1 onward
+take the recipe's `colors` in order and the remaining slots `rest`; the brake lamp, unused, is `shade`, off and on.
+
+**Brightness.** A set colored by roles has its own brightness (K, 2026-11-16): a light fixed to the picture, not the
+vehicle, over the model's smooth normals, darkened where a surface lies behind its surroundings in the picture's depth.
+The shared baker's cameras, sizes and shadows are its own all the same; the other sets' light and quantization are not
+used and do not change. With n a sample's unit normal in the picture's axes (x right, y up, z towards the viewer) and
+`up` half its height in the vehicle's axes plus half, a sample's lit color in each channel is
+
+```text
+min(1, albedo × (ambient + sky·up + mainWeight·max(0, n·main) + fillWeight·max(0, n·fill)) × hollow
+       + gloss × max(0, n·h)^shininess)
+```
+
+where h is the unit half-way direction of `main` and the view (0, 0, 1), and the albedo is the base color's channels
+or its luma (up to 1) for all three, times the role's `times`. `hollow` comes from the picture's depths: each texel is
+held as `cells` by `cells` cells, each the mean distance from the camera of its visible samples; for each of `widths`
+(a Gaussian blur's sigma in metres at the base point, the same length at every size), a cell loses `weight ×
+clamp((z − blurred z) / depth, 0, most)`, the blur counting the vehicle's cells alone (the blurred depths over the
+blurred coverage). A surface deeper than its surroundings darkens; one nearer does not.
+
+On its nearest sizes a texel lying just behind a nearer surface is shade too (K, 2026-11-16): where most of its role's
+cells lie more than the recipe's step behind the nearest surface within the recipe's reach. On `steps.sizes`, a
+covered cell more than `steps.depth` behind the nearest covered cell of the square `steps.reach` about it (metres at
+the base point, half the square's side) is a step cell, and a texel whose role's samples lie in step cells for at least
+`steps.share` of them is drawn in the shade color. The picture's outline gets no such line: cells outside the vehicle
+count for nothing. The order is the roles, the shade shares, the step lines, the isolated texels, the kept role.
+
+**The McLaren M23 PP SPEC.** Its pictures alone are in eight colors, each channel off or on (K, 2026-11-16): a white
+body, a second color, a helmet, cyan for its windscreen and its machinery, and black; its four liveries are white with
+blue, red, green and yellow, each helmet another car's second color (K, 2026-11-16):
+
+| Palette        | Body  | Second color | Helmet | Windscreen and machinery | Shade and black |
+| -------------- | ----- | ------------ | ------ | ------------------------ | --------------- |
+| `white-blue`   | white | blue         | yellow | cyan                     | black           |
+| `white-red`    | white | red          | blue   | cyan                     | black           |
+| `white-green`  | white | green        | red    | cyan                     | black           |
+| `white-yellow` | white | yellow       | green  | cyan                     | black           |
+
+Its six roles, in order, read the model's paint: the second color (red the largest channel, saturation above 0.5,
+value above 0.25, green below 0.45 of red), the body (saturation below 0.2, value above 0.88), the helmet (red above
+0.7, green above 0.6, blue below 0.35), the windscreen (blue above 0.6, red below 0.5, green above 0.45), the
+machinery (luma above 0.3) and black. The body's albedo is its luma times 1.05, the machinery's and black's their
+luma, and the other roles' their color; their gloss is 0.35 for the body, the second color and the helmet, 0.5 for the
+windscreen, 0.55 for the machinery and 0 for black. The light (K, 2026-11-16) has `main` (−0.40, 0.70, 0.59), `fill`
+(0.60, 0.20, 0.50), weights 0.34, 0.18, 0.68 and 0.10 and shininess 36; the hollows are held at 6 cells a texel, with
+widths 3.75 cm and 12.5 cm, depth 0.10 m, most 0.55 and weight 0.5. The step lines are on sizes 0 and 1, with reach
+2.5 cm (6 cells at size 0, 3 at size 1), depth 0.12 m and share one half (K, 2026-11-16). The shade shares are the
+stage's, 0.42, 0.30, 0.40 and 0.38 for the second color, the body, the helmet and the windscreen (K, 2026-11-16:
+raising them blackened whole panels turned from the light and the rear wings, and the car seen from behind became a
+black mass), and 0.30 for the machinery, which the stage set at 0.40, movable between 0.30 and 0.45: at 0.40 the
+engine behind showed few cyan points. The helmet is kept to size 4 at 0.02. The model is K's
+`mclaren_m23_1976_rev4.glb`, kept on K's branch `codex/m23-glb-source`, never on main.
 
 ## HUD picture generator
 
