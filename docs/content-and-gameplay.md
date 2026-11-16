@@ -1012,9 +1012,9 @@ ARCADE TRIBUTE - POLE POSITION II is delivered too (K, 2026-11-09), to try an AR
 is updated. An ARCADE TRIBUTE class is titled with its course's official name (POLE POSITION II FUJI; K, 2026-11-11:
 names are written in full). It plays its reference game's race without the qualifying lap, which is not made for now: FUJI, TEST,
 SUZUKA and SEASIDE, in the reference game's order, 4 laps each (the original's factory setting) with a margin of 1.35,
-without rank limits. Its field is the original's eight: seven LOTUS 79 SPECIAL rivals driving the
-racing line, ahead of the player, who starts last in the LOTUS 79 SPECIAL in its entry's color (`fixedColors`). The
-cars the player laps are traffic: LOTUS 79 SPECIALs at 2 a kilometre, driving their lanes at up to 150 km/h and
+without rank limits. Its field is the original's eight, every car the McLaren M23 PP SPEC (K, 2026-11-16): seven
+rivals driving the racing line in its four liveries in turn, ahead of the player, who starts last in its entry's
+WHITE/BLUE (`fixedColors`). The cars the player laps are traffic: M23 PP SPECs at 2 a kilometre, driving their lanes at up to 150 km/h and
 slowing for the corners as every driver does. Until POLE POSITION II's product courses are made, its classes run the
 original courses ([Words](NEXT.md#words)). Its title track is K's recording. The density and
 the margin are provisional, to be set by driving it.

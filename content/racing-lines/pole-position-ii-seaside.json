@@ -7,10 +7,10 @@
   "lengthWeight": 0.000178,
   "vehicles": [
     {
-      "vehicleId": "LOTUS_79_SPECIAL",
-      "vehicleSha256": "19074473f8d21db727a3fb61a3faaf5c1b0141f8d1caaff2bc82c03f0b723c63",
-      "seconds": 97.901,
-      "minimumCurvatureSeconds": 98.373
+      "vehicleId": "MCLAREN_M23_PP_SPEC",
+      "vehicleSha256": "04f09d644bd3eb9a8a9fa41ce6a9da7a8f4bb3bf7cb248170fd2d0edafed4d7c",
+      "seconds": 98.713,
+      "minimumCurvatureSeconds": 99.231
     }
   ],
   "lines": [

@@ -907,8 +907,7 @@ Left by the stages that raised them, beside what follows:
   start time and extensions, or a reference run that finishes), its product course, sounds and race music, the motion of
   what moves, the ending's text, and the product's pictures drawn again.
 - POLE POSITION II: its ARCADE TRIBUTE series runs its originals for now (below); its product courses, sounds and race
-  music, and the product's pictures drawn again; its rivals' and traffic's colors, made distinct when the LOTUS 79
-  SPECIAL's colors are drawn apart (its four are one JPS livery today). Its lane (5.5 m) is adjusted with every course's
+  music, and the product's pictures drawn again. Its lane (5.5 m) is adjusted with every course's
   lane at once, after all the courses are made (K, 2026-11-09), its courses with a model then solved again. K decides in
   DEV the airship's and
   plane's height (`CRAFT_HEIGHT`, 30 m, provisional) and how their banner's sprites meet, whose hardware stretch is not
@@ -1047,7 +1046,7 @@ and switching is a cut.
     susceptibility 0.7, to tune on real devices.
 
 - The McLaren M23 PP SPEC (Stage M23, K, 2026-11-16): its tires, with the other F1 cars'
-  ([Stage TR](#stage-tr--the-brush-tire)); whether it joins a series (ARCADE TRIBUTE's POLE POSITION II among them);
+  ([Stage TR](#stage-tr--the-brush-tire)); it is every car of ARCADE TRIBUTE - POLE POSITION II (K, 2026-11-16);
   its name (`M23 PP SPEC` is the auditor's); its own engine sound (it borrows the Lotus's DFV).
 
 - `npm run measure -- generate` runs out of memory in a 16 GB session: each of its workers compiles the whole content
