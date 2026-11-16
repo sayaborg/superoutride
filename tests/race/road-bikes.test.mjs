@@ -130,6 +130,7 @@ for (const [id, gears] of identities) {
           rules: 'FREE PLAY',
           redlineRpm: entry.compiledVehicle.powertrain.redlineRpm,
           steeringPicture: entry.steeringPicture,
+          gearNames: entry.listing.visuals.gearNames,
           slowDown: false,
         },
         record: null,

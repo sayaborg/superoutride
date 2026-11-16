@@ -183,6 +183,7 @@ test('a course name as long as the course texts admit fits every screen that sho
         rules: 'FREE PLAY',
         redlineRpm: player.compiledVehicle.powertrain.redlineRpm,
         steeringPicture: player.steeringPicture,
+        gearNames: player.listing.visuals.gearNames,
         slowDown: false,
       },
       record: null,

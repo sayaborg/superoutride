@@ -10,6 +10,19 @@ import { sampleEngineTorque } from '../../src/vehicle/physics/automatic-powertra
 import { createSteeringRule, driverSteering } from '../../src/vehicle/steering-rule.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 
+/**
+ * The racing vehicles the [racing vehicle ledger](../../docs/racing-vehicles.md) owns, in its order: those with
+ * procedural pictures, and the M23 PP SPEC, whose pictures are baked from a model.
+ */
+export const RACING_VEHICLE_IDS = Object.freeze([
+  'NSR500_1987',
+  'YZR500_0W98',
+  'MCLAREN_MP4_4',
+  'FERRARI_640',
+  'LOTUS_79_SPECIAL',
+  'MCLAREN_M23_PP_SPEC',
+]);
+
 /** Flat 60 km, dry unit-grip asphalt, no wind, no other actors; ordinary product physics and controls. */
 export function racingValidationWorld() {
   const plan = compilePlanPath({ x: 0, z: 0, heading: 0 }, [{ kind: 'straight', length: 60000 }]);

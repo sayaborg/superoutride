@@ -20,7 +20,8 @@ import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { createTextLayer } from '../../src/view/text-layer.js';
-import { writeHud } from '../../src/shell/run-hud.js';
+import { HUD_LAYOUT, writeHud } from '../../src/shell/run-hud.js';
+import { HUD_TILES } from '../../src/image/text-tiles.js';
 import { rgb555ToRgba, unpackRgba } from '../../src/image/rgb555.js';
 
 const content = await readDeliveredContent();
@@ -37,6 +38,7 @@ const identities = [
   ['MCLAREN_MP4_4', 6, 6, 2, 685 * 0.73549875],
   ['FERRARI_640', 7, 12, 2, 441],
   ['LOTUS_79_SPECIAL', 2, 8, 2, 500],
+  ['MCLAREN_M23_PP_SPEC', 2, 8, 2, 465 * 0.745699872],
 ];
 const idle = { steering: 0, throttle: false, brake: false };
 
@@ -46,8 +48,8 @@ for (const [id, gears, cylinders, cycle, powerKW] of identities) {
     assert.ok(entry);
     const p = entry.compiledVehicle.powertrain;
     assert.equal(p.gearRatios.length, gears);
-    assert.equal(sounds[id].firingPhases.length, cylinders);
-    assert.equal(sounds[id].cycleRevolutions, cycle);
+    assert.equal(sounds[entry.listing.sound].firingPhases.length, cylinders);
+    assert.equal(sounds[entry.listing.sound].cycleRevolutions, cycle);
     const curve = p.torqueCurve;
     const power = (rpm, t) => (rpm * t * Math.PI) / 30000;
     assert.ok(Math.abs(power(curve[3].rpm, curve[3].torqueNewtonMeters) - powerKW) < 0.001);
@@ -67,7 +69,7 @@ for (const [id, gears, cylinders, cycle, powerKW] of identities) {
     assert.ok(result.braking.endKph < 0.4);
     assert.ok(result.restartKph > 100);
     assert.ok(result.maximumLateralAcceleration > 1);
-    if (gears === 2) {
+    if (id === 'LOTUS_79_SPECIAL') {
       assert.ok(result.terminalRangeKph[0] >= 345 && result.terminalRangeKph[1] <= 355);
       assert.ok(Math.abs(result.samples.at(-1).acceleration) < 0.001);
     }
@@ -99,6 +101,15 @@ for (const [id, gears, cylinders, cycle, powerKW] of identities) {
       text = createTextLayer(tiles);
     const visual = createVehicleSprites(entry);
     scene.render(frame, { vehicle: player, set: visual.off }, camera, [], [], []);
+    // The gear's segment glyph: its name where the listing names it, else its number.
+    const gearCells = new Map();
+    const recorded = {
+      ...text,
+      put(column, row, pattern, palette) {
+        gearCells.set(`${column},${row}`, pattern);
+        text.put(column, row, pattern, palette);
+      },
+    };
     writeHud(
       {
         race,
@@ -109,14 +120,23 @@ for (const [id, gears, cylinders, cycle, powerKW] of identities) {
           rules: 'FREE PLAY',
           redlineRpm: entry.compiledVehicle.powertrain.redlineRpm,
           steeringPicture: entry.steeringPicture,
+          gearNames: entry.listing.visuals.gearNames,
           slowDown: false,
         },
         record: null,
         split: null,
       },
-      text,
+      recorded,
       false,
     );
+    const glyph =
+      id === 'MCLAREN_M23_PP_SPEC' ? ['L', 'H'][player.powertrain.gear - 1] : String(player.powertrain.gear);
+    const [gearColumn, gearRow] = HUD_LAYOUT.gear;
+    for (let k = 0; k < 6; k++)
+      assert.equal(
+        gearCells.get(`${gearColumn + (k % 2)},${gearRow + Math.floor(k / 2)}`),
+        HUD_TILES[`DIGIT_${glyph}_${k}`],
+      );
     text.draw(frame);
     const png = new PNG({ width: frame.width, height: frame.height });
     frame.pixels.forEach((pixel, i) => {

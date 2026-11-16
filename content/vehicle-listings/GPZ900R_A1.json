@@ -2,7 +2,7 @@
   "format": "superoutride.vehicle-listing",
   "version": 5,
   "form": "bike",
-  "selectionOrder": 27,
+  "selectionOrder": 28,
   "visuals": {
     "spriteSet": "gpz900r-a1",
     "palette": "stock",

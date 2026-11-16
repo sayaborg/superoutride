@@ -33,7 +33,7 @@ const original = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TEST
 const idle = { steering: 0, throttle: false, brake: false };
 const throttle = { ...idle, throttle: true };
 
-async function run(enabled = true, rivals = 0, source = original) {
+async function run(enabled = true, rivals = 0, source = original, catalog = definitions.vehicles) {
   const listing = compileVehicleListingDocument(
     { ...source.listing, ...(enabled ? { contactResponse: 'explode' } : {}) },
     'contact-response fixture',
@@ -42,7 +42,7 @@ async function run(enabled = true, rivals = 0, source = original) {
   );
   assert.ok(listing.ok);
   const entry = { ...source, listing: listing.value.source };
-  const vehicles = definitions.vehicles.map((v) => (v === source ? entry : v));
+  const vehicles = catalog.map((v) => (v === source ? entry : v));
   const scene = createCourseScene(course.entry, course.gates, vehicles);
   const prepared = await prepareRun(
     content,
@@ -229,30 +229,43 @@ test('every solid counterpart uses the same response, occupied recovery waits, a
   }
 });
 
-test('the delivered two-speed Lotus explodes on a stationary wall contact, recovers once and resets on a fresh run', async () => {
-  const lotus = definitions.vehicles.find((v) => v.compiledVehicle.id === 'LOTUS_79_SPECIAL');
-  assert.equal(lotus.listing.contactResponse, 'explode');
-  assert.equal(lotus.compiledVehicle.powertrain.gearRatios.length, 2);
-  const { race, scene, actor } = await run(true, 0, lotus);
-  touchWall(scene, actor);
+for (const id of ['LOTUS_79_SPECIAL', 'MCLAREN_M23_PP_SPEC'])
+  test(`the delivered two-speed ${id} explodes on a stationary wall contact, recovers once and resets on a fresh run`, async () => {
+    const vehicle = definitions.vehicles.find((v) => v.compiledVehicle.id === id);
+    assert.equal(vehicle.listing.contactResponse, 'explode');
+    assert.equal(vehicle.compiledVehicle.powertrain.gearRatios.length, 2);
+    const { race, scene, actor } = await run(true, 0, vehicle);
+    touchWall(scene, actor);
+    race.advance(idle);
+    assert.equal(actor.contactResponse.sequence, 1);
+    assert.equal(actor.contactResponse.phase, 'exploding');
+    // Pushed off the wall, braked: it moves slowly, not driven.
+    assert.ok(actor.vehicle.speed < 2, `${actor.vehicle.speed} m/s`);
+    const gates = race.player.crossingSeconds.length;
+    for (let tick = 0; tick < 240; tick++) race.advance(idle);
+    assert.equal(actor.contactResponse.sequence, 1);
+    assert.equal(actor.contactResponse.phase, 'driving');
+    assert.equal(actor.recovery.lastReason, 'explosion');
+    assert.equal(race.player.crossingSeconds.length, gates);
+    assert.equal((await run(true, 0, vehicle)).actor.contactResponse.sequence, 0);
+    for (const id of ['NSR500_1987', 'YZR500_0W98', 'MCLAREN_MP4_4', 'FERRARI_640']) {
+      const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === id);
+      assert.equal(entry.listing.contactResponse, undefined);
+      const normal = await run(false, 0, entry);
+      touchWall(normal.scene, normal.actor);
+      normal.race.advance(idle);
+      assert.equal(normal.actor.contactResponse.sequence, 0);
+    }
+  });
+
+test('a rival M23 PP SPEC explodes on a wall as the player does', async () => {
+  const m23 = definitions.vehicles.find((v) => v.compiledVehicle.id === 'MCLAREN_M23_PP_SPEC');
+  // The M23 alone in the catalog: the rival is another of its colors.
+  const { race, scene } = await run(false, 1, m23, [m23]);
+  const rival = race.rivals[0].actor;
+  assert.equal(rival.vehicle.vehicleId ?? rival.model.compiledVehicle.id, 'MCLAREN_M23_PP_SPEC');
+  touchWall(scene, rival);
   race.advance(idle);
-  assert.equal(actor.contactResponse.sequence, 1);
-  assert.equal(actor.contactResponse.phase, 'exploding');
-  // Pushed off the wall, braked: it moves slowly, not driven.
-  assert.ok(actor.vehicle.speed < 2, `${actor.vehicle.speed} m/s`);
-  const gates = race.player.crossingSeconds.length;
-  for (let tick = 0; tick < 240; tick++) race.advance(idle);
-  assert.equal(actor.contactResponse.sequence, 1);
-  assert.equal(actor.contactResponse.phase, 'driving');
-  assert.equal(actor.recovery.lastReason, 'explosion');
-  assert.equal(race.player.crossingSeconds.length, gates);
-  assert.equal((await run(true, 0, lotus)).actor.contactResponse.sequence, 0);
-  for (const id of ['NSR500_1987', 'YZR500_0W98', 'MCLAREN_MP4_4', 'FERRARI_640']) {
-    const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === id);
-    assert.equal(entry.listing.contactResponse, undefined);
-    const normal = await run(false, 0, entry);
-    touchWall(normal.scene, normal.actor);
-    normal.race.advance(idle);
-    assert.equal(normal.actor.contactResponse.sequence, 0);
-  }
+  assert.equal(rival.contactResponse.sequence, 1);
+  assert.equal(rival.contactResponse.phase, 'exploding');
 });

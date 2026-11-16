@@ -1,5 +1,5 @@
 import type { SpriteAssets } from './vehicle-sprite-library.js';
-import { HUD_PICTURES, TEXT_CHARACTERS, type HudPicture } from '../image/text-tiles.js';
+import { HUD_PICTURES, SEGMENT_CHARACTERS, TEXT_CHARACTERS, type HudPicture } from '../image/text-tiles.js';
 import { spriteSetColors, spriteSetHasColor, type VehicleSpriteSet } from './vehicle-sprite-set.js';
 import { compileVehicle, type VehicleDefinition, type CompiledVehicle } from './physics/vehicle-definitions.js';
 import { compileDriving } from './physics/compiled-driving.js';
@@ -34,6 +34,8 @@ const ENGINE_LABEL_LENGTH = 5;
 /** The longest color display name: SELECT VEHICLE's color line, `^ NAME n/N v`, fits columns 1–21. */
 const COLOR_NAME_LENGTH = 13;
 const COLOR_NAME = new RegExp(`^[A-Z0-9 .'&/-]{1,${COLOR_NAME_LENGTH}}$`);
+/** A gear's name is one character a segment digit draws. */
+const GEAR_NAME = new RegExp(`^[${SEGMENT_CHARACTERS}]$`);
 /** The longest word of a listed period, market or specification: SELECT VEHICLE wraps them by words to this width. */
 export const LISTING_LINE_LENGTH = 14;
 /** SELECT VEHICLE's name line, manufacturer and model, fits columns 1–39. */
@@ -81,6 +83,11 @@ export interface VehicleListingDocument {
     steeringPicture: string;
     /** Each color's display name, its period paint name, by color ID: presentation only. */
     colorNames: Readonly<Record<string, string>>;
+    /**
+     * Each forward gear's name, lowest first, one segment character each: what the HUD and the vehicle's card show of
+     * its gears. Absent, the gears are shown by their numbers.
+     */
+    gearNames?: readonly string[];
   }>;
   readonly sound: string;
   readonly metadata: VehicleMetadata;
@@ -299,7 +306,14 @@ export function compileVehicleListingDocument(
       metadata.identifier ? '/metadata/identifier/officialLabel' : '/metadata/physicsAnchor/modelYear',
       `Expected the model year, two spaces and the official label in at most ${YEAR_LINE_LENGTH} characters`,
     );
-    const visual = readRecord(v.visuals, '/visuals', ['spriteSet', 'palette', 'steeringPicture', 'colorNames']);
+    const gearsNamed = typeof v.visuals === 'object' && v.visuals !== null && Object.hasOwn(v.visuals, 'gearNames');
+    const visual = readRecord(v.visuals, '/visuals', [
+      'spriteSet',
+      'palette',
+      'steeringPicture',
+      'colorNames',
+      ...(gearsNamed ? ['gearNames'] : []),
+    ]);
     const visuals = {
       spriteSet: readString(visual.spriteSet, '/visuals/spriteSet'),
       palette: readString(visual.palette, '/visuals/palette'),
@@ -310,6 +324,13 @@ export function compileVehicleListingDocument(
           patternMessage: `Expected 1 to ${COLOR_NAME_LENGTH} uppercase characters the text tiles draw`,
         }),
       ),
+      ...(gearsNamed
+        ? {
+            gearNames: readArray(visual.gearNames, '/visuals/gearNames', (name, path) =>
+              readString(name, path, { pattern: GEAR_NAME, patternMessage: 'Expected one segment character' }),
+            ),
+          }
+        : {}),
     };
     if (!Object.hasOwn(sprites.sets, visuals.spriteSet))
       throw new AdmissionError(
@@ -358,8 +379,30 @@ export function compileVehicleListingDocument(
   });
 }
 
-/** Pair one vehicle's compiled mechanics and listing: where the vehicle and its engine sound meet. */
-export function createVehicleDefinition(
+/**
+ * Pair one vehicle's compiled mechanics and listing, where the vehicle and its engine sound meet: under `document` at
+ * `pointer`, the listing names each of the mechanics' gears or none.
+ */
+export function pairVehicleDefinition(
+  mechanics: CompiledVehicleMechanics,
+  listing: CompiledVehicleListing,
+  document: string,
+  pointer: string,
+): AdmissionResult<CompiledVehicleDefinition> {
+  return admit(document, () => {
+    const names = listing.source.visuals.gearNames,
+      gears = mechanics.compiledVehicle.powertrain.gearRatios.length;
+    requireAdmission(
+      names === undefined || names.length === gears,
+      'invalid_value',
+      pointer,
+      `Expected the listing to name each of the ${gears} gears`,
+    );
+    return createVehicleDefinition(mechanics, listing);
+  });
+}
+
+function createVehicleDefinition(
   mechanics: CompiledVehicleMechanics,
   listing: CompiledVehicleListing,
 ): CompiledVehicleDefinition {
@@ -386,17 +429,24 @@ export function retuneVehicleMechanics(
 ): AdmissionResult<CompiledVehicleDefinition> {
   const mechanics = compileVehicleMechanicsDocument(value, definition.compiledVehicle.id, document, null);
   if (!mechanics.ok) return mechanics;
-  return Object.freeze({
-    ok: true as const,
-    value: createVehicleDefinition(mechanics.value, {
+  return pairVehicleDefinition(
+    mechanics.value,
+    {
       source: definition.listing,
       spriteSet: definition.spriteSet,
       steeringPicture: definition.steeringPicture,
       // The vehicle's sound is the listing's sound with facts derived from the mechanics, which this derives again.
       sound: definition.sound,
-    }),
-  });
+    },
+    document,
+    '/powertrain/gearRatios',
+  );
 }
+
+/** A listing's gear names, lowest first; undefined where its gears are shown by their numbers. */
+export type GearNames = VehicleListingDocument['visuals']['gearNames'];
+/** The segment character that shows `gear` (from 1) of gears named `names`: its name, else its number's last digit. */
+export const gearName = (names: GearNames, gear: number): string => names?.[gear - 1] ?? String(gear % 10);
 
 /** Each named field of a record, read as a number at its own pointer. */
 function readNumbers<K extends string>(record: Record<string, unknown>, keys: readonly K[], path: string) {

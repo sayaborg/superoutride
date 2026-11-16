@@ -72,7 +72,10 @@ function drawGearBar({ frame, text }: VehiclePageScene, row: number, from: numbe
   }
 }
 
-/** The gears: each gear's ratio and road speed at redline with its bar, then the final drive and the drive. */
+/**
+ * The gears: each gear by its name, else its ordinal, with its ratio and road speed at redline and its bar; then the
+ * final drive and the drive.
+ */
 function writeGears(scene: VehiclePageScene) {
   const { text, vehicle } = scene;
   const v = vehicle.compiledVehicle;
@@ -84,9 +87,10 @@ function writeGears(scene: VehiclePageScene) {
   text.write(GEAR_COLUMNS.ratioHeading, row, 'RATIO', TEXT_PALETTES.DARK);
   text.write(GEAR_COLUMNS.kmh, row, 'KMH', TEXT_PALETTES.DARK);
   row++;
-  const speeds = gearSpeeds(vehicle);
+  const speeds = gearSpeeds(vehicle),
+    names = vehicle.listing.visuals.gearNames;
   p.gearRatios.forEach((gear, i) => {
-    text.write(GEAR_COLUMNS.label, row + i, GEAR_LABELS[i]!, TEXT_PALETTES.DARK);
+    text.write(GEAR_COLUMNS.label, row + i, names?.[i] ?? GEAR_LABELS[i]!, TEXT_PALETTES.DARK);
     text.write(GEAR_COLUMNS.ratio, row + i, ratio(gear), TEXT_PALETTES.WHITE);
     drawGearBar(scene, row + i, i === 0 ? 0 : speeds[i - 1]!, speeds[i]!);
     text.write(GEAR_COLUMNS.kmh, row + i, integer(speeds[i]!).padStart(3), TEXT_PALETTES.WHITE);

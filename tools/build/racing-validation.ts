@@ -2,12 +2,11 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { compileContent } from '../authoring/compile-content.js';
 import { createNodeContentStore } from './node-content-store.js';
 import { requireCompiled, reportError } from '../course/authoring-io.js';
-import { measureRacingVehicle } from '../course/racing-vehicle-check.js';
-import { RACING_PICTURES } from '../graphics/racing-vehicle-shapes.js';
+import { measureRacingVehicle, RACING_VEHICLE_IDS } from '../course/racing-vehicle-check.js';
 
 try {
   const { definitions } = requireCompiled(await compileContent(createNodeContentStore(), { measured: false }));
-  const measurements = Object.keys(RACING_PICTURES).map((id) => {
+  const measurements = RACING_VEHICLE_IDS.map((id) => {
     const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === id);
     if (!entry) throw new Error(`The admitted vehicle catalog is missing ${id}`);
     const result = measureRacingVehicle(entry, definitions.driving);

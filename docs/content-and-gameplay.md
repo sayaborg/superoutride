@@ -1749,7 +1749,11 @@ the next step judges it again. A manual recovery without a free place does nothi
 
 A vehicle listing may add `contactResponse: "explode"` (an optional addition to listing version 5). With the field
 absent, contacts keep their existing physical response. Only this authored policy enables the game sequence;
-vehicle identifiers do not choose it. It applies equally to the player, rivals and traffic.
+vehicle identifiers do not choose it. It applies equally to the player, rivals and traffic. Two listings give it, the
+LOTUS 79 SPECIAL's and the McLaren M23 PP SPEC's ([Racing vehicles](racing-vehicles.md)); both have two gears, which
+the M23's listing names `L` and `H` (`gearNames`,
+[Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)), so the HUD shows its gear by that
+letter.
 
 A new contact with another vehicle, a wall or physical course limit, a fixed collision object or a movable collision
 object starts the sequence at any speed, including rest. Tire support, painted lines, visual scenery and timing gates

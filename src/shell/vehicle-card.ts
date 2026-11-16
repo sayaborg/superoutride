@@ -221,7 +221,11 @@ function vehicleParts(vehicle: CompiledVehicleDefinition, shown: VehicleCardColo
     { label: 'REDLINE', value: integer(p.redlineRpm), unit: 'rpm' },
     { label: 'MASS', value: integer(v.mass), unit: 'kg' },
     { label: 'P/W', value: integer((peaks.power * 1000) / v.mass), unit: 'kW/t' },
-    { label: 'GEARS', value: String(p.gearRatios.length), note: `FINAL ${p.finalDriveRatio.toFixed(2)}` },
+    {
+      label: 'GEARS',
+      value: visuals.gearNames?.join('/') ?? String(p.gearRatios.length),
+      note: `FINAL ${p.finalDriveRatio.toFixed(2)}`,
+    },
     front === 0 || front === 100
       ? { label: 'DRIVE', value: front === 0 ? 'RWD' : 'FWD' }
       : { label: 'DRIVE', value: 'AWD', note: `${front}/${100 - front}` },
@@ -258,10 +262,10 @@ function vehicleParts(vehicle: CompiledVehicleDefinition, shown: VehicleCardColo
  * A vehicle's card (SELECT VEHICLE; K, 2026-11-12: the same card wherever it appears) in `style`: its manufacturer and
  * model and its period; its picture in its color, still at the yaw image 40 of 64; its engine's power (RED) and torque
  * (YELLOW) over 20 % to 110 % of its redline; its engine, power and torque with their speeds (their labels in their
- * curves' colors, the graph's legend), redline, mass, power to mass, gears with the final drive, and drive; its model
- * year, type, length, width, height, wheelbase, weight on the front and rear wheels and speed at redline in top gear; and
- * its color, between `▲` and `▼` when UP and DOWN change it. At rest in focus its picture turns and its engine revs,
- * and is heard (K, 2026-11-12).
+ * curves' colors, the graph's legend), redline, mass, power to mass, gears (their names where its listing gives them,
+ * else their count) with the final drive, and drive; its model year, type, length, width, height, wheelbase, weight on
+ * the front and rear wheels and speed at redline in top gear; and its color, between `▲` and `▼` when UP and DOWN
+ * change it. At rest in focus its picture turns and its engine revs, and is heard (K, 2026-11-12).
  */
 export function vehicleCard(
   vehicle: CompiledVehicleDefinition,

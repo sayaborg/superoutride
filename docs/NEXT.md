@@ -8,16 +8,17 @@ Each line is one area as it stands, with the document that owns it.
   TIME ATTACK and FREE PLAY runs. Without DEV, FREE PLAY offers the courses a series runs (TSUKUBA, and for now the
   originals of the ARCADE TRIBUTE series delivered); the other originals' courses, in no series, are DEV's
   ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
-- The [five racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
-  Lotus 79 SPECIAL has two actual forward ratios and opts into contact explosion/recovery. The owner's scope is vehicle
-  content and this contact response; any other physics addition needs prior confirmation.
+- The [six racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
+  Lotus 79 SPECIAL and McLaren M23 PP SPEC have two actual forward ratios and opt into contact explosion/recovery; the
+  M23's are two of its six, named `L` and `H` ([Stage M23](#stage-m23--the-mclaren-m23-pp-spec)). The owner's scope
+  is vehicle content and this contact response; any other physics addition needs prior confirmation.
 - The [five production road motorcycles](road-bikes.md) are FREE PLAY entries with original provisional sprites,
   four colors and four-stroke sound. Their source ledger and shared-solver measurements distinguish verified
   specifications from estimates. Existing traffic policy and series eligibility remain unchanged; new physics
   still requires prior confirmation.
 - The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the
-  catalog to 35 vehicles. The 1986 Porsche 930 and 1984 Corvette C4 coexist with their existing 1989 versions;
-  the unidentified box truck remains deferred. The ledger owns specification limits and validation.
+  catalog to 35 vehicles before the M23 PP SPEC, 36 with it. The 1986 Porsche 930 and 1984 Corvette C4 coexist with
+  their existing 1989 versions; the unidentified box truck remains deferred. The ledger owns specification limits and validation.
 - **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
   PRODUCTION 750, GTI CUP and 911 CUP classes; the [product specification](product.md) is Stage 16's target
   ([Product courses](content-and-gameplay.md#product-courses),
@@ -73,7 +74,8 @@ Each line is one area as it stands, with the document that owns it.
 
 Next PR: [Stage AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage
 RC](#stage-rc--one-recovery) and [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving) are made and await K's
-DEV check and K's choice of the replanning interval (AD-5's reports); in [Stage
+DEV check and K's choice of the replanning interval (AD-5's reports); [Stage
+M23](#stage-m23--the-mclaren-m23-pp-spec)'s M23-2, the M23's pictures; in [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
 [RD-6e](#courses-of-the-originals) once K's recordings come; then [Stage 16](#stage-16--produce-product-courses).
 
@@ -517,6 +519,24 @@ Not decided, for K in DEV after the stage:
   default stays 0 (K, 2026-11-16).
 - A vehicle whose drive reaches its tires' limit is held by TCS at the peak slip, so its engine turns faster than its
   road speed by that slip; a tire whose peak slip passes 5 % reaches the fuel cut (1.05) before the shift.
+
+## Stage M23 — The McLaren M23 PP spec
+
+K takes POLE POSITION II's car for the McLaren M23 of 1976 and adds it as a vehicle of its own, the M23 as built but
+for two of its gears, shown `L` and `H`, and its explosion on any solid contact (K, 2026-11-16;
+[Racing vehicles](racing-vehicles.md#mclaren-m23-historical-reference-versus-pp-spec)). M23-1, the vehicle and its
+driving, is made; its pictures are the Lotus's until M23-2.
+
+- **M23-2** A third picture source, a GLB model made a solid, and the M23's set baked from K's model, which stays on
+  K's branch `codex/m23-glb-source`, off main: eight colors, each channel off or on, by five roles (K, 2026-11-16).
+
+Not decided, for K:
+
+- The tires of the M23, with the other F1 cars' ([Stage TR](#stage-tr--the-brush-tire)).
+- Whether the M23 joins a series (ARCADE TRIBUTE's POLE POSITION II among them), its name (`M23 PP SPEC` is the
+  auditor's), and its own engine sound (it borrows the Lotus's DFV).
+- `npm run measure -- generate` runs out of memory in a 16 GB session: each of its workers compiles the whole content
+  again (about 6 GB). Not changed in this stage.
 
 ## Stage RM — BRANCH, TSUKUBA and the walls
 

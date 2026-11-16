@@ -429,8 +429,8 @@ async function assembleCourseRun(
   };
   // The scene is drawn first; presenting follows the run screen's text.
   // The course's display name from the course index and the name of its rules, which the HUD shows during READY, and
-  // the player vehicle's tachometer scale and steering picture from its definitions; a DEV rebuild's run gives its own
-  // rules and tuned definition.
+  // the player vehicle's tachometer scale, steering picture and gear names from its definitions; a DEV rebuild's run
+  // gives its own rules and tuned definition.
   const hudRun = ({
     configuration,
     entries,
@@ -446,6 +446,7 @@ async function assembleCourseRun(
       rules: RULES_NAMES[configuration.mode],
       redlineRpm,
       steeringPicture: vehicleDefinition.steeringPicture,
+      gearNames: vehicleDefinition.listing.visuals.gearNames,
       slowDown: page.player.settings.slowDown,
     };
   };

@@ -101,6 +101,12 @@
       "lufs": -19.018831829410562
     },
     {
+      "vehicleId": "MCLAREN_M23_PP_SPEC",
+      "vehicleSha256": "74d715a63199940a12b276ba398e5cb9510eec30b228e37796d1525a1b3df4c5",
+      "soundSha256": "89fdab84f8b452856ab794c8016eaec65ba95ddc916121a62a31cdef3fea333c",
+      "lufs": -19.00876154120311
+    },
+    {
       "vehicleId": "CB900F_1981",
       "vehicleSha256": "b77363f9adf5cb309454eba8b527b6c5d2b3cab908777d852cbd5aa226e2ea78",
       "soundSha256": "527deb71525556f5040a10d4f0eb69efd66fc28d34745cf4ec3bb5ce558afc02",

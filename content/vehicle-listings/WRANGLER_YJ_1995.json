@@ -2,7 +2,7 @@
   "format": "superoutride.vehicle-listing",
   "version": 5,
   "form": "car",
-  "selectionOrder": 41,
+  "selectionOrder": 42,
   "visuals": {
     "spriteSet": "wrangler-yj-1995",
     "palette": "stock",

@@ -207,21 +207,21 @@ tiles follow them in one fixed order that code names, the same way, so their map
 the HUD pictures follow them; the document holds exactly these, all written by the generators. Pattern 0,
 the space, must have only index 0: it is the empty tile.
 
-| Patterns | Names                           | Content                                                                                                                      |
-| -------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 0–98     | `normal`                        | The normal 8×8 font: ink slot 1, its shadow slot 2                                                                           |
-| 99–197   | `ornateSmall`                   | The ornate small 8×8 font: ink slots 1–7 by row from the top, its shadow 8                                                   |
-| 198–296  | `ornateLarge`, top              | The ornate large 8×16 font's top tiles: ink slots 1–8 by row, its shadow 9                                                   |
-| 297–395  | `ornateLarge`, bottom           | Its bottom tiles, with the same slots                                                                                        |
-| 396–399  | `LAMP_TL`…`_BR`                 | The signal lamp, 2×2 tiles, one set whose palette gives its state: outline 1, bezel 4–6, lens 7–12, specular 13, glow rim 15 |
-| 400–444  | `METER_a_b` (0 ≤ a ≤ b ≤ 8)     | A meter cell (rows 2–5): slot 1 before column a, slot 4 to b, the slot 3 ground                                              |
-| 445–451  | `METER_RIGHT_1`…`_7`            | A meter cell filled k pixels from the right in slot 1 over the slot 3 ground                                                 |
-| 452–531  | `TACH_0`…`_79`                  | The tachometer's tiles in every state they reach: a tile's first color slots 1–7, its second 8–14                            |
-| 532–597  | `DIGIT_d_k` (d 0–9, then `OFF`) | Tile k of a 2×3-tile italic segment digit: lit core 1, edge 2; unlit 3, 4                                                    |
-| 598–613  | `ARROW_LEFT_0`…`_15`            | Tile k of the 4×4-tile road arrow pointing left, a triple chevron: outline 1, shadow 2, gradient 3–10 from the top           |
-| 614–629  | `ARROW_RIGHT_0`…`_15`           | The same pointing right                                                                                                      |
-| 630–635  | `TIRES_CAR_0`…`_5`              | Tile k of the 2×3-tile tire gauge for a car: outline 1, tires 2, lines 3                                                     |
-| 636–641  | `TIRES_BIKE_0`…`_5`             | The same for a bike                                                                                                          |
+| Patterns | Names                                | Content                                                                                                                      |
+| -------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| 0–98     | `normal`                             | The normal 8×8 font: ink slot 1, its shadow slot 2                                                                           |
+| 99–197   | `ornateSmall`                        | The ornate small 8×8 font: ink slots 1–7 by row from the top, its shadow 8                                                   |
+| 198–296  | `ornateLarge`, top                   | The ornate large 8×16 font's top tiles: ink slots 1–8 by row, its shadow 9                                                   |
+| 297–395  | `ornateLarge`, bottom                | Its bottom tiles, with the same slots                                                                                        |
+| 396–399  | `LAMP_TL`…`_BR`                      | The signal lamp, 2×2 tiles, one set whose palette gives its state: outline 1, bezel 4–6, lens 7–12, specular 13, glow rim 15 |
+| 400–444  | `METER_a_b` (0 ≤ a ≤ b ≤ 8)          | A meter cell (rows 2–5): slot 1 before column a, slot 4 to b, the slot 3 ground                                              |
+| 445–451  | `METER_RIGHT_1`…`_7`                 | A meter cell filled k pixels from the right in slot 1 over the slot 3 ground                                                 |
+| 452–531  | `TACH_0`…`_79`                       | The tachometer's tiles in every state they reach: a tile's first color slots 1–7, its second 8–14                            |
+| 532–609  | `DIGIT_g_k` (g 0–9, `OFF`, `L`, `H`) | Tile k of a 2×3-tile italic segment digit: lit core 1, edge 2; unlit 3, 4                                                    |
+| 610–625  | `ARROW_LEFT_0`…`_15`                 | Tile k of the 4×4-tile road arrow pointing left, a triple chevron: outline 1, shadow 2, gradient 3–10 from the top           |
+| 626–641  | `ARROW_RIGHT_0`…`_15`                | The same pointing right                                                                                                      |
+| 642–647  | `TIRES_CAR_0`…`_5`                   | Tile k of the 2×3-tile tire gauge for a car: outline 1, tires 2, lines 3                                                     |
+| 648–653  | `TIRES_BIKE_0`…`_5`                  | The same for a bike                                                                                                          |
 
 The fonts, the signal lamp, the segment digits and the road arrow are the [HUD design sources](#hud-design-sources)'. The other part tiles
 are drawn by the HUD tiles command ([Development](development.md#hud-tiles-command)), which writes them in place:
@@ -251,10 +251,10 @@ palette of its own after the named palettes, in that order:
 
 | Patterns  | Palette | Name         | Picture                                          | Frames                                   |
 | --------- | ------- | ------------ | ------------------------------------------------ | ---------------------------------------- |
-| 642–1793  | 77      | `prototipo`  | A steering wheel with three drilled metal spokes | 32, 11.25° apart, a full turn, 0 upright |
-| 1794–2945 | 78      | `mod02`      | A steering wheel with two dark spokes            | 32, 11.25° apart, a full turn, 0 upright |
-| 2946–4097 | 79      | `montecarlo` | A steering wheel with three dark spokes          | 32, 11.25° apart, a full turn, 0 upright |
-| 4098–5285 | 80      | `top-bridge` | A motorcycle's top bridge and handlebars         | 33, 45/32° apart, ±22.5°, 16 upright     |
+| 654–1805  | 77      | `prototipo`  | A steering wheel with three drilled metal spokes | 32, 11.25° apart, a full turn, 0 upright |
+| 1806–2957 | 78      | `mod02`      | A steering wheel with two dark spokes            | 32, 11.25° apart, a full turn, 0 upright |
+| 2958–4109 | 79      | `montecarlo` | A steering wheel with three dark spokes          | 32, 11.25° apart, a full turn, 0 upright |
+| 4110–5297 | 80      | `top-bridge` | A motorcycle's top bridge and handlebars         | 33, 45/32° apart, ±22.5°, 16 upright     |
 
 Each frame is 48×48 pixels, 6×6 tiles, each next frame turned one step further clockwise; its 36 patterns run row by
 row from the top left, so frame `f`'s tile at row `r` and column `c` is the picture's first pattern plus
@@ -825,13 +825,13 @@ parts and holds 64 palette slots per 8×8 tile, row by row; a character list mus
 their order, and a slot outside a source's slots does not admit. A source palette holds 16 RGB555 colors, as the text tiles save them. The
 PNG files beside them are previews, which nothing reads.
 
-| Source                      | Content                                                                                                                       |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `font-normal-patterns.json` | The normal font: `ascii`, U+0020–U+007E, and `extra`, the marks with their `codePoint`; slots 1–2                             |
-| `font-ornate-patterns.json` | The ornate fonts, every character: `small` (slots 1–8), `large` with `top` and `bottom` (slots 1–9) and the SUNSET `palettes` |
-| `seg-digits.json`           | The italic segment digits 0–9 and OFF, each 2×3 tiles row by row (slots 1–4), and the VFD, YELLOW and RED `palettes`          |
-| `lamp.json`                 | The signal lamp, 2×2 tiles row by row (slots 1–15), and its OFF, RED_ON and GREEN_ON `palettes`                               |
-| `arrow.json`                | The road arrow, 4×4 tiles row by row `left` and `right` (slots 1–10), and its `palette`                                       |
+| Source                      | Content                                                                                                                                                                                 |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `font-normal-patterns.json` | The normal font: `ascii`, U+0020–U+007E, and `extra`, the marks with their `codePoint`; slots 1–2                                                                                       |
+| `font-ornate-patterns.json` | The ornate fonts, every character: `small` (slots 1–8), `large` with `top` and `bottom` (slots 1–9) and the SUNSET `palettes`                                                           |
+| `seg-digits.json`           | The italic segment digits 0–9, OFF and the letters L and H (each segment lit as in 8 or unlit as in OFF), each 2×3 tiles row by row (slots 1–4), and the VFD, YELLOW and RED `palettes` |
+| `lamp.json`                 | The signal lamp, 2×2 tiles row by row (slots 1–15), and its OFF, RED_ON and GREEN_ON `palettes`                                                                                         |
+| `arrow.json`                | The road arrow, 4×4 tiles row by row `left` and `right` (slots 1–10), and its `palette`                                                                                                 |
 
 ## Screen pictures
 

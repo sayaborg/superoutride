@@ -10,7 +10,7 @@ import {
   compileDrivingDocument,
   compileVehicleListingDocument,
   compileVehicleMechanicsDocument,
-  createVehicleDefinition,
+  pairVehicleDefinition,
   type CompiledVehicleDefinition,
 } from '../vehicle/definition-document.js';
 import type { ContentDelivery } from './content-delivery.js';
@@ -91,7 +91,9 @@ export function compileVehicleDefinitions(
     );
     if (!catalogRules.ok) return catalogRules;
     orders.add(listing.value.source.selectionOrder);
-    vehicles.push(createVehicleDefinition(mechanics.value, listing.value));
+    const vehicle = pairVehicleDefinition(mechanics.value, listing.value, listingFile!.path, '/visuals/gearNames');
+    if (!vehicle.ok) return vehicle;
+    vehicles.push(vehicle.value);
   }
   const unpaired = listingSources.find((listing) => !mechanicsSources.some((source) => source.id === listing.id));
   const listed = admit(unpaired?.path ?? '', () =>

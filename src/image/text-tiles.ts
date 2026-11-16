@@ -112,6 +112,13 @@ export function ornatePalette(font: Exclude<TextFont, 'normal'>, style: OrnateSt
 export const tireGaugePalette = (step: number) => TEXT_PALETTES.TIRES_AIR - TIRE_GAUGE_COLORS.length + step;
 /** A segment digit is 2 by 3 tiles, its six patterns row by row from the top left. */
 export const DIGIT_TILES = Object.freeze({ columns: 2, rows: 3 });
+/**
+ * The characters a segment digit draws: the digits, and the letters a vehicle may name its gears by (`L` and `H`, each
+ * of seven segments).
+ */
+export const SEGMENT_CHARACTERS = '0123456789LH';
+/** The segment glyphs in the text tiles' order of `DIGIT_g_k`: the digits, OFF (every segment unlit), the letters. */
+export const SEGMENT_GLYPHS: readonly string[] = Object.freeze([...'0123456789', 'OFF', ...'LH']);
 /** The signal lamp is 2 by 2 tiles, its patterns row by row from the top left. */
 export const LAMP_TILES = 2;
 /** The road arrow is 4 by 4 tiles, its patterns row by row from the top left. */
@@ -126,8 +133,8 @@ const tiles = (prefix: string, count: number) => Array.from({ length: count }, (
  *   cut part) from a to b and the slot 3 ground after; `METER_RIGHT_k` (1 to 7) fills k pixels from the right instead.
  * - `TACH_n`: the tachometer's patterns ([tachometer](./tachometer.ts)), every state its tiles can reach without
  *   duplicates.
- * - `DIGIT_d_k` (d 0 to 9, and `OFF`): tile k of a 16-by-24-pixel italic segment digit from the design sources, lit
- *   segments in slots 1 and 2 and the others in 3 and 4.
+ * - `DIGIT_g_k` (g each of `SEGMENT_GLYPHS`): tile k of a 16-by-24-pixel italic segment digit from the design sources,
+ *   lit segments in slots 1 and 2 and the others in 3 and 4.
  * - `ARROW_LEFT_k` and `ARROW_RIGHT_k`: tile k of the 32-by-32-pixel road arrow from the design sources, a triple
  *   chevron.
  * - `TIRES_CAR_k` and `TIRES_BIKE_k`: tile k of the 16-by-24-pixel tire gauge ([tire gauge](./tire-gauge.ts)) by the
@@ -138,7 +145,7 @@ export const HUD_TILE_NAMES: readonly string[] = Object.freeze([
   ...Array.from({ length: 9 }, (_, a) => Array.from({ length: 9 - a }, (_, k) => `METER_${a}_${a + k}`)).flat(),
   ...Array.from({ length: 7 }, (_, k) => `METER_RIGHT_${k + 1}`),
   ...tiles('TACH', TACHOMETER_PATTERNS.length),
-  ...[...'0123456789'.split(''), 'OFF'].flatMap((d) => tiles(`DIGIT_${d}`, DIGIT_TILES.columns * DIGIT_TILES.rows)),
+  ...SEGMENT_GLYPHS.flatMap((g) => tiles(`DIGIT_${g}`, DIGIT_TILES.columns * DIGIT_TILES.rows)),
   ...tiles('ARROW_LEFT', ARROW_TILES * ARROW_TILES),
   ...tiles('ARROW_RIGHT', ARROW_TILES * ARROW_TILES),
   ...Object.keys(TIRE_GAUGE_PATTERNS).flatMap((form) =>

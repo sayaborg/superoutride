@@ -1,0 +1,25 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 25,
+  "visuals": {
+    "spriteSet": "lotus-79-special",
+    "palette": "race",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "race": "WHITE/BLUE", "race-2": "WHITE/RED", "race-3": "WHITE/GREEN", "race-4": "WHITE/YELLOW" },
+    "gearNames": ["L", "H"]
+  },
+  "sound": "LOTUS_79_SPECIAL",
+  "metadata": {
+    "manufacturer": "McLaren",
+    "model": "M23 PP SPEC",
+    "period": "1976",
+    "mobileLabel": "M23",
+    "engine": "V8",
+    "identifier": { "officialLabel": "M23", "shortLabel": "M23" },
+    "selectedSpecification": ["Hunt #11", "1976 base", "PROVISIONAL", "2-SPEED", "CONTACT EXPLOSION"],
+    "physicsAnchor": { "modelYear": "1976", "market": "1976 base" }
+  },
+  "contactResponse": "explode"
+}

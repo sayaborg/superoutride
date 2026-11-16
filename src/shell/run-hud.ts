@@ -24,11 +24,12 @@ import type { RecordSplit } from './run-records.js';
 import type { CameraState } from '../view/camera.js';
 import { SIM_DT } from '../race/fixed-step.js';
 import { SLOW_DOWN, type SlowDownStage } from '../race/slow-down.js';
+import { gearName, type GearNames } from '../vehicle/definition-document.js';
 
 /**
  * What the HUD reads in one frame: the race's facts, the player's observation, the camera's observation, the run's
- * course, the name of its rules and the player vehicle's engine speeds and steering picture from its definitions, and
- * the record the run compares against.
+ * course, the name of its rules and the player vehicle's engine speeds, steering picture and gear names from its
+ * definitions, and the record the run compares against.
  */
 export interface HudFacts {
   readonly race: RaceFacts;
@@ -43,6 +44,8 @@ export interface HudFacts {
     readonly redlineRpm: number;
     /** The picture of the player vehicle's steering wheel or top bridge, which its listing names. */
     readonly steeringPicture: HudPicture;
+    /** The player vehicle's gear names, as its listing's visuals give them (`gearName`). */
+    readonly gearNames: GearNames;
     /** Whether the player's SETTINGS show SLOW DOWN. */
     readonly slowDown: boolean;
   };
@@ -183,14 +186,14 @@ const writeCentredMeter = (text: TextLayer, place: Place, sign: number, pixels: 
     );
   }
 };
-/** A 2×3-tile segment digit, or one with every segment unlit when `digit` is null. */
-const writeDigit = (text: TextLayer, column: number, row: number, digit: number | null, palette: number) => {
+/** A 2×3-tile segment digit drawing `glyph`, one of `SEGMENT_CHARACTERS`, or every segment unlit when it is null. */
+const writeDigit = (text: TextLayer, column: number, row: number, glyph: string | null, palette: number) => {
   const tiles = DIGIT_TILES.columns * DIGIT_TILES.rows;
   for (let k = 0; k < tiles; k++)
     text.put(
       column + (k % DIGIT_TILES.columns),
       row + Math.floor(k / DIGIT_TILES.columns),
-      HUD_TILES[`DIGIT_${digit ?? 'OFF'}_${k}`]!,
+      HUD_TILES[`DIGIT_${glyph ?? 'OFF'}_${k}`]!,
       palette,
     );
 };
@@ -351,25 +354,25 @@ const HUD_ELEMENTS: readonly HudElement[] = [
         [column, row] = HUD_LAYOUT.speed;
       for (let i = 0; i < SPEED_DIGITS; i++) {
         const digit = speed[i - (SPEED_DIGITS - speed.length)];
-        writeDigit(
-          text,
-          column + i * DIGIT_TILES.columns,
-          row,
-          digit === undefined ? null : Number(digit),
-          TEXT_PALETTES.SEG_VFD,
-        );
+        writeDigit(text, column + i * DIGIT_TILES.columns, row, digit ?? null, TEXT_PALETTES.SEG_VFD);
       }
       write(text, 'speedUnit', 'km/h');
     },
   },
   {
-    // The gear, yellow briefly after a shift.
+    // The gear by its name, yellow briefly after a shift.
     when: () => true,
-    write({ race, player: { powertrain } }, text) {
+    write({ race, run, player: { powertrain } }, text) {
       const shifted =
         powertrain.shiftSeconds !== null && race.simulationSeconds - powertrain.shiftSeconds < HUD_DURATIONS.shift;
       const [column, row] = HUD_LAYOUT.gear;
-      writeDigit(text, column, row, powertrain.gear % 10, shifted ? TEXT_PALETTES.SEG_YELLOW : TEXT_PALETTES.SEG_VFD);
+      writeDigit(
+        text,
+        column,
+        row,
+        gearName(run.gearNames, powertrain.gear),
+        shifted ? TEXT_PALETTES.SEG_YELLOW : TEXT_PALETTES.SEG_VFD,
+      );
     },
   },
   {

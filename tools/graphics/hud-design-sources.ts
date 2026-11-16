@@ -5,6 +5,7 @@ import {
   ARROW_TILES,
   DIGIT_TILES,
   LAMP_TILES,
+  SEGMENT_GLYPHS,
   TEXT_CHARACTER_ORDER,
   TEXT_TILE_SIZE,
 } from '../../src/image/text-tiles.js';
@@ -147,12 +148,12 @@ export async function readOrnateFonts(store: ContentStore): Promise<OrnateFontSo
   );
 }
 
-/** The segment digits 0 to 9 and then OFF, in the text tiles' order of `DIGIT_d_k`. */
-const SEGMENT_DIGITS = Object.freeze([...'0123456789'.split(''), 'OFF']);
-
 /** The italic segment digits and their palettes. */
 export interface SegmentDigitsSource {
-  /** Each digit's 2-by-3 tiles row by row: slot 1 the lit core, 2 the lit edge, 3 the unlit core, 4 the unlit edge. */
+  /**
+   * Each glyph's 2-by-3 tiles row by row, in the order of `SEGMENT_GLYPHS`: slot 1 the lit core, 2 the lit edge, 3 the
+   * unlit core, 4 the unlit edge.
+   */
   readonly digits: readonly (readonly (readonly number[])[])[];
   readonly palettes: {
     readonly VFD: readonly number[];
@@ -161,21 +162,21 @@ export interface SegmentDigitsSource {
   };
 }
 
-/** The italic segment digits, 0 to 9 and OFF, each 2 by 3 tiles, and the VFD, YELLOW and RED palettes. */
+/** The italic segment glyphs, `SEGMENT_GLYPHS`, each 2 by 3 tiles, and the VFD, YELLOW and RED palettes. */
 export async function readSegmentDigits(store: ContentStore): Promise<SegmentDigitsSource> {
   const { path, value } = await readSource(store, 'seg-digits.json');
   return requireLoaded(
     admit(path, () => {
       const document = readRecord(value, '', ['note', 'digits', 'palettes']);
-      const digits = readArray(document.digits, '/digits', (entry) => entry, { length: SEGMENT_DIGITS.length }).map(
+      const digits = readArray(document.digits, '/digits', (entry) => entry, { length: SEGMENT_GLYPHS.length }).map(
         (entry, i) => {
           const at = `/digits/${i}`,
             record = readRecord(entry, at, ['digit', 'tiles']);
           requireAdmission(
-            record.digit === SEGMENT_DIGITS[i],
+            record.digit === SEGMENT_GLYPHS[i],
             'invalid_value',
             `${at}/digit`,
-            `Expected ${SEGMENT_DIGITS[i]}`,
+            `Expected ${SEGMENT_GLYPHS[i]}`,
           );
           return readArray(record.tiles, `${at}/tiles`, (tile, tilePath) => readTile(tile, tilePath, 4), {
             length: DIGIT_TILES.columns * DIGIT_TILES.rows,

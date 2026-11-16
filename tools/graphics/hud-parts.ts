@@ -5,7 +5,7 @@ import {
   tachometerRamp,
   type TachometerColor,
 } from '../../src/image/tachometer.js';
-import { HUD_TILE_NAMES, TEXT_TILE_SIZE } from '../../src/image/text-tiles.js';
+import { HUD_TILE_NAMES, SEGMENT_GLYPHS, TEXT_TILE_SIZE } from '../../src/image/text-tiles.js';
 import { TIRE_GAUGE_COLORS, TIRE_GAUGE_PATTERNS } from '../../src/image/tire-gauge.js';
 
 /** A meter cell's rows: 4 pixels high, 2 pixels clear above and below. */
@@ -45,7 +45,7 @@ export function drawHudParts(
     );
   TACHOMETER_PATTERNS.forEach((pattern, n) => drawn.set(`TACH_${n}`, pattern));
   segmentDigits.digits.forEach((tiles, d) =>
-    tiles.forEach((tile, k) => drawn.set(`DIGIT_${d < 10 ? d : 'OFF'}_${k}`, tile)),
+    tiles.forEach((tile, k) => drawn.set(`DIGIT_${SEGMENT_GLYPHS[d]!}_${k}`, tile)),
   );
   arrow.left.forEach((tile, k) => drawn.set(`ARROW_LEFT_${k}`, tile));
   arrow.right.forEach((tile, k) => drawn.set(`ARROW_RIGHT_${k}`, tile));

@@ -39,6 +39,36 @@ specification: the tables, formats, conversion rules and decisions are that docu
 - The Goal setting's laps less 3 go to $8146 (the Z80 at 0x0A9C reads the settings, bit-reversed); the Speed setting
   and the unit (km/h or mph) select 0x1F38's factor.
 
+## Gears, LO and HI
+
+Read for the McLaren M23 PP SPEC's `L` (Stage M23); research only, nothing here is taken into the game. A Python
+model of the routines below, at full throttle on a straight road, gave the speeds; they are as good as that model.
+
+- The gears are no speed caps: the first program models a drivetrain each frame. F 0x2704, which the race's states call
+  (0x0DB6, 0x1066, 0x1142), calls in turn 0x27DE (the engine's torque $8220 from a 64-entry curve at F 0x3EF0 by the
+  revolutions $821C / 256, times the throttle $8190 / 8, and a bonus $821E), 0x2886 (the gear and the clutch), 0x2986
+  (the drive force, torque × ratio × 32 less the brake × 1,500), 0x29C2 and 0x2A10 (grip or wheelspin: a force above
+  15,000 delivers 9,000) and 0x2A74 (the wheels' revolutions $8228, the drag 600 + 0.672 × ($8258 / 100)², and the
+  speed $8258 gaining force less drag over 256). F 0x1BE4 makes $8258 the speed $818C (its high word $8258 / 39.0625).
+- 0x2886 takes the ratio $8226 as 10 in LO and 5 in HI, HI where $801A's bit 0 is set: the Z80 (0x0201 to 0x020A)
+  writes there the negation of bit 5 of the 51xx's input it keeps at its $810E. In the attract demo ($8104 not 0) the
+  car takes HI from speed 100. Before GO the clutch is out ($8204 0) and the engine revs freely; from then the engine
+  follows the wheels within ±200 revolutions, or the clutch slips, multiplying the torque by up to 2.25.
+- The curve peaks near 8,200 revolutions and is 0 at 12,800. LO is held by the revolutions: at full throttle it settles
+  near speed 204 (about 12,000 revolutions). HI is held by the drag near 281 (about 8,250), its revolutions far from
+  the limit, so **LO's top is about 0.73 of HI's**. The clamp to 255 at F 0x1C48 is on the slowing path alone
+  ($81BC not 0); the background takes min(speed, 255) and the readout is 1.25 times the speed in km/h (F 0x1F40).
+- Below about speed 100 LO pulls 2.4 to 2.9 times as hard as HI, and spins its wheels; HI never does. HI starts from
+  rest, as the engine cannot stall (the curve's first entry is 28/64 of its peak). A start revved on the grid in HI
+  reaches 100 sooner than in LO, the slipping clutch without wheelspin, and LO leads from about 150. Held in LO the
+  car stays at its top, with no penalty. A shift up costs nothing (the clutch slips while the revolutions fall); a
+  shift down at speed drags the engine to about 14,700 revolutions and brakes about as hard as the pedal to LO's top.
+- In HI between about 7,936 and 10,751 revolutions the bonus $821E grows slowly (to 64, over minutes), letting the car
+  creep past 281; it clears in LO or below 4,864 revolutions. Nothing else depends on the gear: no lockout, timer or
+  deduction. The revolutions make the engine's pitch (F 0x2728, to $80F2 and $80F4); no tachometer is drawn.
+- Open: which way of the lever bit 5 is (the ratio defines LO and HI here); what $8148's bit 7 chooses (the readout's
+  factor, the pitch's divisor and a grip table); whether S's like code from S 0x2710 is ever called.
+
 ## Objects and the projection
 
 - S 0x0A1E draws the 32 objects at $8900 (8 bytes each) by type (0x0A66's table). An object's depth d gives its road

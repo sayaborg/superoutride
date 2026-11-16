@@ -2,7 +2,7 @@
   "format": "superoutride.vehicle-listing",
   "version": 5,
   "form": "bike",
-  "selectionOrder": 25,
+  "selectionOrder": 26,
   "visuals": {
     "spriteSet": "cb900f-1981",
     "palette": "stock",
