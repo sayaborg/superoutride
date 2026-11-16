@@ -447,13 +447,13 @@ a condition; the limits across the road are limits as the side ones are, for con
   and one Link per Section stay. Its lists of what goes and what stays are written in its PR first, split if that
   reads better.
 
-A CHASE H.Q. fault Stage TR's field runs found, on main before it (the auditor's addition, 2026-11-16; RC-5, a recovery
-outside the coordinate domain, is on main):
+The two CHASE H.Q. faults Stage TR's field runs found are on main (RC-4, a lane handed across a seam, and RC-5, a
+recovery outside the coordinate domain; the auditor's additions and K's word, 2026-11-16). Next:
 
-- **RC-4, a lane handed across a seam.** `carryAcross` (`src/race/course-lane-field.ts`) throws on CHASE H.Q. 2 to 5
-  right (and 2 left after TR): the lane it is handed is not one of the Section's before the seam. Its fix (a lane's
-  end names the lane to merge toward where the driver is) awaits K: it also changes how drivers merge on 22 other
-  courses, where the old numbering moved them toward their own lane, the wrong side or a lane not yet there.
+- **RC-6, a seam's limit step closed (K, 2026-11-16).** Where a seam's two Sections hold a side's course limit at
+  different laterals, a limit across the road closes the step between them, placed by the compiler from the course's
+  shape (no format change). Four places let a vehicle out today: CISCO HEAT 5 (1,457.94 m), CHASE H.Q. 2 left
+  (1,758.46 m), CHASE H.Q. 1 left (3,453.77 m) and CISCO HEAT 3 (2,274.12 m).
 
 Not decided, for later: after a recovery a vehicle stands at rest with its engine at idle, and the slipping clutch
 delivers nothing until the engine has risen (NSR500 stands about 0.7 s); K judges it in DEV. A course with holes needs

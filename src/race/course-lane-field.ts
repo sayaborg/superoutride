@@ -218,7 +218,9 @@ export function createCourseLaneField(route: CourseRoute, racingLines: RacingLin
     /**
      * Where the intent's lane ends ahead, after route station `s` through `end` (where it leaves its vehicle no room,
      * or a seam it does not continue across), and, when that is the first end ahead, the lane beside it to merge
-     * toward; null when the lane runs on through `end`.
+     * toward; null when the lane runs on through `end`. The lane to merge toward is a lane index at `s`, as the intent's
+     * lane there is: the lane beside the intent's at `s` on the side its merge lies where the lane ends (lane order is
+     * kept across seams), null where `s` has no lane on that side.
      */
     laneEnd(
       s: number,
@@ -226,7 +228,8 @@ export function createCourseLaneField(route: CourseRoute, racingLines: RacingLin
       intent: DriverIntent,
     ): { readonly s: number; readonly merge: number | null } | null {
       if (intent.lane === LINE) return null;
-      let lane = laneIn(intent, s);
+      const here = laneIn(intent, s);
+      let lane = here;
       for (let k = place(s).occurrence.ordinal; k < route.occurrences.length; k++) {
         const occurrence = route.occurrences[k]!;
         if (occurrence.start > end) break;
@@ -238,7 +241,11 @@ export function createCourseLaneField(route: CourseRoute, racingLines: RacingLin
           Math.min(occurrence.end - occurrence.start, routeSectionS(occurrence, end)),
           intent.width,
         );
-        if (found) return { s: occurrence.start + found.at, merge: found.merge };
+        if (!found) continue;
+        // The merge lane is the ending occurrence's index; the side it lies on is the same at s.
+        const beside = found.merge === null ? null : here + Math.sign(found.merge - lane);
+        const merge = beside !== null && lanesOf(place(s).occurrence.section)[beside] ? beside : null;
+        return { s: occurrence.start + found.at, merge };
       }
       return null;
     },

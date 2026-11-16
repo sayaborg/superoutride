@@ -1558,7 +1558,10 @@ not continue across), or at a standing object in it (one that occupies the lane)
 first. At such an end the lane to merge toward is the lane beside it that continues: the one there for its vehicle
 where a width ends, the one toward the followed road at a seam; at a standing object it is the adjacent lane of
 its road there for its vehicle that does not end within the lookahead, the left one when both qualify, and none when neither does. The driver moves toward it
-one lane at a time. Each
+one lane at a time, the next lane being its lane's neighbour where it is, on the side that lane lies where its lane ends
+(lane order holds across seams): an end in a later Section names its lane in that Section's lanes, the driver moves in
+its own Section's, and where its own has no lane on that side it does not move yet (the auditor's addition,
+2026-11-16). Each
 step that its lane ends ahead, the driver moves to the next lane toward it when that lane is free (the free-lane test
 above) and every driven vehicle behind in it can follow the driver, the plan constraint above with the driver as the
 vehicle ahead at its speed; vehicles in the lanes that continue do not yield. While its lane still ends there, that end
