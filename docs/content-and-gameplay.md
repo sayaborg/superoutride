@@ -1412,9 +1412,10 @@ vehicle ahead (target). The pedals ask the acceleration `(v_next² − v²)/(2Δ
 plan's node at least half a cell ahead, `speedSeconds` 0.5 s; a plan within the speed deadzone of standstill is a stop
 and the brake holds. The steering follows the path: its curvature read `curvatureSeconds` (0.2 s) of the speed ahead,
 its lateral error (read at most `pathErrorLimit`, 2 m, so a larger step closes at a bounded rate) and heading error at
-the vehicle's station; neutral while neither tire is loaded. Since the input sets the front tire's slip, the full input's
-yaw rate it inverts through is scaled by the front tire's effective load factor, read from its observed load (at least
-`leastFrontLoadFactor`, 0.25).
+the vehicle's station; neutral while neither tire is loaded. Since the input asks the front tire for a force at its
+static load, never more than its utilization of the bound it has (K, 2026-11-16), the full input's yaw rate it inverts
+through is scaled by the front tire's effective load factor where that falls below 1, read from its observed load (at
+least `leastFrontLoadFactor`, 0.25), and not above it (the implementer's choice).
 
 A driver plans once in `replanSteps` (3) of its steps (K, 2026-11-13: the largest of 2, 3 and 4 steps at which every
 reference run finishes on the pavement): its speed plan and its decisions about other vehicles (the vehicle ahead, path

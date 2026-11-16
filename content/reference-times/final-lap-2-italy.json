@@ -2,13 +2,13 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "9c58634634147f41b48605e132c49858a20368729eaafc0abe337b766d208030",
-  "procedureSha256": "0e7499214c098b0db2bd5268b830d1bbcc965a0f56d71cee64902cdbf9ab994f",
+  "procedureSha256": "36141f961664b90e97575355c76aac31a6558a1743c0efc745b3393a0e76f293",
   "vehicles": [
     {
       "vehicleId": "MCLAREN_MP4_4",
       "vehicleSha256": "a5eb523377f0836bb2ed9fb05a5c6a06cb4fd55bef64a927ffda732c800591a6",
-      "initialSeconds": 99.46718636403347,
-      "after": [["italy-GOAL", [92.8677910860485, 93.08326362303762, 92.99597292931128]]]
+      "initialSeconds": 99.01265186130836,
+      "after": [["italy-GOAL", [92.58360752522485, 92.71968136626086, 92.52725795789183]]]
     }
   ]
 }

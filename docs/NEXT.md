@@ -507,14 +507,18 @@ are DEV's ([Tire law](vehicle-physics.md#tire-law)).
 
 - TR-1, the law and its values, and TR-2, the grip balance, are on main (K's word, 2026-11-16), every vehicle at
   grip balance 0; the values below are K's to set in DEV.
+- TR-3, the steering input asks the front tire for a force at its static load (K, 2026-11-16): made, with every
+  measured product measured again; it awaits K's word on when it may go to main. The default stiffness (40) stays
+  until K sets it in DEV after TR-3.
 
 Not decided, for K in DEV after the stage:
 
 - The tires of the four F1 cars and the two GP motorcycles, their grip balance and how downforce is treated (their
   values are provisional, [Racing vehicles](racing-vehicles.md)).
 - Each production vehicle's grip balance; BAL leaves DEV once every vehicle's is decided.
-- At grip balance 0 the rear steps out further than on main when the throttle is lifted at full steering input
-  (TESTAROSSA at 160 km/h: the body slip angle reaches 13.0° against main's 7.9°); at 0.05 it is about main's. The
+- At grip balance 0, since TR-3, the rear steps out about as far as before Stage TR when the throttle is lifted at full
+  steering input (TESTAROSSA at 160 km/h: the body slip angle reaches 8.4°, against 7.9° before Stage TR and 13.0°
+  before TR-3) and settles without weaving; at 0.10 it reaches 4.8°. Whether BAL is still needed is K's to judge; the
   default stays 0 (K, 2026-11-16).
 - A vehicle whose drive reaches its tires' limit is held by TCS at the peak slip, so its engine turns faster than its
   road speed by that slip; a tire whose peak slip passes 5 % reaches the fuel cut (1.05) before the shift.

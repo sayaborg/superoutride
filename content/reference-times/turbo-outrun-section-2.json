@@ -2,16 +2,16 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "feaa69ee64f1c9d60bd4dfcb9e2f3637c4f54c1065a72a69eda9ff7a23d293d3",
-  "procedureSha256": "0e7499214c098b0db2bd5268b830d1bbcc965a0f56d71cee64902cdbf9ab994f",
+  "procedureSha256": "36141f961664b90e97575355c76aac31a6558a1743c0efc745b3393a0e76f293",
   "vehicles": [
     {
       "vehicleId": "FERRARI_F40_1990",
       "vehicleSha256": "f34bc4d44d544e25d55e66d2b93e6f97289fa9b2164012b789de511b45dd4369",
-      "initialSeconds": 98.0335475597459,
+      "initialSeconds": 110.57465303886012,
       "after": [
-        ["chicago-CP", [72.97252406101441]],
-        ["st-louis-CP", [111.55520313392847]],
-        ["memphis-CP", [68.10751932778334]]
+        ["chicago-CP", [88.56898139339732]],
+        ["st-louis-CP", [126.33939327733248]],
+        ["memphis-CP", [70.50866406461284]]
       ]
     }
   ]

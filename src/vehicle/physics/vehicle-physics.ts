@@ -247,6 +247,12 @@ export function updateVehicle(
     // turns that direction back by the yaw rate's departure from the steady flat turn the input asks for, a part of the
     // tightest one the vehicle holds within its grip and its rack.
     const grip = frontBeforeSteer.surface.material?.gripFactor ?? 1;
+    // The input asks the front tire for a force at its static load (K, 2026-11-16): the part of its bound it asks
+    // there is that force over the bound at the load the tire law reads now, never more than `X`.
+    const { staticLoad } = compiledVehicle.frontStation.suspension;
+    const frontLoad = frontBeforeSteer.tireFrameValid
+      ? effectiveTireLoad(model.tireLoadSensitivity, frontBeforeSteer.normalLoad, staticLoad)
+      : 0;
     const limit = steeringSlip(model, steering, grip, 1);
     const automaticMax = maxRoadWheelSteer - limit;
     const askedYawRate =
@@ -266,7 +272,7 @@ export function updateVehicle(
     );
     vehicle.frontSteerAngle =
       clamp(travelDirection, -automaticMax, automaticMax) +
-      steeringSlip(model, steering, grip, vehicle.actuator.steering);
+      steeringSlip(model, steering, grip, vehicle.actuator.steering, frontLoad > 0 ? staticLoad / frontLoad : 1);
     const front = reorientContactObservation(frontBeforeSteer, body, vehicle.frontSteerAngle, workspace.front);
     const rear = deriveContactObservation(
       coordinates,
@@ -427,12 +433,29 @@ function steadyTurnAcceleration(model: VehicleModel, utilization: number, grip: 
 }
 
 /**
- * The front tire's pure-lateral slip angle that steering input `input` asks under `steering` on `grip`, within the rack:
- * the slip at which its lateral force is the part `|input| X` of its bound, the part of the yaw rate the input asks, with
- * the input's sign. Full input gives the rule's limit `L`.
+ * The part of the front tire's lateral bound, at the load the tire law reads now, that steering input `input` asks at
+ * utilization `utilization`: the part `|input| X` of its bound at its static load, `loadRatio` being the static load
+ * over the load now, and never more than `X` (K, 2026-11-16).
  */
-function steeringSlip(model: VehicleModel, steering: DriverSteering, grip: number, input: number): number {
-  const theta = brushSlipAtForce(Math.abs(input) * steering.utilization);
+export function steeringForceFraction(input: number, utilization: number, loadRatio: number): number {
+  return Math.min(utilization, Math.abs(input) * utilization * loadRatio);
+}
+
+/**
+ * The front tire's pure-lateral slip angle that steering input `input` asks under `steering` on `grip`, within the rack:
+ * the slip at which its lateral force is the part `|input| X` of its bound at its static load, the part of the yaw rate
+ * the input asks, with the input's sign; `loadRatio` is the static load over the load the tire law reads now (1 at the
+ * static load). The part of the bound it has now never passes `X`. Full input at the static load gives the rule's limit
+ * `L`.
+ */
+function steeringSlip(
+  model: VehicleModel,
+  steering: DriverSteering,
+  grip: number,
+  input: number,
+  loadRatio = 1,
+): number {
+  const theta = brushSlipAtForce(steeringForceFraction(input, steering.utilization, loadRatio));
   return (
     Math.sign(input) *
     Math.min(model.steering.maxRoadWheelSteer, Math.atan(tirePeakSlip(model.tires.front, grip) * theta))

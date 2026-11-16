@@ -2,17 +2,17 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "2bc5a857ce223de941a04b1a4d981a995449012a90429052e84d77857cb5f505",
-  "procedureSha256": "0e7499214c098b0db2bd5268b830d1bbcc965a0f56d71cee64902cdbf9ab994f",
+  "procedureSha256": "36141f961664b90e97575355c76aac31a6558a1743c0efc745b3393a0e76f293",
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
       "vehicleSha256": "eeaa2f7b2a3c9bc8d32927f1a0a7263dcd1b30fcff4e1faa1d102fee87eca370",
-      "initialSeconds": 114.005210110307,
+      "initialSeconds": 121.03694776740058,
       "after": [
-        ["DEVIL'S CANYON-CP", [114.54663485759441]],
-        ["CLOUDY MOUNTAIN-CP", [135.14058572101024]],
-        ["SEASIDE TOWN-CP", [88.87519187760591]],
-        ["LAKESIDE-CP", [76.80478135324893]]
+        ["DEVIL'S CANYON-CP", [118.16892888715164]],
+        ["CLOUDY MOUNTAIN-CP", [171.95237849402284]],
+        ["SEASIDE TOWN-CP", [96.94816988767468]],
+        ["LAKESIDE-CP", [95.68234529260923]]
       ]
     }
   ]

@@ -66,7 +66,8 @@ DEV does not tune them, so they too are edited only in the file.
 C is a force over the load per unit of the dimensionless slip (across the wheel, per radian of small slip angle). The
 peak slip `3*G/C` is not a value of its own: the defaults put it at 0.1875 on unit grip under the
 [tire law](vehicle-physics.md#tire-law). Full steering input sets the front tire's pure-lateral slip at which its lateral force reaches the fraction X of its
-bound on the material under the front wheel (at X = 100%, the peak), measured from the front wheel's travel
+bound at its static load on the material under the front wheel (at X = 100%, the peak), and never more than X of the
+bound at its load now (K, 2026-11-16), measured from the front wheel's travel
 direction turned back by the steering rule's lever times the yaw rate's departure from the steady turn asked for. The
 travel direction has the rest of the rack, `M` minus that slip angle ([Vehicle physics](vehicle-physics.md#actuators-and-steering)); neither angle is an
 authored value. The [DEV tuning registry](../src/shell/driving-tuning.ts) owns only these choices and

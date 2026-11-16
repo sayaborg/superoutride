@@ -2,17 +2,17 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "965a44e54131f05148a13966821addf2a60b21bd054090bd426cc159db60306d",
-  "procedureSha256": "0e7499214c098b0db2bd5268b830d1bbcc965a0f56d71cee64902cdbf9ab994f",
+  "procedureSha256": "36141f961664b90e97575355c76aac31a6558a1743c0efc745b3393a0e76f293",
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
       "vehicleSha256": "eeaa2f7b2a3c9bc8d32927f1a0a7263dcd1b30fcff4e1faa1d102fee87eca370",
-      "initialSeconds": 115.04143636247375,
+      "initialSeconds": 120.51673479885714,
       "after": [
-        ["DEVIL'S CANYON-CP", [117.57594980551548]],
-        ["ALPS-CP", [117.3063601474087]],
-        ["WHEAT FIELD-CP", [133.86857519103995]],
-        ["AUTOBAHN-CP", [108.85098520574724]]
+        ["DEVIL'S CANYON-CP", [116.46767338316944]],
+        ["ALPS-CP", [114.941486537927]],
+        ["WHEAT FIELD-CP", [133.26247595259906]],
+        ["AUTOBAHN-CP", [154.66041551547175]]
       ]
     }
   ]

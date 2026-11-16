@@ -585,11 +585,18 @@ the torque protection it drives with: that wheel slip protection and the model's
 name becomes a length once, outside physics: `front` (the front wheel) is 0 and `center` (the centre of mass) is
 `frontAxle`, the front axle's distance from the centre of mass. Cars and bikes share the rule and its law.
 
-The input decides the front tire's force: input `u` uses the front tire up to the fraction `|u|*X` of its lateral
-bound, the same part of the yaw rate the input asks for (`w(u)` below). The slip over the peak slip `theta(f)` at which
-the pure-lateral force is the fraction `f` is the inverse of `H` ([tire law](#tire-law)):
+The input decides the front tire's force: input `u` asks the front tire for the fraction `|u|*X` of its lateral bound
+at its static load, the same part of the yaw rate the input asks for (`w(u)` below). An input asks the front tire for a
+force, not for a part of its bound (K, 2026-11-16). A load that rises under the front wheel does not raise the force
+the same input asks, so lifting off in a turn leaves the front tire's force where the input set it. A load that falls
+leaves the tire at `X` of the bound it has: the force asked never passes `X` of the bound at the load now (the
+auditor's choice). With `N0` the front station's static load and `Ne` the effective load the tire law reads at the
+pre-steer front contact (none without a valid tire frame, where the part is `X`), the part of the bound it has now is
+`f(u)`. The slip over the peak slip `theta(f)` at which the pure-lateral force is the fraction `f` is the inverse of
+`H` ([tire law](#tire-law)):
 
 ```text
+f(u)     = min(X, |u|*X*N0/Ne)
 theta(f) = 1-(1-f)^(1/3)
 S(f)     = P*theta(f)          P = grip*3*muFront/c
 ```
@@ -601,8 +608,8 @@ landing. With the steering actuator `u` in `[-1,1]`, the body's yaw rate `r`, ra
 steering low-speed regularization `steeringV0`, gravity `g`, the wheelbase `frontAxle + rearAxle` and the lever `lever`:
 
 ```text
-slip(u)    = sign(u)*min(M, atan(S(|u|*X)))
-L          = slip(1)
+slip(u)    = sign(u)*min(M, atan(S(f(u))))
+L          = min(M, atan(S(X)))
 wGrip      = grip*g*min(X*muFront,muRear)/hypot(bodyForwardSpeed,bodyLateralSpeed,steeringV0)
 wRack      = hypot(bodyForwardSpeed,steeringV0)*tan(M-L)/wheelbase
 w(u)       = u*min(wGrip, wRack)
@@ -623,18 +630,18 @@ reference the yaw rate asked for turns it even at standstill: `lat = frontAxle*w
 and full input reaches the whole rack from about 6.5–8 km/h.
 
 The front wheel is the rule's essence. With `lever = 0`, while the travel direction is within the rack and the speed is
-well above `steeringV0`, the tangent of the front tire's slip is `S(|u|*X)`: zero input leaves the front tire without
-slip and input `u` sets it at the fraction `|u|*X` of its lateral bound, whatever the yaw rate. Since `w(u)` asks the
-same fraction of the grip's turn, the steady turn on flat ground meets the yaw rate asked for at every input, and the
-yaw-rate term below stays zero there. Scaling the full input's slip `L` by `u` instead would ask more force than that
-below full input, the small slip's force being `3*u*theta(X)` against `u*X`: three times as much at `X = 1` and twice
-at 95 %. The brush's rounding toward the peak stays for the feel of the limit coming. Measuring from the front
-wheel's own travel direction also takes away the front tire's yaw damping, which a fixed steering angle has: the front
-tire's slip `frontSteer - beta - frontAxle*r/V` falls as the yaw rate rises. The yaw-rate term `lever*(r - w(u))`
-restores that damping against the departure from the turn the input asks for: it turns the direction the slip is
-measured from by the lever's lateral speed at the yaw rate's excess. At `lever = frontAxle` it is the damping a real
-front wheel has, now measured from the turn asked for rather than from going straight. The term acts only through the
-steering angle, never as a force or moment, and its strength is a length, not a gain.
+well above `steeringV0`, the tangent of the front tire's slip is `S(f(u))`: zero input leaves the front tire without
+slip and input `u` sets it at the fraction `|u|*X` of its lateral bound at its static load, whatever the yaw rate. Since
+`w(u)` asks the same fraction of the grip's turn, the steady turn on flat ground meets the yaw rate asked for at every
+input, and the yaw-rate term below stays zero there. Scaling the full input's slip `L` by `u` instead would ask more
+force than that below full input, the small slip's force being `3*u*theta(X)` against `u*X`: three times as much at
+`X = 1` and twice at 95 %. The brush's rounding toward the peak stays for the feel of the limit coming. Measuring from
+the front wheel's own travel direction also takes away the front tire's yaw damping, which a fixed steering angle has:
+the front tire's slip `frontSteer - beta - frontAxle*r/V` falls as the yaw rate rises. The yaw-rate term
+`lever*(r - w(u))` restores that damping against the departure from the turn the input asks for: it turns the direction
+the slip is measured from by the lever's lateral speed at the yaw rate's excess. At `lever = frontAxle` it is the
+damping a real front wheel has, now measured from the turn asked for rather than from going straight. The term acts only
+through the steering angle, never as a force or moment, and its strength is a length, not a gain.
 
 `w(u)` is the yaw rate the input asks for: the fraction `u` of the tightest steady turn the vehicle holds, by definition
 on flat ground at constant speed with the static loads, the looser of its grip's turn and its rack's. In the grip's turn

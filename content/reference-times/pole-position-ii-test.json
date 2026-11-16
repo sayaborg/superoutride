@@ -2,13 +2,13 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "8d71f3121051a33f32b8e91bb09930260adf5051f3c39d377865cbf5170c887b",
-  "procedureSha256": "0e7499214c098b0db2bd5268b830d1bbcc965a0f56d71cee64902cdbf9ab994f",
+  "procedureSha256": "36141f961664b90e97575355c76aac31a6558a1743c0efc745b3393a0e76f293",
   "vehicles": [
     {
       "vehicleId": "MCLAREN_M23_PP_SPEC",
       "vehicleSha256": "04f09d644bd3eb9a8a9fa41ce6a9da7a8f4bb3bf7cb248170fd2d0edafed4d7c",
-      "initialSeconds": 60.36170953147491,
-      "after": [["test-GOAL", [54.993278852544016, 55.04613910090171, 54.93527924435534]]]
+      "initialSeconds": 60.318946483360484,
+      "after": [["test-GOAL", [55.08703005205239, 55.10299393877115, 54.98488645396944]]]
     }
   ]
 }

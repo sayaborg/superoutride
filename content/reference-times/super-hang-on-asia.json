@@ -2,22 +2,22 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "326ddbf1b595c6e70bfc31ec5faab32f2b84999ae8b10e1d04ce5e5aa82e595e",
-  "procedureSha256": "0e7499214c098b0db2bd5268b830d1bbcc965a0f56d71cee64902cdbf9ab994f",
+  "procedureSha256": "36141f961664b90e97575355c76aac31a6558a1743c0efc745b3393a0e76f293",
   "vehicles": [
     {
       "vehicleId": "VFR750R",
       "vehicleSha256": "3f6597be260577e7d8318fcbbe753ea9c14e3977f692141776ab8c4dc74368de",
-      "initialSeconds": 57.41946835449655,
+      "initialSeconds": 55.78372865593305,
       "after": [
-        ["asia-CP1", [44.0262865283405]],
-        ["asia-CP2", [44.56096552763073]],
-        ["asia-CP3", [49.10490258366261]],
-        ["asia-CP4", [48.5066313025778]],
-        ["asia-CP5", [58.110891943123306]],
-        ["asia-CP6", [48.10932553928063]],
-        ["asia-CP7", [57.361563953724215]],
-        ["asia-CP8", [51.33296733445752]],
-        ["asia-CP9", [48.129089597644054]]
+        ["asia-CP1", [44.23972669089417]],
+        ["asia-CP2", [45.15156376877782]],
+        ["asia-CP3", [51.6384568524648]],
+        ["asia-CP4", [49.036017167655615]],
+        ["asia-CP5", [58.52812078294855]],
+        ["asia-CP6", [48.52094798197015]],
+        ["asia-CP7", [59.225233099394075]],
+        ["asia-CP8", [45.00427727747319]],
+        ["asia-CP9", [48.85670520786118]]
       ]
     }
   ]

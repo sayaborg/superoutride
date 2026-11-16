@@ -2,26 +2,26 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "3e95f8138d435eb8de7c42c59f5ed8f51640e166fd754f2ab6a085af92b77a5d",
-  "procedureSha256": "0e7499214c098b0db2bd5268b830d1bbcc965a0f56d71cee64902cdbf9ab994f",
+  "procedureSha256": "36141f961664b90e97575355c76aac31a6558a1743c0efc745b3393a0e76f293",
   "vehicles": [
     {
       "vehicleId": "VFR750R",
       "vehicleSha256": "3f6597be260577e7d8318fcbbe753ea9c14e3977f692141776ab8c4dc74368de",
-      "initialSeconds": 53.13100381754153,
+      "initialSeconds": 54.43723190470301,
       "after": [
-        ["america-CP1", [62.94596314583021]],
-        ["america-CP2", [51.2548124423933]],
-        ["america-CP3", [47.90724894419074]],
-        ["america-CP4", [48.04107787282027]],
-        ["america-CP5", [51.544129659657926]],
-        ["america-CP6", [53.32895220447358]],
-        ["america-CP7", [55.51682455125837]],
-        ["america-CP8", [55.64080742409084]],
-        ["america-CP9", [57.127896717675185]],
-        ["america-CP10", [46.731699808694884]],
-        ["america-CP11", [46.64565442885339]],
-        ["america-CP12", [50.15815158858413]],
-        ["america-CP13", [50.40036415181339]]
+        ["america-CP1", [57.65322768029]],
+        ["america-CP2", [46.576352881009896]],
+        ["america-CP3", [49.06375935919763]],
+        ["america-CP4", [49.194119363575595]],
+        ["america-CP5", [51.033530928582195]],
+        ["america-CP6", [55.06217636829791]],
+        ["america-CP7", [55.00174035813063]],
+        ["america-CP8", [56.396030063136834]],
+        ["america-CP9", [48.52951590671046]],
+        ["america-CP10", [46.566826508453914]],
+        ["america-CP11", [47.46012260270686]],
+        ["america-CP12", [50.0669806374724]],
+        ["america-CP13", [53.75127390177977]]
       ]
     }
   ]
