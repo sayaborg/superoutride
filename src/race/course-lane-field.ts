@@ -203,6 +203,7 @@ export function createCourseLaneField(route: CourseRoute, racingLines: RacingLin
     const { occurrence, road } = roadAt(s);
     return Object.freeze({ left: road.left - occurrence.lateralOrigin, right: road.right - occurrence.lateralOrigin });
   });
+  let notRunningOn = 0;
   const laneField = Object.freeze({
     /** The target l for an intent: the centre of its lane there, or the racing line (route lateral). */
     targetL(s: number, intent: DriverIntent) {
@@ -302,11 +303,21 @@ export function createCourseLaneField(route: CourseRoute, racingLines: RacingLin
     },
     /**
      * The recovery lane at route station `s` of a vehicle `vehicle` wide at route lateral `l`, every vehicle's alike:
-     * the lane nearest `l` of those there for its vehicle; a lane index.
+     * the lane nearest `l` of those there for its vehicle that run on across the next seam (K, 2026-11-17); a lane
+     * index. At the Route's end every lane there is a candidate; where none runs on, which should not happen, the
+     * nearest of them all, counted in `recoveriesNotRunningOn`.
      */
     recoveryLane(s: number, l: number, vehicle = 0) {
       const { occurrence, at } = place(s);
-      return nearestLane(occurrence, at, l, there(occurrence, at, vehicle));
+      const candidates = there(occurrence, at, vehicle);
+      const next = route.occurrences[occurrence.ordinal + 1];
+      const runOn = next ? candidates.filter((lane) => across(next, lane, true) !== null) : candidates;
+      if (runOn.length === 0) notRunningOn++;
+      return nearestLane(occurrence, at, l, runOn.length ? runOn : candidates);
+    },
+    /** A development record: how many recovery lanes were read where no lane there ran on across the next seam. */
+    get recoveriesNotRunningOn() {
+      return notRunningOn;
     },
     /** The recovery l at route station `s`: the centre of the recovery lane (`recoveryLane`) there, route lateral. */
     recoveryL(s: number, l: number, vehicle = 0) {

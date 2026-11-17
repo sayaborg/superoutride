@@ -1862,20 +1862,23 @@ rules only, no live state or target resolution:
 The policy values are author values, neither derived from a model nor DEV settings: the wait (`holdSteps`), the stuck
 speed and the fall depth among them (the fall depth K's, 2026-11-12). Recovery is not a run rule.
 
-Every recovery is one: at rest, at the centre of the lane nearest the vehicle, 8 m behind the farther of where it is
-and where it was last safe (K, 2026-11-12). Its reason (a condition, the contact response, wrong course or a manual
-request) changes neither its speed nor its place.
+Every recovery is one: at rest, at the centre of the lane nearest the vehicle among those that run on across the next
+seam, 8 m behind the farther of where it is and where it was last safe (K, 2026-11-12; the lanes that run on,
+2026-11-17). Its reason (a condition, the contact response, wrong course or a manual request) changes neither its
+speed nor its place.
 
 Route recovery backs off from the farther of causal current chainage and last-safe chainage
 ([Vehicle physics](vehicle-physics.md#airborne-state-and-recovery)). The race owns target resolution: its
 recovery placement (`recoveryPlace`: its target lateral from the lane field's `recoveryL`, behind any vehicle or
 standing object in the way, see [Body contact](#body-contact)) is passed to recovery separately from the policy. Every
 vehicle, driven or not, recovers to the centre of the lane nearest it (`recoveryLane`) of every lane there for its
-vehicle
-(every lane wider than zero where none is). A driver whose vehicle a recovery placed drives on from there in its next
-step: a
-lane driver (traffic keeping its lanes) takes the lane it was placed in as its own, and a racing line driver (a rival,
-racing line traffic, the player's run driver or the takeover) takes the line from that lane's centre, as on the grid.
+vehicle (every lane wider than zero where none is) that runs on across the next seam: the lane the seam's lane order
+hands across it (`carryAcross`'s reading) returns a lane beyond. At the Route's end every such lane is a candidate.
+Where none runs on, which should not happen, the nearest of them all is taken and the lane field counts it
+(`recoveriesNotRunningOn`, a development record). A driver whose vehicle a recovery placed drives on from there in
+its next step: a lane driver (traffic keeping its lanes) takes the lane it was placed in as its own, and a racing line
+driver (a rival, racing line traffic, the player's run driver or the takeover) takes the line from that lane's centre,
+as on the grid.
 Every spawn and recovery target, route-derived or explicit, passes one check (`supportedTargetSurface`): its l
 lies within the coordinate domain (`lateralAt`) and its surface has a material. Targets are race-made, so a
 violation is an internal invariant failure (`Error`).

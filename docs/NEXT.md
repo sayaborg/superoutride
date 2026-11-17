@@ -455,11 +455,8 @@ limit step closed across the road (K, 2026-11-16). For K in DEV: how a vehicle m
 there later. A driver's path reads each station's own limits, so it steps in at a narrowing seam rather than easing
 in before it.
 
-- **RC-7, CHASE H.Q. 2 left at 1,758 m: investigated; K decides the rule.** The two rivals drive the racing line, not
-  a lane. A row of fixed posts begins at the seam on the narrowed road's right edge. A racing line driver right of it
-  can clear it only on the right, which leads beyond the narrower limit and into the step. The recovery places it at
-  the nearest lane's centre, right of the row, so it meets the step again. Since TR-3 the field run there meets no
-  step, by its timing alone. A lane ends at a seam with no lane to merge toward only on CISCO HEAT 4 and 5.
+- RC-7, a recovery takes the nearest lane that runs on across the next seam (K, 2026-11-17), is on main. Where a
+  path that clears an object leads into a step, no rule is added; K considers it if vehicles still meet steps.
 
 Not decided, for later: after a recovery a vehicle stands at rest with its engine at idle, and the slipping clutch
 delivers nothing until the engine has risen (NSR500 stands about 0.7 s); K judges it in DEV. A course with holes needs
