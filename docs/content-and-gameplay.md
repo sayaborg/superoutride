@@ -1031,10 +1031,12 @@ PARIS-DAKARs and WRANGLERs, weighing 3 and 1, at 2 a kilometre and up to 100 km/
 
 ARCADE TRIBUTE - SUPER HANG-ON is delivered on the same terms too (K, 2026-11-10), on its original courses: AFRICA,
 ASIA, AMERICA and EUROPE, in the original's order, each one run of its stages with a margin of 1.35, without rank
-limits. Its field is the original's eight, all VFR750Rs until the GP machines are made: the player last, in the bike
-grid's rearmost slot, with the original's seven rivals in front of it, and the riders the player
-passes are traffic VFR750Rs of `path: line`, slow riders on the racing line, at 2 a kilometre and up to 150 km/h
-(provisional). The original's turbo is not made.
+limits. It is a one-make of the Honda NSR500 of 1984 (K, 2026-11-18; [Racing vehicles](racing-vehicles.md)): its
+field is the original's eight NSR500s, the player last, in the bike grid's rearmost slot, in the machine's own RED/BLUE
+(`fixedColors`), with the original's seven rivals in front of it in its seven other liveries, YELLOW/BLACK, GREEN/WHITE,
+BLACK/GOLD, WHITE/RED, SKY/PINK, ORANGE/NAVY and PURPLE/YELLOW from the front; and the riders the player passes are
+traffic NSR500s of `path: line`, slow riders on the racing line in any of its liveries, at 2 a kilometre and up to 150
+km/h (provisional). The original's turbo is not made.
 
 ARCADE TRIBUTE - OUTRUN is delivered on the same terms (K, 2026-11-10), on its original roads A, B, C LEFT, C RIGHT, D
 and E, each one run. The player drives the TESTAROSSA alone, in red, from the grid's first slot (`own`), without

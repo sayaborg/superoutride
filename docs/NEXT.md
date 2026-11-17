@@ -9,7 +9,8 @@ Each line is one area as it stands, with the document that owns it.
   originals of the ARCADE TRIBUTE series delivered); the other originals' courses, in no series, are DEV's
   ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
 - The [seven racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
-  The NSR500 of 1984 is K's SUPER HANG-ON machine ([Stage NSR](#stage-nsr--the-nsr500-of-1984-and-super-hang-ons-one-make)).
+  The NSR500 of 1984 is K's SUPER HANG-ON machine
+  ([Stage NSR](#stage-nsr--the-nsr500-of-1984-and-super-hang-ons-one-make)).
   Lotus 79 SPECIAL and McLaren M23 PP SPEC have two actual forward ratios and opt into contact explosion/recovery; the
   M23's are two of its six, named `L` and `H`, and its pictures, baked from K's model, are in eight colors
   ([Racing vehicles](racing-vehicles.md#mclaren-m23-historical-reference-versus-pp-spec)). The owner's scope is
@@ -19,7 +20,8 @@ Each line is one area as it stands, with the document that owns it.
   specifications from estimates. Existing traffic policy and series eligibility remain unchanged; new physics
   still requires prior confirmation.
 - The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the
-  catalog to 35 vehicles before the M23 PP SPEC, 36 with it and 37 with the NSR500 of 1984. The 1986 Porsche 930 and 1984 Corvette C4 coexist with
+  catalog to 35 vehicles before the M23 PP SPEC, 36 with it and 37 with the NSR500 of 1984. The 1986 Porsche 930
+  and 1984 Corvette C4 coexist with
   their existing 1989 versions; the unidentified box truck remains deferred. The ledger owns specification limits and validation.
 - **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
   PRODUCTION 750, GTI CUP and 911 CUP classes; the [product specification](product.md) is Stage 16's target
@@ -50,7 +52,8 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
 - **Pictures.** TESTAROSSA's, 911 TURBO 3.3's and GOLF GTI 16V's pictures are generated sets, VFR750R's a 3D
-  prototype, the other vehicles' converted provisional pictures
+  prototype, the M23 PP SPEC's and the NSR500 of 1984's baked from K's models, the other vehicles' converted provisional
+  pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
   admits the measured racing lines, reference times and pace schedules, which `npm run measure` saves under `content/`
@@ -86,15 +89,17 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 ## Stage NSR — The NSR500 of 1984 and SUPER HANG-ON's one-make
 
-K's decision of 2026-11-18: SUPER HANG-ON's machine is the Honda NSR500 of 1984 (NV0A), added as a vehicle of its
-own, and the series becomes its one-make in eight liveries, recolorings of its three paints. NSR-1 adds the vehicle
-([Racing vehicles](racing-vehicles.md#honda-nsr500-of-1984-historical-reference-versus-authored)), with VFR750R's
-pictures and the NSR500 of 1987's sound borrowed. NSR-2 bakes its pictures from K's model
-(`codex/nsr500-1984-glb-source`), and NSR-3 makes the series its one-make.
+K's decision of 2026-11-18 is in place (NSR-1 to NSR-3): the Honda NSR500 of 1984 is a vehicle of its own
+([Racing vehicles](racing-vehicles.md#honda-nsr500-of-1984-historical-reference-versus-authored)), its pictures baked
+from K's model in eight liveries ([Model solids](image-assets.md#model-solids)), and ARCADE TRIBUTE - SUPER HANG-ON is
+its one-make ([Series documents](content-and-gameplay.md#series-documents)). What stays open, for K:
 
-Not decided, for K: the tire's real values, its own sound, a source for the six ratios, the 1984 machine's wheelbase
-and front tire, the eight liveries' values (K looks at them in DEV), and whether its pictures take the M23 recipe's
-hollows and step lines (NSR-2's report shows both).
+- To look at in DEV: the eight liveries' colors, near and far; the bank images' run; the brake lamp; the acceleration
+  and the gears against the NSR500 of 1987; and whether its pictures take the M23 recipe's hollows and step lines
+  (NSR-2's report shows both).
+- Not sourced: the tire's real values (SUPER HANG-ON's reference times and clocks follow them: its grip 1.25 is the
+  NSR500 of 1987's, half the default VFR750R had, and the classes' reference runs grew 8.5 to 14.7 %), its own sound
+  (the NSR500 of 1987's is borrowed), the six ratios, and the 1984 machine's wheelbase and front tire.
 
 ## Stage AT — The attract demo remade
 
