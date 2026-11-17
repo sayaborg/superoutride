@@ -4,13 +4,24 @@ import { cameraDistance, type CameraDefinition } from '../../src/view/camera.js'
 import { PLAYER_DEPTH_PIXELS_PER_METER } from '../../src/view/display-scale.js';
 import type { Rgb, VehiclePictureRecipe } from './vehicle-picture-recipe.js';
 import type { VehicleSolid } from './vehicle-solid.js';
-import type { VehicleModelRecipe } from './vehicle-model-recipe.js';
+import type { ModelRoleRecipe } from './vehicle-model-recipe.js';
 
-/** The drawing style shared by four-view solids and authored procedural solids. */
+/** The drawing style shared by four-view solids, authored procedural solids and models colored by paints. */
 export interface VehiclePictureStyle extends Pick<
   VehiclePictureRecipe,
-  'yawVariants' | 'slots' | 'bodyKeys' | 'palettes' | 'brakeLamp'
+  'yawVariants' | 'bodyKeys' | 'palettes' | 'brakeLamp'
 > {
+  /**
+   * How the palette's 14 slots are shared, in slot order: `ramps` body ramps (one when absent) of `body` slots each, a
+   * solid's paint value naming its ramp; neutrals; glass, none or dark then light; accents.
+   */
+  readonly slots: {
+    readonly body: number;
+    readonly ramps?: number;
+    readonly neutral: number;
+    readonly glass: 0 | 2;
+    readonly accent: number;
+  };
   readonly paint: Pick<VehiclePictureRecipe['paint'], 'exposure'>;
   readonly glass: Pick<VehiclePictureRecipe['glass'], 'glint'>;
 }
@@ -70,9 +81,9 @@ export interface TexelRoles {
   readonly kept: number;
   readonly albedo: Float32Array;
   readonly gloss: Float32Array;
-  readonly light: VehicleModelRecipe['light'];
-  readonly hollows: VehicleModelRecipe['hollows'];
-  readonly steps: VehicleModelRecipe['steps'];
+  readonly light: ModelRoleRecipe['light'];
+  readonly hollows: ModelRoleRecipe['hollows'];
+  readonly steps: ModelRoleRecipe['steps'];
 }
 
 /** One drawn size before it is cropped: slot indices and the shadow on one texel grid, anchored at (`anchorX`, `anchorY`). */
@@ -96,22 +107,15 @@ export interface DrawnSize {
 /** The colors of the slots a texel can take, in slot order, and the ranges of each kind. */
 function slotColors(recipe: VehiclePictureStyle) {
   const reference = Object.values(recipe.palettes)[0]!;
-  const body = recipe.slots.body,
+  const body = recipe.slots.body * (recipe.slots.ramps ?? 1),
     neutral = recipe.slots.neutral;
-  const glassDark = body + neutral,
+  // Slot numbers are 1-based; `reference[slot - 1]` is a slot's color. Glass, when the style has it, follows the
+  // neutrals.
+  const glassDark = body + neutral + 1,
     glassLight = glassDark + 1;
-  // Slot numbers are 1-based; `reference[slot - 1]` is a slot's color.
-  const others = Array.from({ length: 14 - body }, (_, i) => body + 1 + i).filter(
-    (slot) => slot - 1 !== glassDark && slot - 1 !== glassLight,
-  );
-  return {
-    reference,
-    body,
-    lightestNeutral: body + neutral,
-    glassDark: glassDark + 1,
-    glassLight: glassLight + 1,
-    others,
-  };
+  const glass = recipe.slots.glass === 2 ? [glassDark, glassLight] : [];
+  const others = Array.from({ length: 14 - body }, (_, i) => body + 1 + i).filter((slot) => !glass.includes(slot));
+  return { reference, lightestNeutral: body + neutral, glassDark, glassLight, others };
 }
 
 /**
@@ -183,8 +187,8 @@ function hollowsOf(
   h: number,
   sub: number,
   texelsPerMetre: number,
-  hollows: VehicleModelRecipe['hollows'],
-  steps: VehicleModelRecipe['steps'] | null,
+  hollows: ModelRoleRecipe['hollows'],
+  steps: ModelRoleRecipe['steps'] | null,
 ) {
   const cellPixels = sub / hollows.cells;
   if (!Number.isInteger(cellPixels)) throw new RangeError('A texel holds a whole number of hollow cells');
@@ -226,8 +230,8 @@ function stepCells(
   columns: number,
   rows: number,
   texelsPerMetre: number,
-  hollows: VehicleModelRecipe['hollows'],
-  steps: VehicleModelRecipe['steps'],
+  hollows: ModelRoleRecipe['hollows'],
+  steps: ModelRoleRecipe['steps'],
 ): Uint8Array {
   const reach = Math.round(steps.reach * texelsPerMetre * hollows.cells);
   const z = Float64Array.from(depth, (d, cell) => (cover[cell]! > 0 ? d / cover[cell]! : Infinity));
@@ -396,6 +400,8 @@ export function drawSize(
   // With roles, each role's point count and lit sums in the texel at hand, and its points in step cells.
   const byRole = new Float64Array(roles ? roles.count * 4 : 0),
     stepped = new Float64Array(roles ? roles.count : 0);
+  // Without roles, each paint ramp's point count in the texel at hand.
+  const byRamp = new Float64Array(roles ? 0 : ((recipe as VehiclePictureStyle).slots.ramps ?? 1));
   const lampShare = new Float32Array(width * height);
   const pixels = sub * sub;
   let fullestCoverage = 0,
@@ -414,6 +420,7 @@ export function drawSize(
         b = 0;
       byRole.fill(0);
       stepped.fill(0);
+      byRamp.fill(0);
       for (let sy = 0; sy < sub; sy++) {
         const row = (ty * sub + sy) * w + tx * sub;
         for (let sx = 0; sx < sub; sx++) {
@@ -422,7 +429,10 @@ export function drawSize(
           if (n < 0) continue;
           covered++;
           lamp += solid.lamp[n]!;
-          painted += paint[n]!;
+          if (paint[n]) {
+            painted++;
+            byRamp[paint[n]! - 1]!++;
+          }
           glazed += glass[n]!;
           r += shaded[n * 3]!;
           g += shaded[n * 3 + 1]!;
@@ -469,7 +479,10 @@ export function drawSize(
               at = i - (keys[i - 1]! - brightness < brightness - keys[i]! ? 1 : 0);
               break;
             }
-        slot = at + 1;
+        // The ramp most of its paint has, the first of equals.
+        let ramp = 0;
+        for (let k = 1; k < byRamp.length; k++) if (byRamp[k]! > byRamp[ramp]!) ramp = k;
+        slot = ramp * keys.length + at + 1;
       } else if (glazed / covered >= SHARE) {
         const mean = (r + g + b) / 3;
         slot =

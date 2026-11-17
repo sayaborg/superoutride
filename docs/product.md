@@ -231,8 +231,8 @@ next row and BACK, the brake, returns to the one before (K, 2026-11-09). A row o
 ends; in a row of one or two a move past an end shakes the row and changes nothing. Every row is shown, even with a
 single card: a series with one class shows SELECT CLASS, and a class with one vehicle shows SELECT VEHICLE as its
 introduction (K, 2026-11-08 and 2026-11-09). A series, class or course that offers nothing is shown dimmed and denies
-CONFIRM. Every vehicle comes in four colors, each shown by its period paint name; the first is its default, and a class
-may fix the colors.
+CONFIRM. Every vehicle comes in its colors, four (the NSR500 of 1984 eight), each shown by its paint's name; the first
+is its default, and a class may fix the colors.
 
 Only two kinds of picture fill the frame: the main picture, through whose clear parts the attract demo shows, and each
 series' picture (K, 2026-11-09). TITLE, MAIN MENU, SELECT SERIES, FREE PLAY's rows and SETTINGS stand on the main

@@ -1,7 +1,7 @@
 import { rgba, rgbaToRgb555 } from '../../src/image/rgb555.js';
 import { VEHICLE_PICTURE_SIZES, type VehicleSpriteSetDocument } from '../../src/vehicle/vehicle-sprite-library.js';
 import type { CameraDefinition } from '../../src/view/camera.js';
-import { modelRoleOf, type VehicleModelRecipe } from './vehicle-model-recipe.js';
+import { modelRoleOf, type ModelRoleRecipe } from './vehicle-model-recipe.js';
 import { drawSize, framePicture, type DrawnSize, type TexelRoles } from './vehicle-pictures.js';
 import type { Rgb } from './vehicle-picture-recipe.js';
 import type { VehicleSolid } from './vehicle-solid.js';
@@ -20,7 +20,7 @@ import type { VehicleSolid } from './vehicle-solid.js';
  */
 export function drawModelSpriteSet(
   solid: VehicleSolid,
-  recipe: VehicleModelRecipe,
+  recipe: ModelRoleRecipe,
   camera: Pick<CameraDefinition, 'focalLength' | 'height'>,
   progress: (done: number) => void = () => {},
 ): VehicleSpriteSetDocument {
@@ -119,7 +119,7 @@ function isolatedTaken(slots: Uint8Array, width: number, height: number): Uint8A
 }
 
 /** The roles of a model's solid as the baker reads them: each point's role, and the albedo and gloss it gives it. */
-export function modelTexelRoles(solid: VehicleSolid, recipe: VehicleModelRecipe): TexelRoles {
+export function modelTexelRoles(solid: VehicleSolid, recipe: ModelRoleRecipe): TexelRoles {
   // Each point's role, and the albedo and gloss its role gives it.
   const points = new Uint8Array(solid.count),
     albedo = new Float32Array(solid.count * 3),

@@ -1,5 +1,5 @@
 import { baseColorAt, type GlbModel } from './glb-model.js';
-import type { VehicleModelRecipe } from './vehicle-model-recipe.js';
+import type { ModelPaintRecipe, VehicleModelRecipe } from './vehicle-model-recipe.js';
 import type { VehicleSolid } from './vehicle-solid.js';
 
 /** The plastic constant of the R2 sequence: its two strides spread the samples of a triangle evenly and alike. */
@@ -11,13 +11,21 @@ const R2_U = 1 / R2,
  * A vehicle's solid from its model, the third source beside four views and procedural shapes: the model's triangles
  * sampled evenly by area at the recipe's spacing, each sample carrying its texture's base color and its normal (the
  * model's vertex normals interpolated across the triangle, else the face's), in vehicle coordinates. The recipe's axes
- * turn the model to the vehicle's right, up and forward; the model then stands with its front wheels' mean origin
- * `frontAxle` ahead of the base point and its lowest sample on the road. Its samples are neither paint nor glass: a
- * model's pictures are lit by their roles ([vehicle role pictures](./vehicle-role-pictures.ts)). The same model and
- * recipe make the same solid: the samples follow the triangles' order, each triangle taking its share of one running
- * count.
+ * turn the model to the vehicle's right, up and forward; the model then stands with its front axle (its front wheels'
+ * mean origin, or its front hub) `frontAxle` ahead of the base point, turned by `bankRadians` about the line where it
+ * meets the road (positive leaning it to its right, as a procedural solid's bank), and its lowest sample on the road. A
+ * recipe colored by roles leaves its samples neither paint nor glass: its pictures are lit by their roles ([vehicle
+ * role pictures](./vehicle-role-pictures.ts)). A recipe colored by paints makes each sample within reach of a paint's
+ * color paint of that ramp, lit as its one color, and one within reach of the lamp's the brake lamp. The same model
+ * and recipe make the same solid: the samples follow the triangles' order, each triangle taking its share of one
+ * running count.
  */
-export function buildModelVehicleSolid(model: GlbModel, recipe: VehicleModelRecipe, frontAxle: number): VehicleSolid {
+export function buildModelVehicleSolid(
+  model: GlbModel,
+  recipe: VehicleModelRecipe,
+  frontAxle: number,
+  bankRadians = 0,
+): VehicleSolid {
   const { spacing } = recipe;
   const axis = (signed: string) => ({ index: 'xyz'.indexOf(signed[1]!), sign: signed[0] === '-' ? -1 : 1 });
   const basis = [recipe.model.right, recipe.model.up, recipe.model.forward].map(axis);
@@ -26,24 +34,19 @@ export function buildModelVehicleSolid(model: GlbModel, recipe: VehicleModelReci
     const m = [x, y, z];
     for (let k = 0; k < 3; k++) out[at + k] = basis[k]!.sign * m[basis[k]!.index]!;
   };
-  const wheels = recipe.model.frontWheels.map((name) => {
-    const origin = model.origins.get(name);
-    if (!origin) throw new RangeError(`The model has no node ${name}`);
-    return origin;
-  });
+  const hub = recipe.model.frontHub ?? meanOrigin(model, recipe.model.frontWheels!);
   const axle: number[] = [0, 0, 0];
-  turn(
-    wheels.reduce((sum, w) => sum + w[0], 0) / wheels.length,
-    wheels.reduce((sum, w) => sum + w[1], 0) / wheels.length,
-    wheels.reduce((sum, w) => sum + w[2], 0) / wheels.length,
-    axle,
-    0,
-  );
+  turn(hub[0], hub[1], hub[2], axle, 0);
   const forwardShift = frontAxle - axle[2]!;
+  const paints = 'paints' in recipe ? recipe.paints : null;
+  const cos = Math.cos(bankRadians),
+    sin = Math.sin(bankRadians);
 
   const positions: number[] = [],
     normals: number[] = [],
-    colors: number[] = [];
+    colors: number[] = [],
+    painted: number[] = [],
+    lamps: number[] = [];
   const cellArea = spacing * spacing;
   let carry = 0,
     sequence = 0;
@@ -95,9 +98,19 @@ export function buildModelVehicleSolid(model: GlbModel, recipe: VehicleModelReci
         const u = uvs[a * 2]! * (1 - s - q) + uvs[b * 2]! * s + uvs[c * 2]! * q,
           v = uvs[a * 2 + 1]! * (1 - s - q) + uvs[b * 2 + 1]! * s + uvs[c * 2 + 1]! * q;
         const [r, g, bl] = baseColorAt(material, u, v);
-        positions.push(p[0]!, p[1]!, p[2]! + forwardShift);
-        normals.push(n[0]!, n[1]!, n[2]!);
-        colors.push(r, g, bl);
+        if (bankRadians) {
+          positions.push(p[0]! * cos + p[1]! * sin, p[1]! * cos - p[0]! * sin, p[2]! + forwardShift);
+          normals.push(n[0]! * cos + n[1]! * sin, n[1]! * cos - n[0]! * sin, n[2]!);
+        } else {
+          positions.push(p[0]!, p[1]!, p[2]! + forwardShift);
+          normals.push(n[0]!, n[1]!, n[2]!);
+        }
+        const ramp = paints ? paintOf(paints, r, g, bl) : 0;
+        const lamp = paints && !ramp && near(paints.lamp, paints.within, r, g, bl) ? 1 : 0;
+        painted.push(ramp);
+        lamps.push(lamp);
+        if (ramp) colors.push(...paints!.litAs);
+        else colors.push(r, g, bl);
       }
     }
   }
@@ -126,11 +139,32 @@ export function buildModelVehicleSolid(model: GlbModel, recipe: VehicleModelReci
     normals: Float32Array.from(normals),
     colors: Float32Array.from(colors),
     edge: new Float32Array(count),
-    paint: new Uint8Array(count),
+    paint: Uint8Array.from(painted),
     glass: new Uint8Array(count),
-    lamp: new Uint8Array(count),
+    lamp: Uint8Array.from(lamps),
     footprint: Float32Array.from([...columns.values()].flat()),
     reach,
     height,
   };
+}
+
+/** The mean origin of the model's nodes `names`. */
+function meanOrigin(model: GlbModel, names: readonly string[]): readonly [number, number, number] {
+  const wheels = names.map((name) => {
+    const origin = model.origins.get(name);
+    if (!origin) throw new RangeError(`The model has no node ${name}`);
+    return origin;
+  });
+  const mean = (k: number) => wheels.reduce((sum, w) => sum + w[k]!, 0) / wheels.length;
+  return [mean(0), mean(1), mean(2)];
+}
+
+/** Whether a base color lies within `within` of `color` in every channel. */
+function near(color: readonly number[], within: number, r: number, g: number, b: number) {
+  return Math.abs(r - color[0]!) <= within && Math.abs(g - color[1]!) <= within && Math.abs(b - color[2]!) <= within;
+}
+
+/** The ramp (from 1) of the first paint a base color lies within reach of, else 0. */
+function paintOf(paints: ModelPaintRecipe['paints'], r: number, g: number, b: number) {
+  return paints.colors.findIndex((color) => near(color, paints.within, r, g, b)) + 1;
 }

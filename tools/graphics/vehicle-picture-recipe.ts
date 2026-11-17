@@ -8,7 +8,7 @@ import {
   readString,
   requireAdmission,
 } from '../../src/core/admission.js';
-import { VEHICLE_COLORS } from '../../src/vehicle/vehicle-sprite-library.js';
+import { MOST_VEHICLE_COLORS } from '../../src/vehicle/vehicle-sprite-library.js';
 
 /**
  * A vehicle picture recipe: how one vehicle's four views (front, side, rear and top pictures) are fitted to its
@@ -236,10 +236,10 @@ export function readVehiclePictureRecipe(value: unknown): VehiclePictureRecipe {
     readArray(palette, path, readRgb, { length: 14 }),
   );
   requireAdmission(
-    Object.keys(palettes).length === VEHICLE_COLORS,
+    Object.keys(palettes).length >= 1 && Object.keys(palettes).length <= MOST_VEHICLE_COLORS,
     'invalid_value',
     '/palettes',
-    `A set has exactly ${VEHICLE_COLORS} colors`,
+    `A set has 1 to ${MOST_VEHICLE_COLORS} colors`,
   );
   const lamp = readRecord(document.brakeLamp, '/brakeLamp', ['off', 'on']);
   const surfaceRecord = readRecord(document.surface, '/surface', ['stations', 'across', 'heights']);

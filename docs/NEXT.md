@@ -93,7 +93,8 @@ pictures and the NSR500 of 1987's sound borrowed. NSR-2 bakes its pictures from 
 (`codex/nsr500-1984-glb-source`), and NSR-3 makes the series its one-make.
 
 Not decided, for K: the tire's real values, its own sound, a source for the six ratios, the 1984 machine's wheelbase
-and front tire, and the eight liveries' values (K looks at them in DEV).
+and front tire, the eight liveries' values (K looks at them in DEV), and whether its pictures take the M23 recipe's
+hollows and step lines (NSR-2's report shows both).
 
 ## Stage AT — The attract demo remade
 

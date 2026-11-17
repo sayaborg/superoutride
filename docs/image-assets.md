@@ -598,13 +598,13 @@ Size  = {width, height, anchorX, anchorY, rows: ["0f3a…", ...], shadow: {width
 fills at least one cell, and one picture may fill several. A picture has exactly six sizes, 0 to 5
 (`VEHICLE_PICTURE_SIZES`): size 5 is the one the farthest rendered depth (200 m) selects. A frame's `rows` run top to
 bottom, each `width` lowercase hexadecimal digits, one index per texel: `0` transparent, `1`–`e` the palette's slots
-1–14 and `f` the brake lamp. A set has exactly four colors (`VEHICLE_COLORS`), each a palette named by its color
+1–14 and `f` the brake lamp. A set has one to eight colors (`MOST_VEHICLE_COLORS`), each a palette named by its color
 (`red`, `silver`, …) listing the colors of slots 1–14; the vehicle listing names the default, the first. A set declares `bankDegrees` exactly when it has more than one bank
 image: the lean from vertical, in degrees in (0, 90], of the rider-and-machine centre-of-mass line that its outermost
 bank images depict. Bank selection divides the vehicle's displayed lean by it.
 
 Admission ([`vehicle-sprite-library.ts`](../src/vehicle/vehicle-sprite-library.ts)) checks each set once, by its own
-rules: its format and version; four palettes of 14 colors and both lamp colors; every picture has every size; every
+rules: its format and version; 1 to 8 palettes of 14 colors and both lamp colors; every picture has every size; every
 size has its shadow, whose anchor differs from the picture's by whole texels; and every grid cell names a picture, every
 picture filling one. No rule spans two sets. Vehicle admission checks form-specific bank dimensions and default-color
 references ([Vehicle physics](vehicle-physics.md#material-vehicle-and-driving-documents)).
@@ -617,7 +617,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `testarossa`, `911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `mclaren-m23-pp-spec` is made from a model ([Model solids](#model-solids)). The other sets are provisional,
+and `mclaren-m23-pp-spec` and `nsr500-1984` from models ([Model solids](#model-solids)). The other sets are provisional,
 one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by code, original, for an
 earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
 octave `k` of a full-size picture whose anchor sits at the vehicle's base point (where a camera 1.75 m up and 6 m
@@ -782,10 +782,13 @@ is used, with its vertex normals where it gives them. Its triangles are sampled 
 the samples following the triangles' order, so the same model and recipe always make the same solid; each sample takes
 its texture's base color (the nearest texel) and its normal: the vertex normals interpolated across its triangle, else
 its face's by its winding. The recipe's axes turn the model to the vehicle's right, up and forward;
-it then stands with its front wheels' mean node origin the mechanics document's `frontAxle` ahead of the base point and
-its lowest sample on the road. Its wheels are drawn as they stand.
+it then stands with its front axle the mechanics document's `frontAxle` ahead of the base point and its lowest sample on
+the road. Its front axle is its front wheels' mean node origin (`frontWheels`), or for a model without wheel nodes a
+point the recipe gives in the model's coordinates (`frontHub`). Its wheels are drawn as they stand.
 
-**Recipe.** `superoutride.vehicle-model-recipe` version 1, saved as `content/vehicle-picture-sources/<set>.json`:
+**Recipe.** `superoutride.vehicle-model-recipe` version 1, saved as `content/vehicle-picture-sources/<set>.json`. A
+recipe colors its set by roles, or by paints when it gives `paints`; both give the model, its front axle and the
+spacing. By roles:
 
 ```text
 {format, version, vehicle: "MCLAREN_M23_PP_SPEC", yawVariants: 64,
@@ -801,6 +804,29 @@ its lowest sample on the road. Its wheels are drawn as they stand.
 clause = {term, above} | {term, below} | {largest: "r" | "g" | "b"}
 term   = r | g | b | value | saturation | luma | g/r   (of the base color, each channel 0–1)
 ```
+
+By paints (the model's `frontHub` in place of `frontWheels` either way):
+
+```text
+{format, version, vehicle: "NSR500_1984", yawVariants: 64,
+ model: {sha256, right: "-x", up: "+y", forward: "+z", frontHub: [x, y, z]},
+ spacing: 0.008, banks?: {count: 7, degrees: 60},
+ paints: {colors: [[r, g, b], ...], within, lamp: [r, g, b], litAs: [r, g, b]},
+ slots: {body: 3, neutral: 5}, bodyKeys: [brightness, ...], exposure,
+ palettes: {name: [[r, g, b] × 14], ...}, brakeLamp: {off: [r, g, b], on: [r, g, b]}}
+```
+
+**Paints.** A set colored by paints takes the shared baker's light and palette quantization ([Vehicle picture
+generator](#vehicle-picture-generator)), its paint in ramps: a sample whose base color lies within `within` of the
+`k`th of `paints.colors` in every channel is paint of ramp `k`, and one within `within` of `lamp` is the brake lamp;
+everything else is neither. Paint is lit as the one color `litAs`, whichever its ramp, so its steps follow the light
+alone and a livery may give a ramp any color. Slots 1 onward are the ramps, `slots.body` each from the highlight to the
+darkest, and then `slots.neutral` neutrals from dark to light; the ramps and the neutrals share the 14 slots. A paint
+texel takes the ramp most of its paint has and the step whose `bodyKeys` brightness is nearest; a lamp texel slot 15;
+any other texel the nearest neutral. With `banks`, the set has `count` bank images, an odd number, evenly over
+±`degrees` from leaning left to leaning right: the model turned about the line where it meets the road (the base point's
+longitudinal ground line), rider and machine together, and its lowest sample put back on the road; without it, one.
+The roles below, their light, hollows and steps are the roles' alone.
 
 **Roles.** A model recipe's set does not take the palette quantization of the sets above: its texels take colors by
 role, the recipe's alone, and no other set's pictures change. Each sample takes the first role whose clauses its base
@@ -862,6 +888,42 @@ raising them blackened whole panels turned from the light and the rear wings, an
 black mass), and 0.30 for the machinery, which the stage set at 0.40, movable between 0.30 and 0.45: at 0.40 the
 engine behind showed few cyan points. The helmet is kept to size 4 at 0.02. The model is K's
 `mclaren_m23_1976_rev4.glb`, kept on K's branch `codex/m23-glb-source`, never on main.
+
+**The NSR500 of 1984.** Its set, `nsr500-1984`, is colored by paints (K, 2026-11-18): K painted its model's three
+paints flat, and each is a ramp of three steps, light, middle and dark; five greys take the rest, the metal, tyres,
+screen, seat and skin, and the black screen and visor take the darkest grey. The paints are these base colors, within
+8 in every channel (the brush's edges):
+
+| Ramp | Base color    | Where on the model                                                                                                   |
+| ---- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 1    | 215, 5, 17    | The red: the cowl's top and bottom, the tail, the helmet's crown, the leathers' shoulders and arms, gloves and boots |
+| 2    | 32, 46, 131   | The blue: the cowl's and tail's lines, the leathers' body and legs, the helmet's lines                               |
+| 3    | 235, 235, 233 | The white: the cowl's middle and lower part, the helmet, the leathers' lines                                         |
+| Lamp | 255, 0, 255   | The tail's rear tip, about 11 cm wide and 8 cm high                                                                  |
+
+The magenta is the brake lamp's place alone; no palette shows it. Its lamp's off and on colors are `vfr750r`'s. Its
+eight liveries are recolorings of the three ramps (K, 2026-11-18), the rider's leathers and helmet with the machine's;
+the greys and the lamp are every livery's. The first is the model's own paint and the default:
+
+| Palette         | Name          | Red's place | Blue's place | White's place |
+| --------------- | ------------- | ----------- | ------------ | ------------- |
+| `red-blue`      | RED/BLUE      | red         | blue         | white         |
+| `yellow-black`  | YELLOW/BLACK  | yellow      | black        | white         |
+| `green-white`   | GREEN/WHITE   | green       | white        | yellow        |
+| `black-gold`    | BLACK/GOLD    | black       | gold         | red           |
+| `white-red`     | WHITE/RED     | white       | red          | black         |
+| `sky-pink`      | SKY/PINK      | light blue  | pink         | white         |
+| `orange-navy`   | ORANGE/NAVY   | orange      | navy         | grey          |
+| `purple-yellow` | PURPLE/YELLOW | purple      | yellow       | black         |
+
+Each ramp is made from its middle color `c` (8-bit channels) by `vfr750r`'s colorings' rule, which this fits to their
+eight ramps within a 5-bit step: the light step `min(255, 0.93c + 54.5)`, the dark step `0.603c`. The red, blue and
+white are the model's own; the others' middle colors are the recipe's (yellow 240, 200, 20; black 40, 40, 44; green 20,
+150, 60; gold 200, 160, 50; light blue 80, 180, 230; pink 240, 120, 170; orange 240, 120, 20; navy 25, 35, 90; grey 130,
+130, 135; purple 120, 40, 160), for K to set in DEV. The greys are `vfr750r`'s. It has 64 directions by 7 bank images
+over ±60°, as `vfr750r`; its paint is lit as 200, 200, 200 with exposure 1 and keys 215, 175 and 135, and it is sampled
+every 8 mm. The model is K's `honda-nsr500-1984.glb`, kept on K's branch `codex/nsr500-1984-glb-source`, never on
+main; it has no wheel nodes, and its front hub is its node's `wheel_F` centre, (0, 0.300, 0.6901) m.
 
 ## HUD picture generator
 

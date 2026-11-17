@@ -79,6 +79,9 @@ for (const [id, gears, cylinders, cycle, powerKW] of identities) {
     const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === id);
     assert.equal(entry.spriteSet.yawVariants, 64);
     assert.equal(entry.spriteSet.bankVariants, entry.listing.form === 'bike' ? 7 : 1);
+    // Every color the set has is named: eight for the NSR500 of 1984, four for the others.
+    assert.deepEqual(Object.keys(entry.listing.visuals.colorNames), entry.spriteSet.colors);
+    assert.equal(entry.spriteSet.colors.length, id === 'NSR500_1984' ? 8 : 4);
     const prepared = await prepareRun(content, { ...definitions, materials, freePlay }, course, null, {
       mode: 'FREE_PLAY',
       vehicleId: id,

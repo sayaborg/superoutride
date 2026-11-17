@@ -67,6 +67,7 @@ export interface VehicleSolid {
   readonly colors: Float32Array;
   /** 0 on flat panels, towards 1 on sharp outward edges. */
   readonly edge: Float32Array;
+  /** 0, or the paint's ramp from 1 (one ramp but for a model colored by paints). */
   readonly paint: Uint8Array;
   readonly glass: Uint8Array;
   readonly lamp: Uint8Array;

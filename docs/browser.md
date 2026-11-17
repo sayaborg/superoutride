@@ -413,7 +413,7 @@ stepper shows MASTER, and every volume applies at once; LEFT and RIGHT on EFFECT
 which is its audition. While the MUSIC entry rests chosen, the player record's latest track (else the first track) plays
 as an audition, so its volume is set by ear.
 
-SELECT VEHICLE's color is chosen in its card: UP and DOWN step through the vehicle's four colors, wrapping, from the color
+SELECT VEHICLE's color is chosen in its card: UP and DOWN step through the vehicle's colors, wrapping, from the color
 its run would give the player (one rule with the race): the player record's color for the vehicle, else its default;
 in a class with fixed colors its entry's color, which UP and DOWN leave. CONFIRM saves a chosen color in the player
 record.
@@ -459,19 +459,19 @@ page per vehicle on the 40×30 text grid, its values read from the compiled vehi
 holds them. Rows 0–11 stand on every page; below them three pages, ENGINE, DRIVETRAIN and
 CHASSIS, take turns. `src/shell/vehicle-page.ts` holds every position, scale and time named here.
 
-| Rows  | Columns | Content                                                                                                                                               |
-| ----- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0     | 13–26   | `SELECT VEHICLE` (WHITE)                                                                                                                              |
-| 0     | –38     | `◀ n/N ▶`, the vehicle among the offered vehicles, ending at column 38 whatever its digits (DARK)                                                     |
-| 2     | 1–39    | manufacturer and model (YELLOW)                                                                                                                       |
-| 3     | 1–20    | `physicsAnchor.modelYear`, two spaces and the identifier's official label in upper case (DARK)                                                        |
-| 3     | 22–39   | the page's headings over its diagram                                                                                                                  |
-| 4–10  | 0–19    | the turning picture                                                                                                                                   |
-| 4–11  | 22–39   | the page's diagram                                                                                                                                    |
-| 11    | 1–21    | the color's display name, `▲ GUARDS RED 3/4 ▼` (WHITE), within 1–21 by the 13-character name and a set's four colors; with fixed colors its name only |
-| 12    | 1–      | the page tabs                                                                                                                                         |
-| 12    | 30–37   | `PAGE n/3` (DARK)                                                                                                                                     |
-| 14–29 | 0–39    | the page's values                                                                                                                                     |
+| Rows  | Columns | Content                                                                                                                                                        |
+| ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | 13–26   | `SELECT VEHICLE` (WHITE)                                                                                                                                       |
+| 0     | –38     | `◀ n/N ▶`, the vehicle among the offered vehicles, ending at column 38 whatever its digits (DARK)                                                              |
+| 2     | 1–39    | manufacturer and model (YELLOW)                                                                                                                                |
+| 3     | 1–20    | `physicsAnchor.modelYear`, two spaces and the identifier's official label in upper case (DARK)                                                                 |
+| 3     | 22–39   | the page's headings over its diagram                                                                                                                           |
+| 4–10  | 0–19    | the turning picture                                                                                                                                            |
+| 4–11  | 22–39   | the page's diagram                                                                                                                                             |
+| 11    | 1–21    | the color's display name, `▲ GUARDS RED 3/4 ▼` (WHITE), within 1–21 by the 13-character name and a set's at most eight colors; with fixed colors its name only |
+| 12    | 1–      | the page tabs                                                                                                                                                  |
+| 12    | 30–37   | `PAGE n/3` (DARK)                                                                                                                                              |
+| 14–29 | 0–39    | the page's values                                                                                                                                              |
 
 The picture turns through the yaw images, one every six fixed steps, in the shown color. Each vehicle has one scale,
 the largest from the player depth down (in steps of 1 %) at which every yaw image, standing at one anchor, fits columns

@@ -20,8 +20,8 @@ import type { VehiclePicture, VehiclePictureSize, VehicleSpriteSet } from './veh
  */
 export const VEHICLE_PICTURE_SIZES = 6;
 
-/** The number of colors every vehicle sprite set declares ([Image assets](../../docs/image-assets.md#vehicle-sprite-sets)). */
-export const VEHICLE_COLORS = 4;
+/** The most colors a vehicle sprite set declares ([Image assets](../../docs/image-assets.md#vehicle-sprite-sets)). */
+export const MOST_VEHICLE_COLORS = 8;
 
 /** The admitted vehicle sprite sets by name; each set was admitted by its own rules, and none refers to another. */
 export interface SpriteAssets {
@@ -110,7 +110,7 @@ function readFrame(value: unknown, path: string, extra: readonly string[] = []) 
 }
 
 /**
- * Admit one vehicle sprite set, its pointers relative to the set: exactly four named palettes of slots 1–14 and the
+ * Admit one vehicle sprite set, its pointers relative to the set: one to eight named palettes of slots 1–14 and the
  * brake lamp's off and on colors; its grid binds every one of its pictures; each picture has every size, each size its
  * picture and its shadow on the same texel grid (the anchors differ by whole texels).
  */
@@ -143,10 +143,10 @@ function* vehicleSpriteSetSteps(value: unknown, name: string): Generator<void, V
   );
   const colors = Object.freeze(Object.keys(palettes));
   requireAdmission(
-    colors.length === VEHICLE_COLORS,
+    colors.length >= 1 && colors.length <= MOST_VEHICLE_COLORS,
     'invalid_value',
     '/palettes',
-    `A set declares exactly ${VEHICLE_COLORS} colors`,
+    `A set declares 1 to ${MOST_VEHICLE_COLORS} colors`,
   );
   const lamp = readRecord(set.brakeLamp, '/brakeLamp', ['off', 'on']);
   const brakeLamp = Object.freeze({

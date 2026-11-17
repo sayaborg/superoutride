@@ -200,7 +200,8 @@ wheel's inertia and brake, the drag `q=0.18 kg/m` and the tire (grip 1.25, stiff
 tire with the 1987 machine's values, K's to set in DEV); yaw and pitch inertias scale with its mass and the square of
 its wheelbase (92 / 111 kg m²), the rear wheel's inertia with the square of its radius (0.58 kg m²) and the rear
 brake with its radius (253 N m). Compression 11 is the 1987 machine's estimate. Its sound is the 1987 machine's,
-borrowed ([Calibration](calibration.md#exhaust-topologies)), and its pictures `vfr750r`'s until its own are baked.
+borrowed ([Calibration](calibration.md#exhaust-topologies)); its pictures are baked from K's model in eight liveries
+([Model solids](image-assets.md#model-solids)).
 
 ## Reproducible provisional pictures and sound
 

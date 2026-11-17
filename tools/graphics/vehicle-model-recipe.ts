@@ -9,15 +9,17 @@ import {
   requireAdmission,
 } from '../../src/core/admission.js';
 import { SHA256_TEXT } from '../../src/core/content-digest.js';
-import { VEHICLE_COLORS } from '../../src/vehicle/vehicle-sprite-library.js';
+import { MOST_VEHICLE_COLORS } from '../../src/vehicle/vehicle-sprite-library.js';
 import type { Rgb } from './vehicle-picture-recipe.js';
 
 /**
- * A vehicle model recipe: how one vehicle's GLB model becomes its solid and its sprite set by roles. It names the
- * model by its SHA-256 (the model itself is kept outside the repository), how the model's axes and wheels place it on
- * the vehicle's base point, how finely its surface is sampled, the roles its samples and texels take (each a test of a
- * base color, the albedo and gloss its brightness takes, the color it is drawn in and the share of its role's bright
- * texels below which it is drawn in the shade color), and the light and hollows that make that brightness. It is
+ * A vehicle model recipe: how one vehicle's GLB model becomes its solid and its sprite set. It names the model by its
+ * SHA-256 (the model itself is kept outside the repository), how the model's axes and its front wheel place it on the
+ * vehicle's base point and how finely its surface is sampled; then how its samples take colors, one of two ways. By
+ * roles: the roles its samples and texels take (each a test of a base color, the albedo and gloss its brightness takes,
+ * the color it is drawn in and the share of its role's bright texels below which it is drawn in the shade color), and
+ * the light and hollows that make that brightness. By paints: which base colors are the paints and the brake lamp,
+ * how many bank images it has, and the shared baker's palette quantization of ramps and neutrals. It is
  * production-only data, saved under `content/vehicle-picture-sources/<set>.json`.
  */
 export const VEHICLE_MODEL_RECIPE_FORMAT = 'superoutride.vehicle-model-recipe';
@@ -49,7 +51,8 @@ export interface ModelRole {
   readonly dark: number;
 }
 
-export interface VehicleModelRecipe {
+/** What every model recipe has: the model, its place on the base point and its sampling. */
+export interface ModelRecipeBase {
   /** The mechanics document whose axles place the model: `content/vehicles/<vehicle>.json`. */
   readonly vehicle: string;
   readonly yawVariants: number;
@@ -60,11 +63,19 @@ export interface VehicleModelRecipe {
     readonly right: Axis;
     readonly up: Axis;
     readonly forward: Axis;
-    /** The nodes whose mean origin is the front axle, which the model places `frontAxle` ahead of the base point. */
-    readonly frontWheels: readonly string[];
+    /**
+     * The front axle, which the model places `frontAxle` ahead of the base point: the mean origin of the nodes
+     * `frontWheels`, or the point `frontHub` in the model's coordinates; a model gives exactly one.
+     */
+    readonly frontWheels?: readonly string[];
+    readonly frontHub?: readonly [number, number, number];
   };
   /** The distance between neighbouring surface samples, metres. */
   readonly spacing: number;
+}
+
+/** A model recipe whose samples take colors by roles, in one bank image. */
+export interface ModelRoleRecipe extends ModelRecipeBase {
   /** The palette's entries in slot order from slot 1; slots after them take the entry `rest`. */
   readonly colors: readonly string[];
   readonly rest: string;
@@ -124,6 +135,36 @@ export interface VehicleModelRecipe {
   readonly palettes: Readonly<Record<string, Readonly<Record<string, Rgb>>>>;
 }
 
+/**
+ * A model recipe whose samples take the shared baker's light and palette quantization: each paint a ramp of `body`
+ * slots, lit alike, then `neutral` slots for everything else; the brake lamp slot 15.
+ */
+export interface ModelPaintRecipe extends ModelRecipeBase {
+  /** Bank images, `count` of them (odd) evenly over ±`degrees`; absent, one upright image. */
+  readonly banks: { readonly count: number; readonly degrees: number } | null;
+  /**
+   * A sample whose base color lies within `within` of `colors[k]` in every channel is paint of ramp k + 1, lit as the
+   * color `litAs`; one within `within` of `lamp` is the brake lamp.
+   */
+  readonly paints: {
+    readonly colors: readonly Rgb[];
+    readonly within: number;
+    readonly lamp: Rgb;
+    readonly litAs: Rgb;
+  };
+  /** The slots of each ramp and the neutrals: ramps × body + neutral = 14. */
+  readonly slots: { readonly body: number; readonly neutral: number };
+  /** A paint texel's step in its ramp: the key nearest its lit brightness, highlight first. */
+  readonly bodyKeys: readonly number[];
+  /** Paint's lit color is multiplied by this before it saturates at white. */
+  readonly exposure: number;
+  /** Each of the set's colors: the 14 slots' RGB values. */
+  readonly palettes: Readonly<Record<string, readonly Rgb[]>>;
+  readonly brakeLamp: { readonly off: Rgb; readonly on: Rgb };
+}
+
+export type VehicleModelRecipe = ModelRoleRecipe | ModelPaintRecipe;
+
 const SHARE = { min: 0, max: 1 };
 
 function readRgb(value: unknown, path: string): Rgb {
@@ -148,40 +189,46 @@ function readClause(value: unknown, path: string): ColorClause {
   return above ? { term, above: bound } : { term, below: bound };
 }
 
-/** Admit a model recipe document. */
+const BASE_FIELDS = ['format', 'version', 'vehicle', 'yawVariants', 'model', 'spacing'] as const;
+const ROLE_FIELDS = [
+  'colors',
+  'rest',
+  'shade',
+  'bright',
+  'isolatedSizes',
+  'keep',
+  'roles',
+  'luma',
+  'light',
+  'hollows',
+  'steps',
+  'palettes',
+] as const;
+const PAINT_FIELDS = ['paints', 'slots', 'bodyKeys', 'exposure', 'palettes', 'brakeLamp'] as const;
+
+/** Admit a model recipe document: one colored by paints when it gives `paints`, else by roles. */
 export function readVehicleModelRecipe(value: unknown): VehicleModelRecipe {
+  const has = (field: string) => typeof value === 'object' && value !== null && Object.hasOwn(value, field);
+  const painted = has('paints');
   const document = readDocument(
     value,
-    [
-      'format',
-      'version',
-      'vehicle',
-      'yawVariants',
-      'model',
-      'spacing',
-      'colors',
-      'rest',
-      'shade',
-      'bright',
-      'isolatedSizes',
-      'keep',
-      'roles',
-      'luma',
-      'light',
-      'hollows',
-      'steps',
-      'palettes',
-    ],
+    [...BASE_FIELDS, ...(painted ? [...PAINT_FIELDS, ...(has('banks') ? ['banks'] : [])] : ROLE_FIELDS)],
     VEHICLE_MODEL_RECIPE_FORMAT,
     VEHICLE_MODEL_RECIPE_VERSION,
   );
-  const m = readRecord(document.model, '/model', ['sha256', 'right', 'up', 'forward', 'frontWheels']);
+  const front =
+    typeof document.model === 'object' && document.model !== null && Object.hasOwn(document.model, 'frontHub')
+      ? 'frontHub'
+      : 'frontWheels';
+  const m = readRecord(document.model, '/model', ['sha256', 'right', 'up', 'forward', front]);
   const model = {
     sha256: readString(m.sha256, '/model/sha256', SHA256_TEXT),
     right: readEnum(m.right, AXES, '/model/right'),
     up: readEnum(m.up, AXES, '/model/up'),
     forward: readEnum(m.forward, AXES, '/model/forward'),
-    frontWheels: readArray(m.frontWheels, '/model/frontWheels', (v, at) => readString(v, at), { min: 1 }),
+    ...(front === 'frontHub'
+      ? { frontHub: triple(m.frontHub, '/model/frontHub', { min: -100, max: 100 }) }
+      : { frontWheels: readArray(m.frontWheels, '/model/frontWheels', (v, at) => readString(v, at), { min: 1 }) }),
   };
   requireAdmission(
     new Set([model.right, model.up, model.forward].map((axis) => axis[1])).size === 3,
@@ -189,6 +236,91 @@ export function readVehicleModelRecipe(value: unknown): VehicleModelRecipe {
     '/model',
     'Expected right, up and forward on three different axes',
   );
+  const base: ModelRecipeBase = {
+    vehicle: readString(document.vehicle, '/vehicle'),
+    yawVariants: readNumber(document.yawVariants, '/yawVariants', { min: 1, max: 256, integer: true }),
+    model: Object.freeze(model),
+    spacing: readNumber(document.spacing, '/spacing', { min: 0.001, max: 0.05 }),
+  };
+  return Object.freeze(painted ? readPaints(document, base) : readRoles(document, base));
+}
+
+/** A colored set's palettes: one to eight, each named by its color. */
+function requireColors(palettes: Readonly<Record<string, unknown>>) {
+  requireAdmission(
+    Object.keys(palettes).length >= 1 && Object.keys(palettes).length <= MOST_VEHICLE_COLORS,
+    'invalid_value',
+    '/palettes',
+    `A set declares 1 to ${MOST_VEHICLE_COLORS} colors`,
+  );
+}
+
+const triple = (v: unknown, at: string, domain: { min: number; max: number }) => {
+  const [x, y, z] = readArray(v, at, (n, p) => readNumber(n, p, domain), { length: 3 });
+  return [x!, y!, z!] as const;
+};
+
+/** The fields of a recipe colored by paints. */
+function readPaints(document: Readonly<Record<string, unknown>>, base: ModelRecipeBase): ModelPaintRecipe {
+  const banks = Object.hasOwn(document, 'banks')
+    ? (() => {
+        const b = readRecord(document.banks, '/banks', ['count', 'degrees']);
+        const count = readNumber(b.count, '/banks/count', { min: 3, max: 15, integer: true });
+        requireAdmission(count % 2 === 1, 'invalid_value', '/banks/count', 'Expected an odd count, one upright');
+        return Object.freeze({
+          count,
+          degrees: readNumber(b.degrees, '/banks/degrees', { min: 0, max: 90, exclusiveMin: true, exclusiveMax: true }),
+        });
+      })()
+    : null;
+  const p = readRecord(document.paints, '/paints', ['colors', 'within', 'lamp', 'litAs']);
+  const paints = Object.freeze({
+    colors: readArray(p.colors, '/paints/colors', readRgb, { min: 1, max: 14 }),
+    within: readNumber(p.within, '/paints/within', { min: 0, max: 255, integer: true }),
+    lamp: readRgb(p.lamp, '/paints/lamp'),
+    litAs: readRgb(p.litAs, '/paints/litAs'),
+  });
+  const sl = readRecord(document.slots, '/slots', ['body', 'neutral']);
+  const slots = Object.freeze({
+    body: readNumber(sl.body, '/slots/body', { min: 1, max: 14, integer: true }),
+    neutral: readNumber(sl.neutral, '/slots/neutral', { min: 1, max: 14, integer: true }),
+  });
+  requireAdmission(
+    paints.colors.length * slots.body + slots.neutral === 14,
+    'invalid_value',
+    '/slots',
+    'The ramps and the neutrals share the 14 picture colors',
+  );
+  const bodyKeys = readArray(document.bodyKeys, '/bodyKeys', (v, at) => readNumber(v, at, { min: 0, max: 255 }), {
+    length: slots.body,
+  });
+  bodyKeys.forEach((key, index) =>
+    requireAdmission(
+      index === 0 || key < bodyKeys[index - 1]!,
+      'invalid_value',
+      `/bodyKeys/${index}`,
+      'Expected keys falling from the highlight',
+    ),
+  );
+  const palettes = readDictionary(document.palettes, '/palettes', (palette, path) =>
+    readArray(palette, path, readRgb, { length: 14 }),
+  );
+  requireColors(palettes);
+  const lamp = readRecord(document.brakeLamp, '/brakeLamp', ['off', 'on']);
+  return {
+    ...base,
+    banks,
+    paints,
+    slots,
+    bodyKeys,
+    exposure: readNumber(document.exposure, '/exposure', { min: 0, max: 4 }),
+    palettes,
+    brakeLamp: Object.freeze({ off: readRgb(lamp.off, '/brakeLamp/off'), on: readRgb(lamp.on, '/brakeLamp/on') }),
+  };
+}
+
+/** The fields of a recipe colored by roles. */
+function readRoles(document: Readonly<Record<string, unknown>>, base: ModelRecipeBase): ModelRoleRecipe {
   const colors = readArray(document.colors, '/colors', (v, at) => readString(v, at), { min: 1, max: 14 });
   requireAdmission(new Set(colors).size === colors.length, 'invalid_value', '/colors', 'Expected distinct entries');
   const entry = (v: unknown, at: string) => {
@@ -234,10 +366,6 @@ export function readVehicleModelRecipe(value: unknown): VehicleModelRecipe {
     '/keep/role',
     'Expected the name of one of the roles',
   );
-  const triple = (v: unknown, at: string, domain: { min: number; max: number }) => {
-    const [x, y, z] = readArray(v, at, (n, p) => readNumber(n, p, domain), { length: 3 });
-    return [x!, y!, z!] as const;
-  };
   const direction = (v: unknown, at: string) => {
     const d = triple(v, at, { min: -1, max: 1 });
     const length = Math.hypot(...d);
@@ -288,17 +416,9 @@ export function readVehicleModelRecipe(value: unknown): VehicleModelRecipe {
     );
     return read;
   });
-  requireAdmission(
-    Object.keys(palettes).length === VEHICLE_COLORS,
-    'invalid_value',
-    '/palettes',
-    `A set declares exactly ${VEHICLE_COLORS} colors`,
-  );
-  return Object.freeze({
-    vehicle: readString(document.vehicle, '/vehicle'),
-    yawVariants: readNumber(document.yawVariants, '/yawVariants', { min: 1, max: 256, integer: true }),
-    model: Object.freeze(model),
-    spacing: readNumber(document.spacing, '/spacing', { min: 0.001, max: 0.05 }),
+  requireColors(palettes);
+  return {
+    ...base,
     colors,
     rest: entry(document.rest, '/rest'),
     shade: entry(document.shade, '/shade'),
@@ -313,7 +433,7 @@ export function readVehicleModelRecipe(value: unknown): VehicleModelRecipe {
     hollows: Object.freeze(hollows),
     steps: Object.freeze(steps),
     palettes,
-  });
+  };
 }
 
 /** The value a term reads of a base color, each channel 0–1. */
@@ -338,12 +458,7 @@ function termOf(term: ColorTerm, r: number, g: number, b: number, luma: readonly
 }
 
 /** The first role whose test a base color (8-bit channels) passes; the last role passes every color. */
-export function modelRoleOf(
-  recipe: Pick<VehicleModelRecipe, 'roles' | 'luma'>,
-  r255: number,
-  g255: number,
-  b255: number,
-) {
+export function modelRoleOf(recipe: Pick<ModelRoleRecipe, 'roles' | 'luma'>, r255: number, g255: number, b255: number) {
   const r = r255 / 255,
     g = g255 / 255,
     b = b255 / 255;

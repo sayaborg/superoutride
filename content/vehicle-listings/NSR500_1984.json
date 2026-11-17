@@ -4,10 +4,19 @@
   "form": "bike",
   "selectionOrder": 20,
   "visuals": {
-    "spriteSet": "vfr750r",
-    "palette": "tricolor",
+    "spriteSet": "nsr500-1984",
+    "palette": "red-blue",
     "steeringPicture": "top-bridge",
-    "colorNames": { "tricolor": "TRICOLOR", "red": "RED", "blue": "BLUE", "black": "BLACK" }
+    "colorNames": {
+      "red-blue": "RED/BLUE",
+      "yellow-black": "YELLOW/BLACK",
+      "green-white": "GREEN/WHITE",
+      "black-gold": "BLACK/GOLD",
+      "white-red": "WHITE/RED",
+      "sky-pink": "SKY/PINK",
+      "orange-navy": "ORANGE/NAVY",
+      "purple-yellow": "PURPLE/YELLOW"
+    }
   },
   "sound": "NSR500_1987",
   "metadata": {
@@ -16,8 +25,18 @@
     "period": "1984",
     "mobileLabel": "NSR500",
     "engine": "V4",
-    "identifier": { "officialLabel": "NSR500", "shortLabel": "NSR500" },
-    "selectedSpecification": ["Spencer NV0A", "1984 final round", "PROVISIONAL"],
-    "physicsAnchor": { "modelYear": "1984", "market": "1984 final round" }
+    "identifier": {
+      "officialLabel": "NSR500",
+      "shortLabel": "NSR500"
+    },
+    "selectedSpecification": [
+      "Spencer NV0A",
+      "1984 final round",
+      "PROVISIONAL"
+    ],
+    "physicsAnchor": {
+      "modelYear": "1984",
+      "market": "1984 final round"
+    }
   }
 }

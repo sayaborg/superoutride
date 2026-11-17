@@ -5,7 +5,7 @@ import { PNG } from 'pngjs';
 import { readGlbModel } from '../../tools/graphics/glb-model.ts';
 import { buildModelVehicleSolid } from '../../tools/graphics/model-vehicle-solid.ts';
 import { readVehicleModelRecipe } from '../../tools/graphics/vehicle-model-recipe.ts';
-import { generateModelSpriteSet } from '../../tools/graphics/vehicle-model-sources.ts';
+import { drawModelSet, generateModelSpriteSet } from '../../tools/graphics/vehicle-model-sources.ts';
 import { drawModelSpriteSet, modelTexelRoles } from '../../tools/graphics/vehicle-role-pictures.ts';
 import { drawSize } from '../../tools/graphics/vehicle-pictures.ts';
 import { createNodeContentStore } from '../../tools/build/node-content-store.ts';
@@ -296,4 +296,102 @@ test('the M23 PP SPEC’s saved set: 64 directions and six sizes in five colors,
   // The pictures use the five slots of the table, and transparency.
   assert.deepEqual([...used].sort(), ['0', '1', '2', '3', '4', '5']);
   for (const level of [0, 1, 2, 3, 4]) assert.ok(helmet.has(level), `a helmet at size ${level}`);
+});
+
+const PAINTED = 'nsr500-1984';
+const paintedValue = JSON.parse(
+  await readFile(new URL(`../../content/vehicle-picture-sources/${PAINTED}.json`, import.meta.url), 'utf8'),
+);
+
+test('a model colored by paints stands on its front hub, banks about its ground line and draws every bank', () => {
+  // A plate facing the model's rear, its texture's left half the first paint and its right half the lamp's magenta.
+  const model = () =>
+    glb({
+      quads: [quad(2, -0.5, -1, [-0.3, 0.3], [0, 0.6])],
+      pixels: [
+        [
+          [215, 5, 17],
+          [255, 0, 255],
+        ],
+      ],
+      lift: 0.2,
+    });
+  const value = {
+    ...paintedValue,
+    yawVariants: 4,
+    spacing: 0.02,
+    model: { ...paintedValue.model, frontHub: [0, 0.3, 1] },
+  };
+  const painted = readVehicleModelRecipe(value);
+  const solid = buildModelVehicleSolid(readGlbModel(model(), PNG), painted, 1.5);
+  let paint = 0,
+    lamp = 0;
+  for (let n = 0; n < solid.count; n++) {
+    // The hub, 1 m ahead of the plate, stands 1.5 m ahead of the base point: not the node at the model's origin.
+    assert.ok(Math.abs(solid.positions[n * 3 + 2] - 0) < 1e-6);
+    assert.ok(solid.paint[n] + solid.lamp[n] === 1, `sample ${n} is paint or lamp`);
+    paint += solid.paint[n];
+    lamp += solid.lamp[n];
+    // Paint is lit as its one color.
+    if (solid.paint[n]) assert.deepEqual([...solid.colors.subarray(n * 3, n * 3 + 3)], paintedValue.paints.litAs);
+  }
+  assert.ok(paint > 0 && lamp > 0);
+  // Banked to the right, it leans right (its centre, 0.5 m up, 0.25 m right) and its lowest sample stays on the road.
+  const banked = buildModelVehicleSolid(readGlbModel(model(), PNG), painted, 1.5, Math.PI / 6);
+  let lowest = Infinity,
+    across = 0;
+  for (let n = 0; n < banked.count; n++) {
+    lowest = Math.min(lowest, banked.positions[n * 3 + 1]);
+    across += banked.positions[n * 3] / banked.count;
+  }
+  assert.equal(lowest, 0);
+  assert.ok(Math.abs(across - 0.25) < 0.01, `its centre at x ${across}`);
+  const draw = () => drawModelSet(painted, model(), 1.5, PNG, 'test');
+  const { document, bytes } = draw();
+  assert.equal(document.yawVariants, 4);
+  assert.equal(document.bankVariants, paintedValue.banks.count);
+  assert.equal(document.bankDegrees, paintedValue.banks.degrees);
+  assert.equal(document.assets.length, 4);
+  for (const row of document.assets) assert.equal(row.length, paintedValue.banks.count);
+  // Seen from behind upright: the first ramp's paint and the lamp.
+  const upright = document.pictures[document.assets[0][(paintedValue.banks.count - 1) / 2]].sizes[0];
+  const digits = new Set(upright.rows.join(''));
+  assert.ok(digits.has('f'), 'a lamp texel');
+  assert.ok(
+    ['1', '2', '3'].some((d) => digits.has(d)),
+    'a first ramp texel',
+  );
+  assert.deepEqual(draw().bytes, bytes);
+});
+
+test('the NSR500 of 1984’s saved set: 64 directions by 7 banks in eight liveries of three ramps', async () => {
+  const value = JSON.parse(await readFile(new URL(`../../content/sprites/${PAINTED}.json`, import.meta.url), 'utf8'));
+  const { set } = readVehicleSpriteSetDocument(value, PAINTED);
+  assert.equal(set.yawVariants, 64);
+  assert.equal(set.bankVariants, 7);
+  assert.equal(set.bankDegrees, 60);
+  const palettes = Object.values(value.palettes);
+  assert.equal(palettes.length, 8);
+  // The eight differ, and only in their ramps: the five neutrals and the lamp are every livery's.
+  assert.equal(new Set(palettes.map((p) => p.join())).size, 8);
+  for (const palette of palettes) assert.deepEqual(palette.slice(9), palettes[0].slice(9));
+  // No palette color, nor the lamp's, is the model's magenta.
+  const magenta = 0x7c1f;
+  for (const color of [...palettes.flat(), value.brakeLamp.off, value.brakeLamp.on]) assert.notEqual(color, magenta);
+  for (const picture of value.pictures) {
+    assert.equal(picture.sizes.length, 6);
+    picture.sizes.forEach((size, level) =>
+      assert.ok(
+        size.shadow.rows.some((row) => /[^0]/.test(row)),
+        `a shadow at size ${level}`,
+      ),
+    );
+  }
+  // Seen from behind and from the rear quarters, upright, to size 4: the brake lamp.
+  for (const yaw of [0, 4, 60])
+    for (let level = 0; level <= 4; level++)
+      assert.ok(
+        value.pictures[value.assets[yaw][3]].sizes[level].rows.some((row) => row.includes('f')),
+        `a lamp texel at yaw ${yaw}, size ${level}`,
+      );
 });
