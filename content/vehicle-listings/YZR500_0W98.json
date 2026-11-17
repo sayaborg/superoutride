@@ -2,7 +2,7 @@
   "format": "superoutride.vehicle-listing",
   "version": 5,
   "form": "bike",
-  "selectionOrder": 21,
+  "selectionOrder": 22,
   "visuals": {
     "spriteSet": "yzr500-0w98",
     "palette": "race",

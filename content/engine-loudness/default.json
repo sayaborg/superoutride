@@ -71,6 +71,12 @@
       "lufs": 0.5408209108448289
     },
     {
+      "vehicleId": "NSR500_1984",
+      "vehicleSha256": "f538aa4a23d6c9cf38a1cdc1499dfda619fb74a0385eff17b467d7e910593caf",
+      "soundSha256": "35825e65056be881f82f29b83b19daadb89094b10fe7de30a7ec3f74aac58ab7",
+      "lufs": -16.700500210822874
+    },
+    {
       "vehicleId": "NSR500_1987",
       "vehicleSha256": "878d6d1831ec8188e4a95e22efe66c02e8a41de8575a49f7a23c14bdd6f6640f",
       "soundSha256": "35825e65056be881f82f29b83b19daadb89094b10fe7de30a7ec3f74aac58ab7",

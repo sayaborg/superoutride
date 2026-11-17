@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "bike",
+  "selectionOrder": 20,
+  "visuals": {
+    "spriteSet": "vfr750r",
+    "palette": "tricolor",
+    "steeringPicture": "top-bridge",
+    "colorNames": { "tricolor": "TRICOLOR", "red": "RED", "blue": "BLUE", "black": "BLACK" }
+  },
+  "sound": "NSR500_1987",
+  "metadata": {
+    "manufacturer": "Honda",
+    "model": "NSR500",
+    "period": "1984",
+    "mobileLabel": "NSR500",
+    "engine": "V4",
+    "identifier": { "officialLabel": "NSR500", "shortLabel": "NSR500" },
+    "selectedSpecification": ["Spencer NV0A", "1984 final round", "PROVISIONAL"],
+    "physicsAnchor": { "modelYear": "1984", "market": "1984 final round" }
+  }
+}

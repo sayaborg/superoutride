@@ -1,7 +1,7 @@
-# Six racing vehicles — adopted specification
+# Seven racing vehicles — adopted specification
 
-This ledger owns the six authored racing-vehicle selections and their evidence, not the shared physics contract.
-All six are selectable in FREE PLAY. No series or RACING HERO course is added. The owner's clarified scope is
+This ledger owns the seven authored racing-vehicle selections and their evidence, not the shared physics contract.
+All seven are selectable in FREE PLAY. The owner's clarified scope is
 **vehicle data, provisional pictures and sound, and contact explosion/recovery only**. Other physics additions need
 prior confirmation. Downforce, timed shifts, transient boost, clutch heat/wear/durability and fuel consumption are
 not implemented. Existing automatic shifts, launch assistance, torque protections and constant mass are game aids,
@@ -24,6 +24,7 @@ uncertainty of their inputs. Authored JSON remains the runtime authority; this C
 | `FERRARI_640` / Ferrari 640 / F1-89         | 1989 Nigel Mansell #27, Belgian GP later high-airbox body; **dry practice setup**, not the wet race tires in the reference photos                  | Slicks; carbon discs; seven electrohydraulic semi-automatic forward gears, steering-wheel commands; no DCT      | 505 kg manufacturer “with liquids” + 30 fuel + 80 driver/equipment = **615 kg**                    |
 | `LOTUS_79_SPECIAL` / Lotus 79 SPECIAL       | 1978 Mario Andretti #5, black/gold JPS, Dutch GP exterior **setup estimate**; long sidepods, skirts, exposed wheels, front/rear wings              | Slicks, steel disc estimate; project **two actual forward gears**, rear drive; contact explosion                | 575 kg base + 10 fluids + 30 fuel + 80 driver/equipment = **695 kg**                               |
 | `MCLAREN_M23_PP_SPEC` / McLaren M23 PP SPEC | 1976 James Hunt M23 (M23D), low airbox after the Spanish GP; exposed wheels, front and rear wings; pictures baked from K's model in eight colors   | Slicks, steel disc estimate; **two of its six gears**, 3rd shown `L` and 6th `H`, rear drive; contact explosion | 587 kg official + 10 fluids + 30 fuel + 80 driver/equipment = **707 kg**                           |
+| `NSR500_1984` / Honda NSR500                | 1984 NV0A, Freddie Spencer's works machine of the season's last round; fuel under the engine, chambers over it, four silencers out of the tail     | Slicks, steel disc brake estimate, 6-speed sequential foot shift, chain rear drive; one authored six-ratio set  | 124.1 kg (basis unstated) + 7 fluids + 12 fuel + 78 rider/equipment = **221.1 kg**                 |
 
 The GP choices pin one authored configuration; they do not establish inaccessible GP-specific gear sheets or wing
 angles. All fuel and occupants stay fixed. Bike fuel is an estimated 16 L × 0.75 kg/L; the cars use fixed fuel mass
@@ -66,6 +67,20 @@ gears, shown as `L` and `H`, and whatever it touches, it explodes. Its pictures 
 channel off or on (K, 2026-11-16): a white body, a second color, a helmet, cyan for its windscreen and its machinery,
 and black; its four liveries are white with blue, red, green and yellow. They are baked from K's GLB model by roles
 ([Model solids](image-assets.md#model-solids)).
+
+K takes SUPER HANG-ON's own machine for the Honda NSR500 of 1984 (K, 2026-11-18); nothing here claims the original
+says so. A racing machine has no brake lamp; this one is given the original's (K, 2026-11-18). The series is a
+one-make of it in eight liveries, each a recoloring of its three paints (K, 2026-11-18). Its sources are below; the
+stage's auditor read them in a search engine's excerpts, and the implementer could not open them (the session's
+network refused them), so like the Honda pages above they are not counted as confirmation by this ledger:
+
+| Reference                                                                                           | Evidence and limit                                                                                                                                                                              |
+| --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Honda RACERS, NSR500 (1)](https://global.honda/jp/RACERS/NSR500_02/01.html)                        | Water-cooled two-stroke 90° V4, case reed valves, one crankshaft, 499.2 cc, 54 × 54.5 mm; **145.4 PS at 11,500 rpm and 9.2 kgm at 11,000 rpm**, the 1984 final round's engine                   |
+| [Honda RACERS, NSR500 (3)](https://global.honda/jp/RACERS/NSR500_02/03.html)                        | 32 L of fuel in the tank under the engine, chambers over it, four silencers out of the tail; the centre of gravity about 30 mm lower than the NS500's with 20 L, no absolute height             |
+| [nsr-world.com, 1984 RS250RW and NSR500](https://nsr-world.com/1984-rs250rw-nsr500/)                | **124.1 kg**, without saying whether dry                                                                                                                                                        |
+| [Bike Bros, Collection Hall photographs](https://www.bikebros.co.jp/vb/sports/sphoto/spt-20200228/) | 16-inch front and 17-inch rear wheels of the Collection Hall's machine                                                                                                                          |
+| K's research                                                                                        | Tires 13/60-16 and 18/67-17, from an article on the 1985 machine, not confirmed for 1984; wheelbase 1,380 mm, the NS500's, no 1984 figure having been found (K accepted the auditor's proposal) |
 
 ## Engine and chassis assumptions
 
@@ -160,6 +175,32 @@ blast (2.673 s), sliding on braked through its 174 (2.871 s), recovery at zero s
 second of protection. The clock continues. Continuous contact cannot retrigger; occupied recovery waits; no gate credit
 comes from relocation; a new run resets the response and sound sequence. The other four listings omit the option.
 Ground, paint, background and timing gates are not solid contacts.
+
+## Honda NSR500 of 1984: historical reference versus authored
+
+| Item                 | Historical reference                                                     | Authored `NSR500_1984`                                                                                                   |
+| -------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Identity             | 1984 NV0A, Spencer's machine, the season's last round                    | Same; K's identification of SUPER HANG-ON's machine, not a claim about the original                                      |
+| Engine               | Two-stroke 90° V4, 499.2 cc, 145.4 PS / 11,500 rpm, 9.2 kgm / 11,000 rpm | C **90.22118 N m at 11,000 rpm** (9.2 × 9.80665), D **106.94152 kW at 11,500 rpm** (145.4 PS = 88.80142 N m)             |
+| Torque curve, others | Not located                                                              | As the NSR500 of 1987's: A 16 N m at idle 2,500 rpm; B 43 N m 3,500 rpm below C; E 0.9 of D's torque 1,000 rpm above D   |
+| Redline              | Not located                                                              | **12,500 rpm**, 1,000 rpm above the power peak as the 1987 machine's                                                     |
+| Forward transmission | Six speeds; no ratio sheet located                                       | The 1987 machine's authored set, 2.2, 1.72, 1.4, 1.21, 1.12, 1, and its final 1.8 × 3.0 = 5.4                            |
+| Wheels and tires     | 16 / 17 in; 13/60-16 and 18/67-17                                        | Radii 0.300 / 0.335 m from K's model (outside diameters 600 / 670 mm)                                                    |
+| Envelope             | Wheelbase 1,380 mm (the NS500's)                                         | K's model: 2,011 × 751 (the rider's elbows; the cowl 608) × 1,339 mm (the helmet's top); axles 0.73 / 0.65 m from the CG |
+| Mass                 | 124.1 kg, basis unstated                                                 | **221.1 kg**: 124.1 + 7 fluids + 12 fuel + 78 rider and equipment, the 1987 machine's additions                          |
+| CG height            | About 30 mm below the NS500's with 20 L (no absolute value)              | **0.49 m**: the 1987 machine's conventional 0.52 m less those 30 mm                                                      |
+| Brake lamp           | None on a racing machine                                                 | The original's, at the tail's rear tip (pictures alone; K, 2026-11-18)                                                   |
+
+The six ratios and the final drive are the 1987 machine's authored set, carried over unchanged: on the larger rear
+tire and the lower redline, sixth at redline is about 292 km/h, just above the speed where its power meets the drag
+and rolling resistance, so the machine tops out in sixth below its redline, at 286.5 km/h
+([Validation](racing-vehicles/validation.md)). Its static front share is the 1987
+machine's 47 %. The values no source gives follow the 1987 machine: ride frequencies, damping, travel, the front
+wheel's inertia and brake, the drag `q=0.18 kg/m` and the tire (grip 1.25, stiffness 75, sliding ratio 0.9: its own
+tire with the 1987 machine's values, K's to set in DEV); yaw and pitch inertias scale with its mass and the square of
+its wheelbase (92 / 111 kg m²), the rear wheel's inertia with the square of its radius (0.58 kg m²) and the rear
+brake with its radius (253 N m). Compression 11 is the 1987 machine's estimate. Its sound is the 1987 machine's,
+borrowed ([Calibration](calibration.md#exhaust-topologies)), and its pictures `vfr750r`'s until its own are baked.
 
 ## Reproducible provisional pictures and sound
 

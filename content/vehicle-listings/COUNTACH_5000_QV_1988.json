@@ -2,7 +2,7 @@
   "format": "superoutride.vehicle-listing",
   "version": 5,
   "form": "car",
-  "selectionOrder": 33,
+  "selectionOrder": 34,
   "visuals": {
     "spriteSet": "countach-5000-qv-1988",
     "palette": "stock",

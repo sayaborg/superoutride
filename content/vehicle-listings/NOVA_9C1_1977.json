@@ -2,7 +2,7 @@
   "format": "superoutride.vehicle-listing",
   "version": 5,
   "form": "car",
-  "selectionOrder": 44,
+  "selectionOrder": 45,
   "visuals": {
     "spriteSet": "nova-9c1-1977",
     "palette": "stock",

@@ -2,7 +2,7 @@
   "format": "superoutride.vehicle-listing",
   "version": 5,
   "form": "car",
-  "selectionOrder": 25,
+  "selectionOrder": 26,
   "visuals": {
     "spriteSet": "mclaren-m23-pp-spec",
     "palette": "white-blue",

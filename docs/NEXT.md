@@ -8,7 +8,8 @@ Each line is one area as it stands, with the document that owns it.
   TIME ATTACK and FREE PLAY runs. Without DEV, FREE PLAY offers the courses a series runs (TSUKUBA, and for now the
   originals of the ARCADE TRIBUTE series delivered); the other originals' courses, in no series, are DEV's
   ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
-- The [six racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
+- The [seven racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
+  The NSR500 of 1984 is K's SUPER HANG-ON machine ([Stage NSR](#stage-nsr--the-nsr500-of-1984-and-super-hang-ons-one-make)).
   Lotus 79 SPECIAL and McLaren M23 PP SPEC have two actual forward ratios and opt into contact explosion/recovery; the
   M23's are two of its six, named `L` and `H`, and its pictures, baked from K's model, are in eight colors
   ([Racing vehicles](racing-vehicles.md#mclaren-m23-historical-reference-versus-pp-spec)). The owner's scope is
@@ -18,7 +19,7 @@ Each line is one area as it stands, with the document that owns it.
   specifications from estimates. Existing traffic policy and series eligibility remain unchanged; new physics
   still requires prior confirmation.
 - The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the
-  catalog to 35 vehicles before the M23 PP SPEC, 36 with it. The 1986 Porsche 930 and 1984 Corvette C4 coexist with
+  catalog to 35 vehicles before the M23 PP SPEC, 36 with it and 37 with the NSR500 of 1984. The 1986 Porsche 930 and 1984 Corvette C4 coexist with
   their existing 1989 versions; the unidentified box truck remains deferred. The ledger owns specification limits and validation.
 - **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
   PRODUCTION 750, GTI CUP and 911 CUP classes; the [product specification](product.md) is Stage 16's target
@@ -82,6 +83,17 @@ RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs
 Implement the stages in order. Each PR's restart instructions supply its detailed requirements.
 Topic contracts belong to the topic specifications; development and release procedure belongs to AGENTS.
 PRs hold rationale and verification evidence. Each stage first consolidates the structure its later PRs consume.
+
+## Stage NSR — The NSR500 of 1984 and SUPER HANG-ON's one-make
+
+K's decision of 2026-11-18: SUPER HANG-ON's machine is the Honda NSR500 of 1984 (NV0A), added as a vehicle of its
+own, and the series becomes its one-make in eight liveries, recolorings of its three paints. NSR-1 adds the vehicle
+([Racing vehicles](racing-vehicles.md#honda-nsr500-of-1984-historical-reference-versus-authored)), with VFR750R's
+pictures and the NSR500 of 1987's sound borrowed. NSR-2 bakes its pictures from K's model
+(`codex/nsr500-1984-glb-source`), and NSR-3 makes the series its one-make.
+
+Not decided, for K: the tire's real values, its own sound, a source for the six ratios, the 1984 machine's wheelbase
+and front tire, and the eight liveries' values (K looks at them in DEV).
 
 ## Stage AT — The attract demo remade
 

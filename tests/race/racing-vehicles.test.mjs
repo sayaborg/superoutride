@@ -39,6 +39,7 @@ const identities = [
   ['FERRARI_640', 7, 12, 2, 441],
   ['LOTUS_79_SPECIAL', 2, 8, 2, 500],
   ['MCLAREN_M23_PP_SPEC', 2, 8, 2, 465 * 0.745699872],
+  ['NSR500_1984', 6, 4, 1, 145.4 * 0.73549875],
 ];
 const idle = { steering: 0, throttle: false, brake: false };
 

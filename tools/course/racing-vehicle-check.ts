@@ -12,7 +12,7 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 
 /**
  * The racing vehicles the [racing vehicle ledger](../../docs/racing-vehicles.md) owns, in its order: those with
- * procedural pictures, and the M23 PP SPEC, whose pictures are baked from a model.
+ * procedural pictures, the M23 PP SPEC, whose pictures are baked from a model, and the NSR500 of 1984.
  */
 export const RACING_VEHICLE_IDS = Object.freeze([
   'NSR500_1987',
@@ -21,6 +21,7 @@ export const RACING_VEHICLE_IDS = Object.freeze([
   'FERRARI_640',
   'LOTUS_79_SPECIAL',
   'MCLAREN_M23_PP_SPEC',
+  'NSR500_1984',
 ]);
 
 /** Flat 60 km, dry unit-grip asphalt, no wind, no other actors; ordinary product physics and controls. */

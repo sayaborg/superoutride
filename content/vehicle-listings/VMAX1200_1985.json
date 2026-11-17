@@ -2,7 +2,7 @@
   "format": "superoutride.vehicle-listing",
   "version": 5,
   "form": "bike",
-  "selectionOrder": 30,
+  "selectionOrder": 31,
   "visuals": {
     "spriteSet": "vmax1200-1985",
     "palette": "stock",

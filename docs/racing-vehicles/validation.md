@@ -18,8 +18,9 @@ Terminal range is the minimum/maximum road speed during the final 10 seconds. Br
 | `FERRARI_640`         |         317.310 |         7 / 12604.7 |   3.700 / 7.300 |                       5.417 / 226.19 |       215.69 |
 | `LOTUS_79_SPECIAL`    |         349.780 |         2 / 10983.3 |   3.317 / 6.567 |                       6.067 / 281.82 |       220.15 |
 | `MCLAREN_M23_PP_SPEC` |         291.652 |         2 / 11021.2 |   4.233 / 8.917 |                       5.150 / 201.13 |       184.44 |
+| `NSR500_1984`         |         286.524 |         6 / 12418.4 |   3.517 / 7.550 |                       6.433 / 243.37 |       206.79 |
 
-MP4/4 is limited by top-gear fuel-cut cycling: its instantaneous final acceleration is not zero, and the range above records the cycle. The other four reach steady power/resistance balance. These are **simulation results**, not manufacturer acceleration or speed claims. The M23's rows were measured on main after Stage TR's brush tire; the other rows predate it and are not measured again here (the Lotus now reaches 353.318 km/h, 0–100 / 0–200 in 3.317 / 6.567 s). All ordinary cars reach all six/seven gears; Lotus makes exactly one upshift.
+MP4/4 is limited by top-gear fuel-cut cycling: its instantaneous final acceleration is not zero, and the range above records the cycle. The other four reach steady power/resistance balance. These are **simulation results**, not manufacturer acceleration or speed claims. The M23's and the NSR500 of 1984's rows were measured after Stage TR's brush tire; the other rows predate it and are not measured again here (the Lotus now reaches 353.318 km/h, 0–100 / 0–200 in 3.317 / 6.567 s). All ordinary cars reach all six/seven gears; Lotus makes exactly one upshift.
 
 | Vehicle               | Actual ratios                                                  | Compiled rear rolling radius (m) | Nominal redline speeds, km/h, all gears                |
 | --------------------- | -------------------------------------------------------------- | -------------------------------: | ------------------------------------------------------ |
@@ -29,6 +30,7 @@ MP4/4 is limited by top-gear fuel-cut cycling: its instantaneous final accelerat
 | `FERRARI_640`         | 3.2, 2.5, 2.05, 1.75, 1.52, 1.35, 1.2                          |                           0.3302 | 131.29, 168.05, 204.94, 240.07, 276.40, 311.21, 350.11 |
 | `LOTUS_79_SPECIAL`    | 1.8, 1                                                         |                           0.3230 | 216.10, 388.98                                         |
 | `MCLAREN_M23_PP_SPEC` | 1.64, 1.18 (3rd and 6th of 2.48, 1.94, 1.64, 1.44, 1.28, 1.18) |                           0.3302 | 219.39, 304.91                                         |
+| `NSR500_1984`         | 2.2, 1.72, 1.4, 1.21, 1.12, 1                                  |                           0.3350 | 132.88, 169.97, 208.82, 241.61, 261.02, 292.34         |
 
 Nominal speed is `rpm × 2π × rollingRadius × 60 / (gear × finalDrive × 1000)` with no wheel slip. It is a kinematic limit, not a promise of achievable speed. The solver chooses shifts from rolling speed; observed engine RPM includes wheel slip.
 
@@ -40,6 +42,7 @@ Nominal speed is `rpm × 2π × rollingRadius × 60 / (gear × finalDrive × 100
 | `FERRARI_640`         | 1→2: 4.733, 131.56, 14170→11073; 2→3: 6.050, 168.49, 14172→11623; 3→4: 7.533, 205.30, 14061→12004; 4→5: 9.383, 240.31, 13975→12139; 5→6: 12.600, 276.47, 13926→12369; 6→7: 33.817, 311.21, 13894→12350 |
 | `LOTUS_79_SPECIAL`    | 1→2: 7.633, 216.21, 12033→6693                                                                                                                                                                         |
 | `MCLAREN_M23_PP_SPEC` | 1→2 (`L`→`H`): 10.300, 219.56, 11617→8359                                                                                                                                                              |
+| `NSR500_1984`         | 1→2: 4.517, 133.34, 12981→10151; 2→3: 5.967, 170.47, 12804→10424; 3→4: 8.133, 209.03, 12740→11012; 4→5: 11.083, 241.90, 12706→11762; 5→6: 14.150, 261.21, 12691→11332                                  |
 
 ## Torque, mass placement and resistance checks
 
@@ -53,6 +56,7 @@ The test evaluates every curve endpoint and each in-segment stationary point of 
 | `FERRARI_640`         | 3000 / 150.00000; 7000 / 250.00000; 11000 / 355.00000; 12500 / 336.89918; 13500 / 300.00000 |    440.999995 |                  43.86% |             1.183 / 1.104 |          0.897959 |
 | `LOTUS_79_SPECIAL`    | 2500 / 160.00000; 6000 / 360.00000; 9000 / 500.00000; 10500 / 454.72841; 11500 / 400.00000  |    500.000001 |                  42.59% |             1.200 / 1.125 |          0.726531 |
 | `MCLAREN_M23_PP_SPEC` | 3000 / 150.00000; 6500 / 285.00000; 9000 / 330.00000; 10800 / 306.59470; 11200 / 290.00000  |    346.750437 |                  42.60% |             1.201 / 1.128 |          0.897959 |
+| `NSR500_1984`         | 2500 / 16.00000; 7500 / 43.00000; 11000 / 90.22118; 11500 / 88.80142; 12500 / 79.92127      |    106.941521 |                  47.10% |             0.645 / 0.709 |          0.293878 |
 
 Decimals in calculated torque and derived results are retained for reproducibility, not measurement precision. Inertial mass radii are `sqrt(I/m)`; CdA is the equivalent `2q/1.225` for the authored quadratic drag. None supplies missing downforce.
 
