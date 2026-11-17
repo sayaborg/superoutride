@@ -86,16 +86,17 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 
 ## Stage NSR — The NSR500 of 1984 and SUPER HANG-ON's one-make
 
-K's decision of 2026-11-18: SUPER HANG-ON's machine is the Honda NSR500 of 1984 (NV0A), added as a vehicle of its
-own, and the series becomes its one-make in eight liveries. NSR-1 added the vehicle
-([Racing vehicles](racing-vehicles.md#honda-nsr500-of-1984-historical-reference-versus-authored)) and NSR-2 its
-pictures from K's model (`codex/nsr500-1984-glb-source`). NSR-4 puts it on the default tire with its CG 0.30 of its
-wheelbase high, for now (K, 2026-11-18). Then K's rework of its pictures (four red steps, four blue, six greys shared
-by the white; the light L2; spun wheels; eight liveries of white with two colors), and NSR-3 makes the series its
-one-make, measured on those values.
+K's decisions of 2026-11-18 are in place (NSR-1 to NSR-4 and NSR-2's rework): the Honda NSR500 of 1984 is a vehicle of
+its own ([Racing vehicles](racing-vehicles.md#honda-nsr500-of-1984-historical-reference-versus-authored)), for now on
+the default tire with its CG 0.30 of its wheelbase high, its pictures baked from K's model
+([Model solids](image-assets.md#model-solids)), and ARCADE TRIBUTE - SUPER HANG-ON is its one-make in eight liveries
+([Series documents](content-and-gameplay.md#series-documents)). What stays open, for K:
 
-Not decided, for K: the tire's real values and the CG height, its own sound, a source for the six ratios, the 1984
-machine's wheelbase and front tire, and the eight liveries' values (K looks at them in DEV).
+- To look at in DEV: the back seen riding (the blue's steps, the red tail, the black tyres, the four outlets), the
+  spun wheels, the eight liveries near and far, cornering on the default tire and the attitude under acceleration
+  and braking with the CG at 414 mm.
+- Not decided: the tire's real values and the CG height, the eight liveries' values, its own sound (the NSR500 of
+  1987's is borrowed), a source for the six ratios, and the 1984 machine's wheelbase and front tire.
 
 ## Stage AT — The attract demo remade
 

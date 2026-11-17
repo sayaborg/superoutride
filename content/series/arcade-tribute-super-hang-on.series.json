@@ -16,61 +16,61 @@
       "course": "super-hang-on-africa",
       "laps": 1,
       "vehicles": [
-        "VFR750R"
+        "NSR500_1984"
       ],
       "entries": [
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "yellow-black",
           "stages": null,
           "slot": 0,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "blue",
+          "vehicle": "NSR500_1984",
+          "color": "green-yellow",
           "stages": null,
           "slot": 1,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "black",
+          "vehicle": "NSR500_1984",
+          "color": "black-gold",
           "stages": null,
           "slot": 2,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "sky-pink",
           "stages": null,
           "slot": 3,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "blue",
+          "vehicle": "NSR500_1984",
+          "color": "orange-navy",
           "stages": null,
           "slot": 4,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "black",
+          "vehicle": "NSR500_1984",
+          "color": "purple-yellow",
           "stages": null,
           "slot": 5,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "white-red",
           "stages": null,
           "slot": 6,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "tricolor",
+          "vehicle": "NSR500_1984",
+          "color": "red-blue",
           "stages": null,
           "slot": 7,
           "ahead": null
@@ -83,7 +83,7 @@
         "path": "line",
         "vehicles": [
           {
-            "vehicle": "VFR750R",
+            "vehicle": "NSR500_1984",
             "weight": 1
           }
         ],
@@ -98,61 +98,61 @@
       "course": "super-hang-on-asia",
       "laps": 1,
       "vehicles": [
-        "VFR750R"
+        "NSR500_1984"
       ],
       "entries": [
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "yellow-black",
           "stages": null,
           "slot": 0,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "blue",
+          "vehicle": "NSR500_1984",
+          "color": "green-yellow",
           "stages": null,
           "slot": 1,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "black",
+          "vehicle": "NSR500_1984",
+          "color": "black-gold",
           "stages": null,
           "slot": 2,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "sky-pink",
           "stages": null,
           "slot": 3,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "blue",
+          "vehicle": "NSR500_1984",
+          "color": "orange-navy",
           "stages": null,
           "slot": 4,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "black",
+          "vehicle": "NSR500_1984",
+          "color": "purple-yellow",
           "stages": null,
           "slot": 5,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "white-red",
           "stages": null,
           "slot": 6,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "tricolor",
+          "vehicle": "NSR500_1984",
+          "color": "red-blue",
           "stages": null,
           "slot": 7,
           "ahead": null
@@ -165,7 +165,7 @@
         "path": "line",
         "vehicles": [
           {
-            "vehicle": "VFR750R",
+            "vehicle": "NSR500_1984",
             "weight": 1
           }
         ],
@@ -180,61 +180,61 @@
       "course": "super-hang-on-america",
       "laps": 1,
       "vehicles": [
-        "VFR750R"
+        "NSR500_1984"
       ],
       "entries": [
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "yellow-black",
           "stages": null,
           "slot": 0,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "blue",
+          "vehicle": "NSR500_1984",
+          "color": "green-yellow",
           "stages": null,
           "slot": 1,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "black",
+          "vehicle": "NSR500_1984",
+          "color": "black-gold",
           "stages": null,
           "slot": 2,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "sky-pink",
           "stages": null,
           "slot": 3,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "blue",
+          "vehicle": "NSR500_1984",
+          "color": "orange-navy",
           "stages": null,
           "slot": 4,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "black",
+          "vehicle": "NSR500_1984",
+          "color": "purple-yellow",
           "stages": null,
           "slot": 5,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "white-red",
           "stages": null,
           "slot": 6,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "tricolor",
+          "vehicle": "NSR500_1984",
+          "color": "red-blue",
           "stages": null,
           "slot": 7,
           "ahead": null
@@ -247,7 +247,7 @@
         "path": "line",
         "vehicles": [
           {
-            "vehicle": "VFR750R",
+            "vehicle": "NSR500_1984",
             "weight": 1
           }
         ],
@@ -262,61 +262,61 @@
       "course": "super-hang-on-europe",
       "laps": 1,
       "vehicles": [
-        "VFR750R"
+        "NSR500_1984"
       ],
       "entries": [
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "yellow-black",
           "stages": null,
           "slot": 0,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "blue",
+          "vehicle": "NSR500_1984",
+          "color": "green-yellow",
           "stages": null,
           "slot": 1,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "black",
+          "vehicle": "NSR500_1984",
+          "color": "black-gold",
           "stages": null,
           "slot": 2,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "sky-pink",
           "stages": null,
           "slot": 3,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "blue",
+          "vehicle": "NSR500_1984",
+          "color": "orange-navy",
           "stages": null,
           "slot": 4,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "black",
+          "vehicle": "NSR500_1984",
+          "color": "purple-yellow",
           "stages": null,
           "slot": 5,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "red",
+          "vehicle": "NSR500_1984",
+          "color": "white-red",
           "stages": null,
           "slot": 6,
           "ahead": null
         },
         {
-          "vehicle": "VFR750R",
-          "color": "tricolor",
+          "vehicle": "NSR500_1984",
+          "color": "red-blue",
           "stages": null,
           "slot": 7,
           "ahead": null
@@ -329,7 +329,7 @@
         "path": "line",
         "vehicles": [
           {
-            "vehicle": "VFR750R",
+            "vehicle": "NSR500_1984",
             "weight": 1
           }
         ],

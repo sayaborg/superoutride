@@ -7,10 +7,10 @@
   "lengthWeight": 0,
   "vehicles": [
     {
-      "vehicleId": "VFR750R",
-      "vehicleSha256": "3f6597be260577e7d8318fcbbe753ea9c14e3977f692141776ab8c4dc74368de",
-      "seconds": 275.947,
-      "minimumCurvatureSeconds": 275.947
+      "vehicleId": "NSR500_1984",
+      "vehicleSha256": "179fe2371e9f0efc650ae24302959c43e82e1cea8bd2a6fc3e7fd34e552f8ba8",
+      "seconds": 263.037,
+      "minimumCurvatureSeconds": 263.037
     }
   ],
   "lines": [

@@ -5,15 +5,15 @@
   "procedureSha256": "5b086e49d9347044fbf81457210da571860ccad67f112833de14d0f28fe2ebd5",
   "vehicles": [
     {
-      "vehicleId": "VFR750R",
-      "vehicleSha256": "3f6597be260577e7d8318fcbbe753ea9c14e3977f692141776ab8c4dc74368de",
-      "initialSeconds": 50.727715680923346,
+      "vehicleId": "NSR500_1984",
+      "vehicleSha256": "179fe2371e9f0efc650ae24302959c43e82e1cea8bd2a6fc3e7fd34e552f8ba8",
+      "initialSeconds": 46.86552126635237,
       "after": [
-        ["africa-CP1", [47.72272680922912]],
-        ["africa-CP2", [51.50132885035471]],
-        ["africa-CP3", [46.801677681237834]],
-        ["africa-CP4", [45.07451789871135]],
-        ["africa-CP5", [49.65346357460996]]
+        ["africa-CP1", [61.031825047154236]],
+        ["africa-CP2", [42.17485328699638]],
+        ["africa-CP3", [43.94933269466625]],
+        ["africa-CP4", [42.80690008035279]],
+        ["africa-CP5", [53.65855066871944]]
       ]
     }
   ]
