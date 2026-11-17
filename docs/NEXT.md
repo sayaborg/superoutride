@@ -87,14 +87,15 @@ PRs hold rationale and verification evidence. Each stage first consolidates the 
 ## Stage NSR — The NSR500 of 1984 and SUPER HANG-ON's one-make
 
 K's decision of 2026-11-18: SUPER HANG-ON's machine is the Honda NSR500 of 1984 (NV0A), added as a vehicle of its
-own, and the series becomes its one-make in eight liveries, recolorings of its three paints. NSR-1 adds the vehicle
-([Racing vehicles](racing-vehicles.md#honda-nsr500-of-1984-historical-reference-versus-authored)), with VFR750R's
-pictures and the NSR500 of 1987's sound borrowed. NSR-2 bakes its pictures from K's model
-(`codex/nsr500-1984-glb-source`), and NSR-3 makes the series its one-make.
+own, and the series becomes its one-make in eight liveries. NSR-1 added the vehicle
+([Racing vehicles](racing-vehicles.md#honda-nsr500-of-1984-historical-reference-versus-authored)) and NSR-2 its
+pictures from K's model (`codex/nsr500-1984-glb-source`). NSR-4 puts it on the default tire with its CG 0.30 of its
+wheelbase high, for now (K, 2026-11-18). Then K's rework of its pictures (four red steps, four blue, six greys shared
+by the white; the light L2; spun wheels; eight liveries of white with two colors), and NSR-3 makes the series its
+one-make, measured on those values.
 
-Not decided, for K: the tire's real values, its own sound, a source for the six ratios, the 1984 machine's wheelbase
-and front tire, the eight liveries' values (K looks at them in DEV), and whether its pictures take the M23 recipe's
-hollows and step lines (NSR-2's report shows both).
+Not decided, for K: the tire's real values and the CG height, its own sound, a source for the six ratios, the 1984
+machine's wheelbase and front tire, and the eight liveries' values (K looks at them in DEV).
 
 ## Stage AT — The attract demo remade
 

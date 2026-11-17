@@ -12,7 +12,7 @@
   "pitchInertia": 111,
   "frontAxle": 0.73,
   "rearAxle": 0.65,
-  "desiredCgHeight": 0.49,
+  "desiredCgHeight": 0.414,
   "frontRideFrequency": 2.2,
   "rearRideFrequency": 2.2,
   "frontDampingRatio": 0.55,
@@ -26,11 +26,6 @@
   "frontBrakeTorqueMax": 650,
   "rearBrakeTorqueMax": 253,
   "quadraticDrag": 0.18,
-  "tire": {
-    "grip": 1.25,
-    "stiffness": 75,
-    "slidingRatio": 0.9
-  },
   "powertrain": {
     "displacementCc": 499.2,
     "cycle": 2,

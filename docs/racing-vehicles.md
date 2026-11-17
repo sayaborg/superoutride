@@ -188,20 +188,23 @@ Ground, paint, background and timing gates are not solid contacts.
 | Wheels and tires     | 16 / 17 in; 13/60-16 and 18/67-17                                        | Radii 0.300 / 0.335 m from K's model (outside diameters 600 / 670 mm)                                                    |
 | Envelope             | Wheelbase 1,380 mm (the NS500's)                                         | K's model: 2,011 × 751 (the rider's elbows; the cowl 608) × 1,339 mm (the helmet's top); axles 0.73 / 0.65 m from the CG |
 | Mass                 | 124.1 kg, basis unstated                                                 | **221.1 kg**: 124.1 + 7 fluids + 12 fuel + 78 rider and equipment, the 1987 machine's additions                          |
-| CG height            | About 30 mm below the NS500's with 20 L (no absolute value)              | **0.49 m**: the 1987 machine's conventional 0.52 m less those 30 mm                                                      |
+| CG height            | About 30 mm below the NS500's with 20 L (no absolute value)              | **0.414 m**: 0.30 of its wheelbase, for now (K, 2026-11-18)                                                              |
 | Brake lamp           | None on a racing machine                                                 | The original's, at the tail's rear tip (pictures alone; K, 2026-11-18)                                                   |
 
 The six ratios and the final drive are the 1987 machine's authored set, carried over unchanged: on the larger rear
 tire and the lower redline, sixth at redline is about 292 km/h, just above the speed where its power meets the drag
-and rolling resistance, so the machine tops out in sixth below its redline, at 286.5 km/h
+and rolling resistance, so the machine tops out in sixth below its redline, at 285.5 km/h
 ([Validation](racing-vehicles/validation.md)). Its static front share is the 1987
 machine's 47 %. The values no source gives follow the 1987 machine: ride frequencies, damping, travel, the front
-wheel's inertia and brake, the drag `q=0.18 kg/m` and the tire (grip 1.25, stiffness 75, sliding ratio 0.9: its own
-tire with the 1987 machine's values, K's to set in DEV); yaw and pitch inertias scale with its mass and the square of
+wheel's inertia and brake and the drag `q=0.18 kg/m`; yaw and pitch inertias scale with its mass and the square of
 its wheelbase (92 / 111 kg m²), the rear wheel's inertia with the square of its radius (0.58 kg m²) and the rear
 brake with its radius (253 N m). Compression 11 is the 1987 machine's estimate. Its sound is the 1987 machine's,
 borrowed ([Calibration](calibration.md#exhaust-topologies)); its pictures are baked from K's model in eight liveries
 ([Model solids](image-assets.md#model-solids)).
+
+The NSR500 of 1984 runs on the default tire and carries its mass 0.30 of its wheelbase high, both for now
+(K, 2026-11-18): it has no tire of its own, as VFR750R, and its CG is 0.414 m, the provisional bike rule of
+[Calibration](calibration.md) in place of the 0.49 m first estimated from Honda's 30 mm.
 
 ## Reproducible provisional pictures and sound
 

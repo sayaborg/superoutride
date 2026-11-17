@@ -18,9 +18,10 @@ Terminal range is the minimum/maximum road speed during the final 10 seconds. Br
 | `FERRARI_640`         |         317.310 |         7 / 12604.7 |   3.700 / 7.300 |                       5.417 / 226.19 |       215.69 |
 | `LOTUS_79_SPECIAL`    |         349.780 |         2 / 10983.3 |   3.317 / 6.567 |                       6.067 / 281.82 |       220.15 |
 | `MCLAREN_M23_PP_SPEC` |         291.652 |         2 / 11021.2 |   4.233 / 8.917 |                       5.150 / 201.13 |       184.44 |
-| `NSR500_1984`         |         286.524 |         6 / 12418.4 |   3.517 / 7.550 |                       6.433 / 243.37 |       206.79 |
+| `NSR500_1984`         |         285.488 |         6 / 12480.8 |   2.950 / 6.900 |                       5.683 / 216.60 |       215.71 |
 
-MP4/4 is limited by top-gear fuel-cut cycling: its instantaneous final acceleration is not zero, and the range above records the cycle. The other four reach steady power/resistance balance. These are **simulation results**, not manufacturer acceleration or speed claims. The M23's and the NSR500 of 1984's rows were measured after Stage TR's brush tire; the other rows predate it and are not measured again here (the Lotus now reaches 353.318 km/h, 0–100 / 0–200 in 3.317 / 6.567 s). All ordinary cars reach all six/seven gears; Lotus makes exactly one upshift.
+MP4/4 is limited by top-gear fuel-cut cycling: its instantaneous final acceleration is not zero, and the range above records the cycle. The other four reach steady power/resistance balance. These are **simulation results**, not manufacturer acceleration or speed claims. The M23's and the NSR500 of 1984's rows were measured after Stage TR's brush tire (the NSR500's on the default tire
+and its 0.414 m CG); the other rows predate it and are not measured again here (the Lotus now reaches 353.318 km/h, 0–100 / 0–200 in 3.317 / 6.567 s). All ordinary cars reach all six/seven gears; Lotus makes exactly one upshift.
 
 | Vehicle               | Actual ratios                                                  | Compiled rear rolling radius (m) | Nominal redline speeds, km/h, all gears                |
 | --------------------- | -------------------------------------------------------------- | -------------------------------: | ------------------------------------------------------ |
@@ -42,7 +43,7 @@ Nominal speed is `rpm × 2π × rollingRadius × 60 / (gear × finalDrive × 100
 | `FERRARI_640`         | 1→2: 4.733, 131.56, 14170→11073; 2→3: 6.050, 168.49, 14172→11623; 3→4: 7.533, 205.30, 14061→12004; 4→5: 9.383, 240.31, 13975→12139; 5→6: 12.600, 276.47, 13926→12369; 6→7: 33.817, 311.21, 13894→12350 |
 | `LOTUS_79_SPECIAL`    | 1→2: 7.633, 216.21, 12033→6693                                                                                                                                                                         |
 | `MCLAREN_M23_PP_SPEC` | 1→2 (`L`→`H`): 10.300, 219.56, 11617→8359                                                                                                                                                              |
-| `NSR500_1984`         | 1→2: 4.517, 133.34, 12981→10151; 2→3: 5.967, 170.47, 12804→10424; 3→4: 8.133, 209.03, 12740→11012; 4→5: 11.083, 241.90, 12706→11762; 5→6: 14.150, 261.21, 12691→11332                                  |
+| `NSR500_1984`         | 1→2: 3.850, 133.14, 13005→10170; 2→3: 5.300, 170.15, 12921→10519; 3→4: 7.500, 209.01, 12860→11116; 4→5: 10.500, 241.72, 12821→11868; 5→6: 13.717, 261.19, 12802→11431                                  |
 
 ## Torque, mass placement and resistance checks
 
