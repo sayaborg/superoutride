@@ -515,12 +515,8 @@ are DEV's ([Tire law](vehicle-physics.md#tire-law)).
   grip balance 0; the values below are K's to set in DEV.
 - TR-3, the steering input asks the front tire for a force at its static load (K, 2026-11-16), is on main (K's word,
   2026-11-17). The default stiffness (40) stays until K sets it in DEV.
-- **TR-4, the plan's limits to the steering rule (K, 2026-11-17): stopped at its investigation; K decides.** The
-  recoveries TR-3 added to the OUTRUN and TURBO OUTRUN reference runs do not come from a load factor above 1. They come
-  from steady turns at load factor 1 under drive, where the front axle carries less than its static load: the steering
-  input now asks a static-load force there, but the planned driver still scales its input up by the front load factor,
-  so it asks too much and runs about 1 m inside its path, into fixed objects. The limits model's front lateral bound is
-  unchanged.
+- TR-4, a planned driver reads the steering rule's definition backwards, the loads no part of it (K, 2026-11-17), is
+  on main. The limits model's front lateral bound is unchanged (the auditor withdrew that change).
 
 Not decided, for K in DEV after the stage:
 

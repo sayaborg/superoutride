@@ -2,16 +2,16 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "5d880e8b1cc64cd1429a0c368d7b9bffe78e2637025b8dffa1a7dad5c3e6c3f0",
-  "procedureSha256": "36141f961664b90e97575355c76aac31a6558a1743c0efc745b3393a0e76f293",
+  "procedureSha256": "5b086e49d9347044fbf81457210da571860ccad67f112833de14d0f28fe2ebd5",
   "vehicles": [
     {
       "vehicleId": "FERRARI_F40_1990",
       "vehicleSha256": "f34bc4d44d544e25d55e66d2b93e6f97289fa9b2164012b789de511b45dd4369",
-      "initialSeconds": 92.02926507802233,
+      "initialSeconds": 82.99927638423037,
       "after": [
-        ["new-york-CP", [57.28821769161179]],
-        ["washington-d-c-CP", [87.56921775179441]],
-        ["pittsburgh-CP", [95.05228516630135]]
+        ["new-york-CP", [62.11217310755211]],
+        ["washington-d-c-CP", [76.75273272577797]],
+        ["pittsburgh-CP", [81.27165827946939]]
       ]
     }
   ]

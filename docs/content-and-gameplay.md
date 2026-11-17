@@ -1415,10 +1415,9 @@ vehicle ahead (target). The pedals ask the acceleration `(v_next² − v²)/(2Δ
 plan's node at least half a cell ahead, `speedSeconds` 0.5 s; a plan within the speed deadzone of standstill is a stop
 and the brake holds. The steering follows the path: its curvature read `curvatureSeconds` (0.2 s) of the speed ahead,
 its lateral error (read at most `pathErrorLimit`, 2 m, so a larger step closes at a bounded rate) and heading error at
-the vehicle's station; neutral while neither tire is loaded. Since the input asks the front tire for a force at its
-static load, never more than its utilization of the bound it has (K, 2026-11-16), the full input's yaw rate it inverts
-through is scaled by the front tire's effective load factor where that falls below 1, read from its observed load (at
-least `leastFrontLoadFactor`, 0.25), and not above it (the implementer's choice).
+the vehicle's station; neutral while neither tire is loaded. A planned driver's steering input is the yaw rate its path
+asks over the yaw rate full input asks (`fullSteeringYawRate`), within ±1: the steering rule's own definition read
+backwards, the loads no part of it (K, 2026-11-17).
 
 A driver plans once in `replanSteps` (3) of its steps (K, 2026-11-13: the largest of 2, 3 and 4 steps at which every
 reference run finishes on the pavement): its speed plan and its decisions about other vehicles (the vehicle ahead, path
@@ -1610,8 +1609,7 @@ map at the current gear and engine speed; below a closed opening's engine brakin
 force. The steering asks the yaw rate `r* = a*/V` of the lateral acceleration
 `a* = V²·κ − ω²·e − 2ζω·V·sin ψ` (`κ` the path's signed curvature, `e` and `ψ` the lateral and heading errors to it,
 `ω` 1.2 rad/s and `ζ` 0.8, `PLANNED_DRIVER`; `e` read within ±2 m), as the part `r*/w` of the yaw rate `w` full input
-asks under the driver's steering rule ([Vehicle physics](vehicle-physics.md#actuators-and-steering)) times the front
-tire's effective load factor.
+asks under the driver's steering rule ([Vehicle physics](vehicle-physics.md#actuators-and-steering)).
 
 The model check (`tests/race/model-check.test.mjs`) holds the model to the mechanics for each catalog vehicle on a flat
 surface of unit grip and no rolling resistance, with wheel slip protection on both sides, as planned drivers drive:

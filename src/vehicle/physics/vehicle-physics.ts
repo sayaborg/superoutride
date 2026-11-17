@@ -224,7 +224,7 @@ export function updateVehicle(
     velocityBeforeY = vehicle.velocityY,
     velocityBeforeZ = vehicle.velocityZ;
   const { maxRoadWheelSteer } = model.steering;
-  const { lever, utilization } = steering;
+  const { lever } = steering;
   let shiftAvailable = true;
 
   // The most drive torque any substep delivers, the step's drive observation.
@@ -257,13 +257,7 @@ export function updateVehicle(
     const automaticMax = maxRoadWheelSteer - limit;
     const askedYawRate =
       vehicle.actuator.steering *
-      tightestSteadyYawRate(
-        dot3(body.velocity, body.forward),
-        dot3(body.velocity, body.right),
-        steadyTurnAcceleration(model, utilization, grip),
-        automaticMax,
-        compiledVehicle.frontAxle + compiledVehicle.rearAxle,
-      );
+      fullSteeringYawRate(model, steering, grip, dot3(body.velocity, body.forward), dot3(body.velocity, body.right));
     const travelDirection = vehicleTravelDirection(
       body,
       frontBeforeSteer.reachVelocity,

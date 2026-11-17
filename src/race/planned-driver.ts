@@ -8,7 +8,6 @@ import type { VehicleDrivingRead } from '../vehicle/physics/vehicle-contract.js'
 import type { VehicleModel } from '../vehicle/physics/vehicle-model.js';
 import type { DriverSteering } from '../vehicle/physics/vehicle-calibration.js';
 import { fullSteeringYawRate } from '../vehicle/physics/vehicle-physics.js';
-import { effectiveTireLoad } from '../vehicle/physics/tire-friction-calibration.js';
 import { VEHICLE_GRAVITY } from '../vehicle/physics/vehicle-state.js';
 import { createSteeringRule, driverSteering } from '../vehicle/steering-rule.js';
 import type { VehicleLimits } from '../vehicle/vehicle-limits.js';
@@ -19,7 +18,7 @@ import type { VehicleLimits } from '../vehicle/vehicle-limits.js';
  * driver's input for the same state and observations ([Calibration](../../docs/calibration.md)).
  */
 export const PLANNED_DRIVER = Object.freeze({
-  version: 8,
+  version: 9,
   /**
    * Every planned driver's one steering rule, a driver's aid and not physics: the centre reference, full steering
    * input reaching the front tire's whole lateral force bound. It is independent of the driver's utilization, which
@@ -54,8 +53,6 @@ export const PLANNED_DRIVER = Object.freeze({
   offPathLeast: 30,
   /** m/s: the least speed the path-following error's heading term and the steering inversion are read at. */
   minimumSteeringSpeed: 2,
-  /** The least front load factor the steering inversion reads, which bounds it as the front tire unloads. */
-  leastFrontLoadFactor: 0.25,
   /** Seconds of the driver's speed it plans to stop short of a terminal or behind the vehicle ahead, as a response. */
   responseSeconds: 0.45,
   /** Metres: the distance a driver leaves before a terminal, or behind the vehicle ahead, when it stops. */
@@ -877,15 +874,9 @@ export function plannedSteering(
   const { pathFrequency: w, pathDamping: z, pathErrorLimit } = PLANNED_DRIVER;
   const error = clamp(lateralError, -pathErrorLimit, pathErrorLimit);
   const lateral = speed * speed * curvature - w * w * error - 2 * z * w * speed * Math.sin(headingError);
-  // The input asks the front tire for a force at its static load, never more than its utilization of the bound it has
-  // (K, 2026-11-16): the full input's yaw rate falls with the front load factor the tire law reads where that falls below
-  // 1, and holds above it.
-  const { staticLoad } = model.compiledVehicle.frontStation.suspension;
-  const front = Math.max(
-    PLANNED_DRIVER.leastFrontLoadFactor,
-    Math.min(1, effectiveTireLoad(model.tireLoadSensitivity, car.tires.front.load, staticLoad) / staticLoad),
-  );
-  const full = front * fullSteeringYawRate(model, steering, grip, car.longitudinalSpeed, car.lateralSpeed);
+  // The steering rule's own definition read backwards: the input is the yaw rate asked over the full input's; the
+  // loads are no part of it (K, 2026-11-17).
+  const full = fullSteeringYawRate(model, steering, grip, car.longitudinalSpeed, car.lateralSpeed);
   return clamp(lateral / speed / full, -1, 1);
 }
 

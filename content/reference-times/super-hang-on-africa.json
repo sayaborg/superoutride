@@ -2,18 +2,18 @@
   "format": "superoutride.reference-times",
   "version": 3,
   "courseBuildSha256": "3119778f152263bb010ba0d2ba2bf0a8762e985f07eb9d5a55c0bd0854c4ebe7",
-  "procedureSha256": "36141f961664b90e97575355c76aac31a6558a1743c0efc745b3393a0e76f293",
+  "procedureSha256": "5b086e49d9347044fbf81457210da571860ccad67f112833de14d0f28fe2ebd5",
   "vehicles": [
     {
       "vehicleId": "VFR750R",
       "vehicleSha256": "3f6597be260577e7d8318fcbbe753ea9c14e3977f692141776ab8c4dc74368de",
-      "initialSeconds": 51.87580537327791,
+      "initialSeconds": 50.727715680923346,
       "after": [
-        ["africa-CP1", [48.24609074027617]],
-        ["africa-CP2", [51.92788097982479]],
-        ["africa-CP3", [46.86536053692808]],
-        ["africa-CP4", [45.281707011171505]],
-        ["africa-CP5", [50.024144518283066]]
+        ["africa-CP1", [47.72272680922912]],
+        ["africa-CP2", [51.50132885035471]],
+        ["africa-CP3", [46.801677681237834]],
+        ["africa-CP4", [45.07451789871135]],
+        ["africa-CP5", [49.65346357460996]]
       ]
     }
   ]
