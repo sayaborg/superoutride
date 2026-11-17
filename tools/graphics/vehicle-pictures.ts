@@ -6,22 +6,11 @@ import type { Rgb, VehiclePictureRecipe } from './vehicle-picture-recipe.js';
 import type { VehicleSolid } from './vehicle-solid.js';
 import type { ModelRoleRecipe } from './vehicle-model-recipe.js';
 
-/** The drawing style shared by four-view solids, authored procedural solids and models colored by paints. */
+/** The drawing style shared by four-view solids and authored procedural solids. */
 export interface VehiclePictureStyle extends Pick<
   VehiclePictureRecipe,
-  'yawVariants' | 'bodyKeys' | 'palettes' | 'brakeLamp'
+  'yawVariants' | 'slots' | 'bodyKeys' | 'palettes' | 'brakeLamp'
 > {
-  /**
-   * How the palette's 14 slots are shared, in slot order: `ramps` body ramps (one when absent) of `body` slots each, a
-   * solid's paint value naming its ramp; neutrals; glass, none or dark then light; accents.
-   */
-  readonly slots: {
-    readonly body: number;
-    readonly ramps?: number;
-    readonly neutral: number;
-    readonly glass: 0 | 2;
-    readonly accent: number;
-  };
   readonly paint: Pick<VehiclePictureRecipe['paint'], 'exposure'>;
   readonly glass: Pick<VehiclePictureRecipe['glass'], 'glint'>;
 }
@@ -82,7 +71,8 @@ export interface TexelRoles {
   readonly albedo: Float32Array;
   readonly gloss: Float32Array;
   readonly light: ModelRoleRecipe['light'];
-  readonly hollows: ModelRoleRecipe['hollows'];
+  /** The hollows' darkening, or none. */
+  readonly hollows: ModelRoleRecipe['hollows'] | null;
   readonly steps: ModelRoleRecipe['steps'];
 }
 
@@ -96,10 +86,11 @@ export interface DrawnSize {
   readonly indices: Uint8Array;
   readonly shadow: Uint8Array;
   /**
-   * With roles, each texel's brightness (0–1), its kept role's share and its role's share in step cells (0 on sizes
-   * without steps); else empty.
+   * With roles, each texel's brightness (0–1), its role's mean lit color (three channels, 0–1), its kept role's share
+   * and its role's share in step cells (0 on sizes without steps); else empty.
    */
   readonly brightness: Float32Array;
+  readonly color: Float32Array;
   readonly keptShare: Float32Array;
   readonly stepShare: Float32Array;
 }
@@ -107,15 +98,22 @@ export interface DrawnSize {
 /** The colors of the slots a texel can take, in slot order, and the ranges of each kind. */
 function slotColors(recipe: VehiclePictureStyle) {
   const reference = Object.values(recipe.palettes)[0]!;
-  const body = recipe.slots.body * (recipe.slots.ramps ?? 1),
+  const body = recipe.slots.body,
     neutral = recipe.slots.neutral;
-  // Slot numbers are 1-based; `reference[slot - 1]` is a slot's color. Glass, when the style has it, follows the
-  // neutrals.
-  const glassDark = body + neutral + 1,
+  const glassDark = body + neutral,
     glassLight = glassDark + 1;
-  const glass = recipe.slots.glass === 2 ? [glassDark, glassLight] : [];
-  const others = Array.from({ length: 14 - body }, (_, i) => body + 1 + i).filter((slot) => !glass.includes(slot));
-  return { reference, lightestNeutral: body + neutral, glassDark, glassLight, others };
+  // Slot numbers are 1-based; `reference[slot - 1]` is a slot's color.
+  const others = Array.from({ length: 14 - body }, (_, i) => body + 1 + i).filter(
+    (slot) => slot - 1 !== glassDark && slot - 1 !== glassLight,
+  );
+  return {
+    reference,
+    body,
+    lightestNeutral: body + neutral,
+    glassDark: glassDark + 1,
+    glassLight: glassLight + 1,
+    others,
+  };
 }
 
 /**
@@ -389,19 +387,19 @@ export function drawSize(
   // With roles, the hollows' darkening of each cell of camera pixels.
   const hollow =
     roles &&
+    roles.hollows &&
     hollowsOf(nearest, point, w, h, sub, scale, roles.hollows, roles.steps.sizes.includes(size) ? roles.steps : null);
   // Each texel from its camera pixels: what it is, and its mean color.
   const slots = roles ? null : slotColors(recipe as VehiclePictureStyle);
   const indices = new Uint8Array(width * height),
     shadow = new Uint8Array(width * height),
     brightness = new Float32Array(roles ? width * height : 0),
+    color = new Float32Array(roles ? width * height * 3 : 0),
     keptShare = new Float32Array(roles ? width * height : 0),
     stepShare = new Float32Array(roles ? width * height : 0);
   // With roles, each role's point count and lit sums in the texel at hand, and its points in step cells.
   const byRole = new Float64Array(roles ? roles.count * 4 : 0),
     stepped = new Float64Array(roles ? roles.count : 0);
-  // Without roles, each paint ramp's point count in the texel at hand.
-  const byRamp = new Float64Array(roles ? 0 : ((recipe as VehiclePictureStyle).slots.ramps ?? 1));
   const lampShare = new Float32Array(width * height);
   const pixels = sub * sub;
   let fullestCoverage = 0,
@@ -420,7 +418,6 @@ export function drawSize(
         b = 0;
       byRole.fill(0);
       stepped.fill(0);
-      byRamp.fill(0);
       for (let sy = 0; sy < sub; sy++) {
         const row = (ty * sub + sy) * w + tx * sub;
         for (let sx = 0; sx < sub; sx++) {
@@ -429,21 +426,20 @@ export function drawSize(
           if (n < 0) continue;
           covered++;
           lamp += solid.lamp[n]!;
-          if (paint[n]) {
-            painted++;
-            byRamp[paint[n]! - 1]!++;
-          }
+          painted += paint[n]!;
           glazed += glass[n]!;
           r += shaded[n * 3]!;
           g += shaded[n * 3 + 1]!;
           b += shaded[n * 3 + 2]!;
-          if (roles && hollow) {
+          if (roles) {
             const at = roles.points[n]! * 4,
               y = ty * sub + sy,
               x = tx * sub + sx;
-            const cell = Math.floor(y / hollow.cellPixels) * hollow.columns + Math.floor(x / hollow.cellPixels);
-            const darkening = hollow.values[cell]!;
-            if (hollow.steps?.[cell]) stepped[roles.points[n]!]!++;
+            const cell = hollow
+              ? Math.floor(y / hollow.cellPixels) * hollow.columns + Math.floor(x / hollow.cellPixels)
+              : 0;
+            const darkening = hollow ? hollow.values[cell]! : 1;
+            if (hollow?.steps?.[cell]) stepped[roles.points[n]!]!++;
             byRole[at]!++;
             for (let c = 0; c < 3; c++)
               byRole[at + 1 + c]! += Math.min(1, shaded[n * 3 + c]! * darkening + specular[n]!);
@@ -464,6 +460,7 @@ export function drawSize(
         const n = byRole[best * 4]!;
         slot = best + 1;
         brightness[texelAt] = Math.max(byRole[best * 4 + 1]!, byRole[best * 4 + 2]!, byRole[best * 4 + 3]!) / n;
+        for (let c = 0; c < 3; c++) color[texelAt * 3 + c] = byRole[best * 4 + 1 + c]! / n;
         keptShare[texelAt] = byRole[roles.kept * 4]! / covered;
         stepShare[texelAt] = stepped[best]! / n;
       } else if (lamp / covered >= SHARE) slot = 15;
@@ -479,10 +476,7 @@ export function drawSize(
               at = i - (keys[i - 1]! - brightness < brightness - keys[i]! ? 1 : 0);
               break;
             }
-        // The ramp most of its paint has, the first of equals.
-        let ramp = 0;
-        for (let k = 1; k < byRamp.length; k++) if (byRamp[k]! > byRamp[ramp]!) ramp = k;
-        slot = ramp * keys.length + at + 1;
+        slot = at + 1;
       } else if (glazed / covered >= SHARE) {
         const mean = (r + g + b) / 3;
         slot =
@@ -550,7 +544,18 @@ export function drawSize(
         }
       if (!kept && fullest >= 0) indices[fullest] = 15;
     }
-  return { width, height, anchorX: halfWidth, anchorY: above, indices, shadow, brightness, keptShare, stepShare };
+  return {
+    width,
+    height,
+    anchorX: halfWidth,
+    anchorY: above,
+    indices,
+    shadow,
+    brightness,
+    color,
+    keptShare,
+    stepShare,
+  };
 }
 
 /** The opaque texels' frame: its rows as hexadecimal digits and its anchor in texel-centre coordinates. */

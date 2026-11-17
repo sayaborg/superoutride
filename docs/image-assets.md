@@ -784,7 +784,8 @@ its texture's base color (the nearest texel) and its normal: the vertex normals 
 its face's by its winding. The recipe's axes turn the model to the vehicle's right, up and forward;
 it then stands with its front axle the mechanics document's `frontAxle` ahead of the base point and its lowest sample on
 the road. Its front axle is its front wheels' mean node origin (`frontWheels`), or for a model without wheel nodes a
-point the recipe gives in the model's coordinates (`frontHub`). Its wheels are drawn as they stand.
+point the recipe gives in the model's coordinates (`frontHub`). Its wheels are drawn as they stand, unless a recipe
+colored by paints spins them.
 
 **Recipe.** `superoutride.vehicle-model-recipe` version 1, saved as `content/vehicle-picture-sources/<set>.json`. A
 recipe colors its set by roles, or by paints when it gives `paints`; both give the model, its front axle and the
@@ -811,22 +812,37 @@ By paints (the model's `frontHub` in place of `frontWheels` either way):
 {format, version, vehicle: "NSR500_1984", yawVariants: 64,
  model: {sha256, right: "-x", up: "+y", forward: "+z", frontHub: [x, y, z]},
  spacing: 0.008, banks?: {count: 7, degrees: 60},
- paints: {colors: [[r, g, b], ...], within, lamp: [r, g, b], litAs: [r, g, b]},
- slots: {body: 3, neutral: 5}, bodyKeys: [brightness, ...], exposure,
- palettes: {name: [[r, g, b] × 14], ...}, brakeLamp: {off: [r, g, b], on: [r, g, b]}}
+ paints: {colors: [[r, g, b], ...], within, lamp: [r, g, b]},
+ ramps: {paints: [4, 4], grey: 6, sampleYaws: 16},
+ light: {main, fill, ambient, sky, mainWeight, fillWeight, shininess}, gloss,
+ wheels: [{center: [x, y, z], radius, rim, width}, ...],
+ liveries: {name: [[r, g, b] for each paint], ...}, brakeLamp: {off: [r, g, b], on: [r, g, b]}}
 ```
 
-**Paints.** A set colored by paints takes the shared baker's light and palette quantization ([Vehicle picture
-generator](#vehicle-picture-generator)), its paint in ramps: a sample whose base color lies within `within` of the
-`k`th of `paints.colors` in every channel is paint of ramp `k`, and one within `within` of `lamp` is the brake lamp;
-everything else is neither. Paint is lit as the one color `litAs`, whichever its ramp, so its steps follow the light
-alone and a livery may give a ramp any color. Slots 1 onward are the ramps, `slots.body` each from the highlight to the
-darkest, and then `slots.neutral` neutrals from dark to light; the ramps and the neutrals share the 14 slots. A paint
-texel takes the ramp most of its paint has and the step whose `bodyKeys` brightness is nearest; a lamp texel slot 15;
-any other texel the nearest neutral. With `banks`, the set has `count` bank images, an odd number, evenly over
-±`degrees` from leaning left to leaning right: the model turned about the line where it meets the road (the base point's
-longitudinal ground line), rider and machine together, and its lowest sample put back on the road; without it, one.
-The roles below, their light, hollows and steps are the roles' alone.
+**Paints.** A set colored by paints sorts its samples into groups by their base colors: a sample within `within` of
+the `k`th of `paints.colors` in every channel is that paint's, one within `within` of `lamp` the brake lamp's, any other
+grey's. It is drawn by the shared baker's cameras, sizes and shadows, each texel of 6 by 6 camera pixels, in every bank
+image, and lit by the light of the roles below, with each sample's base color as its albedo and `gloss` as its
+highlight's strength, without hollows or step lines. A texel takes the group most of its pixels show; its color is the
+mean lit color of that group's pixels alone, so no color mixes two groups. Each group's steps are measured from its
+pictures: at size 0, of every `sampleYaws`th direction and every bank image, the group's texels are split by brightness
+(`0.30 r + 0.59 g + 0.11 b`) into the group's number of steps, `ramps.paints` for each paint and `ramps.grey` for the
+greys, by one-dimensional k-means from even quantiles; each step is the mean color of its texels. A texel takes the
+step of its group whose brightness is nearest its own; a lamp texel slot 15, and up to size 4 a picture that shows no
+lamp texel while one texel's pixels are at least 2 % lamp draws its fullest such texel as the lamp. No dither is drawn.
+Slots 1 onward are each paint's steps and then the greys', each from dark to light (14 in all).
+
+A livery gives a color for each paint; the greys and the lamp are every livery's. The first is the model's own paints
+in their measured steps. Another livery keeps each measured step's relation to its paint: the step as `a` times the
+paint plus `b` of white, fitted by least squares over the three channels, applied to the livery's color.
+
+With `wheels`, each wheel is spun: the samples inside its rim, within half its width of its centre along the axle (the
+vehicle's right axis), are taken out and given back as rings round the axle, a `spacing` apart in every direction,
+each ring the mean color and mean normal of the samples it took, so spokes become a disc of concentric greys. The tyre
+outside the rim is round already and stays as it is. The forks, brakes and swinging arm outside the wheel's width are
+not spun. With `banks`, the set has `count` bank images, an odd number, evenly over ±`degrees` from leaning left to
+leaning right: the model turned about the line where it meets the road (the base point's longitudinal ground line),
+rider and machine together, and its lowest sample put back on the road; without it, one.
 
 **Roles.** A model recipe's set does not take the palette quantization of the sets above: its texels take colors by
 role, the recipe's alone, and no other set's pictures change. Each sample takes the first role whose clauses its base
@@ -889,41 +905,38 @@ black mass), and 0.30 for the machinery, which the stage set at 0.40, movable be
 engine behind showed few cyan points. The helmet is kept to size 4 at 0.02. The model is K's
 `mclaren_m23_1976_rev4.glb`, kept on K's branch `codex/m23-glb-source`, never on main.
 
-**The NSR500 of 1984.** Its set, `nsr500-1984`, is colored by paints (K, 2026-11-18): K painted its model's three
-paints flat, and each is a ramp of three steps, light, middle and dark; five greys take the rest, the metal, tyres,
-screen, seat and skin, and the black screen and visor take the darkest grey. The paints are these base colors, within
-8 in every channel (the brush's edges):
+**The NSR500 of 1984.** Its set, `nsr500-1984`, is colored by paints (K, 2026-11-18). K painted its model's paints
+flat; the red (215, 5, 17) and the blue (32, 46, 131) are its two paints, four steps each, and everything else, the
+white paint (235, 235, 233) with the metal, tyres, screen and skin, is the greys' six steps (K, 2026-11-18): the white
+falls in the lightest greys, the aluminium in the middle ones and the tyres in the darkest. The magenta at the tail's
+rear tip (255, 0, 255, about 11 cm by 8 cm) is the brake lamp, whose off and on colors are `vfr750r`'s; no palette
+shows the magenta. Each silencer's end is painted a light ring round a black hole, which fall in the greys as they
+are. It is lit by the light L2 (K, 2026-11-18): `main` (−0.25, 0.85, 0.46), `fill` (0.60, 0.20, 0.50), ambient 0.16,
+sky 0.26, weights 0.95 and 0.10, shininess 36, gloss 0.6, so faces turned up are light, those turned aside middling
+and those turned down dark. Both wheels are spun (K, 2026-11-18), as the model's `wheel_F` and `wheel_R` give them:
+centres (0, 0.300, 0.6901) and (0, 0.335, −0.6901) m, radii 0.300 and 0.335, rims 0.217 and 0.230, widths 0.13 and
+0.18. It has 64 directions by 7 bank images over ±60°, as `vfr750r`, sampled every 8 mm; its steps are measured from
+16 directions.
 
-| Ramp | Base color    | Where on the model                                                                                                   |
-| ---- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| 1    | 215, 5, 17    | The red: the cowl's top and bottom, the tail, the helmet's crown, the leathers' shoulders and arms, gloves and boots |
-| 2    | 32, 46, 131   | The blue: the cowl's and tail's lines, the leathers' body and legs, the helmet's lines                               |
-| 3    | 235, 235, 233 | The white: the cowl's middle and lower part, the helmet, the leathers' lines                                         |
-| Lamp | 255, 0, 255   | The tail's rear tip, about 11 cm wide and 8 cm high                                                                  |
+Its eight liveries are white with two colors (K, 2026-11-18): the white is every livery's, and each recolors the red's
+place (A) and the blue's (B); every livery's A is its own, so that far away the main color tells them apart. The first
+is the model's own and the default. The others' colors are the recipe's, for K to set in DEV: yellow 240, 200, 20;
+black 40, 40, 44; green 20, 150, 60; gold 200, 160, 50; light blue 80, 180, 230; pink 240, 120, 170; orange 240, 120,
+20; navy 25, 35, 90; purple 120, 40, 160; white 235, 235, 233; red 215, 5, 17.
 
-The magenta is the brake lamp's place alone; no palette shows it. Its lamp's off and on colors are `vfr750r`'s. Its
-eight liveries are recolorings of the three ramps (K, 2026-11-18), the rider's leathers and helmet with the machine's;
-the greys and the lamp are every livery's. The first is the model's own paint and the default:
+| Palette         | Name          | A          | B      |
+| --------------- | ------------- | ---------- | ------ |
+| `red-blue`      | RED/BLUE      | red        | blue   |
+| `yellow-black`  | YELLOW/BLACK  | yellow     | black  |
+| `green-yellow`  | GREEN/YELLOW  | green      | yellow |
+| `black-gold`    | BLACK/GOLD    | black      | gold   |
+| `sky-pink`      | SKY/PINK      | light blue | pink   |
+| `orange-navy`   | ORANGE/NAVY   | orange     | navy   |
+| `purple-yellow` | PURPLE/YELLOW | purple     | yellow |
+| `white-red`     | WHITE/RED     | white      | red    |
 
-| Palette         | Name          | Red's place | Blue's place | White's place |
-| --------------- | ------------- | ----------- | ------------ | ------------- |
-| `red-blue`      | RED/BLUE      | red         | blue         | white         |
-| `yellow-black`  | YELLOW/BLACK  | yellow      | black        | white         |
-| `green-white`   | GREEN/WHITE   | green       | white        | yellow        |
-| `black-gold`    | BLACK/GOLD    | black       | gold         | red           |
-| `white-red`     | WHITE/RED     | white       | red          | black         |
-| `sky-pink`      | SKY/PINK      | light blue  | pink         | white         |
-| `orange-navy`   | ORANGE/NAVY   | orange      | navy         | grey          |
-| `purple-yellow` | PURPLE/YELLOW | purple      | yellow       | black         |
-
-Each ramp is made from its middle color `c` (8-bit channels) by `vfr750r`'s colorings' rule, which this fits to their
-eight ramps within a 5-bit step: the light step `min(255, 0.93c + 54.5)`, the dark step `0.603c`. The red, blue and
-white are the model's own; the others' middle colors are the recipe's (yellow 240, 200, 20; black 40, 40, 44; green 20,
-150, 60; gold 200, 160, 50; light blue 80, 180, 230; pink 240, 120, 170; orange 240, 120, 20; navy 25, 35, 90; grey 130,
-130, 135; purple 120, 40, 160), for K to set in DEV. The greys are `vfr750r`'s. It has 64 directions by 7 bank images
-over ±60°, as `vfr750r`; its paint is lit as 200, 200, 200 with exposure 1 and keys 215, 175 and 135, and it is sampled
-every 8 mm. The model is K's `honda-nsr500-1984.glb`, kept on K's branch `codex/nsr500-1984-glb-source`, never on
-main; it has no wheel nodes, and its front hub is its node's `wheel_F` centre, (0, 0.300, 0.6901) m.
+The model is K's `honda-nsr500-1984.glb`, kept on K's branch `codex/nsr500-1984-glb-source`, never on main; it has no
+wheel nodes, and its front hub is its `wheel_F` centre.
 
 ## HUD picture generator
 

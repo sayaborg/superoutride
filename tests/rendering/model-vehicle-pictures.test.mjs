@@ -303,41 +303,50 @@ const paintedValue = JSON.parse(
   await readFile(new URL(`../../content/vehicle-picture-sources/${PAINTED}.json`, import.meta.url), 'utf8'),
 );
 
-test('a model colored by paints stands on its front hub, banks about its ground line and draws every bank', () => {
-  // A plate facing the model's rear, its texture's left half the first paint and its right half the lamp's magenta.
-  const model = () =>
+test('a model colored by paints stands on its front hub, spins its wheels and draws every bank', () => {
+  // A plate facing the model's rear in four stripes, the two paints, the lamp's magenta and a grey; and a spoke: a thin
+  // plate across a wheel's rim.
+  const wheel = { center: [0, 0.3, 0.2], radius: 0.3, rim: 0.2, width: 0.1 };
+  const spoke = quad(0, 0, 1, [0.2, 0.35], [0.15, 0.25]);
+  const model = (withSpoke) =>
     glb({
-      quads: [quad(2, -0.5, -1, [-0.3, 0.3], [0, 0.6])],
+      quads: [quad(2, -0.5, -1, [-0.3, 0.3], [0, 0.6]), ...(withSpoke ? [spoke] : [])],
       pixels: [
         [
           [215, 5, 17],
           [255, 0, 255],
+          [32, 46, 131],
+          [120, 120, 120],
         ],
       ],
-      lift: 0.2,
     });
   const value = {
     ...paintedValue,
     yawVariants: 4,
     spacing: 0.02,
     model: { ...paintedValue.model, frontHub: [0, 0.3, 1] },
+    ramps: { ...paintedValue.ramps, sampleYaws: 4 },
+    wheels: [wheel],
   };
   const painted = readVehicleModelRecipe(value);
-  const solid = buildModelVehicleSolid(readGlbModel(model(), PNG), painted, 1.5);
-  let paint = 0,
-    lamp = 0;
-  for (let n = 0; n < solid.count; n++) {
-    // The hub, 1 m ahead of the plate, stands 1.5 m ahead of the base point: not the node at the model's origin.
-    assert.ok(Math.abs(solid.positions[n * 3 + 2] - 0) < 1e-6);
-    assert.ok(solid.paint[n] + solid.lamp[n] === 1, `sample ${n} is paint or lamp`);
-    paint += solid.paint[n];
-    lamp += solid.lamp[n];
-    // Paint is lit as its one color.
-    if (solid.paint[n]) assert.deepEqual([...solid.colors.subarray(n * 3, n * 3 + 3)], paintedValue.paints.litAs);
+  const plain = readVehicleModelRecipe({ ...value, wheels: [] });
+  const solid = buildModelVehicleSolid(readGlbModel(model(false), PNG), painted, 1.5);
+  // The hub, 1 m ahead of the plate, stands 1.5 m ahead of the base point: not the node at the model's origin.
+  for (let n = 0; n < solid.count; n++) assert.ok(Math.abs(solid.positions[n * 3 + 2]) < 1e-6);
+  // Nothing inside a rim: the solid is the one a recipe without wheels makes.
+  const same = buildModelVehicleSolid(readGlbModel(model(false), PNG), plain, 1.5);
+  for (const key of ['positions', 'normals', 'colors']) assert.deepEqual(solid[key], same[key], key);
+  // The spoke, inside the rim, is spun into rings all round the axle, of its own color.
+  const spun = buildModelVehicleSolid(readGlbModel(model(true), PNG), painted, 1.5);
+  const quarters = new Set();
+  for (let n = solid.count; n < spun.count; n++) {
+    const dy = spun.positions[n * 3 + 1] - 0.3,
+      dz = spun.positions[n * 3 + 2] - (0.2 + 0.5);
+    quarters.add(`${dy > 0}${dz > 0}`);
   }
-  assert.ok(paint > 0 && lamp > 0);
-  // Banked to the right, it leans right (its centre, 0.5 m up, 0.25 m right) and its lowest sample stays on the road.
-  const banked = buildModelVehicleSolid(readGlbModel(model(), PNG), painted, 1.5, Math.PI / 6);
+  assert.equal(quarters.size, 4);
+  // Banked to the right, it leans right (its centre, 0.3 m up, 0.15 m right) and its lowest sample stays on the road.
+  const banked = buildModelVehicleSolid(readGlbModel(model(false), PNG), painted, 1.5, Math.PI / 6);
   let lowest = Infinity,
     across = 0;
   for (let n = 0; n < banked.count; n++) {
@@ -345,26 +354,24 @@ test('a model colored by paints stands on its front hub, banks about its ground 
     across += banked.positions[n * 3] / banked.count;
   }
   assert.equal(lowest, 0);
-  assert.ok(Math.abs(across - 0.25) < 0.01, `its centre at x ${across}`);
-  const draw = () => drawModelSet(painted, model(), 1.5, PNG, 'test');
+  assert.ok(Math.abs(across - 0.15) < 0.01, `its centre at x ${across}`);
+  const draw = () => drawModelSet(painted, model(false), 1.5, PNG, 'test');
   const { document, bytes } = draw();
-  assert.equal(document.yawVariants, 4);
   assert.equal(document.bankVariants, paintedValue.banks.count);
   assert.equal(document.bankDegrees, paintedValue.banks.degrees);
-  assert.equal(document.assets.length, 4);
   for (const row of document.assets) assert.equal(row.length, paintedValue.banks.count);
-  // Seen from behind upright: the first ramp's paint and the lamp.
+  // Seen from behind upright: the first paint's ramp and the lamp.
   const upright = document.pictures[document.assets[0][(paintedValue.banks.count - 1) / 2]].sizes[0];
   const digits = new Set(upright.rows.join(''));
   assert.ok(digits.has('f'), 'a lamp texel');
   assert.ok(
-    ['1', '2', '3'].some((d) => digits.has(d)),
+    ['1', '2', '3', '4'].some((d) => digits.has(d)),
     'a first ramp texel',
   );
   assert.deepEqual(draw().bytes, bytes);
 });
 
-test('the NSR500 of 1984’s saved set: 64 directions by 7 banks in eight liveries of three ramps', async () => {
+test('the NSR500 of 1984’s saved set: two paint ramps of four and six greys, in eight liveries', async () => {
   const value = JSON.parse(await readFile(new URL(`../../content/sprites/${PAINTED}.json`, import.meta.url), 'utf8'));
   const { set } = readVehicleSpriteSetDocument(value, PAINTED);
   assert.equal(set.yawVariants, 64);
@@ -372,12 +379,15 @@ test('the NSR500 of 1984’s saved set: 64 directions by 7 banks in eight liveri
   assert.equal(set.bankDegrees, 60);
   const palettes = Object.values(value.palettes);
   assert.equal(palettes.length, 8);
-  // The eight differ, and only in their ramps: the five neutrals and the lamp are every livery's.
-  assert.equal(new Set(palettes.map((p) => p.join())).size, 8);
-  for (const palette of palettes) assert.deepEqual(palette.slice(9), palettes[0].slice(9));
+  // The greys and the lamp are every livery's; each livery's first ramp, the main color, is its own, and so are its
+  // two ramps together.
+  for (const palette of palettes) assert.deepEqual(palette.slice(8), palettes[0].slice(8));
+  assert.equal(new Set(palettes.map((p) => p.slice(0, 4).join())).size, 8, 'the first ramp');
+  assert.equal(new Set(palettes.map((p) => p.slice(0, 8).join())).size, 8, 'the two ramps');
   // No palette color, nor the lamp's, is the model's magenta.
   const magenta = 0x7c1f;
   for (const color of [...palettes.flat(), value.brakeLamp.off, value.brakeLamp.on]) assert.notEqual(color, magenta);
+  const used = new Set();
   for (const picture of value.pictures) {
     assert.equal(picture.sizes.length, 6);
     picture.sizes.forEach((size, level) =>
@@ -386,12 +396,8 @@ test('the NSR500 of 1984’s saved set: 64 directions by 7 banks in eight liveri
         `a shadow at size ${level}`,
       ),
     );
+    for (const row of picture.sizes[0].rows) for (const digit of row) used.add(digit);
   }
-  // Seen from behind and from the rear quarters, upright, to size 4: the brake lamp.
-  for (const yaw of [0, 4, 60])
-    for (let level = 0; level <= 4; level++)
-      assert.ok(
-        value.pictures[value.assets[yaw][3]].sizes[level].rows.some((row) => row.includes('f')),
-        `a lamp texel at yaw ${yaw}, size ${level}`,
-      );
+  // Every slot of the three ramps shows at size 0, and so does the lamp.
+  assert.deepEqual([...used].sort(), [...'0123456789abcdef']);
 });

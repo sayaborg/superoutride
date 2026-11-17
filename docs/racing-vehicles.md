@@ -70,9 +70,10 @@ and black; its four liveries are white with blue, red, green and yellow. They ar
 
 K takes SUPER HANG-ON's own machine for the Honda NSR500 of 1984 (K, 2026-11-18); nothing here claims the original
 says so. A racing machine has no brake lamp; this one is given the original's (K, 2026-11-18). The series is a
-one-make of it in eight liveries, each a recoloring of its three paints (K, 2026-11-18). Its sources are below; the
-stage's auditor read them in a search engine's excerpts, and the implementer could not open them (the session's
-network refused them), so like the Honda pages above they are not counted as confirmation by this ledger:
+one-make of it in eight liveries, each white with two colors in place of its red and blue (K, 2026-11-18). Its
+sources are below; the stage's auditor read them in a search engine's excerpts, and the implementer could not open
+them (the session's network refused them), so like the Honda pages above they are not counted as confirmation by this
+ledger:
 
 | Reference                                                                                           | Evidence and limit                                                                                                                                                                              |
 | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -135,31 +135,38 @@ export interface ModelRoleRecipe extends ModelRecipeBase {
   readonly palettes: Readonly<Record<string, Readonly<Record<string, Rgb>>>>;
 }
 
+/** A wheel the picture spins: its centre in the model's coordinates, its outside and rim radii and its width, metres. */
+export interface ModelWheel {
+  readonly center: readonly [number, number, number];
+  readonly radius: number;
+  readonly rim: number;
+  readonly width: number;
+}
+
 /**
- * A model recipe whose samples take the shared baker's light and palette quantization: each paint a ramp of `body`
- * slots, lit alike, then `neutral` slots for everything else; the brake lamp slot 15.
+ * A model recipe whose samples take colors by paints: each paint a ramp of steps, everything else one ramp of greys, the
+ * brake lamp slot 15. Its pictures are lit by `light` and `gloss`, and each ramp's steps are measured from them.
  */
 export interface ModelPaintRecipe extends ModelRecipeBase {
   /** Bank images, `count` of them (odd) evenly over ±`degrees`; absent, one upright image. */
   readonly banks: { readonly count: number; readonly degrees: number } | null;
   /**
-   * A sample whose base color lies within `within` of `colors[k]` in every channel is paint of ramp k + 1, lit as the
-   * color `litAs`; one within `within` of `lamp` is the brake lamp.
+   * A sample whose base color lies within `within` of `colors[k]` in every channel is paint `k`; one within `within`
+   * of `lamp` is the brake lamp; any other is grey.
    */
-  readonly paints: {
-    readonly colors: readonly Rgb[];
-    readonly within: number;
-    readonly lamp: Rgb;
-    readonly litAs: Rgb;
-  };
-  /** The slots of each ramp and the neutrals: ramps × body + neutral = 14. */
-  readonly slots: { readonly body: number; readonly neutral: number };
-  /** A paint texel's step in its ramp: the key nearest its lit brightness, highlight first. */
-  readonly bodyKeys: readonly number[];
-  /** Paint's lit color is multiplied by this before it saturates at white. */
-  readonly exposure: number;
-  /** Each of the set's colors: the 14 slots' RGB values. */
-  readonly palettes: Readonly<Record<string, readonly Rgb[]>>;
+  readonly paints: { readonly colors: readonly Rgb[]; readonly within: number; readonly lamp: Rgb };
+  /**
+   * The steps of each paint's ramp and of the greys' (14 slots in all), measured from the pictures at size 0 of every
+   * `sampleYaws`th direction and every bank.
+   */
+  readonly ramps: { readonly paints: readonly number[]; readonly grey: number; readonly sampleYaws: number };
+  /** The light, fixed to the picture, as a role recipe's; every sample's highlight is `gloss`. */
+  readonly light: ModelRoleRecipe['light'];
+  readonly gloss: number;
+  /** The wheels spun: what lies inside a rim is averaged over a turn. */
+  readonly wheels: readonly ModelWheel[];
+  /** Each color of the set: a color for each paint; the first livery is the model's own paints. */
+  readonly liveries: Readonly<Record<string, readonly Rgb[]>>;
   readonly brakeLamp: { readonly off: Rgb; readonly on: Rgb };
 }
 
@@ -204,7 +211,7 @@ const ROLE_FIELDS = [
   'steps',
   'palettes',
 ] as const;
-const PAINT_FIELDS = ['paints', 'slots', 'bodyKeys', 'exposure', 'palettes', 'brakeLamp'] as const;
+const PAINT_FIELDS = ['paints', 'ramps', 'light', 'gloss', 'wheels', 'liveries', 'brakeLamp'] as const;
 
 /** Admit a model recipe document: one colored by paints when it gives `paints`, else by roles. */
 export function readVehicleModelRecipe(value: unknown): VehicleModelRecipe {
@@ -260,6 +267,27 @@ const triple = (v: unknown, at: string, domain: { min: number; max: number }) =>
   return [x!, y!, z!] as const;
 };
 
+/** A light fixed to the picture: its main and fill directions (made unit) and weights. */
+function readLight(value: unknown): ModelRoleRecipe['light'] {
+  const direction = (v: unknown, at: string) => {
+    const d = triple(v, at, { min: -1, max: 1 });
+    const length = Math.hypot(...d);
+    requireAdmission(length > 0, 'invalid_value', at, 'Expected a direction');
+    return [d[0] / length, d[1] / length, d[2] / length] as const;
+  };
+  const l = readRecord(value, '/light', ['main', 'fill', 'ambient', 'sky', 'mainWeight', 'fillWeight', 'shininess']);
+  const weight = (v: unknown, at: string) => readNumber(v, at, { min: 0, max: 4 });
+  return Object.freeze({
+    main: direction(l.main, '/light/main'),
+    fill: direction(l.fill, '/light/fill'),
+    ambient: weight(l.ambient, '/light/ambient'),
+    sky: weight(l.sky, '/light/sky'),
+    mainWeight: weight(l.mainWeight, '/light/mainWeight'),
+    fillWeight: weight(l.fillWeight, '/light/fillWeight'),
+    shininess: readNumber(l.shininess, '/light/shininess', { min: 1, max: 1000 }),
+  });
+}
+
 /** The fields of a recipe colored by paints. */
 function readPaints(document: Readonly<Record<string, unknown>>, base: ModelRecipeBase): ModelPaintRecipe {
   const banks = Object.hasOwn(document, 'banks')
@@ -273,48 +301,57 @@ function readPaints(document: Readonly<Record<string, unknown>>, base: ModelReci
         });
       })()
     : null;
-  const p = readRecord(document.paints, '/paints', ['colors', 'within', 'lamp', 'litAs']);
+  const p = readRecord(document.paints, '/paints', ['colors', 'within', 'lamp']);
   const paints = Object.freeze({
-    colors: readArray(p.colors, '/paints/colors', readRgb, { min: 1, max: 14 }),
+    colors: readArray(p.colors, '/paints/colors', readRgb, { min: 1, max: 13 }),
     within: readNumber(p.within, '/paints/within', { min: 0, max: 255, integer: true }),
     lamp: readRgb(p.lamp, '/paints/lamp'),
-    litAs: readRgb(p.litAs, '/paints/litAs'),
   });
-  const sl = readRecord(document.slots, '/slots', ['body', 'neutral']);
-  const slots = Object.freeze({
-    body: readNumber(sl.body, '/slots/body', { min: 1, max: 14, integer: true }),
-    neutral: readNumber(sl.neutral, '/slots/neutral', { min: 1, max: 14, integer: true }),
+  const r = readRecord(document.ramps, '/ramps', ['paints', 'grey', 'sampleYaws']);
+  const step = (v: unknown, at: string) => readNumber(v, at, { min: 1, max: 14, integer: true });
+  const ramps = Object.freeze({
+    paints: readArray(r.paints, '/ramps/paints', step, { length: paints.colors.length }),
+    grey: step(r.grey, '/ramps/grey'),
+    sampleYaws: readNumber(r.sampleYaws, '/ramps/sampleYaws', { min: 1, max: 256, integer: true }),
   });
   requireAdmission(
-    paints.colors.length * slots.body + slots.neutral === 14,
+    ramps.paints.reduce((sum, n) => sum + n, ramps.grey) === 14,
     'invalid_value',
-    '/slots',
-    'The ramps and the neutrals share the 14 picture colors',
+    '/ramps',
+    'The ramps share the 14 picture colors',
   );
-  const bodyKeys = readArray(document.bodyKeys, '/bodyKeys', (v, at) => readNumber(v, at, { min: 0, max: 255 }), {
-    length: slots.body,
+  requireAdmission(
+    base.yawVariants % ramps.sampleYaws === 0,
+    'invalid_value',
+    '/ramps/sampleYaws',
+    "Expected a number of directions that divides the set's",
+  );
+  const wheels = readArray(document.wheels, '/wheels', (v, at): ModelWheel => {
+    const w = readRecord(v, at, ['center', 'radius', 'rim', 'width']);
+    const length = { min: 0.01, max: 2 };
+    const wheel = {
+      center: triple(w.center, `${at}/center`, { min: -100, max: 100 }),
+      radius: readNumber(w.radius, `${at}/radius`, length),
+      rim: readNumber(w.rim, `${at}/rim`, length),
+      width: readNumber(w.width, `${at}/width`, length),
+    };
+    requireAdmission(wheel.rim < wheel.radius, 'invalid_value', `${at}/rim`, 'Expected a rim inside the tyre');
+    return Object.freeze(wheel);
   });
-  bodyKeys.forEach((key, index) =>
-    requireAdmission(
-      index === 0 || key < bodyKeys[index - 1]!,
-      'invalid_value',
-      `/bodyKeys/${index}`,
-      'Expected keys falling from the highlight',
-    ),
+  const liveries = readDictionary(document.liveries, '/liveries', (livery, path) =>
+    readArray(livery, path, readRgb, { length: paints.colors.length }),
   );
-  const palettes = readDictionary(document.palettes, '/palettes', (palette, path) =>
-    readArray(palette, path, readRgb, { length: 14 }),
-  );
-  requireColors(palettes);
+  requireColors(liveries);
   const lamp = readRecord(document.brakeLamp, '/brakeLamp', ['off', 'on']);
   return {
     ...base,
     banks,
     paints,
-    slots,
-    bodyKeys,
-    exposure: readNumber(document.exposure, '/exposure', { min: 0, max: 4 }),
-    palettes,
+    ramps,
+    light: readLight(document.light),
+    gloss: readNumber(document.gloss, '/gloss', { min: 0, max: 4 }),
+    wheels,
+    liveries,
     brakeLamp: Object.freeze({ off: readRgb(lamp.off, '/brakeLamp/off'), on: readRgb(lamp.on, '/brakeLamp/on') }),
   };
 }
@@ -366,31 +403,7 @@ function readRoles(document: Readonly<Record<string, unknown>>, base: ModelRecip
     '/keep/role',
     'Expected the name of one of the roles',
   );
-  const direction = (v: unknown, at: string) => {
-    const d = triple(v, at, { min: -1, max: 1 });
-    const length = Math.hypot(...d);
-    requireAdmission(length > 0, 'invalid_value', at, 'Expected a direction');
-    return [d[0] / length, d[1] / length, d[2] / length] as const;
-  };
-  const l = readRecord(document.light, '/light', [
-    'main',
-    'fill',
-    'ambient',
-    'sky',
-    'mainWeight',
-    'fillWeight',
-    'shininess',
-  ]);
-  const weight = (v: unknown, at: string) => readNumber(v, at, { min: 0, max: 4 });
-  const light = {
-    main: direction(l.main, '/light/main'),
-    fill: direction(l.fill, '/light/fill'),
-    ambient: weight(l.ambient, '/light/ambient'),
-    sky: weight(l.sky, '/light/sky'),
-    mainWeight: weight(l.mainWeight, '/light/mainWeight'),
-    fillWeight: weight(l.fillWeight, '/light/fillWeight'),
-    shininess: readNumber(l.shininess, '/light/shininess', { min: 1, max: 1000 }),
-  };
+  const light = readLight(document.light);
   const h = readRecord(document.hollows, '/hollows', ['cells', 'widths', 'depth', 'most', 'weight']);
   const hollows = {
     cells: readNumber(h.cells, '/hollows/cells', { min: 1, max: 12, integer: true }),
@@ -429,7 +442,7 @@ function readRoles(document: Readonly<Record<string, unknown>>, base: ModelRecip
     keep: Object.freeze(keep),
     roles,
     luma: triple(document.luma, '/luma', SHARE),
-    light: Object.freeze(light),
+    light,
     hollows: Object.freeze(hollows),
     steps: Object.freeze(steps),
     palettes,
