@@ -455,10 +455,11 @@ limit step closed across the road (K, 2026-11-16). For K in DEV: how a vehicle m
 there later. A driver's path reads each station's own limits, so it steps in at a narrowing seam rather than easing
 in before it.
 
-- **RC-7, CHASE H.Q. 2 left at 1,758 m (an investigation; K decides the rule after it).** Two rivals drive into the
-  right step there and are recovered again and again: which lanes they hold, what the lane's end names, where the
-  recovery places them, why their path runs 9 to 15 m right, and every place on the courses where a lane ends at a seam
-  with no lane to merge toward.
+- **RC-7, CHASE H.Q. 2 left at 1,758 m: investigated; K decides the rule.** The two rivals drive the racing line, not
+  a lane. A row of fixed posts begins at the seam on the narrowed road's right edge. A racing line driver right of it
+  can clear it only on the right, which leads beyond the narrower limit and into the step. The recovery places it at
+  the nearest lane's centre, right of the row, so it meets the step again. Since TR-3 the field run there meets no
+  step, by its timing alone. A lane ends at a seam with no lane to merge toward only on CISCO HEAT 4 and 5.
 
 Not decided, for later: after a recovery a vehicle stands at rest with its engine at idle, and the slipping clutch
 delivers nothing until the engine has risen (NSR500 stands about 0.7 s); K judges it in DEV. A course with holes needs
@@ -512,9 +513,14 @@ are DEV's ([Tire law](vehicle-physics.md#tire-law)).
 
 - TR-1, the law and its values, and TR-2, the grip balance, are on main (K's word, 2026-11-16), every vehicle at
   grip balance 0; the values below are K's to set in DEV.
-- TR-3, the steering input asks the front tire for a force at its static load (K, 2026-11-16): made, with every
-  measured product measured again; it awaits K's word on when it may go to main. The default stiffness (40) stays
-  until K sets it in DEV after TR-3.
+- TR-3, the steering input asks the front tire for a force at its static load (K, 2026-11-16), is on main (K's word,
+  2026-11-17). The default stiffness (40) stays until K sets it in DEV.
+- **TR-4, the plan's limits to the steering rule (K, 2026-11-17): stopped at its investigation; K decides.** The
+  recoveries TR-3 added to the OUTRUN and TURBO OUTRUN reference runs do not come from a load factor above 1. They come
+  from steady turns at load factor 1 under drive, where the front axle carries less than its static load: the steering
+  input now asks a static-load force there, but the planned driver still scales its input up by the front load factor,
+  so it asks too much and runs about 1 m inside its path, into fixed objects. The limits model's front lateral bound is
+  unchanged.
 
 Not decided, for K in DEV after the stage:
 
