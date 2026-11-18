@@ -1024,10 +1024,13 @@ the margin are provisional, to be set by driving it.
 
 ARCADE TRIBUTE - ENDURO RACER is delivered on the same terms (K, 2026-11-10), on its original course until its product
 course is made. Its one class, ENDURO RACER, is one run of the five stages without a clock (`timeMargin: null`), since
-the reference run does not reach its GOAL: the drivers do not avoid the rocks and logs on the road. Its field is the
-original's five R80 G/S PARIS-DAKARs on the bike grid, the player in the middle (`playerSlot: first`, the original's own
-place) in yellow and four rivals on either side. The riders and cars the player passes are traffic: R80 G/S
-PARIS-DAKARs and WRANGLERs, weighing 3 and 1, at 2 a kilometre and up to 100 km/h. All three values are provisional.
+the drivers do not avoid the rocks and logs on the road and its reference run is recovered from them. It is ridden on
+the Honda XR600R of 1985 (K, 2026-11-18; [Road
+motorcycles](road-bikes.md#honda-xr600r-of-1985-sources-versus-authored)): its field is the original's five XR600Rs on
+the bike grid, the player in the middle (`playerSlot: first`, the original's own place) in the machine's own RED/YELLOW
+(`fixedColors`) and four rivals on either side, in BLUE/WHITE, WHITE/RED, YELLOW/BLUE and BLACK/LIME from the grid's
+first slot. The riders and cars the player passes are traffic: XR600Rs and WRANGLERs, weighing 3 and 1, at 2 a kilometre
+and up to 100 km/h. All three values are provisional.
 
 ARCADE TRIBUTE - SUPER HANG-ON is delivered on the same terms too (K, 2026-11-10), on its original courses: AFRICA,
 ASIA, AMERICA and EUROPE, in the original's order, each one run of its stages with a margin of 1.35, without rank

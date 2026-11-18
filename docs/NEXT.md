@@ -108,18 +108,20 @@ the default tire with its CG 0.30 of its wheelbase high, its pictures baked from
 
 ## Stage XR — The XR600R of 1985 and ENDURO RACER's machine
 
-K's decisions of 2026-11-18: ENDURO RACER's machine is the Honda XR600R of 1985, rider and machine as one, its values
-the stage's auditor's ([Road motorcycles](road-bikes.md#honda-xr600r-of-1985-sources-versus-authored)), on its real
-tires and with its CG 0.30 of its wheelbase high; its pictures are baked from K's model in three paints, red, blue and
-yellow, of three, two and three steps, and six greys, in eight liveries; and ARCADE TRIBUTE - ENDURO RACER is ridden
-on it. XR-1 adds the vehicle, on R80_GS_PARIS_DAKAR's sound for now; XR-2 bakes its pictures from K's model
-([Model solids](image-assets.md#model-solids)).
+K's decisions of 2026-11-18 are in place (XR-1 to XR-3): the Honda XR600R of 1985 is a vehicle of its own, rider and
+machine as one, its values the stage's auditor's
+([Road motorcycles](road-bikes.md#honda-xr600r-of-1985-sources-versus-authored)), on its real tires and the default
+tire with its CG 0.30 of its wheelbase high; its pictures are baked from K's model in three paints, red, blue and
+yellow, of three, two and three steps, and six greys ([Model solids](image-assets.md#model-solids)); and ARCADE
+TRIBUTE - ENDURO RACER is ridden on it in its eight liveries
+([Series documents](content-and-gameplay.md#series-documents)). What stays open, for K:
 
-- XR-3: race ENDURO RACER on it, the player in the first livery and the rivals in the second to the fifth, and its
-  traffic of XR600Rs and WRANGLERs; measure its racing line again.
+- To look at in DEV: the back seen riding (the yellow suit's shading, the brake lamp on the tail, the silencer on the
+  right, the thin front wheel), the eight liveries near and far, WHITE/RED (a white machine) and ORANGE/BLACK (a black
+  suit), the attitude on dirt and hills, and hitting rocks and logs.
 - Not decided: the static front share, the redline and the torque curve's shape (no source), the two-wheeler's CG, the
-  tire's real values, its own sound (R80_GS_PARIS_DAKAR's is borrowed), and the 1985 front tire's designation and
-  caster.
+  tire's real values, the eight liveries' values and the rivals' liveries, the light (L2, as the NSR500 of 1984), the
+  description, its own sound (R80_GS_PARIS_DAKAR's is borrowed), and the 1985 front tire's designation and caster.
 
 ## Stage AT — The attract demo remade
 
@@ -949,9 +951,10 @@ Left by the stages that raised them, beside what follows:
   series of joined roads, as one course joining the four (K, 2026-10-31). At a leg's start the original adds figures
   beside the 959 by the leg before's result (0xC2B0, 0xC318, by 0x60B72 and 0x60B76); they are not made.
 - ENDURO RACER: its ARCADE TRIBUTE series runs its original for now, without a clock, since no driver avoids the rocks
-  and logs on its road and the reference run does not reach the GOAL (K, 2026-11-10); its clock (the original's own
-  start time and extensions, or a reference run that finishes), its product course, sounds and race music, the motion of
-  what moves, the ending's text, and the product's pictures drawn again.
+  and logs on its road and the reference run did not reach the GOAL (K, 2026-11-10); on the XR600R of 1985 it reaches
+  the GOAL after recoveries (XR-3). Its clock (the original's own start time and extensions, or that reference run),
+  its product course, sounds and race music, the motion of what moves, the ending's text, and the product's pictures
+  drawn again.
 - POLE POSITION II: its ARCADE TRIBUTE series runs its originals for now (below); its product courses, sounds and race
   music, and the product's pictures drawn again. Its lane (5.5 m) is adjusted with every course's
   lane at once, after all the courses are made (K, 2026-11-09), its courses with a model then solved again. K decides in

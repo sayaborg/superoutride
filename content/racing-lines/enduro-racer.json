@@ -7,10 +7,10 @@
   "lengthWeight": 0.000562,
   "vehicles": [
     {
-      "vehicleId": "R80_GS_PARIS_DAKAR",
-      "vehicleSha256": "080fb4a9faa3e06a2cda4e6dc9ebce279a4ad5ce2bd51f52049abda080e6fa70",
-      "seconds": 484.859,
-      "minimumCurvatureSeconds": 489.309
+      "vehicleId": "XR600R_1985",
+      "vehicleSha256": "a4571aae92ceb292ff3ae3ff4831e23f2025e4887a39bbc4fb05c182fc65a733",
+      "seconds": 473.316,
+      "minimumCurvatureSeconds": 477.89
     }
   ],
   "lines": [

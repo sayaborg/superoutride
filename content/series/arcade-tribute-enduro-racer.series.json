@@ -16,40 +16,40 @@
       "course": "enduro-racer",
       "laps": 1,
       "vehicles": [
-        "R80_GS_PARIS_DAKAR"
+        "XR600R_1985"
       ],
       "entries": [
         {
-          "vehicle": "R80_GS_PARIS_DAKAR",
-          "color": "white",
+          "vehicle": "XR600R_1985",
+          "color": "blue-white",
           "stages": null,
           "slot": 0,
           "ahead": null
         },
         {
-          "vehicle": "R80_GS_PARIS_DAKAR",
-          "color": "red",
+          "vehicle": "XR600R_1985",
+          "color": "white-red",
           "stages": null,
           "slot": 1,
           "ahead": null
         },
         {
-          "vehicle": "R80_GS_PARIS_DAKAR",
-          "color": "blue",
+          "vehicle": "XR600R_1985",
+          "color": "yellow-blue",
           "stages": null,
           "slot": 2,
           "ahead": null
         },
         {
-          "vehicle": "R80_GS_PARIS_DAKAR",
-          "color": "white",
+          "vehicle": "XR600R_1985",
+          "color": "black-lime",
           "stages": null,
           "slot": 3,
           "ahead": null
         },
         {
-          "vehicle": "R80_GS_PARIS_DAKAR",
-          "color": "yellow",
+          "vehicle": "XR600R_1985",
+          "color": "red-yellow",
           "stages": null,
           "slot": 4,
           "ahead": null
@@ -62,7 +62,7 @@
         "path": "lane",
         "vehicles": [
           {
-            "vehicle": "R80_GS_PARIS_DAKAR",
+            "vehicle": "XR600R_1985",
             "weight": 3
           },
           {
