@@ -67,7 +67,11 @@ function classParts(
     { label: 'COURSE', value: course.name },
     candidates.length === 1 ? fact('VEHICLE', candidates[0]!) : fact('VEHICLE', String(candidates.length), candidates),
     ...(course.type === 'CIRCUIT' ? [{ label: 'LAPS', value: String(runClass.laps) }] : []),
-    field > 1 ? { label: 'START', value: ordinal(position), note: `OF ${field}` } : { label: 'START', value: 'ALONE' },
+    runClass.start === 'chase'
+      ? { label: 'START', value: 'CHASE', note: 'ONCE THE RIVAL PASSES' }
+      : field > 1
+        ? { label: 'START', value: ordinal(position), note: `OF ${field}` }
+        : { label: 'START', value: 'ALONE' },
     rivals.length === 0
       ? { label: 'RIVALS', value: 'NONE' }
       : fact('RIVALS', String(rivals.length), rivals.map(modelOf)),

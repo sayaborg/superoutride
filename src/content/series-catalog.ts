@@ -43,8 +43,9 @@ export function classTitleLines(title: string): readonly string[] {
 }
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 17;
+export const SERIES_DOCUMENT_VERSION = 18;
 const PLAYER_SLOTS = ['own', 'last', 'first'] as const;
+const START_STYLES = ['grid', 'chase'] as const;
 const TRAFFIC_PATHS = ['lane', 'line'] as const;
 
 /**
@@ -110,6 +111,11 @@ export interface SeriesClass {
    * in front of it; `first`: in the frontmost, the others in the slots behind it.
    */
   readonly playerSlot: (typeof PLAYER_SLOTS)[number];
+  /**
+   * How the field starts: `grid`, together at GO; `chase` (K, 2026-11-19), the one rival from the slot behind the
+   * player's at GO, and the player once that rival has passed it. A CHASE class has two grid entries, the player first.
+   */
+  readonly start: (typeof START_STYLES)[number];
   /** Rank limit N by race gate ID: the player fails when the N-th other competitor crosses that gate first. */
   readonly rankLimits: Readonly<Record<string, number>>;
   /** The course's RACE traffic; null for none. */
@@ -224,6 +230,7 @@ function readSeries(
         'vehicles',
         'entries',
         'playerSlot',
+        'start',
         'rankLimits',
         'traffic',
         'timeMargin',
@@ -247,6 +254,15 @@ function readSeries(
         { min: 1 },
       );
       requireUnique(vehicles, `${at}/vehicles`, 'vehicle');
+      const entries = readEntries(entry.entries, `${at}/entries`, vehicles, vehicleOf);
+      const playerSlot = readEnum(entry.playerSlot, PLAYER_SLOTS, `${at}/playerSlot`);
+      const start = readEnum(entry.start, START_STYLES, `${at}/start`);
+      requireAdmission(
+        start === 'grid' || (entries.length === 2 && entries.every((e) => e.slot !== null) && playerSlot === 'first'),
+        'invalid_value',
+        `${at}/start`,
+        'A CHASE class has two grid entries, the player in the first slot',
+      );
       return Object.freeze({
         series: series as CompiledSeries,
         id: readString(entry.id, `${at}/id`),
@@ -254,8 +270,9 @@ function readSeries(
         course,
         laps: readNumber(entry.laps, `${at}/laps`, { min: 1, max: RUN_RULE_LIMITS.laps, integer: true }),
         vehicles,
-        entries: readEntries(entry.entries, `${at}/entries`, vehicles, vehicleOf),
-        playerSlot: readEnum(entry.playerSlot, PLAYER_SLOTS, `${at}/playerSlot`),
+        entries,
+        playerSlot,
+        start,
         rankLimits: readDictionary(entry.rankLimits, `${at}/rankLimits`, (limit, path) =>
           readNumber(limit, path, { min: 1, max: RUN_RULE_LIMITS.rivals, integer: true }),
         ),

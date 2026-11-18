@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 17,
+  "version": 18,
   "id": "arcade-tribute-final-lap-2",
   "title": "ARCADE TRIBUTE - FINAL LAP 2",
   "description": "NAMCO, 1990. The sequel to Final Lap: Formula One in Japan, Monaco, Italy and on an American speedway, with up to eight players racing at once on four linked twin cabinets.",
@@ -77,6 +77,7 @@
         }
       ],
       "playerSlot": "last",
+      "start": "grid",
       "rankLimits": {},
       "traffic": {
         "density": 2,
@@ -159,6 +160,7 @@
         }
       ],
       "playerSlot": "last",
+      "start": "grid",
       "rankLimits": {},
       "traffic": {
         "density": 2,
@@ -241,6 +243,7 @@
         }
       ],
       "playerSlot": "last",
+      "start": "grid",
       "rankLimits": {},
       "traffic": {
         "density": 2,
@@ -323,6 +326,7 @@
         }
       ],
       "playerSlot": "last",
+      "start": "grid",
       "rankLimits": {},
       "traffic": {
         "density": 2,

@@ -300,6 +300,10 @@ name a class's run, and `course` names a FREE PLAY run.
 Every run uses a standing start. All vehicles are held for 3 seconds of READY while signal lamps
 count down to GO; engines rev freely with the throttle. There are no rolling starts and no jump starts.
 
+A class starts its field in one of two ways (K, 2026-11-19): from the grid, all together at GO, or CHASE, where its one
+rival leaves at GO from behind and the player, still held as in READY, leaves once that rival has passed it. A CHASE is
+won by being ahead of the rival at the goal; nothing stops a rival by contact. The rival drives as every rival does.
+
 When the player finishes, the driver takes over the player's vehicle and brakes it to a stop on the
 runout while the rest of the field keeps driving; RESULT follows after 3 seconds. The player's rank is
 fixed at the finish: competitors unfinished at that moment rank behind. After GAME OVER the player's

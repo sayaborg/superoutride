@@ -207,7 +207,8 @@ does, and never a record (K, 2026-11-19); so classes on one course are told apar
 
 - **The title and tag:** the class's title, and its series' title.
 - **The facts** (`CLASS`), a row each: `COURSE` (its name); `VEHICLE` (the one vehicle's model, or how many with their
-  models); `LAPS`, on a circuit alone; `START` (the player's place on the grid, `<n>TH` `OF <field>`, or `ALONE`);
+  models); `LAPS`, on a circuit alone; `START` (the player's place on the grid, `<n>TH` `OF <field>`, or `ALONE`; `CHASE`
+  `ONCE THE RIVAL PASSES` for a CHASE);
   `RIVALS` (`NONE`, or how many with their models); `TRAFFIC` (`OFF`, or `ON` with its models); and `CLOCK` (`ON` or
   `OFF`). A list of models longer than its row is told as `<n> MODELS`.
 - **The picture:** the starting grid, its front to the right, as the class's RACE starts its field with the player in

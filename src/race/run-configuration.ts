@@ -50,6 +50,8 @@ export interface RunConfiguration extends PlayerChoice {
   readonly initialSpeed: number;
   /** Traffic, or null for none; TIME ATTACK has none. RACE takes its class's. */
   readonly traffic: TrafficSettings | null;
+  /** How the field starts: together from the grid, or CHASE (RACE only, its class's). */
+  readonly start: SeriesClass['start'];
 }
 
 /**
@@ -75,7 +77,10 @@ export function compileRunConfiguration(
     throw new RangeError('Unknown vehicle color');
   if (!Number.isFinite(initialSpeed)) throw new RangeError('Run initialSpeed must be finite');
   const choice = { vehicleId: request.vehicleId, color: request.color, initialSpeed };
-  let rules: Pick<RunConfiguration, 'mode' | 'rivalCount' | 'rivalPool' | 'lapCount' | 'timeLimit' | 'traffic'>;
+  let rules: Pick<
+    RunConfiguration,
+    'mode' | 'rivalCount' | 'rivalPool' | 'lapCount' | 'timeLimit' | 'traffic' | 'start'
+  >;
   if (request.mode === 'RACE' || request.mode === 'TIME_ATTACK') {
     if (!runClass) throw new RangeError('A course no class runs has no RACE or TIME ATTACK run');
     if (!runClass.vehicles.includes(request.vehicleId))
@@ -90,6 +95,7 @@ export function compileRunConfiguration(
             // A class without a margin races without a clock.
             timeLimit: runClass.timeMargin !== null,
             traffic: runClass.traffic,
+            start: runClass.start,
           }
         : {
             mode: 'TIME_ATTACK',
@@ -98,6 +104,7 @@ export function compileRunConfiguration(
             lapCount: course.type === 'CIRCUIT' ? null : runClass.laps,
             timeLimit: false,
             traffic: null,
+            start: 'grid',
           };
   } else {
     const { lapCount } = request;
@@ -126,6 +133,7 @@ export function compileRunConfiguration(
             speedKilometersPerHour: freePlay.trafficSpeedKilometersPerHour,
           })
         : null,
+      start: 'grid',
     };
   }
   // The grid holds the rivals that start from it: in RACE the entries with a slot, not those appearing ahead, on the

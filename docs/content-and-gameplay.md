@@ -848,7 +848,9 @@ The state before GO has one owner, the start phase: WAITING until the run starts
 hold (`READY_SECONDS`), GO on the step boundary nearest its end. READY holds every competitor in place: the player's
 vehicle takes the player's input, and every driver waits at full throttle, its clutch open and its engine running up
 to the fuel cut as the player's does, and leaves at full throttle on GO (K, 2026-11-12): the rivals, and the player's
-vehicle while its standard driver drives it (a step without the player's input), the reference runs included. The run
+vehicle while its standard driver drives it (a step without the player's input), the reference runs included. A
+`chase` class's run ([Series documents](#series-documents)) holds the player so from GO, its input revving the engine
+and nothing else, until its rival's progress is beyond the player's; the race clock runs from GO. The run
 outcome has one owner from GO: RUNNING, then GOAL or GAME_OVER with its cause, `TIME`
 (the deadline expired) or `RANK` (a rank limit failed the player), or ENDED. Moving the field and deciding what
 happened are separate: each running step first moves every vehicle, then takes every competitor's crossing candidates
@@ -928,14 +930,14 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 17) is the one owner of its classes, the races it runs. A series
+A series document (`superoutride.series` version 18) is the one owner of its classes, the races it runs. A series
 holds no rule values: every rule is a class's, and classes of one series may repeat the same values. It is saved
 as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 17,
+  "version": 18,
   "id": "example",
   "title": "EXAMPLE",
   "description": "A series for the example's sake.",
@@ -951,6 +953,7 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
       "vehicles": ["911_TURBO_3_3"],
       "entries": [{ "vehicle": "911_TURBO_3_3", "color": "silver", "stages": null, "slot": 14, "ahead": null }],
       "playerSlot": "last",
+      "start": "grid",
       "rankLimits": {},
       "traffic": {
         "density": 6,
@@ -979,8 +982,8 @@ visibility, not a rule. `classes` lists at least one class in selection order. A
 unique within the series, its display name `title` in full (at most a course name's 40 of the text tiles'
 characters, which break at the last space that fits into one or two lines of at most 23: the PRE-RACE card writes it
 from column 17 of the 40), a delivered `course`, its `laps` (1 through 99), its RACE vehicle candidates
-`vehicles` (at least one, unique and in the catalog, in selection order), `entries`, `playerSlot`, `rankLimits`,
-`traffic` (null, or traffic settings whose vehicles are catalog vehicles; see [Traffic](#traffic)), `timeMargin`, the
+`vehicles` (at least one, unique and in the catalog, in selection order), `entries`, `playerSlot`, `start`,
+`rankLimits`, `traffic` (null, or traffic settings whose vehicles are catalog vehicles; see [Traffic](#traffic)), `timeMargin`, the
 clock's margin (positive, finite and at most 10), or null for a RACE without a clock (K, 2026-11-10: for a course whose
 reference run cannot finish, ENDURO RACER's): it needs no reference times, and `fixedColors`, whether the player drives
 in its entry's color rather than its own chosen color. `entries` lists the whole field, 1 through 16 entries, each a
@@ -995,7 +998,10 @@ entry, which the player can take. `playerSlot` is `own` (the player stands in
 its own entry's slot), `last` (in the rearmost of the grid entries' slots, the other grid entries in order in the slots
 in front of it) or `first` (in the frontmost, the others in order in the slots behind it; K, 2026-11-10, for ENDURO
 RACER's player in the middle of its five); the player's entry, whose color it takes, is the rearmost grid entry of its
-vehicle either way. `rankLimits` maps a race gate ID to its rank limit N.
+vehicle either way. `start` is how the field starts (K, 2026-11-19): `grid`, together at GO, or `chase`, whose one
+rival leaves at GO from the slot behind the player's while the player is held as in READY until that rival has passed
+it; a `chase` class has two grid entries and `playerSlot: first`, and like any race it is won by being ahead at the
+goal. `rankLimits` maps a race gate ID to its rank limit N.
 Admission checks each document once, from the build's files or the delivery manifest alike, against the delivered course
 IDs, the vehicle catalog, the screen pictures and the tracks. A course may be run by several classes of one or several
 series. A class is admitted against its compiled course: `laps` within `maxLaps`, every entry's slot within the slots

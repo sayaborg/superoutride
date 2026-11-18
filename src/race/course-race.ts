@@ -374,14 +374,20 @@ export function createCourseRace(options: {
   // READY holds every vehicle in its update; race time and rival driving start at GO, where free updates restore
   // the fixed clutch capacity. Every driver waits through READY at full throttle and leaves at full throttle on GO
   // (K, 2026-11-12): the rivals, and the player's vehicle when no input of the player's reaches it (null).
+  const hold = (body: PresentVehicle, input: DrivingInput, steering: DriverSteering) => {
+    body.step.input = input;
+    body.step.steering = steering;
+    updateVehicle(runtime.readers, body.vehicle, body.model, input, steering, true);
+  };
   const holdReady = (input: DrivingInput | null) => {
-    for (const body of activeBodies) {
-      body.step.input = body === activeBodies[0] ? (input ?? revving) : revving;
-      body.step.steering = body === activeBodies[0] ? playerOwnSteering : steeringOf(body);
-      updateVehicle(runtime.readers, body.vehicle, body.model, body.step.input, body.step.steering, true);
-    }
+    for (const body of activeBodies)
+      if (body === activeBodies[0]) hold(body, input ?? revving, playerOwnSteering);
+      else hold(body, revving, steeringOf(body));
     startPhase.advance();
   };
+  // A CHASE start (K, 2026-11-19): the rival leaves at GO from behind, and the player, held as in READY, leaves once a
+  // rival has passed it.
+  let chasing = configuration.start === 'chase';
   // The AI's safety net (`countSafetyNet`): a driver asks for the player's manual recovery; with no free place behind
   // its vehicle, it asks again the next step.
   const { progressSeconds } = options;
@@ -574,7 +580,9 @@ export function createCourseRace(options: {
           explosionSeed(options.setup.seed, body.id, sequence),
         );
     contactStarts.clear();
-    move(activeBodies[0]!, playerInput, playerSteeringOf(input, stepStart !== null));
+    if (chasing && active.some((c) => c !== player && c.progress.s > player.progress.s)) chasing = false;
+    if (chasing) hold(activeBodies[0]!, input ?? revving, playerOwnSteering);
+    else move(activeBodies[0]!, playerInput, playerSteeringOf(input, stepStart !== null));
     for (let i = 1; i < active.length; i += 1) {
       const { body, pacing } = active[i]!;
       if (pacing && stepStart !== null) {

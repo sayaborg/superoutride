@@ -11,6 +11,8 @@ import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { compileRunConfiguration } from '../../src/race/run-configuration.js';
 import { resolveRunSetup } from '../../src/race/run-setup.js';
 import { weightedCandidate } from '../../src/race/traffic.js';
+import { createCourseRace } from '../../src/race/course-race.js';
+import { createCourseScene } from '../../src/view/course-scene.js';
 
 const content = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
@@ -22,8 +24,8 @@ const vehicle = createRunVehicle(
 );
 const color = vehicle.vehicleDefinition.listing.visuals.palette;
 
-/** A class of three TESTAROSSAs in slots 0 to 2 with `playerSlot` and `timeMargin`. */
-const runClass = (playerSlot, timeMargin) =>
+/** A class of TESTAROSSAs in slots 0 to `count` − 1 with `playerSlot`, `timeMargin` and `start`. */
+const runClass = (playerSlot, timeMargin, start = 'grid', count = 3) =>
   Object.freeze({
     series: null,
     id: 'test',
@@ -31,8 +33,15 @@ const runClass = (playerSlot, timeMargin) =>
     course: 'tsukuba',
     laps: 1,
     vehicles: ['TESTAROSSA'],
-    entries: [0, 1, 2].map((slot) => ({ vehicle: 'TESTAROSSA', color, stages: null, slot, ahead: null })),
+    entries: Array.from({ length: count }, (_, slot) => ({
+      vehicle: 'TESTAROSSA',
+      color,
+      stages: null,
+      slot,
+      ahead: null,
+    })),
     playerSlot,
+    start,
     rankLimits: {},
     traffic: null,
     timeMargin,
@@ -70,6 +79,28 @@ test('`first` puts the player in the frontmost slot and the others behind it, in
     ['RIVAL_01', 0],
     ['RIVAL_02', 1],
   ]);
+});
+
+test('CHASE holds the player from GO until its rival, leaving from the slot behind, has passed it', () => {
+  const { configuration, setup } = race(runClass('first', null, 'chase', 2));
+  assert.equal(configuration.start, 'chase');
+  const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
+  const run = createCourseRace({ setup, runtime: scene.runtime });
+  run.start();
+  while (run.outcome.status === 'READY') run.advance(null);
+  const [rival] = run.rivals;
+  const from = run.player.progress.s;
+  assert.ok(rival.progress.s < from);
+  // Held where it stands while the rival is behind it; it leaves once the rival is ahead.
+  let steps = 0;
+  for (; rival.progress.s <= run.player.progress.s; steps++) {
+    assert.ok(steps < 600, 'the rival passes within ten seconds');
+    assert.equal(run.player.progress.s, from);
+    run.advance(null);
+  }
+  assert.ok(steps > 0);
+  for (let i = 0; i < 120; i++) run.advance(null);
+  assert.ok(run.player.progress.s > from + 1, 'the player leaves');
 });
 
 test('a traffic draw falls on each candidate as many times as its weight, in order', () => {
