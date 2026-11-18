@@ -1,0 +1,23 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "car",
+  "selectionOrder": 46,
+  "visuals": {
+    "spriteSet": "porsche-928-s-1984",
+    "palette": "stock",
+    "steeringPicture": "montecarlo",
+    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+  },
+  "sound": "RX_7_TURBO_II_1987",
+  "metadata": {
+    "manufacturer": "Mazda",
+    "model": "RX-7 Turbo II",
+    "period": "1987-1988",
+    "mobileLabel": "FC3S",
+    "engine": "R2T",
+    "identifier": { "officialLabel": "FC3S", "shortLabel": "FC" },
+    "selectedSpecification": ["5MT", "hood scoop", "16-inch wheels"],
+    "physicsAnchor": { "modelYear": "1987", "market": "US" }
+  }
+}

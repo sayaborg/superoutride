@@ -231,6 +231,12 @@
       "vehicleSha256": "c2bdf9c749ed63810316815853c97b74eb74cd727ce80f8530af98e972ca3b54",
       "soundSha256": "eca5fba0f624c06cde6dc5ed97085a49a6ffdc8b4215bea8d1194fc9ed46237c",
       "lufs": -20.74280799674502
+    },
+    {
+      "vehicleId": "RX_7_TURBO_II_1987",
+      "vehicleSha256": "afc816c0d183c021a20cd984424c65e1957371f99a5d5589c6d0951c748f1c46",
+      "soundSha256": "8ae814441de9d6f5c5eb8b22c4de9a0d40d8c03a5219075ff07dbe2a45f6e6d5",
+      "lufs": -15.983522797796288
     }
   ]
 }

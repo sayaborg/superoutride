@@ -1,0 +1,22 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 2,
+  "cycleRevolutions": 1,
+  "firingPhases": [0, 0.5],
+  "exhaust": {
+    "valve": { "diameter": 0.033, "open": 0.95 },
+    "primaries": [
+      { "length": 0.22, "diameter": 0.04, "to": 0 },
+      { "length": 0.22, "diameter": 0.04, "to": 0 }
+    ],
+    "pipes": [
+      { "length": 0.08, "diameter": 0.03, "from": 0, "to": 1 },
+      { "length": 2, "diameter": 0.054, "from": 1, "to": 2 },
+      { "length": 1.2, "diameter": 0.048, "from": 2, "to": null },
+      { "length": 1.2, "diameter": 0.048, "from": 2, "to": null }
+    ]
+  },
+  "metadata": {
+    "note": "Provisional acoustic graph, not a measured exhaust or recording. The 13B's two rotors fire twice per output-shaft revolution, written as two equal firing phases in one revolution; a rotor's three chambers are not represented. Each rotor's port and its primary to the turbine, the turbine's throat, one pipe through the catalyst to the Y, and two pipes through the left and right silencers to the tails. The port is open 75 BBDC to 48 ATDC, 393 of 360 output-shaft degrees, written as 0.95, the format's limit being below 1 (stage auditor's figures from Mazda's Turbo II training material, not read here). Port area, all lengths and diameters are engineering estimates. Existing pipe solver only; catalyst, silencers and wastegate are not separately modelled."
+  }
+}
