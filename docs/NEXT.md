@@ -18,7 +18,7 @@ Each line is one area as it stands, with the document that owns it.
   four colors and four-stroke sound. Their source ledger and shared-solver measurements distinguish verified
   specifications from estimates. Existing traffic policy and series eligibility remain unchanged; new physics
   still requires prior confirmation. The Honda XR600R of 1985, beside them in the same ledger, is K's ENDURO RACER
-  machine ([Stage XR](#stage-xr--the-xr600r-of-1985-and-enduro-racers-machine)).
+  machine ([Road motorcycles](road-bikes.md#honda-xr600r-of-1985-sources-versus-authored)).
 - The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the
   catalog to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984 and 38 with the
   XR600R of 1985. The 1986 Porsche 930 and 1984 Corvette C4 coexist with their existing 1989 versions; the unidentified
@@ -105,28 +105,6 @@ the default tire with its CG 0.30 of its wheelbase high, its pictures baked from
   estimate for the NSR500 of 1984 with its rider gives 0.66 m (0.48 of the wheelbase), but at that height a lifted
   wheel is held at 15 degrees and the bike brakes and launches at about half the planned rate; to be handled for all
   two-wheelers together. The estimate and its measurements are kept on `claude/nsr-6-cg-0.66-record`.
-
-## Stage XR — The XR600R of 1985 and ENDURO RACER's machine
-
-K's decisions of 2026-11-18 are in place (XR-1 to XR-3 and XR-5): the Honda XR600R of 1985 is a vehicle of its own,
-rider and machine as one, its values the stage's auditor's
-([Road motorcycles](road-bikes.md#honda-xr600r-of-1985-sources-versus-authored)), on its real tires and the default
-tire with its CG 0.30 of its wheelbase high; its pictures are baked from K's model in three paints, red, blue and yellow, of
-three, two and three steps, and six greys ([Model solids](image-assets.md#model-solids)); and ARCADE TRIBUTE - ENDURO
-RACER is ridden on it in its eight liveries ([Series documents](content-and-gameplay.md#series-documents)). It has its
-own engine sound, a single through its twin head pipes into one silencer
-([Calibration](calibration.md#exhaust-topologies)). What stays open, for K:
-
-- To look at in DEV: the back seen riding (the yellow suit's shading, the brake lamp on the tail, the silencer on the
-  right, the thin front wheel), the eight liveries near and far, WHITE/RED (a white machine) and ORANGE/BLACK (a black
-  suit), the attitude on dirt and hills, and hitting rocks and logs; and the single's sound, at idle, through the gears
-  and as a rival.
-- Not decided: the static front share, the redline and the torque curve's shape (no source), its top speed (141 km/h
-  at the fuel cut in fifth; a 1985 test gives 83 mph, 133.6 km/h, likely held by drag, so the drag and the redline,
-  both without a source, stay as they are for now), the two-wheeler's CG, the tire's real values, the eight liveries'
-  values and the rivals' liveries, the light (L2, as the NSR500 of 1984), the description, the sound's values (its
-  exhaust's lengths and diameters and the valve's lift are estimates), and the 1985 front tire's designation and
-  caster.
 
 ## Stage AT — The attract demo remade
 
@@ -1102,6 +1080,19 @@ and switching is a cut.
 - The McLaren M23 PP SPEC (Stage M23, K, 2026-11-16): its tires, with the other F1 cars'
   ([Stage TR](#stage-tr--the-brush-tire)); it is every car of ARCADE TRIBUTE - POLE POSITION II (K, 2026-11-16);
   its name (`M23 PP SPEC` is the auditor's); its own engine sound (it borrows the Lotus's DFV).
+
+- The Honda XR600R of 1985 (Stage XR, K, 2026-11-18;
+  [Road motorcycles](road-bikes.md#honda-xr600r-of-1985-sources-versus-authored)):
+  - To look at in DEV: the back seen riding (the yellow suit's shading, the brake lamp on the tail, the silencer on the
+    right, the thin front wheel), the eight liveries near and far, WHITE/RED (a white machine) and ORANGE/BLACK (a black
+    suit), the attitude on dirt and hills, and hitting rocks and logs; and the single's sound, at idle, through the
+    gears and as a rival.
+  - Not decided: the static front share, the redline and the torque curve's shape (no source), its top speed
+    (141 km/h at the fuel cut in fifth; a 1985 test gives 83 mph, 133.6 km/h, likely held by drag, so the drag and the
+    redline, both without a source, stay as they are for now), the two-wheeler's CG, the tire's real values, the eight
+    liveries' values and the rivals' liveries, the light (L2, as the NSR500 of 1984), the description, the sound's
+    values (kept as placed, K, 2026-11-18; its exhaust's lengths and diameters and the valve's lift are estimates), and
+    the 1985 front tire's designation and caster.
 
 - `npm run measure -- generate` runs out of memory in a 16 GB session: each of its workers compiles the whole content
   again (about 6 GB). Not changed in Stage M23.
