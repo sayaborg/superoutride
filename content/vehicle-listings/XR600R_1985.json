@@ -1,0 +1,29 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 5,
+  "form": "bike",
+  "selectionOrder": 12,
+  "visuals": {
+    "spriteSet": "r80-gs-paris-dakar",
+    "palette": "yellow",
+    "steeringPicture": "top-bridge",
+    "colorNames": { "yellow": "YELLOW", "white": "WHITE", "red": "RED", "blue": "BLUE" }
+  },
+  "sound": "R80_GS_PARIS_DAKAR",
+  "metadata": {
+    "manufacturer": "Honda",
+    "model": "XR600R",
+    "period": "1985",
+    "mobileLabel": "XR600R",
+    "engine": "1",
+    "identifier": {
+      "officialLabel": "XR600R",
+      "shortLabel": "XR600R"
+    },
+    "selectedSpecification": ["1985 owner's manual", "PROVISIONAL"],
+    "physicsAnchor": {
+      "modelYear": "1985",
+      "market": "1985 owner's manual"
+    }
+  }
+}

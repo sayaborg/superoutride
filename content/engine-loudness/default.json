@@ -71,6 +71,12 @@
       "lufs": 0.5408209108448289
     },
     {
+      "vehicleId": "XR600R_1985",
+      "vehicleSha256": "b53071eb59de021432f9b78b0ad982b0cfd75f005521e4ac7da69428973617a9",
+      "soundSha256": "29d9c29bf05f8253805299aaea645e981d73c2d6cf99d4aea0681bfbee2fda54",
+      "lufs": -14.014306696816037
+    },
+    {
       "vehicleId": "NSR500_1984",
       "vehicleSha256": "3d46e74c86efa5c92436066fa9295fcd41a0cc71d356c386f54b488df114cacc",
       "soundSha256": "35825e65056be881f82f29b83b19daadb89094b10fe7de30a7ec3f74aac58ab7",

@@ -266,6 +266,7 @@ wastegates are not represented. DEV's ENGINE SOUNDS panel changes the lengths an
 | AE86_DRIFT_TUNED    | borrowed: GOLF_GTI_16V's engine sound, until its own exhaust is made with its GLB pictures              | —                     | —                                                                                                            | —                 | —                                                      |
 | MCLAREN_M23_PP_SPEC | borrowed: LOTUS_79_SPECIAL's engine sound, the same Cosworth DFV, until it has its own                  | —                     | —                                                                                                            | —                 | —                                                      |
 | NSR500_1984         | borrowed: NSR500_1987's engine sound, Honda's later V4, until it has its own                            | —                     | —                                                                                                            | —                 | —                                                      |
+| XR600R_1985         | borrowed: R80_GS_PARIS_DAKAR's engine sound, a four-stroke into one silencer, until it has its own      | —                     | —                                                                                                            | —                 | —                                                      |
 
 ## Engine sound settings
 

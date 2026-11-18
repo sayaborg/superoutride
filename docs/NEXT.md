@@ -17,10 +17,12 @@ Each line is one area as it stands, with the document that owns it.
 - The [five production road motorcycles](road-bikes.md) are FREE PLAY entries with original provisional sprites,
   four colors and four-stroke sound. Their source ledger and shared-solver measurements distinguish verified
   specifications from estimates. Existing traffic policy and series eligibility remain unchanged; new physics
-  still requires prior confirmation.
+  still requires prior confirmation. The Honda XR600R of 1985, beside them in the same ledger, is K's ENDURO RACER
+  machine ([Stage XR](#stage-xr--the-xr600r-of-1985-and-enduro-racers-machine)).
 - The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the
-  catalog to 35 vehicles before the M23 PP SPEC, 36 with it and 37 with the NSR500 of 1984. The 1986 Porsche 930 and 1984 Corvette C4 coexist with
-  their existing 1989 versions; the unidentified box truck remains deferred. The ledger owns specification limits and validation.
+  catalog to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984 and 38 with the
+  XR600R of 1985. The 1986 Porsche 930 and 1984 Corvette C4 coexist with their existing 1989 versions; the unidentified
+  box truck remains deferred. The ledger owns specification limits and validation.
 - **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
   PRODUCTION 750, GTI CUP and 911 CUP classes; the [product specification](product.md) is Stage 16's target
   ([Product courses](content-and-gameplay.md#product-courses),
@@ -103,6 +105,21 @@ the default tire with its CG 0.30 of its wheelbase high, its pictures baked from
   estimate for the NSR500 of 1984 with its rider gives 0.66 m (0.48 of the wheelbase), but at that height a lifted
   wheel is held at 15 degrees and the bike brakes and launches at about half the planned rate; to be handled for all
   two-wheelers together. The estimate and its measurements are kept on `claude/nsr-6-cg-0.66-record`.
+
+## Stage XR — The XR600R of 1985 and ENDURO RACER's machine
+
+K's decisions of 2026-11-18: ENDURO RACER's machine is the Honda XR600R of 1985, rider and machine as one, its values
+the stage's auditor's ([Road motorcycles](road-bikes.md#honda-xr600r-of-1985-sources-versus-authored)), on its real
+tires and with its CG 0.30 of its wheelbase high; its pictures are baked from K's model in three paints, red, blue and
+yellow, of three, two and three steps, and six greys, in eight liveries; and ARCADE TRIBUTE - ENDURO RACER is ridden
+on it. XR-1 adds the vehicle, on R80_GS_PARIS_DAKAR's pictures and sound for now.
+
+- XR-2: bake `xr600r-1985` from K's model (SHA-256 `55eee015…`, on `codex/xr600r-1985-glb-source`, never on main).
+- XR-3: race ENDURO RACER on it, the player in the first livery and the rivals in the second to the fifth, and its
+  traffic of XR600Rs and WRANGLERs; measure its racing line again.
+- Not decided: the static front share, the redline and the torque curve's shape (no source), the two-wheeler's CG, the
+  tire's real values, its own sound (R80_GS_PARIS_DAKAR's is borrowed), and the 1985 front tire's designation and
+  caster.
 
 ## Stage AT — The attract demo remade
 

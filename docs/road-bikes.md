@@ -1,7 +1,9 @@
-# Five production road motorcycles
+# Five production road motorcycles and the XR600R of 1985
 
 This ledger owns the five selected production motorcycles, their source evidence and numerical adoption,
-provisional pictures and sound. Shared mechanics, content and image contracts stay with their topic owners.
+provisional pictures and sound, and the Honda XR600R of 1985, K's ENDURO RACER machine, in [its own
+section](#honda-xr600r-of-1985-sources-versus-authored). Shared mechanics, content and image contracts stay with
+their topic owners.
 The selection fixes model year and market, not registration year: CB900F_1981 is the 1981 United States
 CB900FB/SC01; GSX1100SZ the 1982 United Kingdom Katana/GS110X; GPZ900R_A1 the 1984 United Kingdom
 ZX900-A1/ZX900A; GSX_R750_1985 the 1985 United Kingdom E02 GSX-R750F/GR75A; and VMAX1200_1985 the
@@ -425,3 +427,42 @@ The generic regression verifies that a very narrow painted or lamp surface remai
 PNG layout: each `<sprite>-lodN.png` has banks in declaration order, and 64 yaw directions within each bank, eight per row. `overview.png` stacks the five bikes in catalog order, eight yaw directions at neutral bank. `banks.png` stacks all seven banks for each bike with eight yaw directions. `palettes-and-lamps.png` stacks stock/red/blue/black, tail then brake for each color, eight yaw directions, for each bike in catalog order. `review.json` records per-set hashes and per-LOD transparency/lamp counts. All contact sheets preserve native texel size.
 
 Provisional limitations: sponsor/manufacturer lettering, exact spoke sections, badge shapes, detailed instruments, tread grooves and articulated hand/finger geometry are omitted. Paint RGB values approximate viewed references; no unverified factory color code is invented. Exhaust and fork/engine geometry are visual approximations. GPZ front/rear brake discs use provisional 280/270 mm secondary-source diameters; GSX-R uses 300/280 mm. GPZ retains the provisional 38 mm fork diameter despite conflicting secondary 39 mm reports; this is a visual authoring choice, not a suspension-data change. No real step-contact or maximum-bank limit is simulated.
+
+## Honda XR600R of 1985: sources versus authored
+
+K's decision (2026-11-18): ENDURO RACER's machine is the Honda XR600R of 1985, `XR600R_1985`, a vehicle of its own
+beside R80_GS_PARIS_DAKAR, which stays. Its envelope and wheels are K's model's, rider and machine as one
+([Model solids](image-assets.md#model-solids)); the tires are its real sizes. What no source gives is the stage's
+auditor's placement, marked so below; it is not a measurement.
+
+| Item         | Source                                                                                | Authored `XR600R_1985`                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Wheelbase    | 1,450 mm (1985 owner's manual)                                                        | Axles **0.7685 / 0.6815 m** from the CG: a 47 % static front share, the auditor's placement (no source)   |
+| Mass         | 121 kg dry (owner's manual)                                                           | **210.5 kg**: 121 + 2 oil + 10 L fuel (7.5) + 75 rider + 5 equipment, this ledger's comparison load       |
+| Engine       | 591 cc four-stroke single, 97 × 80 mm, 9.0:1, idle 1,300 rpm (owner's manual)         | As the source; compression 9.0 is read by the sound alone                                                 |
+| Torque       | 51.9 N m at 5,500 rpm (motorcyclespecs.co.za and others)                              | C as the source; A 36 N m at idle, B 46 at 3,000, D 47.5 at 6,500 (32.3 kW), E 42 at 7,000: the auditor's |
+| Redline      | Not located                                                                           | **7,000 rpm**: fifth at redline on the 0.326 m rear is 136 km/h, near the tested top speed below          |
+| Transmission | 2.384, 1.647, 1.250, 1.000, 0.840; primary 2.188, secondary 3.428 (14T/48T; manual)   | As the source; final `2.188 × 3.428 = 7.5`                                                                |
+| Top speed    | 83 mph (133.6 km/h), standard 14T (Cycle World, July 1985)                            | Fifth's fuel cut, not drag, ends it: 141 km/h at about 7,350 rpm on the flat                              |
+| Tires        | 80/100-21 front, 110/100-17 rear (17 in rear for 1985 to 1987; justxr.com and others) | Radii **0.347 / 0.326 m** from K's model, sized to these tires; the default tire                          |
+| Travel       | 295 / 280 mm (motorcyclespecs.co.za and others)                                       | `frontQTravel` / `rearQTravel` 0.295 / 0.280                                                              |
+| Envelope     | —                                                                                     | K's model: 2,184 × 862 × 1,638 mm (the rider's helmet top)                                                |
+| CG height    | —                                                                                     | **0.435 m**, 0.30 of its wheelbase, for now (K, 2026-11-18)                                               |
+| Drag         | —                                                                                     | `q = 0.34 kg/m`, the auditor's for an upright rider (R80_GS_PARIS_DAKAR's is 0.36)                        |
+
+The owner's manual's listing was read out of order; 48/14 = 3.4286 matches the secondary reduction, so the two
+reductions are assigned as above. A rating of 46 hp at 6,000 rpm is not adopted: with 51.9 N m at 5,500 rpm it would
+need about 54 N m at 6,000 rpm. The curve's D, 32.3 kW (44 PS) at 6,500 rpm, agrees with sources that give 33 kW or
+45 PS. The 1985 machine has two 28 mm carburetors (one from 1988), recorded for its future sound.
+
+The values no source gives follow this ledger's common rules: ride frequencies 1.5 Hz and damping ratio 0.4; brake
+capacities by the [VFR750R reference](#provisional-brake-calibration), 700 × (210.5 / 273.5) × (0.347 / 0.2999) and
+300 × (210.5 / 273.5) × (0.326 / 0.3306), rounded to **600 / 250 N m**. Where no rule exists, R80_GS_PARIS_DAKAR's
+value is carried over: yaw and pitch inertias scaled by mass and the square of the wheelbase, 215 and 260 kg m² ×
+(210.5 / 308) × (1.450 / 1.465)², **144 / 174 kg m²**; wheel inertias by the square of each wheel's radius, **0.63 /
+0.80 kg m²**. The listing is `PROVISIONAL`; its engine is `1`, a single. Its sound is R80_GS_PARIS_DAKAR's, borrowed
+([Calibration](calibration.md#exhaust-topologies)), and so are its pictures until its own are baked from K's model.
+
+Not decided: the static front share, the redline and the torque curve's shape (no source), the two-wheeler's CG
+(apart, as for the NSR500 of 1984), the tire's real values, its own sound, and the 1985 front tire's designation (some
+sources give 3.00-21) and caster.
