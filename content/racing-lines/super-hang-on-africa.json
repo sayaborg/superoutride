@@ -8,9 +8,9 @@
   "vehicles": [
     {
       "vehicleId": "NSR500_1984",
-      "vehicleSha256": "179fe2371e9f0efc650ae24302959c43e82e1cea8bd2a6fc3e7fd34e552f8ba8",
-      "seconds": 263.037,
-      "minimumCurvatureSeconds": 263.037
+      "vehicleSha256": "44dd97293c244b325854f68948110082fe48569adbb95826e147feb1a44d719a",
+      "seconds": 277.98,
+      "minimumCurvatureSeconds": 277.98
     }
   ],
   "lines": [
