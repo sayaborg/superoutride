@@ -9,7 +9,7 @@ import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadCourseIndex } from '../../src/content/course-index.js';
 import { CLASS_TITLE, loadSeriesCatalog } from '../../src/content/series-catalog.js';
-import { loadScreenPictures } from '../../src/content/screen-picture-catalog.js';
+import { loadScreenPictures, mainPicture } from '../../src/content/screen-picture-catalog.js';
 import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadMusic } from '../../src/content/recording-catalog.js';
 import { loadFrontEndSelection } from '../../src/content/front-end-selection.js';
@@ -57,7 +57,7 @@ test('the front end screens render from the delivered content', async () => {
       music,
       player,
       dev: true,
-      logo: pictures.get('title-logo'),
+      mainPicture: mainPicture(pictures),
       cardStyle: { current: () => CARD_STYLES[0], step: () => {} },
     },
     {

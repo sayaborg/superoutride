@@ -47,8 +47,8 @@ export interface SelectionCatalog {
   readonly player: PlayerRecord;
   /** `dev=1`: DEV series, and the courses in no series, are offered. */
   readonly dev: boolean;
-  /** The title logo, which stands for the main picture until it is made. */
-  readonly logo: TilePicture;
+  /** The main picture (`mainPicture`), which the main world shows over the attract demo. */
+  readonly mainPicture: TilePicture;
   /** The cards' style while their design is tried (K, 2026-11-12): the one shown, and SETTINGS' step to the next. */
   readonly cardStyle: { current(): CardStyle; step(by: -1 | 1): void };
 }
@@ -63,7 +63,7 @@ export interface SelectionDevices {
   /** CONFIRM on PRESS START: the user gesture that enables sound and fullscreen where the browser allows them. */
   activate(): void;
   /** The attract demo behind the main picture. */
-  readonly demo: Omit<MainWorld, 'logo'>;
+  readonly demo: Omit<MainWorld, 'picture'>;
   /** Sound the engine a vehicle's card revs, as the player's. */
   engine(engine: CompetitorObservation): void;
   /** Request the selected run; `back` returns to the row that requested it. */
@@ -456,7 +456,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     devices.text,
     devices.present,
     devices.faces,
-    { ...devices.demo, logo: catalog.logo },
+    { ...devices.demo, picture: catalog.mainPicture },
     titleRow(),
     devices.engine,
     pause,

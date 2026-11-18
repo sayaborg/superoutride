@@ -302,11 +302,13 @@ it when the card comes to rest and its returned function once the focus or the r
 audition, the one form of [playing a track](audio.md#music) from its start, looped: the audition stops when the focus or
 the row leaves, and a track still decoding when it leaves never sounds.
 
-The rows stand in a world. The main world is the attract demo behind the main picture, and until the main picture is
-made the title logo (36×14 tiles) centred at y 16 over it: TITLE, SELECT SERIES and FREE PLAY's rows stand in it, and
-SETTINGS in the world of the row it was opened from. FREE PLAY's card on SELECT SERIES shows the main world itself on
-the scaled plane, each frame's drawing of it without TITLE's lines, as a series' card shows its picture, so that
-choosing it zooms into the main world as a series' card zooms into its picture (K, 2026-11-19). A series' world is its
+The rows stand in a world. The main world is the attract demo behind the main picture, 40×30 tiles whose clear parts
+show the demo, and until the main picture is made the title logo (36×14 tiles) placed in it at tile column 2, row 2
+(`mainPicture`): TITLE, SELECT SERIES and FREE PLAY's rows stand in it, and SETTINGS in the world of the row it was
+opened from. Only the scaled plane, one layer of 8×8 tiles, scales, and the demo, its road and sprites, cannot (K,
+2026-11-19): on SELECT SERIES the main picture is FREE PLAY's card on the plane at 0.7, as a series' picture is, and
+the demo shows behind the plane at 1:1, through its clear parts as through the main picture's. Choosing FREE PLAY
+brings the picture to 1:1, where it is the main world's own over the demo, which never moved. A series' world is its
 picture, at 1:1 on the scaled plane: its SELECT CLASS and SELECT VEHICLE stand in it. Within a world one row gives way
 to the next by line thinning, the [background transitions'](image-assets.md#background-transitions) one rule and one
 implementation ([line thinning](../src/view/line-thinning.ts)): at share p, round(240p) of the 240 lines show the next

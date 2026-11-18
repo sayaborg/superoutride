@@ -24,7 +24,7 @@ import {
   CONTROLS_PICTURE,
   loadScreenPicture,
   loadScreenPictures,
-  TITLE_LOGO,
+  mainPicture,
 } from '../content/screen-picture-catalog.js';
 import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
@@ -394,7 +394,7 @@ async function startPage(): Promise<void> {
         music,
         player,
         dev,
-        logo: screenPictures.get(TITLE_LOGO.id)!,
+        mainPicture: mainPicture(screenPictures),
         cardStyle,
       },
       {

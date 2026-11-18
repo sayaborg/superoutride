@@ -243,7 +243,8 @@ series' picture (K, 2026-11-09). TITLE, SELECT SERIES and FREE PLAY's rows stand
 world of its own, and SETTINGS stands in the world of the row it was opened from. SELECT SERIES shows the series
 pictures at 0.7, the size of a card, with no text over them; choosing one brings it toward the player until it fills the
 frame at 1:1, and the player is in that series' world, whose rows stand on its picture. FREE PLAY's card shows the main
-picture so, and choosing it brings the main world in alike (K, 2026-11-19). Within a world one row gives way to the next
+picture so, the attract demo showing through its clear parts at 1:1 behind it, and choosing it brings the picture to
+1:1 over the demo, the main world (K, 2026-11-19). Within a world one row gives way to the next
 by line thinning, the rule of the [background transitions](image-assets.md#background-transitions), and only entering or
 leaving a series zooms (K, 2026-11-09). Until the main picture is made, the title logo over the attract demo stands for
 it.

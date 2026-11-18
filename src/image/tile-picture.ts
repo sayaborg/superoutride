@@ -149,6 +149,29 @@ export class TilePicture {
     }
   }
 
+  /**
+   * This picture's tiles from tile (`column`, `row`) of a picture of `columns` by `rows` tiles, which holds them whole,
+   * and clear tiles elsewhere.
+   */
+  placed(columns: number, rows: number, column: number, row: number): TilePicture {
+    if (column < 0 || row < 0 || column + this.columns > columns || row + this.rows > rows)
+      throw new RangeError('A placed picture lies within the picture it is placed in');
+    const clear = this.#patterns.length,
+      size = TILE_PICTURE_TILE_SIZE * TILE_PICTURE_TILE_SIZE;
+    const palettes = Array.from({ length: this.#palettes.length / 16 }, (_, id) => [
+      ...this.#palettes.subarray(id << 4, (id + 1) << 4),
+    ]);
+    const tiles = Array.from({ length: columns * rows }, (_, i): readonly [number, number] => {
+      const x = (i % columns) - column,
+        y = Math.floor(i / columns) - row;
+      if (x < 0 || y < 0 || x >= this.columns || y >= this.rows) return [clear, 0];
+      const tile = (y * this.columns + x) * 2;
+      return [this.#tiles[tile]!, this.#tiles[tile + 1]!];
+    });
+    const blank = new IndexedPattern(TILE_PICTURE_TILE_SIZE, TILE_PICTURE_TILE_SIZE, new Uint8Array(size));
+    return new TilePicture(this.name, columns, [...this.#patterns, blank], palettes, tiles);
+  }
+
   /** The color of the picture's pixel (`x`, `y`), which lie within it; -1 where its index is 0, transparent. */
   colorAt(x: number, y: number): number {
     const tile = ((y >>> TILE_SHIFT) * this.columns + (x >>> TILE_SHIFT)) * 2;

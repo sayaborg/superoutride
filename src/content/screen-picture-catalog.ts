@@ -20,6 +20,21 @@ export const SERIES_IMAGE = Object.freeze({ columns: 40, rows: 30 });
 /** The admitted screen pictures by name. */
 export type ScreenPictureCatalog = ReadonlyMap<string, TilePicture>;
 
+/** The main picture: 40×30 tiles, the whole 320×240 frame, clear where the attract demo shows through it. */
+export const MAIN_PICTURE = Object.freeze({ columns: 40, rows: 30 });
+/** Where the title logo stands in the main picture while it stands for it: tile column 2, row 2 (x 16, y 16). */
+const LOGO_PLACE = Object.freeze({ column: (MAIN_PICTURE.columns - TITLE_LOGO.columns) / 2, row: 2 });
+
+/**
+ * The main picture (K, 2026-11-09), which TITLE, SELECT SERIES' FREE PLAY card and FREE PLAY's rows show: until K's is
+ * made, the title logo in it at `LOGO_PLACE`, clear elsewhere.
+ */
+export function mainPicture(pictures: ScreenPictureCatalog): TilePicture {
+  return pictures
+    .get(TITLE_LOGO.id)!
+    .placed(MAIN_PICTURE.columns, MAIN_PICTURE.rows, LOGO_PLACE.column, LOGO_PLACE.row);
+}
+
 /** Admit one screen picture: a tile picture named by its file name, the title logo at its size. */
 function admitScreenPicture(source: DocumentSource): AdmissionResult<TilePicture> {
   return admit(source.path, () => {

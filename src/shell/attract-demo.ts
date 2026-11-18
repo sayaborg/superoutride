@@ -85,7 +85,7 @@ export function createAttractDemo(
   courses: CourseIndex,
   random: () => number,
   assemble: (request: RunRequest, subjects: DemoSubjects, random: () => number) => Promise<DemoReel>,
-): Omit<MainWorld, 'logo'> & { dispose(): void } {
+): Omit<MainWorld, 'picture'> & { dispose(): void } {
   const draw = (count: number) => Math.floor(random() * count);
   // The class at `at` with its vehicle and color drawn.
   const classAt = (at: number, chosen: boolean): DemoClass => {

@@ -26,8 +26,6 @@ const SHAKE = 0.06;
 /** TITLE's PRESS START row, and its blink: shown this many fixed steps, then hidden as many as the second. */
 const PRESS_START_ROW = 28;
 const BLINK = Object.freeze({ on: 32, off: 16 });
-/** The title logo's top, standing for the main picture until it is made. */
-const LOGO_Y = 16;
 /** The path's row, the frame's last, a plain band, and its root: the game, the top of every path. */
 const PATH_ROW = 29;
 /** The band's dark RGB555 color (2, 2, 4). */
@@ -66,8 +64,8 @@ export interface Card {
   line?(): string;
   /**
    * SELECT SERIES' card: the series' picture, drawn on the scaled plane; absent on FREE PLAY's card, which shows the
-   * main world itself, the demo behind the main picture, as a series' picture is shown: FREE PLAY has no world of its
-   * own (K, 2026-11-09 and 2026-11-19).
+   * main picture there, its clear parts showing the demo behind at 1:1: FREE PLAY has no world of its own (K,
+   * 2026-11-09 and 2026-11-19).
    */
   readonly picture?: TilePicture;
   /** It offers nothing: dimmed, and CONFIRM denies. */
@@ -110,7 +108,10 @@ export interface CardRow {
   moved?(): void;
 }
 
-/** What the main world shows: the attract demo behind the main picture (until it is made, the title logo). */
+/**
+ * What the main world shows: the attract demo behind the main picture, 40×30 tiles, whose clear parts show the demo
+ * (`mainPicture`).
+ */
 export interface MainWorld {
   /** Draw the demo into the frame, its lines into `lines` when given; false leaves the frame black. */
   draw(frame: SoftwareSurface, lines: TextLayer | null): boolean;
@@ -119,7 +120,7 @@ export interface MainWorld {
   tick(): void;
   enter(): void;
   leave(): void;
-  readonly logo: TilePicture;
+  readonly picture: TilePicture;
 }
 
 /** How a row is reached: line thinning, the zoom into or out of a series, or at once. */
@@ -161,7 +162,9 @@ const duration = (motion: Motion) =>
  * its ends; UP and DOWN change the focus card's value; CONFIRM and BACK do the card's and the row's actions. A row
  * gives way to the next in its world by line thinning, the background transitions' one rule; only entering or leaving
  * a series zooms its picture on the one scaled plane, between 0.7 and 1. While a motion runs, the last command waits
- * and acts when it ends. The main world draws the attract demo, advanced while it shows, behind the title logo.
+ * and acts when it ends. The main world draws the attract demo, advanced while it shows, behind the main picture; on
+ * SELECT SERIES, and while a series is zoomed into or out of, the main picture is FREE PLAY's card on the scaled plane
+ * and the demo shows behind the plane at 1:1, as a board's layers stand (K, 2026-11-19).
  */
 export function createCardRows(
   frame: SoftwareSurface,
@@ -182,13 +185,6 @@ export function createCardRows(
     focused: Card | null = null,
     blink = 0;
   const scratch = new Uint16Array(frame.pixels.length);
-  // The main world as last drawn, without its lines: FREE PLAY's picture on the scaled plane.
-  const shot = new Uint16Array(frame.pixels.length);
-  const mainPicture = Object.freeze({
-    width: frame.width,
-    height: frame.height,
-    colorAt: (x: number, y: number) => shot[y * frame.width + x]!,
-  });
   // What is heard of the card in focus at rest: its page's sound.
   const heard = () => {
     const page = motions.length === 0 && rest > 0 ? unitOf(view)?.page?.() : undefined;
@@ -265,17 +261,18 @@ export function createCardRows(
     return null;
   };
 
-  // The world behind the rows: the attract demo and the main picture, or the series' picture.
-  const drawWorld = (target: SoftwareSurface, at: TilePicture | null, lines: boolean) => {
+  // The world behind the rows: the attract demo, and the main picture over it unless the scaled plane shows it (`plane`),
+  // or the series' picture.
+  const drawWorld = (target: SoftwareSurface, at: TilePicture | null, lines: boolean, plane: boolean) => {
     if (at) return at.draw(target, 0, 0);
     text.clear();
     if (!main.draw(target, lines ? text : null)) target.clear(SCREEN_BACKGROUND);
-    main.logo.draw(target, Math.floor((target.width - main.logo.width) / 2), LOGO_Y);
-    shot.set(target.pixels);
+    if (!plane) main.picture.draw(target, 0, 0);
     if (lines) text.draw(target);
   };
+  const onPlane = (shown: View) => shown?.row.kind === 'series';
   const planeRow = (row: CardRow): PlaneRow => ({
-    pictures: row.cards.map((card) => card.picture ?? mainPicture),
+    pictures: row.cards.map((card) => card.picture ?? main.picture),
     pitch: SERIES_PITCH,
     wrap: row.cards.length >= 3,
     dim: (index) => row.cards[index]!.dim === true,
@@ -423,21 +420,21 @@ export function createCardRows(
     render() {
       const motion = motions[0];
       if (motion?.kind === 'zoom') {
-        drawWorld(frame, null, false);
+        drawWorld(frame, null, false, true);
         const t = easeInOut(motion.steps / CARD_STEPS.zoom),
           scale = motion.to === 1 ? SERIES_SCALE + (1 - SERIES_SCALE) * t : 1 - (1 - SERIES_SCALE) * t;
         drawPlaneRow(frame, planeRow(motion.row), motion.index, scale, ZOOM_CENTRE, 0);
         drawPath(frame, { row: motion.row, index: motion.index, item: 0 });
       } else if (motion?.kind === 'thin') {
         const title = (shown: View) => shown?.row.kind === 'title';
-        drawWorld(frame, world, title(motion.from));
+        drawWorld(frame, world, title(motion.from), onPlane(motion.from));
         drawRow(frame, motion.from, undefined);
         scratch.set(frame.pixels);
-        drawWorld(frame, world, title(view));
+        drawWorld(frame, world, title(view), onPlane(view));
         drawRow(frame, view, undefined);
         thinLines(frame.pixels, scratch, frame.width, frame.height, motion.steps / CARD_STEPS.thin);
       } else {
-        drawWorld(frame, world, view?.row.kind === 'title');
+        drawWorld(frame, world, view?.row.kind === 'title', onPlane(view));
         drawRow(frame, view, motion);
       }
       present();

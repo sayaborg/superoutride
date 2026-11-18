@@ -7,7 +7,7 @@ import { loadTextTiles } from '../../src/content/text-tiles-catalog.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadSeriesCatalog } from '../../src/content/series-catalog.js';
-import { loadScreenPictures } from '../../src/content/screen-picture-catalog.js';
+import { loadScreenPictures, mainPicture } from '../../src/content/screen-picture-catalog.js';
 import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadMusic } from '../../src/content/recording-catalog.js';
 import { loadFrontEndSelection } from '../../src/content/front-end-selection.js';
@@ -53,7 +53,7 @@ function selection({ dev = true, frontEnd = delivered } = {}) {
       music,
       player: openPlayerRecord(null),
       dev,
-      logo: pictures.get('title-logo'),
+      mainPicture: mainPicture(pictures),
       cardStyle: { current: () => CARD_STYLES[0], step: () => {} },
     },
     {
