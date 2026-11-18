@@ -616,8 +616,8 @@ domain owns the admitted sets at run time: for a vehicle's color and lamp state 
 once and draws every picture with it, and it selects yaw/bank pictures. The image domain supplies only the generic
 sprite reader.
 
-`testarossa`, `911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `mclaren-m23-pp-spec`, `nsr500-1984` and `xr600r-1985` from models ([Model solids](#model-solids)). The other
+`911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
+and `testarossa`, `mclaren-m23-pp-spec`, `nsr500-1984` and `xr600r-1985` from models ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by
 code, original, for an earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
 octave `k` of a full-size picture whose anchor sits at the vehicle's base point (where a camera 1.75 m up and 6 m
@@ -652,7 +652,7 @@ authority for the vehicle's dimensions, and each view is fitted to it.
 view, stations and heights are metres in vehicle coordinates (origin at the base point, z forward, y up):
 
 ```text
-{format, version, vehicle: "TESTAROSSA", yawVariants: 64, background: "white" | "alpha",
+{format, version, vehicle: "911_TURBO_3_3", yawVariants: 64, background: "white" | "alpha",
  side:  {road, roof, frontEnd, rearEnd, frontWheel, rearWheel, frontOverhangShare},
  top:   {centre, width, frontEnd, rearEnd, ties: [[sideColumn, topColumn], ...]},
  front: {centre, width, road, roof},
@@ -744,11 +744,7 @@ white), so a shaded amber stays amber and a dark texel stays a dark neutral. Eve
 the set names the same slots, so a color variant replaces the body colors and keeps the rest. By the contract's lamp
 rule, sizes 1 to 4 turn each lamp's fullest texel into a lamp texel when no texel of that lamp reached half.
 
-TESTAROSSA's saved set is a finished one, made with this generator's prototype and tuned by eye; its recipe has no
-corrections. The set the command generates for it looks the same and differs in about one texel in nine, mostly by one step of
-the body ramp: the generator has since gained smooth slopes and the rules above. Its body colors follow the reds of the
-reference game's car as seen in a screenshot; its yellow, white and black follow the same steps from light to dark,
-and its palettes are the recipe's, the pictures as the prototype drew them. 911 TURBO 3.3's saved set is the command's
+911 TURBO 3.3's saved set is the command's
 output for its recipe: silver, black, red and white. Its surface gives the hood between the front
 wings, the wings' round tops, the crowned roof and tapering tail, the rear shoulders and the tray of the rear wing;
 its marks give the windows, the headlamps and the brake lamps (the outer red lamps and the reflector square beside
@@ -1017,6 +1013,47 @@ paints; a black place's lighter steps may look grey, and a white one's like the 
 Each name is the red's place and the yellow's. The model is K's `honda-xr600r-1985.glb` (SHA-256 `55eee015…`), kept
 on K's branch `codex/xr600r-1985-glb-source`, never on main; it has no wheel nodes, and its front hub is its `wheel_F`
 centre.
+
+**The Testarossa of 1984.** Its set, `testarossa`, is colored by paints with a glossy finish and baked from K's model
+(K, 2026-11-19): the first, 1984 European coupé, with one mirror on the left A pillar, centre-lock wheels and its TRX
+tyres. K painted the model flat: the body's red (231, 10, 14) is its one paint, seven steps; the glass and the other
+black parts share (14, 14, 16), the glass told by its roughness below 0.5, three steps; and everything else, the black
+parts, the wheels, the lenses (the orange tail lenses in grey frames) and the badges, is the greys' four steps. The
+magenta (255, 0, 255) is the brake lamp, whose off and on colors, (125, 12, 18) and (255, 70, 40), are its earlier
+set's. The model holds its roughness, 0.10 on the body's paint and the glass and 0.90 on the other black parts (the
+rest as the model came), and its occlusion. Its finish is the stage's (F110): `light` with `main` (−0.25, 0.85, 0.46),
+`fill` (0.60, 0.20, 0.50), ambient 0.08, sky 0.14, weights 0.92 and 0.06 and the greys' gain 1.5; the glass mirrors a
+blue sky and the paint and greys a paler one over a dark road:
+
+| Reflection | f0   | Horizon       | Zenith        | Haze          | Ground     | Fall | Power |
+| ---------- | ---- | ------------- | ------------- | ------------- | ---------- | ---- | ----- |
+| glass      | 0.80 | 232, 240, 248 | 58, 120, 222  | 205, 214, 224 | 86, 88, 92 | 0.35 | 0.6   |
+| paint      | 0.10 | 205, 218, 238 | 120, 160, 230 | 70, 66, 68    | 20, 18, 20 | 0.10 | 0.6   |
+
+and two glare terms, the white band on shoulders and roof edges (power 30, strength 2.0, glass 1.0) and the sun's small
+spot (power 220, strength 4.0, glass 1.5), so a side window may burn white. Its four wheels are spun, as the model's
+`extras` give them: front centres (±0.759, 0.3155, 1.53) m, radius 0.3155, width 0.24; rear (±0.83, 0.3335, −1.02),
+radius 0.3335, width 0.28 (its 240/45 VR 415 and 280/45 VR 415 tyres); the rims are 0.72 of the radii, 0.227 and 0.240.
+It has 64 directions, sampled every 8 mm; its steps are measured from 16 directions.
+
+Its eight liveries are Ferrari's colors of the period (K, 2026-11-19); the glass, the greys and the lamp are every
+livery's. The first, the model's own and the default, is Rosso Corsa; the eight base colors are K's (2026-11-19),
+`blu-sera`'s a color chart's (#254169):
+
+| Palette       | Name        | Ferrari's name           | Code      | Base color    |
+| ------------- | ----------- | ------------------------ | --------- | ------------- |
+| `rosso-corsa` | ROSSO CORSA | Rosso Corsa              | FER 300/6 | 231, 10, 14   |
+| `giallo`      | GIALLO      | Giallo                   | FER 102   | 245, 198, 18  |
+| `bianco`      | BIANCO      | Bianco                   | FER 100   | 240, 240, 236 |
+| `nero`        | NERO        | Nero                     | FER 1240  | 22, 22, 24    |
+| `argento`     | ARGENTO     | Argento Metallizzato     | FER 101/C | 186, 190, 196 |
+| `blu-sera`    | BLU SERA    | Blu Sera Metallizzato    | FER 504/C | 37, 65, 105   |
+| `azzurro`     | AZZURRO     | Azzurro Metallizzato     | FER 505/C | 92, 148, 206  |
+| `verde-scuro` | VERDE SCURO | Verde Scuro Metallizzato | FER 603/C | 16, 60, 40    |
+
+A name is at most 13 characters, so the metallics drop METALLIZZATO. The model is K's `ferrari-testarossa-1984.glb`
+(SHA-256 `c9ef7c06…`), kept on K's branch `codex/testarossa-1984-glb-source`, never on main; it has no wheel nodes,
+and its front hub is (0, 0.3155, 1.53).
 
 ## HUD picture generator
 

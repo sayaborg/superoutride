@@ -5,19 +5,28 @@
   "selectionOrder": 1,
   "visuals": {
     "spriteSet": "testarossa",
-    "palette": "red",
+    "palette": "rosso-corsa",
     "steeringPicture": "montecarlo",
-    "colorNames": { "red": "ROSSO CORSA", "yellow": "GIALLO MODENA", "white": "BIANCO", "black": "NERO" }
+    "colorNames": {
+      "rosso-corsa": "ROSSO CORSA",
+      "giallo": "GIALLO",
+      "bianco": "BIANCO",
+      "nero": "NERO",
+      "argento": "ARGENTO",
+      "blu-sera": "BLU SERA",
+      "azzurro": "AZZURRO",
+      "verde-scuro": "VERDE SCURO"
+    }
   },
   "sound": "TESTAROSSA",
   "metadata": {
     "manufacturer": "Ferrari",
     "model": "Testarossa",
-    "period": "1988.5-1991",
+    "period": "1984-1986",
     "mobileLabel": "F110",
     "engine": "F12",
     "identifier": { "officialLabel": "Tipo F110", "shortLabel": "F110" },
-    "selectedSpecification": ["5-bolt wheels"],
-    "physicsAnchor": { "modelYear": "1989", "market": "European/ROW" }
+    "selectedSpecification": ["single mirror", "centre-lock wheels", "TRX tyres"],
+    "physicsAnchor": { "modelYear": "1984", "market": "European/ROW" }
   }
 }

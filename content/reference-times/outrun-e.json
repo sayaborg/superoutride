@@ -6,13 +6,13 @@
   "vehicles": [
     {
       "vehicleId": "TESTAROSSA",
-      "vehicleSha256": "eeaa2f7b2a3c9bc8d32927f1a0a7263dcd1b30fcff4e1faa1d102fee87eca370",
-      "initialSeconds": 113.87676794542882,
+      "vehicleSha256": "c96d92e4707aa5ccc3a9a5b168094753d82da6123c320dd42d9f67fead6c3231",
+      "initialSeconds": 114.5008661909867,
       "after": [
-        ["DEVIL'S CANYON-CP", [120.39957635892277]],
-        ["CLOUDY MOUNTAIN-CP", [139.18736157908813]],
-        ["SEASIDE TOWN-CP", [88.87823561410852]],
-        ["LAKESIDE-CP", [74.54187306091904]]
+        ["DEVIL'S CANYON-CP", [122.08150491048181]],
+        ["CLOUDY MOUNTAIN-CP", [142.22435647211708]],
+        ["SEASIDE TOWN-CP", [88.78913517342102]],
+        ["LAKESIDE-CP", [75.65429426038878]]
       ]
     }
   ]

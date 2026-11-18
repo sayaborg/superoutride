@@ -1060,7 +1060,7 @@ passes are traffic NSR500s of `path: line`, slow riders on the racing line in an
 up to 150 km/h (provisional). The original's turbo is not made.
 
 ARCADE TRIBUTE - OUTRUN is delivered on the same terms (K, 2026-11-10), on its original roads A, B, C LEFT, C RIGHT, D
-and E, each one run. The player drives the TESTAROSSA alone, in red, from the grid's first slot (`own`), without
+and E, each one run. The player drives the TESTAROSSA alone, in ROSSO CORSA, from the grid's first slot (`own`), without
 rivals; the traffic drives its lanes, six vehicles of equal weight standing for the original's (a Mini 850 for the
 Beetle, a GOLF GTI 16V for the BMW cabriolet, the 1984 Corvette, the 911 Turbo 3.3, a Toyota pickup for the truck,
 and a 928 S), at 4 a kilometre and up to 90 km/h (provisional). B to E have a margin of 1.35; A has no clock for

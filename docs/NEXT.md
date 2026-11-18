@@ -53,9 +53,10 @@ Each line is one area as it stands, with the document that owns it.
   plane; the camera stands 6 m behind and 2 m above the player's base point
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
-- **Pictures.** TESTAROSSA's, 911 TURBO 3.3's and GOLF GTI 16V's pictures are generated sets, VFR750R's a 3D
-  prototype, the other vehicles' converted provisional pictures
-  ([Vehicle picture generator](image-assets.md#vehicle-picture-generator)).
+- **Pictures.** 911 TURBO 3.3's and GOLF GTI 16V's pictures are generated sets, VFR750R's a 3D prototype,
+  TESTAROSSA's, the M23 PP SPEC's, the NSR500 of 1984's and the XR600R of 1985's baked from K's models, TESTAROSSA's
+  with a car's glossy finish, the other vehicles' converted provisional pictures
+  ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
   admits the measured racing lines, reference times and pace schedules, which `npm run measure` saves under `content/`
   ([Build outputs](development.md#build-outputs), [Measured products](development.md#measured-products)).
@@ -78,7 +79,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage
+Next PR: [Stage F110](#stage-f110--the-testarossa-of-1984)'s F110-3 awaits K's choice of the color line; [Stage
+AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage
 RC](#stage-rc--one-recovery) and [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving) are made and await K's
 DEV check and K's choice of the replanning interval (AD-5's reports); in [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
@@ -156,6 +158,22 @@ FC3S-1 adds the vehicle, its sound and its listing, on PORSCHE_928_S_1984's pict
   auditor's reading.
 - Not decided: how TOP SPEED's series uses it (the player's car, rivals, nitro), its own tire values and its steering
   picture.
+
+## Stage F110 — The TESTAROSSA of 1984
+
+K's decisions of 2026-11-19: TESTAROSSA is the first, 1984 European coupé (one mirror on the left A pillar,
+centre-lock wheels, 240/45 VR 415 and 280/45 VR 415 tyres), its wheel radii 0.3155 and 0.3335 m
+([Vehicle physics](vehicle-physics.md)); its pictures are baked from K's model with a car's glossy finish
+(F110-1), in eight of Ferrari's colors whose base colors K has taken (F110-2, 2026-11-19;
+[Model solids](image-assets.md#model-solids)). F110-3 gives the colors their full names, METALLIZZATO included,
+once K has chosen how SELECT VEHICLE's color line holds a name of 24 characters. What stays open, for K:
+
+- BIANCO and ARGENTO are hard to tell apart in the pictures, and two of BIANCO's steps are the same color; K keeps both.
+- The roughness (0.10 on the paint and glass, 0.90 on the other black parts) and the finish's values may move.
+- Seen squarely from the front the pictures take almost no glare (the near-level bonnet does not return a high sun to
+  the low camera); K has asked for no change.
+- Not checked against primary sources: second gear (2.104; one source gives 2.014), the compression ratio (9.2; one
+  table gives 9.3) and the mass (1625 kg; its source is not recorded).
 
 ## Stage AT — The attract demo remade
 
@@ -933,7 +951,7 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 | Series        | Starting points                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | SUPER HANG-ON | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE), the export sitdown/upright cabinet's (MAME's `shangon`, K's decision; [SUPER HANG-ON](super-hang-on-road-data.md)). VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                                                                                                                                                                            |
-| OUTRUN        | TESTAROSSA keeps the existing 1989 definition.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| OUTRUN        | TESTAROSSA is the 1984 European coupé (K, 2026-11-19).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | TURBO OUTRUN  | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](turbo-outrun-road-data.md)). F40 and 959 are period road specifications. The catalog's F40 (FERRARI_F40_1990) is a 1990 model, after [Era](product.md#era)'s 1989; the tribute needs one of 1989 or before.                           |
 | FINAL LAP 2   | The reference game is of 1990; the tribute's cars are of 1989 or before ([Era](product.md#era)). The catalog has `FERRARI_640` (1989) and `MCLAREN_MP4_4` (1988).                                                                                                                                                                                                                                                                                                                                                                       |
 | CHASE H.Q.    | 928 candidate: S4. ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition. Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                                                                                                                                                                       |
@@ -1196,7 +1214,7 @@ Choices made where Stage FE left them open, each recorded in its PR:
 - Menus: PAUSE, RESULT and LOAD FAILED are carousels; a single item draws no arrows; no screen advances during a
   black transition (READY's countdown starts fully bright).
 - Color display names (13 characters at most, for SELECT VEHICLE's unchanged color line): 911 TURBO 3.3 SILVER,
-  BLACK, GUARDS RED, GP WHITE; TESTAROSSA ROSSO CORSA, GIALLO MODENA, BIANCO, NERO; GOLF GTI 16V TORNADO RED, ALPINE
+  BLACK, GUARDS RED, GP WHITE; TESTAROSSA ROSSO CORSA, GIALLO, BIANCO, NERO, ARGENTO, BLU SERA, AZZURRO, VERDE SCURO; GOLF GTI 16V TORNADO RED, ALPINE
   WHITE, BLACK, SILVER; DELTA HF INTEGRALE BIANCO, ROSSO MONZA, BLU LANCIA, NERO; CORVETTE C4 BRIGHT RED; FXRT SPORT
   GLIDE VIVID BLACK; every other color its plain name. To confirm or replace.
 - PRE-RACE: the start bar stands at the entry Section's origin; a BRANCH map takes each fork's first exit; FREE PLAY has
