@@ -143,13 +143,12 @@ test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK 
     names(),
     courses.map((c) => c.name),
   );
-  assert.equal(screen.row.cards[0].name, 'ENDURO RACER');
   send('CONFIRM');
   assert.equal(screen.row.cards.length, vehicles.length);
   assert.equal(screen.row.world, null);
   send('CONFIRM');
-  assert.equal(log.runs.at(-1).request.courseId, 'enduro-racer');
-  assert.equal(log.runs.at(-1).request.track, 'enduro-racer-in-game');
+  assert.equal(log.runs.at(-1).request.courseId, courses[0].id);
+  assert.equal(log.runs.at(-1).request.track, courses[0].raceTracks[0] ?? null);
   for (const name of ['SELECT COURSE', 'RULES', 'MAIN MENU']) assert.equal(send('BACK'), 'back', name);
   // SETTINGS: one list card; CONTROLS and CLEAR RECORDS open their own rows.
   send('RIGHT');

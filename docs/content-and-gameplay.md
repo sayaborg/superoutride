@@ -1092,7 +1092,11 @@ FrontEndSelection {
 ```
 
 `series` are SELECT SERIES' series in order, ARCADE TRIBUTE's in the reference games' order and the game's own after
-them (K, 2026-11-09), each by its series ID, which also names its picture: the
+them (K, 2026-11-09). The reference games' order is that of their first arcade operation in Japan (K, 2026-11-18):
+POLE POSITION II (1983), ENDURO RACER and OUTRUN (July and September 1986), SUPER HANG-ON, TOP SPEED and CONTINENTAL
+CIRCUS (1987), CHASE H.Q. (1988), TURBO OUTRUN and BIG RUN (February and autumn 1989), FINAL LAP 2 and CISCO HEAT
+(August and October 1990); the [course texts](#course-texts) and the series' title tracks' `selectionOrder` follow it.
+Each series is listed by its series ID, which also names its picture: the
 [screen picture](image-assets.md#screen-pictures) of that name, 40×30 tiles and opaque. A series is shown once its
 picture exists; until then it is passed over, and the build reports how many are. `music`, `title` and `description`
 are null for a series with a document, which holds them, and for one without a document yet name what its document

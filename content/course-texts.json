@@ -3,29 +3,29 @@
   "version": 1,
   "courses": [
     {
+      "id": "pole-position-ii-fuji",
+      "name": "POLE POSITION II FUJI",
+      "description": "Fuji, 1975 to 1983: the banking is gone, the chicanes yet to come. One of racing's longest straights, then the First Corner, 100R, the hairpin and the fast 300R."
+    },
+    {
+      "id": "pole-position-ii-test",
+      "name": "POLE POSITION II TEST",
+      "description": "The TEST track: an Indy-style oval with four left turns and two long straights. Race under the arch while a biplane tows its banner overhead. Watch for the puddles!"
+    },
+    {
+      "id": "pole-position-ii-suzuka",
+      "name": "POLE POSITION II SUZUKA",
+      "description": "Suzuka in 1983, just after its first chicane went in before the last corner. The rest is still 1962: the first two corners as one, the esses, a single Degner and the old Spoon."
+    },
+    {
+      "id": "pole-position-ii-seaside",
+      "name": "POLE POSITION II SEASIDE",
+      "description": "Long Beach as raced in 1982, its only year in this shape: Queen's Hairpin gone for square corners, a new loop out to Seaside Way, and a chicane on Shoreline Drive."
+    },
+    {
       "id": "enduro-racer",
       "name": "ENDURO RACER",
       "description": "Five stages of dirt, end to end! Grasslands, desert, a forest lake and rolling dunes, then a dash along the beach to the finish. Clear the logs and fly the ramps!"
-    },
-    {
-      "id": "super-hang-on-africa",
-      "name": "SUPER HANG-ON AFRICA",
-      "description": "The BEGINNER course: six stages across Africa, the shortest and gentlest of the four. Golden dunes give way to rocky mountains on the horizon. Long straights, easy bends!"
-    },
-    {
-      "id": "super-hang-on-asia",
-      "name": "SUPER HANG-ON ASIA",
-      "description": "The JUNIOR course: ten stages across Asia. A pagoda among jagged peaks, a city skyline at dusk, then the open sea. The road bends and bends again!"
-    },
-    {
-      "id": "super-hang-on-america",
-      "name": "SUPER HANG-ON AMERICA",
-      "description": "The SENIOR course: fourteen stages across America. Skyscrapers, snowy ranges and red desert buttes roll by. The straights open up and the hills climb higher. Hang on!"
-    },
-    {
-      "id": "super-hang-on-europe",
-      "name": "SUPER HANG-ON EUROPE",
-      "description": "The EXPERT course: eighteen stages across Europe. The Eiffel Tower, windmills, the snowy Alps and a city by night. The longest, twistiest, hilliest ride of all!"
     },
     {
       "id": "outrun-a",
@@ -88,64 +88,24 @@
       "description": "A short run from Cloudy Mountain! Down to the cliffs and white walls of Seaside Town, then a green highway all the way to the Lakeside for GOAL E."
     },
     {
-      "id": "turbo-outrun-section-1",
-      "name": "TURBO OUTRUN SECTION 1",
-      "description": "New York to Indianapolis! The Manhattan skyline, the Washington Monument and the Capitol under gray skies, Pittsburgh's snowy peaks, then Indianapolis under a red sunset."
+      "id": "super-hang-on-africa",
+      "name": "SUPER HANG-ON AFRICA",
+      "description": "The BEGINNER course: six stages across Africa, the shortest and gentlest of the four. Golden dunes give way to rocky mountains on the horizon. Long straights, easy bends!"
     },
     {
-      "id": "turbo-outrun-section-2",
-      "name": "TURBO OUTRUN SECTION 2",
-      "description": "Chicago to Atlanta! Skyscrapers under the stars, St. Louis's tree-lined bends, Memphis in the golden afternoon, then moonlit dunes at Atlanta."
+      "id": "super-hang-on-asia",
+      "name": "SUPER HANG-ON ASIA",
+      "description": "The JUNIOR course: ten stages across Asia. A pagoda among jagged peaks, a city skyline at dusk, then the open sea. The road bends and bends again!"
     },
     {
-      "id": "turbo-outrun-section-3",
-      "name": "TURBO OUTRUN SECTION 3",
-      "description": "Miami to Dallas, from surf to sand! The Miami seashore, New Orleans at dusk, then west into the dry hills of San Antonio and the desert sands of Dallas."
+      "id": "super-hang-on-america",
+      "name": "SUPER HANG-ON AMERICA",
+      "description": "The SENIOR course: fourteen stages across America. Skyscrapers, snowy ranges and red desert buttes roll by. The straights open up and the hills climb higher. Hang on!"
     },
     {
-      "id": "turbo-outrun-section-4",
-      "name": "TURBO OUTRUN SECTION 4",
-      "description": "Oklahoma City to Los Angeles! Steel bridges and green hills, the snowy Rockies at Denver, the Grand Canyon under a golden sky, then the night lights of L.A. and the GOAL!"
-    },
-    {
-      "id": "pole-position-ii-fuji",
-      "name": "POLE POSITION II FUJI",
-      "description": "Fuji, 1975 to 1983: the banking is gone, the chicanes yet to come. One of racing's longest straights, then the First Corner, 100R, the hairpin and the fast 300R."
-    },
-    {
-      "id": "pole-position-ii-test",
-      "name": "POLE POSITION II TEST",
-      "description": "The TEST track: an Indy-style oval with four left turns and two long straights. Race under the arch while a biplane tows its banner overhead. Watch for the puddles!"
-    },
-    {
-      "id": "pole-position-ii-suzuka",
-      "name": "POLE POSITION II SUZUKA",
-      "description": "Suzuka in 1983, just after its first chicane went in before the last corner. The rest is still 1962: the first two corners as one, the esses, a single Degner and the old Spoon."
-    },
-    {
-      "id": "pole-position-ii-seaside",
-      "name": "POLE POSITION II SEASIDE",
-      "description": "Long Beach as raced in 1982, its only year in this shape: Queen's Hairpin gone for square corners, a new loop out to Seaside Way, and a chicane on Shoreline Drive."
-    },
-    {
-      "id": "final-lap-2-japan",
-      "name": "FINAL LAP 2 JAPAN",
-      "description": "Suzuka, 1985 to 1987: the first two corners rebuilt in '85 with a straight between them, the Spoon tightened in '84, one long Degner until its '87 split, and the chicane."
-    },
-    {
-      "id": "final-lap-2-monaco",
-      "name": "FINAL LAP 2 MONACO",
-      "description": "Monte Carlo's 1986 to 1996 layout, minus the new harbor chicane: Sainte Devote, Casino Square, the Loews hairpin, the tunnel, then flat out to Tabac, the pool and Rascasse."
-    },
-    {
-      "id": "final-lap-2-italy",
-      "name": "FINAL LAP 2 ITALY",
-      "description": "Monza's 1976 to 1993 layout, minus the Rettifilo and Roggia chicanes: flat out from the line through the Curva Grande to the Lesmos. Only the Ascari breaks the run to the Parabolica."
-    },
-    {
-      "id": "final-lap-2-usa",
-      "name": "FINAL LAP 2 USA",
-      "description": "An American speed bowl under a desert sunset: two long straights and two great sweeping right-handers. Built for pure speed, so hold it flat and hang on!"
+      "id": "super-hang-on-europe",
+      "name": "SUPER HANG-ON EUROPE",
+      "description": "The EXPERT course: eighteen stages across Europe. The Eiffel Tower, windmills, the snowy Alps and a city by night. The longest, twistiest, hilliest ride of all!"
     },
     {
       "id": "top-speed-a",
@@ -273,6 +233,26 @@
       "description": "A village, a tunnel and a canyon, all the way out to the suburbs. Right at the fork!"
     },
     {
+      "id": "turbo-outrun-section-1",
+      "name": "TURBO OUTRUN SECTION 1",
+      "description": "New York to Indianapolis! The Manhattan skyline, the Washington Monument and the Capitol under gray skies, Pittsburgh's snowy peaks, then Indianapolis under a red sunset."
+    },
+    {
+      "id": "turbo-outrun-section-2",
+      "name": "TURBO OUTRUN SECTION 2",
+      "description": "Chicago to Atlanta! Skyscrapers under the stars, St. Louis's tree-lined bends, Memphis in the golden afternoon, then moonlit dunes at Atlanta."
+    },
+    {
+      "id": "turbo-outrun-section-3",
+      "name": "TURBO OUTRUN SECTION 3",
+      "description": "Miami to Dallas, from surf to sand! The Miami seashore, New Orleans at dusk, then west into the dry hills of San Antonio and the desert sands of Dallas."
+    },
+    {
+      "id": "turbo-outrun-section-4",
+      "name": "TURBO OUTRUN SECTION 4",
+      "description": "Oklahoma City to Los Angeles! Steel bridges and green hills, the snowy Rockies at Denver, the Grand Canyon under a golden sky, then the night lights of L.A. and the GOAL!"
+    },
+    {
       "id": "big-run-starting-run",
       "name": "BIG RUN STARTING RUN",
       "description": "The 11th Rally reaches Africa! Out through the streets of Tunis and south past the palms to the oasis of Tozeur, on the edge of the Sahara."
@@ -301,6 +281,26 @@
       "id": "big-run-victory-run",
       "name": "BIG RUN VICTORY RUN",
       "description": "The Victory Run! From Saint-Louis down the Atlantic coast to Dakar and the finish line of the 11th Rally."
+    },
+    {
+      "id": "final-lap-2-japan",
+      "name": "FINAL LAP 2 JAPAN",
+      "description": "Suzuka, 1985 to 1987: the first two corners rebuilt in '85 with a straight between them, the Spoon tightened in '84, one long Degner until its '87 split, and the chicane."
+    },
+    {
+      "id": "final-lap-2-monaco",
+      "name": "FINAL LAP 2 MONACO",
+      "description": "Monte Carlo's 1986 to 1996 layout, minus the new harbor chicane: Sainte Devote, Casino Square, the Loews hairpin, the tunnel, then flat out to Tabac, the pool and Rascasse."
+    },
+    {
+      "id": "final-lap-2-italy",
+      "name": "FINAL LAP 2 ITALY",
+      "description": "Monza's 1976 to 1993 layout, minus the Rettifilo and Roggia chicanes: flat out from the line through the Curva Grande to the Lesmos. Only the Ascari breaks the run to the Parabolica."
+    },
+    {
+      "id": "final-lap-2-usa",
+      "name": "FINAL LAP 2 USA",
+      "description": "An American speed bowl under a desert sunset: two long straights and two great sweeping right-handers. Built for pure speed, so hold it flat and hang on!"
     },
     {
       "id": "cisco-heat-stage-1",

@@ -135,7 +135,8 @@ test('the front end screens render from the delivered content', async () => {
   send('CONFIRM');
   assert.equal(requested?.session, 'RACE');
   // The run requests its course's first race track.
-  assert.equal(requested.track, 'enduro-racer-in-game');
+  const raced = frontEnd.seriesRow(true)[playable].series.classes.find((c) => c.id === requested.classId).course;
+  assert.equal(requested.track, courses.find((c) => c.id === raced).raceTracks[0] ?? null);
 
   // In a series the PRE-RACE card stands on the series' picture at once: through the screen host, it is current on the
   // next frame at full brightness.
