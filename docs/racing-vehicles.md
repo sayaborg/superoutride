@@ -71,9 +71,10 @@ and black; its four liveries are white with blue, red, green and yellow. They ar
 K takes SUPER HANG-ON's own machine for the Honda NSR500 of 1984 (K, 2026-11-18); nothing here claims the original
 says so. A racing machine has no brake lamp; this one is given the original's (K, 2026-11-18). The series is a
 one-make of it in eight liveries, each white with two colors in place of its red and blue (K, 2026-11-18). Its
-sources are below; the stage's auditor read them in a search engine's excerpts, and the implementer could not open
-them (the session's network refused them), so like the Honda pages above they are not counted as confirmation by this
-ledger:
+sources are below. The stage's auditor opened Honda's pages on 2026-11-18 and confirmed the 1984 final round's engine
+(145.4 PS at 11,500 rpm, 9.2 kgm at 11,000 rpm), the 124.1 kg and the 32 L tank under the engine (the tank itself
+2.58 kg); the implementer could not open them (the session's network refused them). The 1984 machine's wheelbase and
+front tire and a source for the six ratios remain unsourced:
 
 | Reference                                                                                           | Evidence and limit                                                                                                                                                                              |
 | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -179,18 +180,18 @@ Ground, paint, background and timing gates are not solid contacts.
 
 ## Honda NSR500 of 1984: historical reference versus authored
 
-| Item                 | Historical reference                                                     | Authored `NSR500_1984`                                                                                                   |
-| -------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Identity             | 1984 NV0A, Spencer's machine, the season's last round                    | Same; K's identification of SUPER HANG-ON's machine, not a claim about the original                                      |
-| Engine               | Two-stroke 90° V4, 499.2 cc, 145.4 PS / 11,500 rpm, 9.2 kgm / 11,000 rpm | C **90.22118 N m at 11,000 rpm** (9.2 × 9.80665), D **106.94152 kW at 11,500 rpm** (145.4 PS = 88.80142 N m)             |
-| Torque curve, others | Not located                                                              | As the NSR500 of 1987's: A 16 N m at idle 2,500 rpm; B 43 N m 3,500 rpm below C; E 0.9 of D's torque 1,000 rpm above D   |
-| Redline              | Not located                                                              | **12,500 rpm**, 1,000 rpm above the power peak as the 1987 machine's                                                     |
-| Forward transmission | Six speeds; no ratio sheet located                                       | The 1987 machine's authored set, 2.2, 1.72, 1.4, 1.21, 1.12, 1, and its final 1.8 × 3.0 = 5.4                            |
-| Wheels and tires     | 16 / 17 in; 13/60-16 and 18/67-17                                        | Radii 0.300 / 0.335 m from K's model (outside diameters 600 / 670 mm)                                                    |
-| Envelope             | Wheelbase 1,380 mm (the NS500's)                                         | K's model: 2,011 × 751 (the rider's elbows; the cowl 608) × 1,339 mm (the helmet's top); axles 0.73 / 0.65 m from the CG |
-| Mass                 | 124.1 kg, basis unstated                                                 | **221.1 kg**: 124.1 + 7 fluids + 12 fuel + 78 rider and equipment, the 1987 machine's additions                          |
-| CG height            | About 30 mm below the NS500's with 20 L (no absolute value)              | **0.414 m**: 0.30 of its wheelbase, for now (K, 2026-11-18)                                                              |
-| Brake lamp           | None on a racing machine                                                 | The original's, at the tail's rear tip (pictures alone; K, 2026-11-18)                                                   |
+| Item                 | Historical reference                                                     | Authored `NSR500_1984`                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| Identity             | 1984 NV0A, Spencer's machine, the season's last round                    | Same; K's identification of SUPER HANG-ON's machine, not a claim about the original                                    |
+| Engine               | Two-stroke 90° V4, 499.2 cc, 145.4 PS / 11,500 rpm, 9.2 kgm / 11,000 rpm | C **90.22118 N m at 11,000 rpm** (9.2 × 9.80665), D **106.94152 kW at 11,500 rpm** (145.4 PS = 88.80142 N m)           |
+| Torque curve, others | Not located                                                              | As the NSR500 of 1987's: A 16 N m at idle 2,500 rpm; B 43 N m 3,500 rpm below C; E 0.9 of D's torque 1,000 rpm above D |
+| Redline              | Not located                                                              | **12,500 rpm**, 1,000 rpm above the power peak as the 1987 machine's                                                   |
+| Forward transmission | Six speeds; no ratio sheet located                                       | The 1987 machine's authored set, 2.2, 1.72, 1.4, 1.21, 1.12, 1, and its final 1.8 × 3.0 = 5.4                          |
+| Wheels and tires     | 16 / 17 in; 13/60-16 and 18/67-17                                        | Radii 0.300 / 0.335 m from K's model (outside diameters 600 / 670 mm)                                                  |
+| Envelope             | Wheelbase 1,380 mm (the NS500's)                                         | K's second model: 2,012 × 772 (the rider's elbows) × 1,336 mm (the helmet's top); axles 0.73 / 0.65 m from the CG      |
+| Mass                 | 124.1 kg, basis unstated                                                 | **221.1 kg**: 124.1 + 7 fluids + 12 fuel + 78 rider and equipment, the 1987 machine's additions                        |
+| CG height            | About 30 mm below the NS500's with 20 L (no absolute value)              | **0.414 m**: 0.30 of its wheelbase, for now (K, 2026-11-18)                                                            |
+| Brake lamp           | None on a racing machine                                                 | The original's, at the tail's rear tip (pictures alone; K, 2026-11-18)                                                 |
 
 The six ratios and the final drive are the 1987 machine's authored set, carried over unchanged: on the larger rear
 tire and the lower redline, sixth at redline is about 292 km/h, just above the speed where its power meets the drag
