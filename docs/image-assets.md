@@ -1057,9 +1057,9 @@ required, as the title logo is, and is 40×30 tiles (the 320×240 frame), its tr
 bottom tile row is left free for LOADING's percentage. LOADING reads it first, with the text tiles, before the rest of
 the startup's files.
 
-A series image is named by its series' ID, and an ARCADE TRIBUTE series' ID is `arcade-tribute-` and its original's
-ID, as `arcade-tribute-pole-position-ii` (K, 2026-11-09). The main picture, which TITLE and the main menus stand on,
-will be 40×30 tiles too and may be transparent: its source's alpha marks the clear parts through which the attract
+A series image is named by its series' ID, and an ARCADE TRIBUTE series' ID is `arcade-tribute-` and its original's ID,
+as `arcade-tribute-pole-position-ii` (K, 2026-11-09). The main picture, which TITLE, SELECT SERIES and FREE PLAY stand
+on, will be 40×30 tiles too and may be transparent: its source's alpha marks the clear parts through which the attract
 demo shows (K, 2026-11-09); until it is made, the title logo stands for it.
 
 **Generator.** `npm run screen-pictures` ([Development](development.md#screen-pictures-command)) draws every screen

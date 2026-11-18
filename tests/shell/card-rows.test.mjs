@@ -35,6 +35,8 @@ const club = series.series.find((s) => s.id === 'tsukuba-clubman');
 // TSUKUBA CLUBMAN's card on SELECT SERIES, after the ARCADE TRIBUTE series, and its picture.
 const clubAt = delivered.seriesRow(true).findIndex((entry) => entry.series === club);
 const clubPicture = delivered.seriesRow(true)[clubAt].picture;
+// SELECT SERIES' cards: the series, then FREE PLAY.
+const seriesNames = [...delivered.seriesRow(true).map((entry) => entry.name), 'FREE PLAY'];
 
 // A selection over the delivered content, its devices recording what the rows asked for. `frontEnd` may add a series
 // without a document beside the delivered one.
@@ -92,15 +94,15 @@ function selection({ dev = true, frontEnd = delivered } = {}) {
   return { flow, screen, log, send, settle, names, items };
 }
 
-test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK returns row by row', () => {
+test('PRESS START leads to SELECT SERIES, whose last card is FREE PLAY, and BACK returns row by row', () => {
   const { screen, log, send, names, items } = selection();
   assert.equal(screen.row.kind, 'title');
   assert.equal(send('BACK'), null);
   assert.equal(send('CONFIRM'), 'start');
-  assert.deepEqual(names(), ['SERIES', 'FREE PLAY', 'SETTINGS']);
-  // SERIES: the series pictures, then the series' world, which a single class and a single vehicle still show.
-  assert.equal(send('CONFIRM'), 'confirm');
+  // SELECT SERIES: the series pictures and FREE PLAY, then the series' world, which a single class and a single vehicle
+  // still show.
   assert.equal(screen.row.kind, 'series');
+  assert.deepEqual(names(), seriesNames);
   assert.equal(screen.row.world, null);
   for (let i = 0; i < clubAt; i++) assert.equal(send('RIGHT'), 'slide');
   assert.equal(send('CONFIRM'), 'confirm');
@@ -130,13 +132,14 @@ test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK 
   assert.equal(screen.row.world, clubPicture);
   assert.equal(send('BACK'), 'back');
   assert.equal(screen.row.kind, 'series');
-  assert.equal(send('BACK'), 'back');
-  assert.deepEqual(names(), ['SERIES', 'FREE PLAY', 'SETTINGS']);
-  // FREE PLAY: RULES (one list card), SELECT COURSE (every offered course, in the course index's order) and SELECT
-  // VEHICLE, in the main world.
-  send('RIGHT');
-  send('CONFIRM');
+  assert.equal(screen.index, clubAt);
+  // FREE PLAY: zoomed into as a series is, then RULES (one list card), SELECT COURSE (every offered course, in the
+  // course index's order) and SELECT VEHICLE, in the main world.
+  for (let i = clubAt; i < seriesNames.length - 1; i++) send('RIGHT');
+  assert.equal(screen.row.cards[screen.index].picture, undefined);
+  assert.equal(send('CONFIRM'), 'confirm');
   assert.deepEqual(names(), ['RULES']);
+  assert.equal(screen.row.world, null);
   assert.deepEqual(items(), ['RIVALS', 'POOL', 'TRAFFIC', 'LAPS']);
   send('CONFIRM');
   assert.deepEqual(
@@ -149,10 +152,10 @@ test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK 
   send('CONFIRM');
   assert.equal(log.runs.at(-1).request.courseId, courses[0].id);
   assert.equal(log.runs.at(-1).request.track, courses[0].raceTracks[0] ?? null);
-  for (const name of ['SELECT COURSE', 'RULES', 'MAIN MENU']) assert.equal(send('BACK'), 'back', name);
-  // SETTINGS: one list card; CONTROLS and CLEAR RECORDS open their own rows.
-  send('RIGHT');
-  send('CONFIRM');
+  for (const name of ['SELECT COURSE', 'RULES', 'SELECT SERIES']) assert.equal(send('BACK'), 'back', name);
+  assert.equal(screen.index, seriesNames.length - 1);
+  // SETTINGS: one list card, which PAUSE opens; CONTROLS and CLEAR RECORDS open their own rows.
+  assert.equal(send('PAUSE'), 'confirm');
   assert.deepEqual(names(), ['SETTINGS']);
   assert.equal(items().length, 13);
   assert.deepEqual(items().slice(-2), ['CONTROLS', 'CLEAR RECORDS']);
@@ -168,26 +171,57 @@ test('the rows lead from TITLE through SERIES, FREE PLAY and SETTINGS, and BACK 
   assert.deepEqual(names(), ['NO', 'YES']);
   send('CONFIRM');
   assert.equal(items()[screen.item], 'CLEAR RECORDS');
-  send('BACK');
+  // BACK returns to where SETTINGS was opened, as it was.
+  assert.equal(send('BACK'), 'back');
+  assert.deepEqual([screen.row.kind, screen.index], ['series', seriesNames.length - 1]);
   assert.equal(send('BACK'), 'back');
   assert.equal(screen.row.kind, 'title');
+});
+
+test("PAUSE opens SETTINGS from any row, in that row's world, and BACK or PAUSE returns to that row as it was", () => {
+  const { screen, send, items } = selection();
+  // From TITLE, in the main world.
+  assert.equal(send('PAUSE'), 'confirm');
+  assert.deepEqual([screen.row.cards[0].name, screen.row.world], ['SETTINGS', null]);
+  assert.equal(send('PAUSE'), 'back');
+  assert.equal(screen.row.kind, 'title');
+  // From a series' world, in that world; an entry chosen in CONTROLS or CLEAR RECORDS still leads back to the row.
+  send('CONFIRM');
+  for (let i = 0; i < clubAt; i++) send('RIGHT');
+  send('CONFIRM');
+  send('RIGHT');
+  const at = screen.index;
+  send('PAUSE');
+  assert.equal(screen.row.world, clubPicture);
+  for (let i = 0; i < 11; i++) send('DOWN');
+  send('CONFIRM');
+  assert.deepEqual([screen.row.cards[0].name, screen.row.world], ['CONTROLS', clubPicture]);
+  assert.equal(send('PAUSE'), 'back');
+  assert.deepEqual([screen.row.world, screen.index], [clubPicture, at]);
+  send('PAUSE');
+  assert.equal(items()[screen.item], 'MASTER');
+  assert.equal(send('BACK'), 'back');
+  assert.deepEqual(
+    [screen.row.world, screen.index, screen.row.cards[at].name],
+    [clubPicture, at, club.classes[at].title],
+  );
 });
 
 test('LEFT and RIGHT wrap a row of three or more and shake one of one or two; UP and DOWN change only values', () => {
   const { screen, send, items } = selection();
   send('CONFIRM');
-  // Three cards wrap.
-  assert.equal(send('LEFT'), 'move');
-  assert.equal(screen.index, 2);
-  assert.equal(send('RIGHT'), 'move');
+  // Three cards or more wrap.
+  assert.ok(seriesNames.length >= 3);
+  assert.equal(send('LEFT'), 'slide');
+  assert.equal(screen.index, seriesNames.length - 1);
+  assert.equal(send('RIGHT'), 'slide');
   assert.equal(screen.index, 0);
   // UP and DOWN on a card without a value do nothing and move no card.
   assert.equal(send('UP'), null);
   assert.equal(send('DOWN'), null);
   assert.equal(screen.index, 0);
   // SETTINGS' CLEAR RECORDS?: two cards, which do not wrap.
-  send('LEFT');
-  send('CONFIRM');
+  send('PAUSE');
   for (let i = 0; i < 12; i++) send('DOWN');
   send('CONFIRM');
   assert.equal(send('LEFT'), null);
@@ -276,7 +310,6 @@ test('SELECT SERIES plays the series in focus once it rests; the world keeps it,
   });
   const frontEnd = { ...delivered, seriesRow: () => [entry, later] };
   const { flow, screen, log, send, settle } = selection({ frontEnd });
-  send('CONFIRM');
   assert.deepEqual(log.music, [['play', null]]);
   log.music.length = 0;
   screen.command('CONFIRM');
@@ -302,16 +335,28 @@ test('SELECT SERIES plays the series in focus once it rests; the world keeps it,
   send('BACK');
   for (let i = 0; i < CARD_STEPS.rest; i++) screen.tick();
   assert.ok(log.music.every(([kind, id]) => kind === 'play' && id === entry.titleTrack.id));
-  // Back to MAIN MENU it fades out; FREE PLAY and SETTINGS play nothing.
+  // SETTINGS opened there keeps the track playing.
+  log.music.length = 0;
+  send('PAUSE');
+  for (let i = 0; i < CARD_STEPS.rest; i++) screen.tick();
+  send('PAUSE');
+  assert.ok(log.music.every(([kind, id]) => kind === 'play' && id === entry.titleTrack.id));
+  // FREE PLAY's card plays nothing, nor its rows; back to TITLE fades out.
+  log.music.length = 0;
+  send('RIGHT');
+  send('RIGHT');
+  for (let i = 0; i < CARD_STEPS.rest; i++) screen.tick();
+  assert.deepEqual(log.music, [
+    ['fade', SERIES_FADE_SECONDS],
+    ['fade', SERIES_FADE_SECONDS],
+  ]);
+  send('CONFIRM');
+  send('BACK');
+  for (let i = 0; i < CARD_STEPS.rest; i++) screen.tick();
   log.music.length = 0;
   send('BACK');
-  send('RIGHT');
-  send('CONFIRM');
-  send('BACK');
-  send('RIGHT');
-  send('CONFIRM');
-  for (let i = 0; i < CARD_STEPS.rest; i++) screen.tick();
   assert.deepEqual(log.music, [['fade', SERIES_FADE_SECONDS]]);
+  assert.equal(screen.row.kind, 'title');
   // RESULT's way back into the world starts the series' track from its beginning.
   log.music.length = 0;
   flow.select({
@@ -331,7 +376,8 @@ test('SELECT SERIES plays the series in focus once it rests; the world keeps it,
 test("FREE PLAY's RULES are kept as chosen and cut to the course when the run is requested", () => {
   const { screen, log, send } = selection();
   send('CONFIRM');
-  send('RIGHT');
+  // FREE PLAY, the last card.
+  send('LEFT');
   send('CONFIRM');
   // RIVALS stops at 15 and LAPS at the most any offered course allows; POOL and TRAFFIC wrap.
   for (let i = 0; i < 20; i++) send('RIGHT');

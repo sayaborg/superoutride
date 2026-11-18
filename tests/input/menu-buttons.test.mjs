@@ -51,3 +51,28 @@ test('in menus the accelerator confirms and the brake goes back; a pedal held fr
   held.add(RT);
   assert.deepEqual(menu.poll(), ['CONFIRM']);
 });
+
+test('Escape and Start are PAUSE on every route, in menus as while driving; X goes back and Z confirms', () => {
+  const menu = new MenuInput(page, new TouchPointers(page), gamepads, () => ({
+    left: 0,
+    top: 0,
+    width: 400,
+    height: 300,
+  }));
+  const key = (code) => page.dispatchEvent(Object.assign(new Event('keydown'), { code, repeat: false }));
+  const START = 9;
+  for (const route of ['menu', 'driving']) {
+    menu.setRoute(route);
+    held.clear();
+    menu.poll();
+    key('Escape');
+    held.add(START);
+    assert.deepEqual(menu.poll(), ['PAUSE', 'PAUSE'], route);
+  }
+  menu.setRoute('menu');
+  held.clear();
+  menu.poll();
+  key('KeyX');
+  key('KeyZ');
+  assert.deepEqual(menu.poll(), ['BACK', 'CONFIRM']);
+});

@@ -23,7 +23,7 @@ const KEYS: ReadonlyMap<string, MenuCommand> = new Map<string, MenuCommand>([
 ]);
 /**
  * Standard-mapping buttons: D-pad, A and B, and RT (the accelerator) and LT (the brake), which confirm and go back as A
- * and B do; Start is PAUSE while driving and CONFIRM in a menu. While driving only PAUSE reaches the menu.
+ * and B do; Start is PAUSE on every route, as Escape is (K, 2026-11-19). While driving only PAUSE reaches the menu.
  */
 const BUTTONS: readonly (readonly [index: number, command: MenuCommand])[] = [
   [12, 'UP'],
@@ -100,7 +100,7 @@ export class MenuInput {
         if (connected && !previous.names.has(name)) this.accept(command);
       };
       for (const [index, command] of BUTTONS) if (gamepad.buttons[index]?.pressed) fire(`b${index}`, command);
-      if (gamepad.buttons[START_BUTTON]?.pressed) fire('start', this.route === 'driving' ? 'PAUSE' : 'CONFIRM');
+      if (gamepad.buttons[START_BUTTON]?.pressed) fire('start', 'PAUSE');
       const [x = 0, y = 0] = gamepad.axes;
       if (Math.max(Math.abs(x), Math.abs(y)) > STICK_DIRECTION_THRESHOLD)
         fire('stick', Math.abs(x) > Math.abs(y) ? (x < 0 ? 'LEFT' : 'RIGHT') : y < 0 ? 'UP' : 'DOWN');
@@ -118,7 +118,7 @@ export class MenuInput {
   }
 
   private key(event: KeyboardEvent): void {
-    const command = event.code === 'Escape' ? (this.route === 'driving' ? 'PAUSE' : 'BACK') : KEYS.get(event.code);
+    const command = event.code === 'Escape' ? 'PAUSE' : KEYS.get(event.code);
     if (command === undefined || (command === 'PAUSE' && event.repeat)) return;
     if (this.accept(command)) event.preventDefault();
   }

@@ -349,7 +349,7 @@ track from its beginning, looped, through the same form; it is not the run's tra
 The [menu music](../src/shell/menu-music.ts) is the one owner of the rows' music, a series' title track: it plays
 from its beginning, looped, through the same form, keeps playing while the rows ask for the same track, stops when
 they ask for none, and fades out over a time when they ask: over 0.25 s on a move on SELECT SERIES and on leaving it
-for MAIN MENU, and over the black transition into READY (8 fixed steps). SELECT SERIES asks for the series in focus
+for TITLE, and over the black transition into READY (8 fixed steps). SELECT SERIES asks for the series in focus
 once the row has rested 30 fixed steps (0.5 s; K, 2026-11-09); the series' world keeps it, and RESULT's way back into
 the world starts it from its beginning ([Browser](browser.md#card-rows)).
 

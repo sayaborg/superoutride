@@ -115,12 +115,10 @@ test('the front end screens render from the delivered content', async () => {
 
   flow.title();
   await capture('title');
-  // Halfway through the line thinning from TITLE to MAIN MENU.
+  // Halfway through the line thinning from TITLE to SELECT SERIES.
   partway('CONFIRM', CARD_STEPS.thin / 2);
   await capture('thinning');
   settle();
-  await capture('main-menu');
-  send('CONFIRM');
   await capture('select-series');
   // The series listed before one with a document deny CONFIRM; on to the first with one.
   const playable = frontEnd.seriesRow(true).findIndex((entry) => entry.series !== null);
@@ -207,15 +205,17 @@ test('the front end screens render from the delivered content', async () => {
   );
   await capture('result');
 
-  // FREE PLAY's rows and SETTINGS.
+  // FREE PLAY's card, the last on SELECT SERIES, its rows, and SETTINGS opened from SELECT VEHICLE.
   flow.title();
-  send('CONFIRM', 'RIGHT', 'CONFIRM');
+  send('CONFIRM', 'LEFT');
+  await capture('free-play');
+  send('CONFIRM');
   await capture('rules');
   send('CONFIRM');
   await capture('select-course');
   send('CONFIRM');
   await capture('free-play-vehicle');
-  send('BACK', 'BACK', 'BACK', 'RIGHT', 'CONFIRM');
+  send('PAUSE');
   await capture('settings');
   // CLEAR RECORDS is the list's thirteenth entry.
   send(...Array(12).fill('DOWN'), 'CONFIRM');

@@ -25,10 +25,11 @@ import { coursePage } from './course-page.js';
 import { vehicleCard } from './vehicle-card.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
 
-/** MAIN MENU's cards, in order, by the player record's key for them. */
-const MENU = Object.freeze(['SERIES', 'FREE PLAY', 'SETTINGS'] as const);
-type MenuChoice = (typeof MENU)[number];
-/** A move on SELECT SERIES, and leaving it for MAIN MENU, fade the title track out over this time. */
+/** Where SELECT SERIES' choice leads: a series, or FREE PLAY, the last card, with no world of its own. */
+type Place = 'SERIES' | 'FREE PLAY';
+/** FREE PLAY's card's key among the latest choices of SELECT SERIES, beside the series' IDs. */
+const FREE_PLAY_CARD = 'free-play';
+/** A move on SELECT SERIES, and leaving it for TITLE, fade the title track out over this time. */
 export const SERIES_FADE_SECONDS = 0.25;
 
 /** What the selection offers: delivered courses, series and vehicles, FREE PLAY's rules and the front end's lists. */
@@ -75,13 +76,14 @@ export interface SelectionDevices {
 
 /**
  * The selection from TITLE to a run request ([product](../../docs/product.md#6-flow-and-screens)), its rows of cards on
- * one screen: TITLE, then MAIN MENU's SERIES, FREE PLAY and SETTINGS. SERIES leads through SELECT SERIES into the
- * series' world, SELECT CLASS and SELECT VEHICLE; FREE PLAY through RULES (one list card, at the series' place),
- * SELECT COURSE (every offered course, apart from any series) and SELECT VEHICLE, in the main world; SETTINGS to its
- * one list card. Every row is shown, even with one card, and BACK returns to the row before. SELECT VEHICLE's CONFIRM
- * requests the run: a class's RACE, or FREE PLAY with its RULES cut to the course. A run plays its course's first race
- * track, if it has one (K, 2026-11-11). Each row starts from the current choice, else the player record's latest, else
- * its first.
+ * one screen, one path from PRESS START (K, 2026-11-19): SELECT SERIES, whose last card is FREE PLAY. A series leads
+ * into its world, SELECT CLASS and SELECT VEHICLE; FREE PLAY, zoomed into as a series is, through RULES (one list card,
+ * at the series' place), SELECT COURSE (every offered course, apart from any series) and SELECT VEHICLE, in the main
+ * world, which is its own. PAUSE opens SETTINGS, one list card, from any row, standing in that row's world, and BACK or
+ * PAUSE returns to the row it was opened from. Every row is shown, even with one card, and BACK returns to the row
+ * before. SELECT VEHICLE's CONFIRM requests the run: a class's RACE, or FREE PLAY with its RULES cut to the course. A
+ * run plays its course's first race track, if it has one (K, 2026-11-11). Each row starts from the current choice, else
+ * the player record's latest, else its first.
  */
 export function createSelectionFlow(catalog: SelectionCatalog, devices: SelectionDevices) {
   const { courses, vehicles, player, dev, freePlay, frontEnd } = catalog;
@@ -105,7 +107,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   };
   // The current selection; FREE PLAY's RULES are kept as chosen, whatever course or vehicle follows (K, 2026-11-09).
   let pressed = false,
-    menu: MenuChoice = MENU.find((m) => m === latest('menu')) ?? 'SERIES',
+    place: Place = latest('series') === FREE_PLAY_CARD ? 'FREE PLAY' : 'SERIES',
     seriesChoice: CompiledSeries | null = null,
     classChoice: SeriesClass | null = null,
     courseId: string | null = null,
@@ -116,6 +118,21 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     laps = latestCount('laps', 1, maxLaps) ?? 1;
   // The chosen colors of the vehicles shown, by vehicle, until the run is requested.
   const colors = new Map<string, string>();
+  // The rows' music, and whether a track plays: SETTINGS' audition is the track that plays, else one of its own.
+  let playing: MusicTrack | null = null;
+  const music = Object.freeze({
+    get playing() {
+      return playing !== null;
+    },
+    play(track: MusicTrack | null) {
+      playing = track;
+      devices.music.play(track);
+    },
+    fadeOut(seconds: number) {
+      playing = null;
+      devices.music.fadeOut(seconds);
+    },
+  });
 
   const at = <T>(items: readonly T[], found: (item: T) => boolean) => Math.max(0, items.findIndex(found));
   const row = (fields: Omit<CardRow, 'initial'> & { readonly initial?: number }): CardRow =>
@@ -132,7 +149,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         {
           name: '',
           confirm: () => {
-            go(menuRow(), 'thin');
+            go(seriesRow(), 'thin');
             if (pressed) return 'confirm';
             // The first CONFIRM is the user gesture that starts the sound and fullscreen.
             pressed = true;
@@ -142,57 +159,55 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         },
       ],
     });
-  const menuRow = (): CardRow =>
-    row({
-      kind: 'cards',
-      world: null,
-      path: [PATH_ROOT],
-      initial: MENU.indexOf(menu),
-      cards: MENU.map((choice): Card => ({
-        name: choice,
-        dim: choice === 'SERIES' ? !selectable.length : choice === 'FREE PLAY' ? !offered.length : false,
-        confirm: () => {
-          if (choice !== menu) [seriesChoice, classChoice, courseId, vehicleId] = [null, null, null, null];
-          menu = choice;
-          remember('menu', choice);
-          go(choice === 'SERIES' ? seriesRow() : choice === 'FREE PLAY' ? rulesRow() : settingsRow(), 'thin');
-          return 'confirm';
-        },
-      })),
-      back: () => (go(titleRow(), 'thin'), 'back'),
-    });
-
-  // SERIES: the series pictures, then the series' world.
-  const seriesRow = (): CardRow =>
-    row({
+  // SELECT SERIES: the series pictures, then FREE PLAY's card, the main world (K, 2026-11-19).
+  const seriesRow = (): CardRow => {
+    const focus = place === 'FREE PLAY' ? FREE_PLAY_CARD : (seriesChoice?.id ?? latest('series'));
+    const freePlay: Card = {
+      name: 'FREE PLAY',
+      dim: !offered.length,
+      confirm: () => {
+        if (place !== 'FREE PLAY') [seriesChoice, classChoice, courseId, vehicleId] = [null, null, null, null];
+        place = 'FREE PLAY';
+        remember('series', FREE_PLAY_CARD);
+        go(rulesRow(), 'zoom-in');
+        return 'confirm';
+      },
+    };
+    return row({
       kind: 'series',
       world: null,
-      path: [PATH_ROOT, 'SERIES'],
-      initial: at(selectable, (s) => s.id === (seriesChoice?.id ?? latest('series'))),
-      cards: selectable.map((entry): Card => ({
-        name: entry.name,
-        picture: entry.picture,
-        dim: entry.series !== null && !offers(entry),
-        deny: entry.series === null,
-        confirm: () => {
-          const chosen = entry.series!;
-          if (chosen !== seriesChoice) [classChoice, vehicleId] = [null, null];
-          seriesChoice = chosen;
-          remember('series', chosen.id);
-          devices.music.play(entry.titleTrack);
-          go(classRow(), 'zoom-in');
-          return 'confirm';
-        },
-      })),
-      // The series in focus plays its title track once the row rests; a move fades it out.
-      rested: (index) => devices.music.play(selectable[index]!.titleTrack),
-      moved: () => devices.music.fadeOut(SERIES_FADE_SECONDS),
+      path: [PATH_ROOT],
+      initial: focus === FREE_PLAY_CARD ? selectable.length : at(selectable, (s) => s.id === focus),
+      cards: [
+        ...selectable.map((entry): Card => ({
+          name: entry.name,
+          picture: entry.picture,
+          dim: entry.series !== null && !offers(entry),
+          deny: entry.series === null,
+          confirm: () => {
+            const chosen = entry.series!;
+            if (place !== 'SERIES' || chosen !== seriesChoice) [classChoice, vehicleId] = [null, null];
+            [place, seriesChoice] = ['SERIES', chosen];
+            remember('series', chosen.id);
+            music.play(entry.titleTrack);
+            go(classRow(), 'zoom-in');
+            return 'confirm';
+          },
+        })),
+        freePlay,
+      ],
+      // The series in focus plays its title track once the row rests, FREE PLAY's card nothing; a move fades it out.
+      rested: (index) => {
+        if (index < selectable.length) music.play(selectable[index]!.titleTrack);
+      },
+      moved: () => music.fadeOut(SERIES_FADE_SECONDS),
       back: () => {
-        devices.music.fadeOut(SERIES_FADE_SECONDS);
-        go(menuRow(), 'thin');
+        music.fadeOut(SERIES_FADE_SECONDS);
+        go(titleRow(), 'thin');
         return 'back';
       },
     });
+  };
   const vehicleOf = (id: string) => vehicles.find((v) => v.compiledVehicle.id === id)!;
   // The course and vehicle cards' pages, each made once in each card style: a vehicle's for each of its colors.
   const pages = new Map<string, CardPage>();
@@ -209,7 +224,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     return row({
       kind: 'cards',
       world: worldOf(chosen),
-      path: [PATH_ROOT, 'SERIES', chosen.title],
+      path: [PATH_ROOT, chosen.title],
       initial: at(chosen.classes, (c) => c.id === (classChoice?.id ?? latest('class'))),
       cards: chosen.classes.map((c): Card => ({
         name: c.title,
@@ -243,7 +258,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     row({
       kind: 'cards',
       world: null,
-      path: [PATH_ROOT, 'FREE PLAY', 'RULES'],
+      path: [PATH_ROOT, 'FREE PLAY'],
       cards: [
         {
           name: 'RULES',
@@ -272,7 +287,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
           confirm: () => (go(courseRow(), 'thin'), 'confirm'),
         },
       ],
-      back: () => (go(menuRow(), 'thin'), 'back'),
+      back: () => (go(seriesRow(), 'zoom-out'), 'back'),
     });
   const courseRow = (): CardRow =>
     row({
@@ -296,7 +311,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // SELECT VEHICLE: a class's vehicles in its series' world, or every vehicle in FREE PLAY; UP and DOWN choose the
   // color, except where the class fixes it.
   const vehicleRow = (): CardRow => {
-    const runClass = menu === 'SERIES' ? classChoice : null;
+    const runClass = place === 'SERIES' ? classChoice : null;
     const candidates = runClass ? runClass.vehicles.map(vehicleOf) : vehicles;
     const colorOf = (v: CompiledVehicleDefinition) =>
       runPlayerColor(runClass, v, colors.get(v.compiledVehicle.id) ?? recordedColor(player, v));
@@ -304,7 +319,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       kind: 'cards',
       world: runClass ? worldOf(runClass.series) : null,
       path: runClass
-        ? [PATH_ROOT, 'SERIES', runClass.series.title, runClass.title]
+        ? [PATH_ROOT, runClass.series.title, runClass.title]
         : [PATH_ROOT, 'FREE PLAY', 'RULES', courseOf(courseId!).name],
       initial: at(candidates, (v) => v.compiledVehicle.id === (vehicleId ?? latest('vehicle'))),
       cards: candidates.map((v): Card => {
@@ -340,7 +355,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   };
   // The run SELECT VEHICLE requests: a class's RACE, or FREE PLAY with its RULES cut to the course (K, 2026-11-09).
   const request = (id: string, color: string | null): RunRequest => {
-    if (menu === 'SERIES')
+    if (place === 'SERIES')
       return Object.freeze({
         seriesId: seriesChoice!.id,
         classId: classChoice!.id,
@@ -364,14 +379,21 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // A run plays its course's first race track, or none.
   const raceTrack = (id: string) => courseOf(id).raceTracks[0] ?? null;
 
-  // SETTINGS: one list card of the settings; CONTROLS and CLEAR RECORDS open their own rows.
+  // SETTINGS: one list card of the settings, out of the path, which PAUSE opens from any row in that row's world and
+  // BACK or PAUSE closes, back to that row as it was (K, 2026-11-19); CONTROLS and CLEAR RECORDS open their own rows.
+  let opened: { readonly row: CardRow; readonly index: number; readonly item: number } | null = null;
   const settingsRow = (initialItem = 0): CardRow => {
     const items = settingCards(
       player,
       {
         setVolume: devices.setVolume,
+        // The rows' music plays on in SETTINGS and is its audition; where they are silent, a track plays for it.
         audition: () =>
-          devices.audition(catalog.music.find((t) => t.id === latestTrack(player, catalog.music)) ?? catalog.music[0]!),
+          music.playing
+            ? () => {}
+            : devices.audition(
+                catalog.music.find((t) => t.id === latestTrack(player, catalog.music)) ?? catalog.music[0]!,
+              ),
       },
       {
         controls: () => go(controlsRow(), 'thin'),
@@ -381,18 +403,18 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     );
     return row({
       kind: 'cards',
-      world: null,
+      world: opened!.row.world,
       path: [PATH_ROOT, 'SETTINGS'],
       initialItem,
       cards: [{ name: 'SETTINGS', items }],
-      back: () => (go(menuRow(), 'thin'), 'back'),
+      back: () => (close(), 'back'),
     });
   };
   const settingsAt = (name: string) => settingsRow(11 + Number(name === 'CLEAR RECORDS'));
   const controlsRow = (): CardRow =>
     row({
       kind: 'cards',
-      world: null,
+      world: opened!.row.world,
       path: [PATH_ROOT, 'SETTINGS'],
       cards: [{ name: 'CONTROLS' }],
       back: () => (go(settingsAt('CONTROLS'), 'thin'), 'back'),
@@ -400,11 +422,26 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   const clearRow = (): CardRow =>
     row({
       kind: 'cards',
-      world: null,
+      world: opened!.row.world,
       path: [PATH_ROOT, 'SETTINGS', 'CLEAR RECORDS'],
       cards: clearRecordCards(player, () => go(settingsAt('CLEAR RECORDS'), 'thin')),
       back: () => (go(settingsAt('CLEAR RECORDS'), 'thin'), 'back'),
     });
+  // Back to the row SETTINGS was opened from, its card and entry in focus as they were.
+  const close = () => {
+    const { row: from, index, item } = opened!;
+    opened = null;
+    go(Object.freeze({ ...from, initial: index, initialItem: item }), 'thin');
+  };
+  const pause = () => {
+    if (opened) {
+      close();
+      return 'back' as const;
+    }
+    opened = { row: screen.row!, index: screen.index, item: screen.item };
+    go(settingsRow(), 'thin');
+    return 'confirm' as const;
+  };
 
   const screen = createCardRows(
     devices.frame,
@@ -414,10 +451,12 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     { ...devices.demo, logo: catalog.logo },
     titleRow(),
     devices.engine,
+    pause,
   );
   const go = (next: CardRow, change: RowChange) => screen.go(next, change);
   // Enter the selection at `next` from outside: the page's start, or a run.
   const enter = (next: CardRow) => {
+    opened = null;
     screen.enter(next);
     devices.show(screen);
   };
@@ -428,20 +467,20 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     if (!isFreePlay(run)) {
       classChoice = catalog.series.seriesClass(run.seriesId, run.classId);
       seriesChoice = classChoice?.series ?? null;
-      menu = 'SERIES';
+      place = 'SERIES';
       // A series' world plays its title track from its start.
       if (seriesChoice) {
-        devices.music.fadeOut(0);
-        devices.music.play(trackOf(seriesChoice));
+        music.fadeOut(0);
+        music.play(trackOf(seriesChoice));
       }
       return seriesChoice !== null && selectable.some((s) => s.series === seriesChoice);
     }
-    menu = 'FREE PLAY';
+    place = 'FREE PLAY';
     courseId = run.courseId;
     return offered.includes(run.courseId);
   };
   // TITLE and FREE PLAY's rows hold no music.
-  const silent = () => devices.music.play(null);
+  const silent = () => music.play(null);
   const title = () => {
     silent();
     enter(titleRow());
@@ -453,14 +492,14 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
     /** SELECT VEHICLE with `run`'s selection, or TITLE when its rows are not offered. */
     vehicle(run: RunRequest) {
       if (!adopt(run)) return title();
-      if (menu === 'FREE PLAY') silent();
+      if (place === 'FREE PLAY') silent();
       enter(vehicleRow());
     },
     /** The course's row of `run`'s selection: SELECT CLASS in a series, SELECT COURSE in FREE PLAY. */
     select(run: RunRequest) {
       if (!adopt(run)) return title();
-      if (menu === 'FREE PLAY') silent();
-      enter(menu === 'SERIES' ? classRow() : courseRow());
+      if (place === 'FREE PLAY') silent();
+      enter(place === 'SERIES' ? classRow() : courseRow());
     },
   });
 }

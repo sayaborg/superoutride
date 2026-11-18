@@ -1,6 +1,12 @@
 import { halveRgb555 } from '../image/rgb555.js';
-import type { TilePicture } from '../image/tile-picture.js';
 import type { SoftwareSurface } from './software-surface.js';
+
+/** A picture the plane shows: its size in pixels and each pixel's color, -1 where it is clear. */
+export interface PlanePicture {
+  readonly width: number;
+  readonly height: number;
+  colorAt(x: number, y: number): number;
+}
 
 /**
  * A row of pictures of one size on the one plane a late-1980s board can scale, `pitch` plane pixels from one's left
@@ -8,7 +14,7 @@ import type { SoftwareSurface } from './software-surface.js';
  * palettes at half brightness.
  */
 export interface PlaneRow {
-  readonly pictures: readonly TilePicture[];
+  readonly pictures: readonly PlanePicture[];
   readonly pitch: number;
   readonly wrap: boolean;
   dim(index: number): boolean;

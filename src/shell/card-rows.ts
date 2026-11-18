@@ -64,7 +64,11 @@ export interface Card {
   readonly name: string;
   /** The one line under the name, read as the card is drawn. */
   line?(): string;
-  /** SELECT SERIES' card: the series' picture, drawn on the scaled plane. */
+  /**
+   * SELECT SERIES' card: the series' picture, drawn on the scaled plane; absent on FREE PLAY's card, which shows the
+   * main world itself, the demo behind the main picture, as a series' picture is shown: FREE PLAY has no world of its
+   * own (K, 2026-11-09 and 2026-11-19).
+   */
   readonly picture?: TilePicture;
   /** It offers nothing: dimmed, and CONFIRM denies. */
   readonly dim?: boolean;
@@ -167,6 +171,7 @@ export function createCardRows(
   main: MainWorld,
   initial: CardRow,
   sound: (engine: CompetitorObservation) => void,
+  pause: () => MenuResponse | null,
 ) {
   let world: TilePicture | null = initial.world,
     view: View = viewOf(initial),
@@ -177,6 +182,13 @@ export function createCardRows(
     focused: Card | null = null,
     blink = 0;
   const scratch = new Uint16Array(frame.pixels.length);
+  // The main world as last drawn, without its lines: FREE PLAY's picture on the scaled plane.
+  const shot = new Uint16Array(frame.pixels.length);
+  const mainPicture = Object.freeze({
+    width: frame.width,
+    height: frame.height,
+    colorAt: (x: number, y: number) => shot[y * frame.width + x]!,
+  });
   // What is heard of the card in focus at rest: its page's sound.
   const heard = () => {
     const page = motions.length === 0 && rest > 0 ? unitOf(view)?.page?.() : undefined;
@@ -207,6 +219,8 @@ export function createCardRows(
   };
   const act = (command: MenuCommand): MenuResponse | null => {
     if (!view) return null;
+    // PAUSE opens SETTINGS from any row, and closes it again (K, 2026-11-19).
+    if (command === 'PAUSE') return pause();
     const { row } = view;
     const card = row.cards[view.index];
     if (row.kind === 'title') {
@@ -257,10 +271,11 @@ export function createCardRows(
     text.clear();
     if (!main.draw(target, lines ? text : null)) target.clear(SCREEN_BACKGROUND);
     main.logo.draw(target, Math.floor((target.width - main.logo.width) / 2), LOGO_Y);
+    shot.set(target.pixels);
     if (lines) text.draw(target);
   };
   const planeRow = (row: CardRow): PlaneRow => ({
-    pictures: row.cards.map((card) => card.picture!),
+    pictures: row.cards.map((card) => card.picture ?? mainPicture),
     pitch: SERIES_PITCH,
     wrap: row.cards.length >= 3,
     dim: (index) => row.cards[index]!.dim === true,

@@ -1190,10 +1190,10 @@ Skies without a source are left as they are; with no `recipes.json` it draws non
 `npm test` renders the front end's rows and screens headlessly through the same screens the page shows, from the
 delivered content with `dev=1` (`tests/infrastructure/screens-smoke.test.mjs`), and saves each drawn frame to
 `dist/screens/<name>.png` at twice the frame's size, as the reference mockups are drawn, for inspection by eye; no test
-compares their pixels: `title`, `thinning` (halfway from TITLE to MAIN MENU), `main-menu`, `select-series`, `zoom`
-(halfway into the series' world), `select-class`, `select-vehicle`, `prerace`, `result`, `rules`, `select-course`,
-`free-play-vehicle`, `settings` and `clear-records`. A single file runs after `npm run build` with
-`node --import tsx --test tests/infrastructure/screens-smoke.test.mjs`.
+compares their pixels: `title`, `thinning` (halfway from TITLE to SELECT SERIES), `select-series`, `zoom` (halfway into
+the series' world), `select-class`, `select-vehicle`, `prerace`, `result`, `free-play` (its card on SELECT SERIES),
+`rules`, `select-course`, `free-play-vehicle`, `settings` (opened over it) and `clear-records`. A single file runs after
+`npm run build` with `node --import tsx --test tests/infrastructure/screens-smoke.test.mjs`.
 
 ### Listening on devices
 

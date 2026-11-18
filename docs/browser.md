@@ -150,26 +150,27 @@ The selection is rows of cards on one screen ([product](product.md#6-flow-and-sc
 [card rows](../src/shell/card-rows.ts)), which owns every change between rows; the screen host's black serves only
 the changes outside them. The rows ([selection flow](../src/shell/selection-flow.ts)):
 
-- **TITLE:** `PRESS START` blinks in YELLOW, centred on row 28 (shown 32 fixed steps, hidden 16). CONFIRM goes to MAIN
-  MENU; the first is the user gesture that enables sound and requests fullscreen of the page where the browser allows
-  them (a refusal is ignored, and a gamepad press is not a gesture the browser accepts), and it sounds `press-start`.
-  BACK does nothing.
-- **MAIN MENU:** SERIES, FREE PLAY and SETTINGS. SERIES with no series shown, or FREE PLAY with no course offered, is
-  dimmed. BACK returns to TITLE.
-- **SERIES:** SELECT SERIES, then in the series' world SELECT CLASS (the series' classes) and SELECT VEHICLE (the
-  class's vehicles). Choosing another class clears the chosen vehicle.
-- **FREE PLAY:** RULES, one list card of RIVALS, POOL, TRAFFIC and LAPS at the place of a series (its rules), whose
-  CONFIRM on any entry goes on; SELECT COURSE, every course offered in the
+- **TITLE:** `PRESS START` blinks in YELLOW, centred on row 28 (shown 32 fixed steps, hidden 16). CONFIRM goes to SELECT
+  SERIES (K, 2026-11-19); the first is the user gesture that enables sound and requests fullscreen of the page where the
+  browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser accepts), and it sounds
+  `press-start`. BACK does nothing.
+- **SELECT SERIES:** the series shown, then FREE PLAY's card, dimmed with no course offered. BACK returns to TITLE.
+- **A series:** in the series' world SELECT CLASS (the series' classes) and SELECT VEHICLE (the class's vehicles).
+  Choosing another class clears the chosen vehicle.
+- **FREE PLAY:** in the main world RULES, one list card of RIVALS, POOL, TRAFFIC and LAPS at the place of a series (its
+  rules), whose CONFIRM on any entry goes on; SELECT COURSE, every course offered in the
   [course index's](content-and-gameplay.md#course-index) order, as courses apart from any series (K, 2026-11-11); and
-  SELECT VEHICLE (every catalog vehicle), in the main world.
-- **SETTINGS:** one list card of the settings (below); CONTROLS opens a row of its one card, and CLEAR RECORDS a row of
-  NO and YES.
+  SELECT VEHICLE (every catalog vehicle). BACK on RULES returns to SELECT SERIES as a series' world does.
+- **SETTINGS:** out of the path (K, 2026-11-19): PAUSE opens it from any row, TITLE included, standing in that row's
+  world, and BACK or PAUSE on it, or PAUSE on its CONTROLS or CLEAR RECORDS? row, returns to that row with its card
+  and entry in focus as they were. It is one list card of the settings (below); CONTROLS opens a row of its one card,
+  and CLEAR RECORDS a row of NO and YES, each of which BACK leaves for SETTINGS.
 
 A row is shown even with one card. BACK returns to the row before, CONFIRM on SELECT VEHICLE requests the run
 (`menu-entry`), which shows the PRE-RACE card and then starts. Each row starts from the current choice, else the player
-record's latest choice (keys `menu`, `series`, `class`, `course` and `vehicle`), else its first card; each CONFIRM saves
-its choice as the latest. The courses FREE PLAY offers are those the offered series run, and with `dev=1` every
-delivered course.
+record's latest choice (keys `series`, which holds `free-play` for FREE PLAY's card, `class`, `course` and `vehicle`),
+else its first card; each CONFIRM saves its choice as the latest. The courses FREE PLAY offers are those the offered
+series run, and with `dev=1` every delivered course.
 
 A card is 28×21 tiles (224×168 pixels) at 1:1. At rest the card in focus stands at x 48 (column 6) and y 32 (row 4),
 four rows clear above and below it over the path's row, which balances it in the frame (K, 2026-11-11), its
@@ -178,13 +179,12 @@ world behind them; cards cast no shadow (K, 2026-11-08). SELECT CLASS, SELECT CO
 cards (below). Every other row's card shows, on its style's ground ([card styles](#card-styles)), its name in the
 ornate large font, in two lines when it is longer than 26 characters, and one line in WHITE (K, 2026-11-09):
 
-| Row            | Name                        | Line                                                              |
-| -------------- | --------------------------- | ----------------------------------------------------------------- |
-| MAIN MENU      | SERIES, FREE PLAY, SETTINGS | none                                                              |
-| RULES          | RULES, a list card          | RIVALS, POOL, TRAFFIC and LAPS with their values                  |
-| SETTINGS       | SETTINGS, a list card       | each setting with its value (none for CONTROLS and CLEAR RECORDS) |
-| CONTROLS       | CONTROLS                    | none                                                              |
-| CLEAR RECORDS? | NO, YES                     | `CLEAR RECORDS?`                                                  |
+| Row            | Name                  | Line                                                              |
+| -------------- | --------------------- | ----------------------------------------------------------------- |
+| RULES          | RULES, a list card    | RIVALS, POOL, TRAFFIC and LAPS with their values                  |
+| SETTINGS       | SETTINGS, a list card | each setting with its value (none for CONTROLS and CLEAR RECORDS) |
+| CONTROLS       | CONTROLS              | none                                                              |
+| CLEAR RECORDS? | NO, YES               | `CLEAR RECORDS?`                                                  |
 
 A list card (K, 2026-11-11: settings are completed within one card) writes its name centred on rows 1–2 and an entry
 a row from row 5: the label from column 1 in DARK and the value centred between columns 18 and 26 in WHITE, the chosen
@@ -286,18 +286,20 @@ audition, the one form of [playing a track](audio.md#music) from its start, loop
 the row leaves, and a track still decoding when it leaves never sounds.
 
 The rows stand in a world. The main world is the attract demo behind the main picture, and until the main picture is
-made the title logo (36×14 tiles) centred at y 16 over it: TITLE, MAIN MENU, SELECT SERIES, FREE PLAY's rows and
-SETTINGS stand in it. A series' world is its picture, at 1:1 on the scaled plane: its SELECT CLASS and SELECT VEHICLE
-stand in it. Within a world one row gives way to the next by line thinning, the
-[background transitions'](image-assets.md#background-transitions) one rule and one implementation
-([line thinning](../src/view/line-thinning.ts)): at share p, round(240p) of the 240 lines show the next row, taken in
-the order of their numbers' 8 bits reversed. Choosing a series zooms its picture on the scaled plane from 0.7 to 1,
-about the one fixed point that keeps it on the card's place at 0.7 and on the frame at 1 (x 160, y 106⅔), then shows
-the picture alone, then thins in SELECT CLASS; BACK from SELECT CLASS thins it away to the picture, which shrinks back
-into SELECT SERIES. Only the series pictures are scaled, each frame pixel taking the plane's point nearest its centre;
-the cards are drawn at 1:1 and never scaled, no color is mixed or halved but by a palette at half brightness, and the
-lines' choice of picture is a per-line table a late-1980s board holds. Motion, in fixed steps (K, 2026-11-09, the demo
-K saw, "for now"):
+made the title logo (36×14 tiles) centred at y 16 over it: TITLE, SELECT SERIES and FREE PLAY's rows stand in it, and
+SETTINGS in the world of the row it was opened from. FREE PLAY's card on SELECT SERIES shows the main world itself on
+the scaled plane, each frame's drawing of it without TITLE's lines, as a series' card shows its picture, so that
+choosing it zooms into the main world as a series' card zooms into its picture (K, 2026-11-19). A series' world is its
+picture, at 1:1 on the scaled plane: its SELECT CLASS and SELECT VEHICLE stand in it. Within a world one row gives way
+to the next by line thinning, the [background transitions'](image-assets.md#background-transitions) one rule and one
+implementation ([line thinning](../src/view/line-thinning.ts)): at share p, round(240p) of the 240 lines show the next
+row, taken in the order of their numbers' 8 bits reversed. Choosing a series zooms its picture on the scaled plane from
+0.7 to 1, about the one fixed point that keeps it on the card's place at 0.7 and on the frame at 1 (x 160, y 106⅔), then
+shows the picture alone, then thins in SELECT CLASS; BACK from SELECT CLASS thins it away to the picture, which shrinks
+back into SELECT SERIES. Only the series pictures are scaled, each frame pixel taking the plane's point nearest its
+centre; the cards are drawn at 1:1 and never scaled, no color is mixed or halved but by a palette at half brightness,
+and the lines' choice of picture is a per-line table a late-1980s board holds. Motion, in fixed steps (K, 2026-11-09,
+the demo K saw, "for now"):
 
 | Motion                   | Steps | Course                                                |
 | ------------------------ | ----: | ----------------------------------------------------- |
@@ -393,11 +395,13 @@ has run once; the race film's are the series and the machine in turn. A machine'
 by commas, so the listing stays the one owner of those facts and nothing is written for the demo.
 
 Music ([product](product.md#13-music-and-sound-effects)): on SELECT SERIES, once the row has rested 30 fixed steps, the
-series in focus plays its title track from its start, looped; a move fades it out over 0.25 s, and so does BACK to MAIN
-MENU. Entering the series' world, and returning to SELECT SERIES on the same series, it plays on; it fades out over the
-black transition into READY, and CHANGE VEHICLE and SELECT from RESULT play it from its start again in the world.
-TITLE, MAIN MENU, FREE PLAY's rows and SETTINGS are silent, but for the SETTINGS audition while the MUSIC card is in
-focus. A run from the rows plays its course's first race track ([Course sounds](content-and-gameplay.md#course-sounds)).
+series in focus plays its title track from its start, looped, and FREE PLAY's card plays nothing; a move fades it out
+over 0.25 s, and so does BACK to TITLE. Entering the series' world, and returning to SELECT SERIES on the same series,
+it plays on; it fades out over the black transition into READY, and CHANGE VEHICLE and SELECT from RESULT play it from
+its start again in the world. TITLE and FREE PLAY's rows are silent. SETTINGS keeps what plays in the row it was opened
+from: in a series' world its title track plays on and is what the MUSIC entry is heard on; where the rows are silent,
+the SETTINGS audition plays while the MUSIC entry is in focus. A run from the rows plays its course's first race track
+([Course sounds](content-and-gameplay.md#course-sounds)).
 
 SETTINGS' entries are MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGHT change in steps of 5 within
 0–100 (to the adjacent multiple of 5, stopping at the ends), CAR CAMERA and BIKE CAMERA (FACING or MOVING; [camera
@@ -801,19 +805,19 @@ that requests the run), `menu-deny` (CONFIRM on a dimmed card or a series withou
 PAUSE menu confirms, and PAUSE or BACK that closes it goes back. The CONFIRM on TITLE that starts the audio is not
 heard, since the audio is not yet running.
 
-- **Keyboard:** the arrows give the directions, Enter and Z CONFIRM and X BACK; Escape is BACK in a menu and PAUSE while
-  driving. Z and X command only on the menu route; while driving they stay the accelerator and the brake.
-  Keys follow the operating system's repeat, except that a repeated Escape does not pause.
+- **Keyboard:** the arrows give the directions, Enter and Z CONFIRM and X BACK; Escape is PAUSE, in a menu as while
+  driving (K, 2026-11-19). Z and X command only on the menu route; while driving they stay the accelerator and the
+  brake. Keys follow the operating system's repeat, except that a repeated Escape does not pause.
 - **Gamepad** (standard mapping): the D-pad and the left stick beyond half deflection give the directions, A and RT
-  (the accelerator) CONFIRM and B and LT (the brake) BACK (K, 2026-11-09); Start is PAUSE while driving and CONFIRM in a
-  menu. A control commands once, on its press, and never
+  (the accelerator) CONFIRM and B and LT (the brake) BACK (K, 2026-11-09); Start is PAUSE, in a menu as while driving
+  (K, 2026-11-19). A control commands once, on its press, and never
   repeats; one held while the route changes, or when its gamepad connects or reconnects, commands nothing until
   released and pressed again.
-- **Touch:** in a menu, a touch in the left half of the touch area that moves at least `TOUCH_FLICK_DISTANCE_PX`
-  (24 CSS px) is a flick in its larger axis's direction, and a touch in the right half that moves less is a tap,
-  CONFIRM, decided when the finger lifts; a cancelled touch commands nothing. Touches never repeat. Two small buttons sit in the screen's corners, inside the safe area: BACK top left in
-  a menu and PAUSE top right while driving. They appear once touch has been used, and a press on them starts no
-  driving or menu touch.
+- **Touch:** in a menu, a touch in the left half of the touch area that moves at least `TOUCH_FLICK_DISTANCE_PX` (24 CSS
+  px) is a flick in its larger axis's direction, and a touch in the right half that moves less is a tap, CONFIRM,
+  decided when the finger lifts; a cancelled touch commands nothing. Touches never repeat. Two small buttons sit in the
+  screen's corners, inside the safe area: BACK top left in a menu and PAUSE top right, in a menu as while driving. They
+  appear once touch has been used, and a press on them starts no driving or menu touch.
 
 The same press never reaches both authorities. Suspension resets driving input, and a gamepad control needs rest and
 a key needs a new press before driving input accepts it, so the Enter, A or touch that resumes a run drives nothing.
