@@ -108,20 +108,25 @@ the default tire with its CG 0.30 of its wheelbase high, its pictures baked from
 
 ## Stage XR — The XR600R of 1985 and ENDURO RACER's machine
 
-K's decisions of 2026-11-18 are in place (XR-1 to XR-3): the Honda XR600R of 1985 is a vehicle of its own, rider and
-machine as one, its values the stage's auditor's
+K's decisions of 2026-11-18 are in place (XR-1 to XR-3 and XR-5): the Honda XR600R of 1985 is a vehicle of its own,
+rider and machine as one, its values the stage's auditor's
 ([Road motorcycles](road-bikes.md#honda-xr600r-of-1985-sources-versus-authored)), on its real tires and the default
-tire with its CG 0.30 of its wheelbase high; its pictures are baked from K's model in three paints, red, blue and
-yellow, of three, two and three steps, and six greys ([Model solids](image-assets.md#model-solids)); and ARCADE
-TRIBUTE - ENDURO RACER is ridden on it in its eight liveries
-([Series documents](content-and-gameplay.md#series-documents)). What stays open, for K:
+tire with its CG 0.30 of its wheelbase high; its pictures are baked from K's model in three paints, red, blue and yellow, of
+three, two and three steps, and six greys ([Model solids](image-assets.md#model-solids)); and ARCADE TRIBUTE - ENDURO
+RACER is ridden on it in its eight liveries ([Series documents](content-and-gameplay.md#series-documents)). It has its
+own engine sound, a single through its twin head pipes into one silencer
+([Calibration](calibration.md#exhaust-topologies)). What stays open, for K:
 
 - To look at in DEV: the back seen riding (the yellow suit's shading, the brake lamp on the tail, the silencer on the
   right, the thin front wheel), the eight liveries near and far, WHITE/RED (a white machine) and ORANGE/BLACK (a black
-  suit), the attitude on dirt and hills, and hitting rocks and logs.
-- Not decided: the static front share, the redline and the torque curve's shape (no source), the two-wheeler's CG, the
-  tire's real values, the eight liveries' values and the rivals' liveries, the light (L2, as the NSR500 of 1984), the
-  description, its own sound (R80_GS_PARIS_DAKAR's is borrowed), and the 1985 front tire's designation and caster.
+  suit), the attitude on dirt and hills, and hitting rocks and logs; and the single's sound, at idle, through the gears
+  and as a rival.
+- Not decided: the static front share, the redline and the torque curve's shape (no source), its top speed (141 km/h
+  at the fuel cut in fifth; a 1985 test gives 83 mph, 133.6 km/h, likely held by drag, so the drag and the redline,
+  both without a source, stay as they are for now), the two-wheeler's CG, the tire's real values, the eight liveries'
+  values and the rivals' liveries, the light (L2, as the NSR500 of 1984), the description, the sound's values (its
+  exhaust's lengths and diameters and the valve's lift are estimates), and the 1985 front tire's designation and
+  caster.
 
 ## Stage AT — The attract demo remade
 

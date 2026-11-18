@@ -453,17 +453,17 @@ auditor's placement, marked so below; it is not a measurement.
 The owner's manual's listing was read out of order; 48/14 = 3.4286 matches the secondary reduction, so the two
 reductions are assigned as above. A rating of 46 hp at 6,000 rpm is not adopted: with 51.9 N m at 5,500 rpm it would
 need about 54 N m at 6,000 rpm. The curve's D, 32.3 kW (44 PS) at 6,500 rpm, agrees with sources that give 33 kW or
-45 PS. The 1985 machine has two 28 mm carburetors (one from 1988), recorded for its future sound.
+45 PS. The 1985 machine has two 28 mm carburetors (one from 1988); its sound does not model the intake.
 
 The values no source gives follow this ledger's common rules: ride frequencies 1.5 Hz and damping ratio 0.4; brake
-capacities by the [VFR750R reference](#provisional-brake-calibration), 700 × (210.5 / 273.5) × (0.347 / 0.2999) and
-300 × (210.5 / 273.5) × (0.326 / 0.3306), rounded to **600 / 250 N m**. Where no rule exists, R80_GS_PARIS_DAKAR's
-value is carried over: yaw and pitch inertias scaled by mass and the square of the wheelbase, 215 and 260 kg m² ×
-(210.5 / 308) × (1.450 / 1.465)², **144 / 174 kg m²**; wheel inertias by the square of each wheel's radius, **0.63 /
-0.80 kg m²**. The listing is `PROVISIONAL`; its engine is `1`, a single. Its sound is R80_GS_PARIS_DAKAR's, borrowed
-([Calibration](calibration.md#exhaust-topologies)), and its pictures are baked from K's model in eight liveries
-([Model solids](image-assets.md#model-solids)).
+capacities by the [VFR750R reference](#provisional-brake-calibration), 700 × (210.5 / 273.5) × (0.347 / 0.2999) and 300
+× (210.5 / 273.5) × (0.326 / 0.3306), rounded to **600 / 250 N m**. Where no rule exists, R80_GS_PARIS_DAKAR's value is
+carried over: yaw and pitch inertias scaled by mass and the square of the wheelbase, 215 and 260 kg m² × (210.5 / 308) ×
+(1.450 / 1.465)², **144 / 174 kg m²**; wheel inertias by the square of each wheel's radius, **0.63 / 0.80 kg m²**. The
+listing is `PROVISIONAL`; its engine is `1`, a single. Its sound is its own, a single through its twin head pipes into
+one silencer ([Calibration](calibration.md#exhaust-topologies)), and its pictures are baked from K's model in eight
+liveries ([Model solids](image-assets.md#model-solids)).
 
-Not decided: the static front share, the redline and the torque curve's shape (no source), the two-wheeler's CG
-(apart, as for the NSR500 of 1984), the tire's real values, its own sound, and the 1985 front tire's designation (some
-sources give 3.00-21) and caster.
+Not decided: the static front share, the redline and the torque curve's shape (no source), the two-wheeler's CG (apart,
+as for the NSR500 of 1984), the tire's real values, the sound's estimated exhaust, and the 1985 front tire's designation
+(some sources give 3.00-21) and caster.

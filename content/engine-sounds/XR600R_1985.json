@@ -1,0 +1,17 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 2,
+  "cycleRevolutions": 2,
+  "firingPhases": [0],
+  "exhaust": {
+    "valve": { "diameter": 0.0438, "open": 0.3681 },
+    "primaries": [{ "length": 0.6, "diameter": 0.0495, "to": 0 }],
+    "pipes": [
+      { "length": 0.95, "diameter": 0.045, "from": 0, "to": 1 },
+      { "length": 0.1, "diameter": 0.028, "from": 1, "to": null }
+    ]
+  },
+  "metadata": {
+    "note": "The radial four-valve head's two exhaust ports and their two head pipes, round the front of the engine to their join, as one tube of their combined area (two of 35 mm); the single pipe on into the silencer on the right, and its small outlet. Every length and diameter is an estimate. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: two exhaust valves of 31 mm (replacement parts) and 8.0 mm lift (estimate), so the curtain is the head's area; about 265 deg seat to seat from 45 BBDC / 5 ATDC at 1 mm (Honda manual as quoted), widened as VFR750R's. Two 28 mm carburetors (1985) feed the intake, which is not modelled."
+  }
+}
