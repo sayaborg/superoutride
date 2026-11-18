@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>GLB Painter</title>
+<style>
+  html,body{margin:0;height:100%;background:#2b2b2b;color:#eee;font:13px/1.4 -apple-system,"Hiragino Sans",sans-serif;overflow:hidden}
+  #bar{position:fixed;left:0;top:0;right:0;height:44px;background:#1c1c1c;display:flex;align-items:center;gap:10px;padding:0 10px;z-index:3;white-space:nowrap}
+  #bar button,#bar label.btn{background:#3a3a3a;color:#eee;border:1px solid #555;border-radius:4px;padding:5px 9px;cursor:pointer;font:inherit}
+  #bar button.on{background:#d9a400;color:#000;border-color:#d9a400}
+  #bar button:disabled{opacity:.4;cursor:default}
+  .sw{width:26px;height:26px;border-radius:4px;border:2px solid #555;cursor:pointer;box-sizing:border-box}
+  .sw.on{border-color:#fff;outline:2px solid #d9a400}
+  .sep{width:1px;height:26px;background:#555}
+  #cv{position:fixed;left:0;top:44px;right:0;bottom:24px;width:100%;height:calc(100% - 68px);display:block;touch-action:none}
+  #st{position:fixed;left:0;right:0;bottom:0;height:24px;background:#1c1c1c;padding:3px 10px;box-sizing:border-box;color:#bbb;z-index:3}
+  #ring{position:fixed;border:1px solid #fff;outline:1px solid #000;border-radius:50%;pointer-events:none;display:none;z-index:2}
+  #drop{position:fixed;inset:44px 0 24px 0;display:flex;align-items:center;justify-content:center;font-size:18px;color:#aaa;z-index:1;pointer-events:none;text-align:center}
+  input[type=range]{width:90px}
+</style>
+</head>
+<body>
+<div id="bar">
+  <label class="btn">開く<input id="file" type="file" accept=".glb" hidden></label>
+  <button id="save" disabled>保存</button>
+  <button id="undo" disabled>取り消し</button>
+  <span class="sep"></span>
+  <button class="tool" data-t="orbit">回す (V)</button>
+  <button class="tool" data-t="brush">ブラシ (B)</button>
+  <button class="tool" data-t="fill">塗りつぶし (G)</button>
+  <button class="tool" data-t="pick">スポイト (I)</button>
+  <span class="sep"></span>
+  <span id="pal"></span>
+  <input id="col" type="color" value="#d70511" title="自由な色">
+  <span class="sep"></span>
+  太さ <input id="size" type="range" min="2" max="60" value="12"><span id="sizev">12</span>
+  <label><input id="sym" type="checkbox" checked> 左右対称</label>
+  <label><input id="flat" type="checkbox"> 陰なし</label>
+</div>
+<canvas id="cv"></canvas>
+<div id="ring"></div>
+<div id="drop">GLB をここにドロップするか、「開く」で選ぶ</div>
+<div id="st">右ドラッグか Shift+ドラッグで回す ・ ホイールで拡大 ・ 中ボタンか Space+ドラッグで動かす ・ Option+クリックで色を拾う ・ ⌘Z で取り消し</div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), cv=$('cv'), st=$('st'), ring=$('ring');
+const gl=cv.getContext('webgl2',{antialias:true,preserveDrawingBuffer:false});
+if(!gl){st.textContent='このブラウザは WebGL2 が使えません';throw new Error('no webgl2')}
+const msg=s=>{st.textContent=s};
+
+// ---------- state
+let G=null;            // {json, bin(Uint8Array), name, baseImg, regImg}
+let W=0,H=0, tex8=null, tex32=null, reg=null, cov=null, mirror=null, nIndex=0;
+let tool='orbit', color=[215,5,17], brush=12;
+let cam={yaw:0.7,pitch:0.25,dist:3.4,tx:0,ty:0.65,tz:0};
+let needDraw=true, pickDirty=true, pick=null, pick2=null, PW=0, PH=0;
+let dirty=null;        // texture dirty rect [x0,y0,x1,y1]
+const undoStack=[]; let stroke=null, stamp=null, strokeId=0;
+const PICK_SCALE=2;
+
+// ---------- palette
+const PAL=[['赤',[215,5,17]],['青',[32,46,131]],['白',[235,235,233]],['黄',[246,187,3]],['黒',[17,17,17]]];
+function setColor(c){color=c.slice(0,3);$('col').value='#'+color.map(v=>v.toString(16).padStart(2,'0')).join('');
+  document.querySelectorAll('.sw').forEach(e=>e.classList.toggle('on',e.dataset.c===color.join(',')))}
+function buildPal(){const p=$('pal');p.innerHTML='';for(const [n,c] of PAL){const d=document.createElement('span');d.className='sw';d.title=n+' '+c.join(',');
+  d.style.cssText='display:inline-block;vertical-align:middle;margin-right:4px;background:rgb('+c.join(',')+')';d.dataset.c=c.join(',');d.onclick=()=>setColor(c);p.appendChild(d)}setColor(color)}
+$('col').oninput=e=>{const h=e.target.value;setColor([1,3,5].map(i=>parseInt(h.substr(i,2),16)))};
+function setTool(t){tool=t;document.querySelectorAll('.tool').forEach(b=>b.classList.toggle('on',b.dataset.t===t));ring.style.display='none';cv.style.cursor=t==='orbit'?'grab':'crosshair'}
+document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>setTool(b.dataset.t));
+$('size').oninput=e=>{brush=+e.target.value;$('sizev').textContent=brush};
+$('flat').onchange=()=>{needDraw=true};
+
+// ---------- GL programs
+function prog(vs,fs){const p=gl.createProgram();for(const [t,s] of [[gl.VERTEX_SHADER,vs],[gl.FRAGMENT_SHADER,fs]]){const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);
+  if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(sh));gl.attachShader(p,sh)}
+  gl.bindAttribLocation(p,0,'p');gl.bindAttribLocation(p,1,'n');gl.bindAttribLocation(p,2,'uv');gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));return p}
+const VS=`#version 300 es
+in vec3 p;in vec3 n;in vec2 uv;uniform mat4 mvp;uniform float flipx;out vec2 vuv;out vec3 vn;
+void main(){vuv=uv;vn=vec3(n.x*flipx,n.y,n.z);gl_Position=mvp*vec4(p.x*flipx,p.y,p.z,1.);}`;
+const pDraw=prog(VS,`#version 300 es
+precision highp float;in vec2 vuv;in vec3 vn;uniform sampler2D tex;uniform vec3 eyeDir;uniform float flat_;out vec4 o;
+void main(){vec3 c=texture(tex,vuv).rgb;vec3 n=normalize(vn);float d=abs(dot(n,normalize(eyeDir+vec3(0.2,0.6,0.1))));
+o=vec4(c*mix(0.45+0.55*d,1.0,flat_),1.);}`);
+const pPick=prog(VS,`#version 300 es
+precision highp float;precision highp int;in vec2 vuv;in vec3 vn;uniform vec2 ts;out vec4 o;
+void main(){ivec2 t=ivec2(clamp(vuv,0.,0.999999)*ts);
+o=vec4(float(t.x&255),float((t.x>>8)|((t.y&15)<<4)),float(t.y>>4),255.)/255.;}`);
+const U=(p,n)=>gl.getUniformLocation(p,n);
+let vao=null, texGL=null, fbo=null, fboTex=null, fboDepth=null;
+
+// ---------- math
+function persp(fov,asp,n,f){const t=1/Math.tan(fov/2);return [t/asp,0,0,0, 0,t,0,0, 0,0,(f+n)/(n-f),-1, 0,0,2*f*n/(n-f),0]}
+function look(e,c){let z=[e[0]-c[0],e[1]-c[1],e[2]-c[2]];let l=Math.hypot(...z);z=z.map(v=>v/l);let x=[z[2],0,-z[0]];l=Math.hypot(...x)||1;x=x.map(v=>v/l);
+  const y=[z[1]*x[2]-z[2]*x[1],z[2]*x[0]-z[0]*x[2],z[0]*x[1]-z[1]*x[0]];
+  return {m:[x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0, -(x[0]*e[0]+x[1]*e[1]+x[2]*e[2]),-(y[0]*e[0]+y[1]*e[1]+y[2]*e[2]),-(z[0]*e[0]+z[1]*e[1]+z[2]*e[2]),1],x,y,z}}
+function mul(a,b){const o=new Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];o[c*4+r]=s}return o}
+function camMat(){const cp=Math.cos(cam.pitch),e=[cam.tx+cam.dist*cp*Math.sin(cam.yaw),cam.ty+cam.dist*Math.sin(cam.pitch),cam.tz+cam.dist*cp*Math.cos(cam.yaw)];
+  const v=look(e,[cam.tx,cam.ty,cam.tz]);const p=persp(0.6,cv.width/cv.height,Math.max(0.02,cam.dist*0.02),cam.dist*10+10);return {mvp:mul(p,v.m),v}}
+
+// ---------- GLB
+function parseGLB(buf){const dv=new DataView(buf);if(dv.getUint32(0,true)!==0x46546C67)throw new Error('GLB ではありません');
+  const jl=dv.getUint32(12,true);const json=JSON.parse(new TextDecoder().decode(new Uint8Array(buf,20,jl)));
+  const bl=dv.getUint32(20+jl,true);return {json,bin:new Uint8Array(buf,20+jl+8,bl)}}
+function acc(g,i,T,n){const a=g.json.accessors[i],v=g.json.bufferViews[a.bufferView];const off=g.bin.byteOffset+(v.byteOffset||0)+(a.byteOffset||0);
+  if(v.byteStride&&v.byteStride!==n*T.BYTES_PER_ELEMENT)throw new Error('interleaved buffers are not supported');
+  if(off%T.BYTES_PER_ELEMENT===0)return new T(g.bin.buffer,off,a.count*n);return new T(g.bin.buffer.slice(off,off+a.count*n*T.BYTES_PER_ELEMENT))}
+function imgBytes(g,i){const im=g.json.images[i],v=g.json.bufferViews[im.bufferView];return new Blob([g.bin.subarray(v.byteOffset||0,(v.byteOffset||0)+v.byteLength)],{type:im.mimeType})}
+async function pixels(blob){const bm=await createImageBitmap(blob,{colorSpaceConversion:'none',premultiplyAlpha:'none'});const c=new OffscreenCanvas(bm.width,bm.height);
+  const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(bm,0,0);return x.getImageData(0,0,bm.width,bm.height)}
+
+async function openFile(f){msg('読み込み中… '+f.name);await new Promise(r=>setTimeout(r,30));
+  const g=parseGLB(await f.arrayBuffer());g.name=f.name;const pr=g.json.meshes[0].primitives[0];
+  if(g.json.meshes.length>1||g.json.meshes[0].primitives.length>1)msg('注意: 最初のメッシュだけを扱います');
+  const pos=acc(g,pr.attributes.POSITION,Float32Array,3),nor=pr.attributes.NORMAL!==undefined?acc(g,pr.attributes.NORMAL,Float32Array,3):new Float32Array(pos.length),uv=acc(g,pr.attributes.TEXCOORD_0,Float32Array,2);
+  const ia=g.json.accessors[pr.indices];const idx=ia.componentType===5125?acc(g,pr.indices,Uint32Array,1):Uint32Array.from(acc(g,pr.indices,ia.componentType===5123?Uint16Array:Uint8Array,1));
+  const mat=g.json.materials[pr.material];g.baseImg=g.json.textures[mat.pbrMetallicRoughness.baseColorTexture.index].source;
+  const id=await pixels(imgBytes(g,g.baseImg));W=id.width;H=id.height;tex8=new Uint8Array(id.data.buffer);tex32=new Uint32Array(id.data.buffer);
+  for(let i=3;i<tex8.length;i+=4)tex8[i]=255;
+  reg=cov=mirror=null;const ex=(g.json.nodes.find(n=>n.extras&&n.extras.paint_regions)||{}).extras;
+  if(ex){const r=await pixels(imgBytes(g,ex.paint_regions.image));if(r.width===W&&r.height===H){reg=new Uint16Array(W*H);cov=new Uint8Array(W*H);const d=r.data;
+      for(let i=0,j=0;i<W*H;i++,j+=4){reg[i]=d[j]|(d[j+1]<<8);cov[i]=d[j+2]>127?1:0}mirror=ex.paint_regions.mirror||null}
+    if(ex.paint){PAL.length=0;for(const k in ex.paint)PAL.push([k,ex.paint[k]]);buildPal()}}
+  stamp=new Uint32Array(W*H);strokeId=0;undoStack.length=0;$('undo').disabled=true;
+  // GL buffers
+  if(vao)gl.deleteVertexArray(vao);vao=gl.createVertexArray();gl.bindVertexArray(vao);
+  [[pos,3],[nor,3],[uv,2]].forEach(([a,n],i)=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);gl.enableVertexAttribArray(i);gl.vertexAttribPointer(i,n,gl.FLOAT,false,0,0)});
+  const eb=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,eb);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW);nIndex=idx.length;gl.bindVertexArray(null);
+  if(texGL)gl.deleteTexture(texGL);texGL=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texGL);gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,gl.UNSIGNED_BYTE,tex8);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  // frame the model
+  const a=g.json.accessors[pr.attributes.POSITION];let mn=a.min,mx=a.max;if(!mn){mn=[1e9,1e9,1e9];mx=[-1e9,-1e9,-1e9];for(let i=0;i<pos.length;i+=3)for(let k=0;k<3;k++){mn[k]=Math.min(mn[k],pos[i+k]);mx[k]=Math.max(mx[k],pos[i+k])}}
+  cam.tx=(mn[0]+mx[0])/2;cam.ty=(mn[1]+mx[1])/2;cam.tz=(mn[2]+mx[2])/2;cam.dist=1.25*Math.hypot(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2]);
+  G=g;$('save').disabled=false;$('drop').style.display='none';needDraw=pickDirty=true;setTool('brush');
+  msg(f.name+' ・ '+(nIndex/3|0).toLocaleString()+' 三角形 ・ テクスチャ '+W+'×'+H+(reg?' ・ 塗りつぶしの領域あり':' ・ 領域の情報なし(塗りつぶしは使えません)'));
+  window.__ready=true}
+$('file').onchange=e=>{if(e.target.files[0])openFile(e.target.files[0]).catch(err=>msg('読み込みに失敗: '+err.message))};
+addEventListener('dragover',e=>e.preventDefault());
+addEventListener('drop',e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(f)openFile(f).catch(err=>msg('読み込みに失敗: '+err.message))});
+
+// ---------- drawing
+function resize(){const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);const w=Math.max(2,Math.round(r.width*d)),h=Math.max(2,Math.round(r.height*d));
+  if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;needDraw=pickDirty=true}}
+function drawScene(p,flip,m){gl.useProgram(p);gl.uniformMatrix4fv(U(p,'mvp'),false,m.mvp);gl.uniform1f(U(p,'flipx'),flip);gl.bindVertexArray(vao);gl.drawElements(gl.TRIANGLES,nIndex,gl.UNSIGNED_INT,0)}
+function frame(){resize();
+  if(G&&dirty){const [x0,y0,x1,y1]=dirty;gl.bindTexture(gl.TEXTURE_2D,texGL);gl.pixelStorei(gl.UNPACK_ROW_LENGTH,W);gl.pixelStorei(gl.UNPACK_SKIP_PIXELS,x0);gl.pixelStorei(gl.UNPACK_SKIP_ROWS,y0);
+    gl.texSubImage2D(gl.TEXTURE_2D,0,x0,y0,x1-x0+1,y1-y0+1,gl.RGBA,gl.UNSIGNED_BYTE,tex8);gl.pixelStorei(gl.UNPACK_ROW_LENGTH,0);gl.pixelStorei(gl.UNPACK_SKIP_PIXELS,0);gl.pixelStorei(gl.UNPACK_SKIP_ROWS,0);dirty=null;needDraw=true}
+  if(needDraw){needDraw=false;gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);gl.clearColor(0.17,0.17,0.17,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    if(G){gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);const m=camMat();gl.useProgram(pDraw);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texGL);gl.uniform1i(U(pDraw,'tex'),0);
+      gl.uniform3fv(U(pDraw,'eyeDir'),m.v.z);gl.uniform1f(U(pDraw,'flat_'),$('flat').checked?1:0);drawScene(pDraw,1,m)}}
+  requestAnimationFrame(frame)}
+function renderPick(){const r=cv.getBoundingClientRect();PW=Math.min(4096,Math.round(r.width*PICK_SCALE));PH=Math.min(4096,Math.round(r.height*PICK_SCALE));
+  if(!fbo){fbo=gl.createFramebuffer();fboTex=gl.createTexture();fboDepth=gl.createRenderbuffer()}
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fbo);gl.bindTexture(gl.TEXTURE_2D,fboTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,PW,PH,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,fboTex,0);gl.bindRenderbuffer(gl.RENDERBUFFER,fboDepth);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT24,PW,PH);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,fboDepth);gl.viewport(0,0,PW,PH);gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);
+  const m=camMat();gl.useProgram(pPick);gl.uniform2f(U(pPick,'ts'),W,H);const out=[];
+  for(const flip of [1,-1]){gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);drawScene(pPick,flip,m);const b=new Uint8Array(PW*PH*4);gl.readPixels(0,0,PW,PH,gl.RGBA,gl.UNSIGNED_BYTE,b);out.push(b)}
+  pick=out[0];pick2=out[1];gl.bindFramebuffer(gl.FRAMEBUFFER,null);pickDirty=false;needDraw=true}
+// texel index under a pick-buffer pixel, or -1
+function texelAt(buf,px,py){if(px<0||py<0||px>=PW||py>=PH)return -1;const o=((PH-1-py)*PW+px)*4;if(buf[o+3]===0)return -1;const r=buf[o],g=buf[o+1],b=buf[o+2];return ((b<<4)|(g>>4))*W+(r|((g&15)<<8))}
+
+// ---------- painting
+function begin(){strokeId++;stroke={idx:[],old:[]}}
+function end(){if(stroke&&stroke.idx.length){undoStack.push({idx:Uint32Array.from(stroke.idx),old:Uint32Array.from(stroke.old)});if(undoStack.length>40)undoStack.shift();$('undo').disabled=false}stroke=null}
+function put(i,c32){if(tex32[i]===c32)return;if(stamp[i]!==strokeId){stamp[i]=strokeId;stroke.idx.push(i);stroke.old.push(tex32[i])}tex32[i]=c32;
+  const x=i%W,y=(i/W)|0;if(!dirty)dirty=[x,y,x,y];else{if(x<dirty[0])dirty[0]=x;if(y<dirty[1])dirty[1]=y;if(x>dirty[2])dirty[2]=x;if(y>dirty[3])dirty[3]=y}}
+const c32of=c=>(0xff000000|(c[2]<<16)|(c[1]<<8)|c[0])>>>0;
+function dab(cx,cy){const c32=c32of(color),R=brush*PICK_SCALE/2,bufs=$('sym').checked?[pick,pick2]:[pick];const X=Math.round(cx*PICK_SCALE),Y=Math.round(cy*PICK_SCALE),r=Math.ceil(R);
+  for(const buf of bufs)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(dx*dx+dy*dy>R*R)continue;const t=texelAt(buf,X+dx,Y+dy);if(t<0)continue;const tx=t%W,ty=(t/W)|0;
+    // stamp wide enough to cover the texels between neighbouring screen pixels (capped, so paint does not reach another chart)
+    let k=1;const t2=texelAt(buf,X+dx+1,Y+dy);if(t2>=0){const d=Math.max(Math.abs(t2%W-tx),Math.abs(((t2/W)|0)-ty));if(d<=16)k=Math.min(4,Math.max(1,Math.ceil(d/2)+1))}
+    for(let b=-k;b<=k;b++)for(let a=-k;a<=k;a++){const x=tx+a,y=ty+b;if(x<0||y<0||x>=W||y>=H)continue;const i=y*W+x;if(cov&&!cov[i])continue;put(i,c32)}}}
+function fillAt(cx,cy){if(!reg){msg('この GLB には領域の情報がありません');return}const t=texelAt(pick,Math.round(cx*PICK_SCALE),Math.round(cy*PICK_SCALE));if(t<0)return;const id=reg[t];
+  if(!id){msg('ここは塗りつぶしの対象外です(機械の部分など)。ブラシは使えます');return}
+  const ids=new Set([id]);if($('sym').checked&&mirror&&mirror[id])ids.add(mirror[id]);const c32=c32of(color);begin();let n=0;
+  for(let i=0;i<reg.length;i++)if(ids.has(reg[i])){put(i,c32);n++}end();msg('領域 '+[...ids].join(' と ')+' を塗りました('+n.toLocaleString()+' texel)')}
+function pickColor(cx,cy){const t=texelAt(pick,Math.round(cx*PICK_SCALE),Math.round(cy*PICK_SCALE));if(t<0)return;setColor([tex8[t*4],tex8[t*4+1],tex8[t*4+2]]);msg('色 '+color.join(', '))}
+function undo(){const u=undoStack.pop();if(!u)return;for(let k=0;k<u.idx.length;k++){const i=u.idx[k];tex32[i]=u.old[k]}dirty=[0,0,W-1,H-1];$('undo').disabled=!undoStack.length}
+$('undo').onclick=undo;
+
+// ---------- input
+let drag=null,space=false;
+const local=e=>{const r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]};
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+cv.addEventListener('pointerdown',e=>{if(!G)return;cv.setPointerCapture(e.pointerId);const [x,y]=local(e);
+  const mode=(e.button===1||space)?'pan':(e.button===2||e.shiftKey||tool==='orbit')?'orbit':e.altKey?'pick':tool;
+  if(mode!=='orbit'&&mode!=='pan'&&pickDirty)renderPick();
+  drag={mode,x,y};if(mode==='brush'){begin();dab(x,y)}else if(mode==='fill')fillAt(x,y);else if(mode==='pick')pickColor(x,y)});
+cv.addEventListener('pointermove',e=>{const [x,y]=local(e);
+  if(tool==='brush'&&G){ring.style.display='block';ring.style.width=ring.style.height=brush+'px';ring.style.left=(e.clientX-brush/2)+'px';ring.style.top=(e.clientY-brush/2)+'px'}
+  if(!drag)return;const dx=x-drag.x,dy=y-drag.y;
+  if(drag.mode==='orbit'){cam.yaw-=dx*0.008;cam.pitch=Math.max(-1.5,Math.min(1.5,cam.pitch+dy*0.008));needDraw=pickDirty=true}
+  else if(drag.mode==='pan'){const m=camMat(),k=cam.dist*0.0011;cam.tx+=(-dx*m.v.x[0]+dy*m.v.y[0])*k;cam.ty+=(-dx*m.v.x[1]+dy*m.v.y[1])*k;cam.tz+=(-dx*m.v.x[2]+dy*m.v.y[2])*k;needDraw=pickDirty=true}
+  else if(drag.mode==='brush'){const d=Math.hypot(dx,dy),n=Math.max(1,Math.ceil(d/Math.max(1,brush/4)));for(let k=1;k<=n;k++)dab(drag.x+dx*k/n,drag.y+dy*k/n)}
+  drag.x=x;drag.y=y});
+const up=()=>{if(drag&&drag.mode==='brush')end();drag=null};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+cv.addEventListener('pointerleave',()=>{ring.style.display='none'});
+cv.addEventListener('wheel',e=>{e.preventDefault();cam.dist*=Math.exp(e.deltaY*0.0015);needDraw=pickDirty=true},{passive:false});
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'&&e.target.type!=='range'&&e.target.type!=='checkbox')return;
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo();return}
+  if(e.code==='Space'){space=true;e.preventDefault();return}
+  const k=e.key.toLowerCase();if(k==='v')setTool('orbit');else if(k==='b')setTool('brush');else if(k==='g')setTool('fill');else if(k==='i')setTool('pick');
+  else if(k==='[')$('size').value=brush=Math.max(2,brush-2),$('sizev').textContent=brush;else if(k===']')$('size').value=brush=Math.min(60,brush+2),$('sizev').textContent=brush});
+addEventListener('keyup',e=>{if(e.code==='Space')space=false});
+addEventListener('resize',()=>{needDraw=pickDirty=true});
+
+// ---------- save
+async function buildGLB(){// fill the gutters round each chart so that filtered viewers show no seams
+  const out=new Uint32Array(tex32);if(cov){let known=Uint8Array.from(cov);for(let pass=0;pass<8;pass++){const nk=Uint8Array.from(known);
+      for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;if(known[i])continue;let s=-1;if(x>0&&known[i-1])s=i-1;else if(x<W-1&&known[i+1])s=i+1;else if(y>0&&known[i-W])s=i-W;else if(y<H-1&&known[i+W])s=i+W;if(s>=0){out[i]=out[s];nk[i]=1}}known=nk}}
+  const c=new OffscreenCanvas(W,H);c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(out.buffer),W,H),0,0);
+  const png=new Uint8Array(await (await c.convertToBlob({type:'image/png'})).arrayBuffer());
+  const j=JSON.parse(JSON.stringify(G.json)),tv=j.images[G.baseImg].bufferView,parts=[];let len=0;
+  const order=j.bufferViews.map((v,i)=>i).sort((a,b)=>(G.json.bufferViews[a].byteOffset||0)-(G.json.bufferViews[b].byteOffset||0));
+  for(const i of order){const v=G.json.bufferViews[i],d=i===tv?png:G.bin.subarray(v.byteOffset||0,(v.byteOffset||0)+v.byteLength);const pad=(4-len%4)%4;if(pad){parts.push(new Uint8Array(pad));len+=pad}
+    j.bufferViews[i].byteOffset=len;j.bufferViews[i].byteLength=d.length;parts.push(d);len+=d.length}
+  const pad=(4-len%4)%4;if(pad){parts.push(new Uint8Array(pad));len+=pad}
+  j.images[G.baseImg].mimeType='image/png';j.buffers[0].byteLength=len;let js=new TextEncoder().encode(JSON.stringify(j));const jp=(4-js.length%4)%4;
+  const head=new DataView(new ArrayBuffer(20));head.setUint32(0,0x46546C67,true);head.setUint32(4,2,true);head.setUint32(8,12+8+js.length+jp+8+len,true);head.setUint32(12,js.length+jp,true);head.setUint32(16,0x4E4F534A,true);
+  const bh=new DataView(new ArrayBuffer(8));bh.setUint32(0,len,true);bh.setUint32(4,0x004E4942,true);
+  return new Blob([head,js,new Uint8Array(jp).fill(32),bh,...parts],{type:'model/gltf-binary'})}
+$('save').onclick=async()=>{msg('保存中…');await new Promise(r=>setTimeout(r,30));try{const b=await buildGLB();const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=G.name.replace(/\.glb$/i,'')+'_painted.glb';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),60000);msg('保存しました: '+a.download+'('+(b.size/1048576).toFixed(1)+' MB)')}catch(err){msg('保存に失敗: '+err.message)}};
+
+buildPal();setTool('orbit');requestAnimationFrame(frame);
+window.__t={openFile,renderPick,texelAt,dab,fillAt,begin,end,undo,buildGLB,get pick(){return pick},get tex8(){return tex8},get PW(){return PW},get PH(){return PH},cam,setTool,setColor};
+</script>
+</body>
+</html>
