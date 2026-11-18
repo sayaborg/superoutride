@@ -16,7 +16,7 @@ import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { SoftwareSurface } from '../../src/view/software-surface.js';
 import { drawPlaneRow } from '../../src/view/scaled-plane.js';
 import { createSelectionFlow, SERIES_FADE_SECONDS } from '../../src/shell/selection-flow.js';
-import { CARD_STEPS, SERIES_SCALE, ZOOM_CENTRE } from '../../src/shell/card-rows.js';
+import { CARD_STEPS, DEMO, SERIES_SCALE, ZOOM_CENTRE } from '../../src/shell/card-rows.js';
 import { CARD, createCardFaces } from '../../src/shell/card-face.js';
 import { CARD_STYLES } from '../../src/shell/card-styles.js';
 import { openPlayerRecord } from '../../src/shell/player-record.js';
@@ -101,7 +101,9 @@ test('PRESS START leads to SELECT SERIES, whose last card is FREE PLAY, and BACK
   // course and a single vehicle still show.
   assert.equal(screen.row.kind, 'series');
   assert.deepEqual(names(), seriesNames);
-  assert.equal(screen.row.world, null);
+  // SELECT SERIES stands on the demo alone, its main picture FREE PLAY's card (K, 2026-11-19).
+  assert.equal(screen.row.world, DEMO);
+  assert.equal(screen.wallpaper, null);
   for (let i = 0; i < clubAt; i++) assert.equal(send('RIGHT'), 'slide');
   assert.equal(send('CONFIRM'), 'confirm');
   assert.deepEqual(
@@ -161,9 +163,11 @@ test('PRESS START leads to SELECT SERIES, whose last card is FREE PLAY, and BACK
   assert.equal(log.runs.at(-1).request.track, courses[0].raceTracks[0] ?? null);
   for (const name of ['SELECT COURSE', 'SELECT CLASS', 'SELECT SERIES']) assert.equal(send('BACK'), 'back', name);
   assert.equal(screen.index, seriesNames.length - 1);
-  // SETTINGS: one list card, which PAUSE opens; CONTROLS and CLEAR RECORDS open their own rows.
+  // SETTINGS: one list card, which PAUSE opens, standing on what SELECT SERIES stands on; CONTROLS and CLEAR RECORDS
+  // open their own rows.
   assert.equal(send('PAUSE'), 'confirm');
   assert.deepEqual(names(), ['SETTINGS']);
+  assert.equal(screen.row.world, DEMO);
   assert.equal(items().length, 13);
   assert.deepEqual(items().slice(-2), ['CONTROLS', 'CLEAR RECORDS']);
   // A value's CONFIRM does nothing.
@@ -185,7 +189,7 @@ test('PRESS START leads to SELECT SERIES, whose last card is FREE PLAY, and BACK
   assert.equal(screen.row.kind, 'title');
 });
 
-test("PAUSE opens SETTINGS from any row, in that row's world, and BACK or PAUSE returns to that row as it was", () => {
+test('PAUSE opens SETTINGS from any row, on what that row stands on, and BACK or PAUSE returns to that row as it was', () => {
   const { screen, send, items } = selection();
   // From TITLE, in the main world.
   assert.equal(send('PAUSE'), 'confirm');

@@ -247,8 +247,10 @@ CONFIRM. Every vehicle comes in its colors, four (the NSR500 of 1984 eight), eac
 is its default, and a class may fix the colors.
 
 Only two kinds of picture fill the frame: the main picture, through whose clear parts the attract demo shows, and each
-series' picture (K, 2026-11-09). TITLE, SELECT SERIES and FREE PLAY's rows stand on the main picture; FREE PLAY has no
-world of its own, and SETTINGS stands in the world of the row it was opened from. SELECT SERIES shows the series
+series' picture (K, 2026-11-09). TITLE and FREE PLAY's rows stand on the main picture over the attract demo; FREE PLAY
+has no world of its own. SELECT SERIES stands on the demo alone, and the main picture is FREE PLAY's card there (K,
+2026-11-19, in place of 2026-11-09's SELECT SERIES on the main picture). SETTINGS stands on what the row it was opened
+from stands on. SELECT SERIES shows the series
 pictures at 0.7, the size of a card, with no text over them; choosing one brings it toward the player until it fills the
 frame at 1:1, and the player is in that series' world, whose rows stand on its picture. FREE PLAY's card shows the main
 picture so, the attract demo showing through its clear parts at 1:1 behind it, and choosing it brings the picture to

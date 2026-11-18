@@ -88,11 +88,20 @@ export interface Card {
   page?(): CardPage;
 }
 
-/** A row of cards, TITLE's PRESS START or SELECT SERIES' pictures, standing in the main world or a series' world. */
+/**
+ * What a row stands on: a series' picture (its world); the main world (null), the attract demo behind the main
+ * picture; or the demo alone (`DEMO`), as SELECT SERIES stands while the main picture is FREE PLAY's card on the scaled
+ * plane (K, 2026-11-19).
+ */
+export type World = TilePicture | null | typeof DEMO;
+/** The attract demo alone, the main world without its picture. */
+export const DEMO = 'demo';
+
+/** A row of cards, TITLE's PRESS START or SELECT SERIES' pictures, standing on its world. */
 export interface CardRow {
   readonly kind: 'title' | 'cards' | 'series';
-  /** The series' picture of the world the row stands in; null for the main world. */
-  readonly world: TilePicture | null;
+  /** What the row stands on. */
+  readonly world: World;
   readonly cards: readonly Card[];
   /** The card in focus when the row is shown. */
   readonly initial: number;
@@ -139,7 +148,7 @@ type Motion =
   | { readonly kind: 'thin'; readonly from: View; steps: number }
   | { readonly kind: 'zoom'; readonly row: CardRow; readonly index: number; readonly to: number; steps: number }
   | { readonly kind: 'hold'; steps: number }
-  | { readonly kind: 'set'; readonly world: TilePicture | null; readonly view: View };
+  | { readonly kind: 'set'; readonly world: World; readonly view: View };
 
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
@@ -176,7 +185,7 @@ export function createCardRows(
   sound: (engine: CompetitorObservation) => void,
   pause: () => MenuResponse | null,
 ) {
-  let world: TilePicture | null = initial.world,
+  let world: World = initial.world,
     view: View = viewOf(initial),
     motions: Motion[] = [],
     pending: MenuCommand | null = null,
@@ -261,16 +270,18 @@ export function createCardRows(
     return null;
   };
 
-  // The world behind the rows: the attract demo, and the main picture over it unless the scaled plane shows it (`plane`),
-  // or the series' picture.
-  const drawWorld = (target: SoftwareSurface, at: TilePicture | null, lines: boolean, plane: boolean) => {
-    if (at) return at.draw(target, 0, 0);
+  // A world that is a series' picture.
+  const pictured = (at: World): at is TilePicture => at !== null && at !== DEMO;
+  // The world behind the rows: the series' picture, or the attract demo, with the main picture over it in the main world.
+  const drawWorld = (target: SoftwareSurface, at: World, lines: boolean) => {
+    if (pictured(at)) return at.draw(target, 0, 0);
     text.clear();
     if (!main.draw(target, lines ? text : null)) target.clear(SCREEN_BACKGROUND);
-    if (!plane) main.picture.draw(target, 0, 0);
+    if (at === null) main.picture.draw(target, 0, 0);
     if (lines) text.draw(target);
   };
-  const onPlane = (shown: View) => shown?.row.kind === 'series';
+  // The world a row shown in a motion stands on: its own, or the screen's while none is shown.
+  const under = (shown: View) => (shown ? shown.row.world : world);
   const planeRow = (row: CardRow): PlaneRow => ({
     pictures: row.cards.map((card) => card.picture ?? main.picture),
     pitch: SERIES_PITCH,
@@ -371,7 +382,7 @@ export function createCardRows(
       return heard() !== undefined;
     },
     get wallpaper() {
-      return motions.length === 0 ? world : null;
+      return motions.length === 0 && pictured(world) ? world : null;
     },
     get row() {
       return view?.row ?? null;
@@ -398,7 +409,7 @@ export function createCardRows(
       blink++;
       const motion = motions[0];
       // The main world's demo runs while it shows.
-      if (world === null || motion?.kind === 'zoom') main.tick();
+      if (!pictured(world) || motion?.kind === 'zoom') main.tick();
       if (motion) {
         if (++(motion as { steps: number }).steps >= duration(motion)) {
           motions.shift();
@@ -420,21 +431,21 @@ export function createCardRows(
     render() {
       const motion = motions[0];
       if (motion?.kind === 'zoom') {
-        drawWorld(frame, null, false, true);
+        drawWorld(frame, DEMO, false);
         const t = easeInOut(motion.steps / CARD_STEPS.zoom),
           scale = motion.to === 1 ? SERIES_SCALE + (1 - SERIES_SCALE) * t : 1 - (1 - SERIES_SCALE) * t;
         drawPlaneRow(frame, planeRow(motion.row), motion.index, scale, ZOOM_CENTRE, 0);
         drawPath(frame, { row: motion.row, index: motion.index, item: 0 });
       } else if (motion?.kind === 'thin') {
         const title = (shown: View) => shown?.row.kind === 'title';
-        drawWorld(frame, world, title(motion.from), onPlane(motion.from));
+        drawWorld(frame, under(motion.from), title(motion.from));
         drawRow(frame, motion.from, undefined);
         scratch.set(frame.pixels);
-        drawWorld(frame, world, title(view), onPlane(view));
+        drawWorld(frame, under(view), title(view));
         drawRow(frame, view, undefined);
         thinLines(frame.pixels, scratch, frame.width, frame.height, motion.steps / CARD_STEPS.thin);
       } else {
-        drawWorld(frame, world, view?.row.kind === 'title', onPlane(view));
+        drawWorld(frame, under(view), view?.row.kind === 'title');
         drawRow(frame, view, motion);
       }
       present();
@@ -468,7 +479,7 @@ export function createCardRows(
         { kind: 'set', world, view: null },
         { kind: 'thin', from: view, steps: 0 },
         { kind: 'zoom', row, index: row.initial, to: SERIES_SCALE, steps: 0 },
-        { kind: 'set', world: null, view: next },
+        { kind: 'set', world: row.world, view: next },
       );
     },
   };

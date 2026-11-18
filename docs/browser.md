@@ -302,12 +302,13 @@ it when the card comes to rest and its returned function once the focus or the r
 audition, the one form of [playing a track](audio.md#music) from its start, looped: the audition stops when the focus or
 the row leaves, and a track still decoding when it leaves never sounds.
 
-The rows stand in a world. The main world is the attract demo behind the main picture, 40×30 tiles whose clear parts
-show the demo, and until the main picture is made the title logo (36×14 tiles) placed in it at tile column 2, row 2
-(`mainPicture`): TITLE, SELECT SERIES and FREE PLAY's rows stand in it, and SETTINGS in the world of the row it was
-opened from. Only the scaled plane, one layer of 8×8 tiles, scales, and the demo, its road and sprites, cannot (K,
-2026-11-19): on SELECT SERIES the main picture is FREE PLAY's card on the plane at 0.7, as a series' picture is, and
-the demo shows behind the plane at 1:1, through its clear parts as through the main picture's. Choosing FREE PLAY
+The rows stand on a world (`World`). The main world is the attract demo behind the main picture, 40×30 tiles whose
+clear parts show the demo, and until the main picture is made the title logo (36×14 tiles) placed in it at tile column
+2, row 2 (`mainPicture`): TITLE and FREE PLAY's rows stand in it. Only the scaled plane, one layer of 8×8 tiles, scales,
+and the demo, its road and sprites, cannot (K, 2026-11-19): SELECT SERIES stands on the demo alone (`DEMO`), the main
+picture being FREE PLAY's card on the plane at 0.7, as a series' picture is, and the demo shows behind the plane at
+1:1, through its clear parts as through the main picture's (K, 2026-11-19, in place of 2026-11-09's SELECT SERIES in
+the main world). SETTINGS stands on the world of the row it was opened from, whichever it is. Choosing FREE PLAY
 brings the picture to 1:1, where it is the main world's own over the demo, which never moved. A series' world is its
 picture, at 1:1 on the scaled plane: its SELECT CLASS and SELECT VEHICLE stand in it. Within a world one row gives way
 to the next by line thinning, the [background transitions'](image-assets.md#background-transitions) one rule and one

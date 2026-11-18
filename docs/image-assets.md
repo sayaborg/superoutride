@@ -1100,10 +1100,11 @@ bottom tile row is left free for LOADING's percentage. LOADING reads it first, w
 the startup's files.
 
 A series image is named by its series' ID, and an ARCADE TRIBUTE series' ID is `arcade-tribute-` and its original's ID,
-as `arcade-tribute-pole-position-ii` (K, 2026-11-09). The main picture, which TITLE, SELECT SERIES and FREE PLAY stand
-on, will be 40×30 tiles too and may be transparent: its source's alpha marks the clear parts through which the attract
+as `arcade-tribute-pole-position-ii` (K, 2026-11-09). The main picture, which TITLE and FREE PLAY's rows stand on,
+will be 40×30 tiles too and may be transparent: its source's alpha marks the clear parts through which the attract
 demo shows (K, 2026-11-09); until it is made, the title logo placed in a picture of that size at tile column 2, row 2,
-clear elsewhere, stands for it. Like a series image, it is FREE PLAY's card on the scaled plane (K, 2026-11-19).
+clear elsewhere, stands for it. Like a series image, it is FREE PLAY's card on the scaled plane, over the demo alone
+on SELECT SERIES (K, 2026-11-19).
 
 **Generator.** `npm run screen-pictures` ([Development](development.md#screen-pictures-command)) draws every screen
 picture from production-only sources that the build does not deliver: `content/screen-picture-sources/recipes.json`

@@ -15,7 +15,15 @@ import type { Screen } from './screen-host.js';
 import { clearRecordCards, settingCards } from './settings-screens.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
 import type { CardFaces } from './card-face.js';
-import { createCardRows, PATH_ROOT, type Card, type CardRow, type MainWorld, type RowChange } from './card-rows.js';
+import {
+  createCardRows,
+  DEMO,
+  PATH_ROOT,
+  type Card,
+  type CardRow,
+  type MainWorld,
+  type RowChange,
+} from './card-rows.js';
 import type { CardPage } from './card-face.js';
 import type { CardStyle } from './card-styles.js';
 import { classPage } from './class-page.js';
@@ -144,11 +152,11 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
         },
       ],
     });
-  // SELECT SERIES: the series pictures, FREE PLAY's the main world itself (K, 2026-11-19).
+  // SELECT SERIES: the series pictures, FREE PLAY's the main picture, over the demo alone (K, 2026-11-19).
   const seriesRow = (): CardRow =>
     row({
       kind: 'series',
-      world: null,
+      world: DEMO,
       path: [PATH_ROOT],
       initial: at(selectable, (s) => s.id === (seriesChoice?.id ?? latest('series'))),
       cards: selectable.map((entry): Card => ({
@@ -300,8 +308,9 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // A run plays its course's first race track, or none.
   const raceTrack = (id: string) => courseOf(id).raceTracks[0] ?? null;
 
-  // SETTINGS: one list card of the settings, out of the path, which PAUSE opens from any row in that row's world and
-  // BACK or PAUSE closes, back to that row as it was (K, 2026-11-19); CONTROLS and CLEAR RECORDS open their own rows.
+  // SETTINGS: one list card of the settings, out of the path, which PAUSE opens from any row, standing on what that row
+  // stands on, and BACK or PAUSE closes, back to that row as it was (K, 2026-11-19); CONTROLS and CLEAR RECORDS open
+  // their own rows.
   let opened: { readonly row: CardRow; readonly index: number; readonly item: number } | null = null;
   const settingsRow = (initialItem = 0): CardRow => {
     const items = settingCards(
