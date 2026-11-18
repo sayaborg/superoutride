@@ -905,38 +905,40 @@ black mass), and 0.30 for the machinery, which the stage set at 0.40, movable be
 engine behind showed few cyan points. The helmet is kept to size 4 at 0.02. The model is K's
 `mclaren_m23_1976_rev4.glb`, kept on K's branch `codex/m23-glb-source`, never on main.
 
-**The NSR500 of 1984.** Its set, `nsr500-1984`, is colored by paints (K, 2026-11-18). K painted its model's paints
-flat; the red (215, 5, 17) and the blue (32, 46, 131) are its two paints, four steps each, and everything else, the
-white paint (235, 235, 233) with the metal, tyres, screen and skin, is the greys' six steps (K, 2026-11-18): the white
-falls in the lightest greys, the aluminium in the middle ones and the tyres in the darkest. The magenta at the tail's
-rear tip (255, 0, 255, about 11 cm by 8 cm) is the brake lamp, whose off and on colors are `vfr750r`'s; no palette
-shows the magenta. Each silencer's end is painted a light ring round a black hole, which fall in the greys as they
+**The NSR500 of 1984.** Its set, `nsr500-1984`, is colored by paints (K, 2026-11-18) and baked from K's second model
+(K, 2026-11-18). K painted the model's paints flat and alike on both sides; the red (215, 5, 17) and the blue
+(32, 46, 131) are its two paints, three steps each, and everything else is the greys' eight steps (K, 2026-11-18): the
+white paint (235, 235, 233), now the rider's upper body as well, falls in the lightest greys, the aluminium in the
+middle ones, and the tyres and the black knee sliders (17, 17, 17) in the darkest. The magenta at the tail's tip
+(255, 0, 255) is the brake lamp, whose off and on colors are `vfr750r`'s; no palette shows the magenta. Each of
+the four silencers'
+ends, two above each other on either side, is painted a light ring round a black hole, which fall in the greys as they
 are. It is lit by the light L2 (K, 2026-11-18): `main` (−0.25, 0.85, 0.46), `fill` (0.60, 0.20, 0.50), ambient 0.16,
 sky 0.26, weights 0.95 and 0.10, shininess 36, gloss 0.6, so faces turned up are light, those turned aside middling
 and those turned down dark. Both wheels are spun (K, 2026-11-18), as the model's `wheel_F` and `wheel_R` give them:
-centres (0, 0.300, 0.6901) and (0, 0.335, −0.6901) m, radii 0.300 and 0.335, rims 0.217 and 0.230, widths 0.13 and
-0.18. It has 64 directions by 7 bank images over ±60°, as `vfr750r`, sampled every 8 mm; its steps are measured from
-16 directions.
+centres (0, 0.2967, 0.6901) and (0, 0.3317, −0.6901) m, 3.3 mm below their radii where the tyres are flattened on the
+road, radii 0.300 and 0.335, rims 0.217 and 0.230, widths 0.13 and 0.18. It has 64 directions by 7 bank images over
+±60°, as `vfr750r`, sampled every 8 mm; its steps are measured from 16 directions.
 
 Its eight liveries are white with two colors (K, 2026-11-18): the white is every livery's, and each recolors the red's
-place (A) and the blue's (B); every livery's A is its own, so that far away the main color tells them apart. The first
-is the model's own and the default. The others' colors are the recipe's, for K to set in DEV: yellow 240, 200, 20;
-black 40, 40, 44; green 20, 150, 60; gold 200, 160, 50; light blue 80, 180, 230; pink 240, 120, 170; orange 240, 120,
-20; navy 25, 35, 90; purple 120, 40, 160; white 235, 235, 233; red 215, 5, 17.
+place (A: the cowl, the tail, one of the helmet's and leathers' lines) and the blue's (B: the cowl's band, the
+trousers, the V on the back). Every livery's A is its own, and so is its B, so that from behind as from far away the
+liveries tell apart. The first is the model's own and the default. The others' base colors are the stage's (K,
+2026-11-18), for K to set in DEV, and their steps keep the measured steps' relation to the paints:
 
-| Palette         | Name          | A          | B      |
-| --------------- | ------------- | ---------- | ------ |
-| `red-blue`      | RED/BLUE      | red        | blue   |
-| `yellow-black`  | YELLOW/BLACK  | yellow     | black  |
-| `green-yellow`  | GREEN/YELLOW  | green      | yellow |
-| `black-gold`    | BLACK/GOLD    | black      | gold   |
-| `sky-pink`      | SKY/PINK      | light blue | pink   |
-| `orange-navy`   | ORANGE/NAVY   | orange     | navy   |
-| `purple-yellow` | PURPLE/YELLOW | purple     | yellow |
-| `white-red`     | WHITE/RED     | white      | red    |
+| Palette        | Name         | A                       | B                   |
+| -------------- | ------------ | ----------------------- | ------------------- |
+| `red-blue`     | RED/BLUE     | red 215, 5, 17          | blue 32, 46, 131    |
+| `yellow-black` | YELLOW/BLACK | yellow 245, 200, 10     | black 38, 38, 42    |
+| `green-yellow` | GREEN/YELLOW | green 20, 140, 60       | yellow 245, 200, 10 |
+| `black-red`    | BLACK/RED    | black 38, 38, 42        | red 215, 5, 17      |
+| `sky-pink`     | SKY/PINK     | light blue 70, 170, 235 | pink 240, 120, 170  |
+| `navy-orange`  | NAVY/ORANGE  | navy 22, 32, 90         | orange 240, 120, 15 |
+| `lime-purple`  | LIME/PURPLE  | lime 150, 210, 40       | purple 120, 50, 170 |
+| `white-green`  | WHITE/GREEN  | white 235, 235, 233     | green 20, 140, 60   |
 
-The model is K's `honda-nsr500-1984.glb`, kept on K's branch `codex/nsr500-1984-glb-source`, never on main; it has no
-wheel nodes, and its front hub is its `wheel_F` centre.
+The model is K's `honda-nsr500-1984.glb` (SHA-256 `38ad7181…`), kept on K's branch `codex/nsr500-1984-glb-source`,
+never on main; it has no wheel nodes, and its front hub is its `wheel_F` centre.
 
 ## HUD picture generator
 

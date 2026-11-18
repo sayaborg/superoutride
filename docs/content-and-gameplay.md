@@ -1034,7 +1034,7 @@ ASIA, AMERICA and EUROPE, in the original's order, each one run of its stages wi
 limits. It is a one-make of the Honda NSR500 of 1984 (K, 2026-11-18; [Racing vehicles](racing-vehicles.md)): its
 field is the original's eight NSR500s, the player last, in the bike grid's rearmost slot, in the machine's own RED/BLUE
 (`fixedColors`), with the original's seven rivals in front of it in its seven other liveries, YELLOW/BLACK,
-GREEN/YELLOW, BLACK/GOLD, SKY/PINK, ORANGE/NAVY, PURPLE/YELLOW and WHITE/RED from the front; and the riders the player
+GREEN/YELLOW, BLACK/RED, SKY/PINK, NAVY/ORANGE, LIME/PURPLE and WHITE/GREEN from the front; and the riders the player
 passes are traffic NSR500s of `path: line`, slow riders on the racing line in any of its liveries, at 2 a kilometre and
 up to 150 km/h (provisional). The original's turbo is not made.
 

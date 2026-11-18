@@ -365,13 +365,13 @@ test('a model colored by paints stands on its front hub, spins its wheels and dr
   const digits = new Set(upright.rows.join(''));
   assert.ok(digits.has('f'), 'a lamp texel');
   assert.ok(
-    ['1', '2', '3', '4'].some((d) => digits.has(d)),
+    ['1', '2', '3'].some((d) => digits.has(d)),
     'a first ramp texel',
   );
   assert.deepEqual(draw().bytes, bytes);
 });
 
-test('the NSR500 of 1984’s saved set: two paint ramps of four and six greys, in eight liveries', async () => {
+test('the NSR500 of 1984’s saved set: two paint ramps of three and eight greys, in eight liveries', async () => {
   const value = JSON.parse(await readFile(new URL(`../../content/sprites/${PAINTED}.json`, import.meta.url), 'utf8'));
   const { set } = readVehicleSpriteSetDocument(value, PAINTED);
   assert.equal(set.yawVariants, 64);
@@ -379,11 +379,10 @@ test('the NSR500 of 1984’s saved set: two paint ramps of four and six greys, i
   assert.equal(set.bankDegrees, 60);
   const palettes = Object.values(value.palettes);
   assert.equal(palettes.length, 8);
-  // The greys and the lamp are every livery's; each livery's first ramp, the main color, is its own, and so are its
-  // two ramps together.
-  for (const palette of palettes) assert.deepEqual(palette.slice(8), palettes[0].slice(8));
-  assert.equal(new Set(palettes.map((p) => p.slice(0, 4).join())).size, 8, 'the first ramp');
-  assert.equal(new Set(palettes.map((p) => p.slice(0, 8).join())).size, 8, 'the two ramps');
+  // The greys and the lamp are every livery's; each livery's two ramps, the red's place and the blue's, are its own.
+  for (const palette of palettes) assert.deepEqual(palette.slice(6), palettes[0].slice(6));
+  assert.equal(new Set(palettes.map((p) => p.slice(0, 3).join())).size, 8, 'the first ramp');
+  assert.equal(new Set(palettes.map((p) => p.slice(3, 6).join())).size, 8, 'the second ramp');
   // No palette color, nor the lamp's, is the model's magenta.
   const magenta = 0x7c1f;
   for (const color of [...palettes.flat(), value.brakeLamp.off, value.brakeLamp.on]) assert.notEqual(color, magenta);

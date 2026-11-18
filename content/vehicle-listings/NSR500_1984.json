@@ -11,11 +11,11 @@
       "red-blue": "RED/BLUE",
       "yellow-black": "YELLOW/BLACK",
       "green-yellow": "GREEN/YELLOW",
-      "black-gold": "BLACK/GOLD",
+      "black-red": "BLACK/RED",
       "sky-pink": "SKY/PINK",
-      "orange-navy": "ORANGE/NAVY",
-      "purple-yellow": "PURPLE/YELLOW",
-      "white-red": "WHITE/RED"
+      "navy-orange": "NAVY/ORANGE",
+      "lime-purple": "LIME/PURPLE",
+      "white-green": "WHITE/GREEN"
     }
   },
   "sound": "NSR500_1987",

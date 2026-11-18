@@ -25,11 +25,11 @@ test('SUPER HANG-ON is a one-make of the NSR500 of 1984 in its eight liveries, t
   const liveries = [
     'yellow-black',
     'green-yellow',
-    'black-gold',
+    'black-red',
     'sky-pink',
-    'orange-navy',
-    'purple-yellow',
-    'white-red',
+    'navy-orange',
+    'lime-purple',
+    'white-green',
     own,
   ];
   assert.deepEqual([...liveries].sort(), [...nsr.spriteSet.colors].sort());
