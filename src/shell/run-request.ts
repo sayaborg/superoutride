@@ -25,45 +25,21 @@ export const SESSION_NAMES: Readonly<Record<SessionName, string>> = Object.freez
 });
 
 /**
- * A run of a class: its series and class, which names the course, and its session; a class of any course runs the
- * course it names (`courseId`), which no other class run names.
+ * A requested run, a run of a class: its series and class, which names the course, and its session; a class of any
+ * course runs the course it names (`courseId`), which no other class run names. The run's assembly admits it.
  */
-export interface ClassRunRequest extends RunChoice {
+export interface RunRequest extends RunChoice {
   readonly seriesId: string;
   readonly classId: string;
   readonly session: SessionName;
   readonly courseId?: string;
-}
-/** A FREE PLAY run: the course it names and its options. */
-export interface FreePlayRunRequest extends RunChoice {
-  readonly courseId: string;
-  readonly lapCount: number;
-  readonly rivalCount: number;
-  /** A rival pool ID of the FREE PLAY rules. */
-  readonly rivalPool: string;
-  /** OFF, or a TRAFFIC level ID of the FREE PLAY rules. */
-  readonly traffic: string;
-}
-/** A requested run: a class's session or FREE PLAY. The run's assembly admits its run request. */
-export type RunRequest = ClassRunRequest | FreePlayRunRequest;
-
-/** The name a run's rules are shown by (READY): its session, or FREE PLAY. */
-export const RULES_NAMES: Readonly<Record<RunRulesRequest['mode'], string>> = Object.freeze({
-  RACE: SESSION_NAMES.RACE,
-  TIME_ATTACK: SESSION_NAMES.TIME_ATTACK,
-  FREE_PLAY: 'FREE PLAY',
-});
-
-/** Whether `request` is a FREE PLAY run, which names a course rather than a class. */
-export function isFreePlay(request: RunRequest): request is FreePlayRunRequest {
-  return !('classId' in request);
 }
 
 /**
  * The course a class run drives: its class's, or for a class of any course the one the request names. A request naming
  * a course for a class of its own course, or none for a class of any, is a `RangeError`.
  */
-export function classRunCourse(named: SeriesClass, request: ClassRunRequest): string {
+export function classRunCourse(named: SeriesClass, request: RunRequest): string {
   if ((named.course === null) !== (request.courseId !== undefined))
     throw new RangeError(
       named.course === null
@@ -73,12 +49,9 @@ export function classRunCourse(named: SeriesClass, request: ClassRunRequest): st
   return named.course ?? request.courseId!;
 }
 
-/** The rules a run is requested with: a class run's session names them, and FREE PLAY gives its options. */
+/** The rules a run is requested with: its session, and the player's vehicle and color. */
 export function rulesRequest(request: RunRequest): RunRulesRequest {
-  const { vehicleId, color } = request;
-  if (!isFreePlay(request)) return { mode: request.session, vehicleId, color };
-  const { lapCount, rivalCount, rivalPool, traffic } = request;
-  return { mode: 'FREE_PLAY', vehicleId, color, lapCount, rivalCount, rivalPool, traffic };
+  return { mode: request.session, vehicleId: request.vehicleId, color: request.color };
 }
 
 /** The latest music choice MUSIC OFF, as the player record keeps it among its latest selections. */
@@ -117,7 +90,7 @@ export function readUrlRunRequest(
   series: SeriesCatalog,
   vehicles: readonly CompiledVehicleDefinition[],
   player: PlayerRecord,
-): ClassRunRequest | null {
+): RunRequest | null {
   const courseId = params.get('course'),
     session = params.get('session');
   let seriesId = params.get('series'),

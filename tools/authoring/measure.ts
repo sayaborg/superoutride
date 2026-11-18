@@ -77,7 +77,7 @@ export function runMeasureJob(
 ): MeasureResult {
   const entry = content.definitions.vehicles.find((vehicle) => vehicle.compiledVehicle.id === job.vehicleId)!;
   const vehicle = createRunVehicle(entry, content.definitions.driving);
-  const catalog = { vehicles: content.definitions.vehicles, freePlay: content.freePlay };
+  const catalog = { vehicles: content.definitions.vehicles };
   const runs = job.courses.map((id) => {
     progress(`reference runs on ${id}`);
     const course = content.courses.find((candidate) => candidate.id === id)!;

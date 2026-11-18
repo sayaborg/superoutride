@@ -7,8 +7,6 @@ import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { prepareRun } from '../../src/race/run-preparation.js';
-import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
-import { formPool } from '../../src/race/free-play-field.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { createCameraRig, resetCameraRig, updateCamera } from '../../src/view/camera.js';
@@ -36,6 +34,7 @@ import { RUN_RULE_LIMITS } from '../../src/course/run-rules.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { supportedTargetSurface, publishVehicleRenderY } from '../../src/vehicle/physics/vehicle-physics.js';
 import { initializePlanCoordinateObservation } from '../../src/vehicle/physics/vehicle-state.js';
+import { fieldClass } from '../race/field-class.mjs';
 
 /** The player's position as `P<rank>/<competitors present>`, from the race's standing. */
 const playerPosition = (race) => `P${race.standing.rank}/${race.standing.count}`;
@@ -53,8 +52,7 @@ const idle = { steering: 0, throttle: false, brake: false };
 // The player's vehicle: a RACE class's first vehicle, or the FREE PLAY scenario's selection.
 const playerVehicle = (id) => ({ entry: definitions.vehicles.find((v) => v.compiledVehicle.id === id) });
 // Runs are prepared from the delivered catalogs as in the browser.
-const freePlay = await loadFreePlayRules(content);
-const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials, freePlay };
+const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials };
 
 const screenPictures = await loadScreenPictures(content);
 const music = await loadMusic(content, TEXT_COLUMNS);
@@ -224,25 +222,18 @@ function laneWidth(scene, s, lane) {
  * the series, initial conditions and input policy differ from the browser.
  */
 export async function runScenario({ course }, scenario) {
-  // RACE and TIME ATTACK take their class of the test series.
-  const runClass = scenario.mode === 'RACE' || scenario.mode === 'TIME_ATTACK' ? scenarioClass(course, scenario) : null;
-  const { entry } = playerVehicle(runClass ? runClass.vehicles[0] : (scenario.vehicleId ?? 'TESTAROSSA'));
+  // RACE and TIME ATTACK take their class of the test series; any other scenario a class of its own vehicle, with
+  // the scenario's rivals of that vehicle.
+  const classed = scenario.mode === 'RACE' || scenario.mode === 'TIME_ATTACK';
+  const { entry } = playerVehicle(
+    classed ? scenarioClass(course, scenario).vehicles[0] : (scenario.vehicleId ?? 'TESTAROSSA'),
+  );
   assert.ok(entry, `${scenario.name}: missing selected vehicle`);
+  const runClass = classed
+    ? scenarioClass(course, scenario)
+    : fieldClass(course, entry.compiledVehicle.id, { rivals: scenario.rivals ?? 0 });
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
-  // RACE and TIME ATTACK take their class's settings; FREE PLAY takes the scenario's.
-  const mode = scenario.mode ?? 'FREE_PLAY';
-  const request =
-    mode !== 'FREE_PLAY'
-      ? { mode, vehicleId: entry.compiledVehicle.id, color: null }
-      : {
-          mode,
-          vehicleId: entry.compiledVehicle.id,
-          color: null,
-          lapCount: 1,
-          rivalCount: scenario.rivals ?? 0,
-          rivalPool: formPool(freePlay, entry).id,
-          traffic: 'OFF',
-        };
+  const request = { mode: scenario.mode ?? 'RACE', vehicleId: entry.compiledVehicle.id, color: null };
   const initialSpeed = scenario.policy === 'limit' ? 30 : 0;
   const prepared = await prepareRun(content, catalog, course, runClass, request, initialSpeed);
   const setup = prepared.resolve(scenario.seed ?? 0);

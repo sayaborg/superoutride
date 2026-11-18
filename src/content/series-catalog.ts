@@ -157,6 +157,9 @@ export interface CourseClass extends Omit<SeriesClass, 'course' | 'vehicles' | '
   readonly traffic: TrafficSettings | null;
 }
 
+/** What a run reads of its class on its course: its rules, without its series or names. */
+export type ClassRules = Omit<CourseClass, 'series' | 'id' | 'title'>;
+
 export interface SeriesCatalog {
   readonly series: readonly CompiledSeries[];
   /** The class `classId` of the series `seriesId`, or null when there is none. */

@@ -675,11 +675,11 @@ index with its display names.
 
 A run is requested as a typed run request ([`run-request.ts`](../src/shell/run-request.ts)): a class run names a series,
 one of its classes and its session (RACE from the rows, TIME ATTACK only from a URL; K, 2026-11-09), and the class
-names the course and gives the laps, field and traffic; a FREE PLAY run names the course and its rival count, rival
-pool, traffic and laps, which the rows cut to the course from RULES ([Card rows](#card-rows)). Both carry the vehicle,
+names the course, or the request does for a class of any course, and gives the laps, field and traffic. It carries the
+vehicle,
 the player's color and the track, which every request leaves at MUSIC OFF until it is decided which of a course's
 tracks plays (K, 2026-11-08). There is no front-end mode: the one translation of a run request into the rules it is requested with
-(`rulesRequest`) gives a class run the rules its session names and FREE PLAY its options. No class setting is looked
+(`rulesRequest`) gives a class run the rules its session names. No class setting is looked
 up from a course. The run's assembly admits those rules against the course, its class and the vehicle catalog
 and derives its run configuration (`compileRunConfiguration`); a request from the URL, the selection
 screens or RETRY passes the same admission, and a DEV rebuild's request too.
@@ -1070,8 +1070,9 @@ tuned values at once. Each adjustment is admitted by the
 compiler of the document it changed, the driving document's or the vehicle mechanics document's; a rejected one changes
 nothing. An admitted adjustment rebuilds the
 Run through the same assembly as startup: a new run vehicle of the tuned definitions, with the same listing and
-materials, in a FREE PLAY run with no rivals, the current lap count, no time limit, start speed 0
-and no time budgets, on a new Route runtime from the grid. It enters READY → GO at once, the HUD naming its own rules (FREE PLAY). The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
+materials, in a RACE of its class with the player alone (`aloneClass`: no rivals, traffic or time limit), the class's
+laps, start speed 0 and no time budgets, on a new Route runtime from the grid. It enters READY → GO at once, the HUD
+naming its rules (RACE). The shell, its input, audio, camera device and DEV controls persist, and the shell keeps the
 tuned definitions for further adjustments and export. Reloading the page restores the product run. EXPORT saves the tuned
 driving definition (`default.json`) and the run vehicle's tuned mechanics document (`<vehicle id>.json`) as browser
 downloads in the saved layout;

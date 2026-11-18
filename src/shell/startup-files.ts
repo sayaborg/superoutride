@@ -17,7 +17,6 @@ const STARTUP_KINDS: readonly ContentKind[] = [
   'screen-picture',
   'music',
   'series',
-  'free-play',
   'front-end',
   'explosion',
   'explosion-picture',

@@ -1,9 +1,8 @@
 import type { ContentDelivery } from '../content/content-delivery.js';
 import { readCourseTimeBudgets } from '../content/course-time-budgets.js';
 import { admitProduct } from '../content/delivered-product.js';
-import type { FreePlayRules } from '../content/free-play-rules.js';
 import { readRacingLines } from '../content/racing-line.js';
-import type { CourseClass } from '../content/series-catalog.js';
+import type { ClassRules } from '../content/series-catalog.js';
 import { createRunVehicle, runVehicleSha256, type RunVehicle } from '../content/run-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { SurfaceMaterialCatalog } from '../course/surface-material.js';
@@ -12,16 +11,15 @@ import type { CompiledVehicleDefinition } from '../vehicle/definition-document.j
 import { resolveRunSetup, runDemand, type EntryVehicle } from './run-setup.js';
 import { compileRunConfiguration, type RunConfiguration, type RunRulesRequest } from './run-configuration.js';
 
-/** The admitted catalogs every run is prepared from: vehicles, the game-wide driving, materials and FREE PLAY. */
+/** The admitted catalogs every run is prepared from: vehicles, the game-wide driving and materials. */
 export interface RunCatalog {
   readonly vehicles: readonly CompiledVehicleDefinition[];
   readonly driving: CompiledDrivingDefinition;
   readonly materials: SurfaceMaterialCatalog;
-  readonly freePlay: FreePlayRules;
 }
 
 /**
- * Prepare a requested run on `course`, whose class is `runClass` (null on an untimed course): the one path
+ * Prepare a requested run on `course` of its class there, `runClass` (`classOnCourse`): the one path
  * from a request to a run, which the browser and the driving scenarios share. It admits the request
  * (`compileRunConfiguration`, with the start speed `initialSpeed`), then loads from delivery, once each, what the
  * Run needs (`runDemand`): the player's and every other run vehicle with its reference identity, the
@@ -35,13 +33,13 @@ export async function prepareRun(
   content: ContentDelivery,
   catalog: RunCatalog,
   course: CompiledCourse,
-  runClass: CourseClass | null,
+  runClass: ClassRules,
   request: RunRulesRequest,
   initialSpeed = 0,
 ) {
   const { vehicles, driving, materials } = catalog;
   const configuration = compileRunConfiguration(request, course, runClass, catalog, initialSpeed);
-  const demand = runDemand(configuration, runClass, vehicles);
+  const demand = runDemand(configuration, runClass);
   const measured = content.manifest.files.some((file) => file.kind === 'racing-line');
   if (!measured && demand.budgets) throw new RangeError('Without measured products a run has no time limit');
   const loadEntryVehicle = async (id: string): Promise<EntryVehicle & { readonly sha256: string }> => {
@@ -61,7 +59,7 @@ export async function prepareRun(
   // Its budgets are those times with its class's margin.
   const budgets = demand.budgets
     ? await admitProduct(content, 'reference-times', `${course.id}/${vehicleId}`, (value, document) =>
-        readCourseTimeBudgets(course, player.sha256, runClass!.timeMargin!, value, document),
+        readCourseTimeBudgets(course, player.sha256, runClass.timeMargin!, value, document),
       )
     : null;
   // The course's racing lines, delivered with the measured products.
@@ -75,20 +73,26 @@ export async function prepareRun(
     /** The player's run vehicle and its reference identity. */
     vehicle: player.vehicle,
     vehicleSha256: player.sha256,
-    /** Resolve the run with `seed`; a DEV rebuild passes its tuned vehicle and configuration. */
+    /**
+     * Resolve the run with `seed`; a DEV rebuild passes its tuned vehicle, alone in its class (`aloneClass`), and its
+     * configuration.
+     */
     resolve(
       seed: number,
-      tuned: { readonly vehicle: RunVehicle; readonly configuration: RunConfiguration } | null = null,
+      tuned: {
+        readonly vehicle: RunVehicle;
+        readonly runClass: ClassRules;
+        readonly configuration: RunConfiguration;
+      } | null = null,
     ) {
-      const resolved = tuned?.configuration ?? configuration;
       return resolveRunSetup(
         course,
-        runClass,
-        resolved,
+        tuned?.runClass ?? runClass,
+        tuned?.configuration ?? configuration,
         seed,
         tuned?.vehicle ?? player.vehicle,
         tuned ? null : budgets,
-        { vehicleOf, rivalPool: runDemand(resolved, runClass, vehicles).rivalPool, racingLines },
+        { vehicleOf, racingLines },
       );
     },
   });

@@ -1,6 +1,6 @@
 /**
- * One field run ([Development](../../docs/development.md#field-runs)): FREE PLAY on a delivered course from GO, the
- * player driven by its run driver, with rivals and traffic, through the browser's path from a request to a race
+ * One field run ([Development](../../docs/development.md#field-runs)): FREE PLAY's RACE, or RACE + TRAFFIC, on a
+ * delivered course from GO, the player driven by its run driver, with rivals of its own vehicle, through the browser's path from a request to a race
  * (`prepareRun`) as the driving scenarios prepare theirs. It reports where the race throws and the first vehicle whose
  * state holds a number that is not finite, and how often the field recovered.
  */
@@ -9,22 +9,23 @@ import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js'
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadCourseIndex } from '../../src/content/course-index.js';
-import { formPool } from '../../src/race/free-play-field.js';
-import { gridRivalCapacity } from '../../src/race/run-configuration.js';
+import { classOnCourse, loadSeriesCatalog } from '../../src/content/series-catalog.js';
+import { loadScreenPictures } from '../../src/content/screen-picture-catalog.js';
+import { loadMusic } from '../../src/content/recording-catalog.js';
+import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { prepareRun } from '../../src/race/run-preparation.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 
-/** A field run: the course, the player's vehicle, how many rivals and what traffic, how long from GO, the seed. */
+/** A field run: the course, the player's vehicle, how many rivals and whether traffic, how long from GO, the seed. */
 export interface FieldRunJob {
   readonly course: string;
   readonly vehicle: string;
   readonly rivals: number;
-  readonly traffic: string;
+  readonly traffic: boolean;
   readonly seconds: number;
   readonly seed: number;
 }
@@ -52,25 +53,29 @@ export async function runField(job: FieldRunJob) {
   const content = await readDeliveredContent();
   const materials = await loadSurfaceMaterials(content);
   const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
-  const freePlay = await loadFreePlayRules(content);
-  const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials, freePlay };
+  const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials };
   const indexed = (await loadCourseIndex(content)).find((c) => c.id === job.course);
   if (!indexed) throw new RangeError(`No delivered course ${job.course}`);
-  const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === job.vehicle);
-  if (!entry) throw new RangeError(`No catalog vehicle ${job.vehicle}`);
+  if (!definitions.vehicles.some((v) => v.compiledVehicle.id === job.vehicle))
+    throw new RangeError(`No catalog vehicle ${job.vehicle}`);
   const course = await loadDeliveredCourse(content, job.course, materials);
-  // As many rivals as asked that the course's grid holds.
-  const rivals = Math.min(job.rivals, gridRivalCapacity(indexed.gridSlots));
-  const request = {
-    mode: 'FREE_PLAY',
+  const pictures = await loadScreenPictures(content);
+  const series = await loadSeriesCatalog(
+    content,
+    definitions.vehicles,
+    pictures,
+    await loadMusic(content, TEXT_COLUMNS),
+  );
+  // FREE PLAY's RACE on the course with as many rivals as asked that its grid holds, the player behind them.
+  const free = series.seriesClass('free-play', job.traffic ? 'race-traffic' : 'race')!;
+  const onCourse = classOnCourse(free, course, job.vehicle, definitions.vehicles);
+  const runClass = Object.freeze({ ...onCourse, entries: onCourse.entries.slice(0, job.rivals + 1) });
+  const rivals = runClass.entries.length - 1;
+  const prepared = await prepareRun(content, catalog, course, runClass, {
+    mode: 'RACE',
     vehicleId: job.vehicle,
     color: null,
-    lapCount: 1,
-    rivalCount: rivals,
-    rivalPool: formPool(freePlay, entry).id,
-    traffic: job.traffic,
-  } as const;
-  const prepared = await prepareRun(content, catalog, course, null, request);
+  });
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   const race = createCourseRace({ setup: prepared.resolve(job.seed), runtime: scene.runtime });
   race.start();

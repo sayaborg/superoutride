@@ -371,7 +371,7 @@ straight toward turn 1, from Drogger's detection point list; provisional); the o
 
 A course has a time limit when a class of a [series](#series-documents) runs it. The build generates reference runs
 and time budgets for those courses only, and only a class offers RACE, TIME ATTACK and the checkpoint clock. An
-untimed course runs FREE PLAY runs only. Compilation requires the start, grid and finish coverage described
+untimed course runs FREE PLAY's classes only. Compilation requires the start, grid and finish coverage described
 above for every course; each grid holds at least the player. Compiled `rules` retain `maxLaps`;
 compiled `gates` provide the resolved grids (`grid`, and `bikeGrid` or null) and per-Section landmark intervals to race
 and tools.
@@ -1078,25 +1078,6 @@ USA, 4 laps each with a margin of 1.35, without rank limits. The player drives t
 eight slots, with seven rivals in front of it, FERRARI 640s and MP4/4s in turn; the cars the player laps are
 traffic LOTUS 79 SPECIALs of `path: line`, at 2 a kilometre and up to 150 km/h (provisional).
 
-## FREE PLAY document
-
-`content/free-play/default.json` is the one `superoutride.free-play` version 1 document (manifest kind `free-play`,
-ID `default`): FREE PLAY's own rules, the same on every course.
-
-```text
-FreePlay {
-  format: "superoutride.free-play", version: 1,
-  rivalPools: [{id, forms}], traffic: [{id, density}], trafficSpeedKilometersPerHour
-}
-```
-
-`rivalPools` are the POOL choices in order: each an uppercase ID and the nonempty, unique vehicle forms (`car`, `bike`)
-it draws from. Each form has a pool of that form alone, the default pool of a vehicle of that form. `traffic` are the
-TRAFFIC levels after OFF, in order: each an uppercase ID other than `OFF` and a density in vehicles per kilometre in
-(0, 40] (`RUN_RULE_LIMITS.trafficDensity`). `trafficSpeedKilometersPerHour` is the one traffic speed, in
-(0, 864]. Admission checks the document once, from the build's file or the delivery manifest alike. The delivered
-document has the pools ALL (cars and bikes), CARS and BIKES, the levels LOW (5 vehicles/km) and HIGH (30) and 80 km/h.
-
 ## Front end selection document
 
 `content/front-end/selection.json` is the one `superoutride.front-end-selection` version 3 document (manifest kind
@@ -1131,22 +1112,21 @@ against the series, the screen pictures and the tracks, from the build's file or
 RACE resolves its class: one of the class's vehicle candidates, its entries and laps and the
 checkpoint clock. The player takes the rearmost grid entry of its vehicle in grid order: with `own` it stands in
 that entry's slot and every other grid entry in its own; with `last` it stands in the rearmost of the grid entries'
-slots and the other grid entries, in order, take the slots in front. Each other entry is a rival with its own
+slots and the other grid entries, in order, take the slots in front; with `first` it stands in the frontmost and they
+take the slots behind. Each other entry is a rival with its own
 vehicle, color and stage interval; one with an ahead appearance has no slot. The player's color, in RACE
 and TIME ATTACK alike, is its entry's when the class fixes colors, otherwise the player's chosen color (the
-player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. FREE PLAY resolves a catalog
-vehicle, zero to fifteen rivals within the grid, a rival pool, a traffic level and permitted laps; it has no clock.
+player record's color for the vehicle when its sprite set declares it), otherwise the vehicle's default color. A
+class of any course or vehicle (FREE PLAY's) is first put on its course with the player's vehicle (`classOnCourse`).
 TIME ATTACK resolves one of its class's vehicle candidates on the class's course; the player runs alone, without
 rivals, traffic or clock. On a LINEAR
 course it runs the class's laps to a finish; on a CIRCUIT it has no lap count (`lapCount` null): a run without
 a finish, whose finish lines count laps and never finish it ([race time and events](#race-time-and-events)). One admission,
-`compileRunConfiguration`, derives these rules from a request and checks it against the course, its class and
-the vehicle catalog and the [FREE PLAY document](#free-play-document); the configuration carries the FREE PLAY rival pool.
-RACE takes its class's traffic; FREE PLAY takes the TRAFFIC choice: OFF is none, and every other level is the
-FREE PLAY document's density at its traffic speed with every catalog vehicle as candidates.
+`compileRunConfiguration`, derives these rules from a request and checks it against the course, its class on that
+course and the vehicle catalog; every run has a class. RACE takes its class's traffic, and TIME ATTACK has none.
 Traffic settings are null or `{density, path, vehicles, speedKilometersPerHour}`, which series admission checks: a
 density in vehicles per kilometre in (0, 40] (`RUN_RULE_LIMITS.trafficDensity`), the path its vehicles drive (`lane`, a
-lane's centre, or `line`, the racing line; FREE PLAY's is `lane`), at least one vehicle `{vehicle, weight}` with
+lane's centre, or `line`, the racing line), at least one vehicle `{vehicle, weight}` with
 unique vehicle IDs, each weight an integer from 1 to 100 (`RUN_RULE_LIMITS.trafficWeight`, K, 2026-11-10: a class sets
 how often each traffic vehicle comes), and the one
 traffic speed in km/h in (0, 864] (`MAXIMUM_VEHICLE_SPEED` in km/h). Run resolution converts that speed to m/s once
@@ -1156,22 +1136,19 @@ whose own speed cap is lower keeps its own; curve speeds and following are any d
 resolution rejects RACE; a RACE clock without its delivered time budgets fails. Unsupported course/vehicle/grid/lap
 combinations fail before activation. A run binds immutable course, entries, lap target, start speed and timing
 references. Its entries list the player first, then the rivals: each has a stable ID (`PLAYER`, then `RIVAL_01`,
-`RIVAL_02`, …), its grid slot and its run vehicle (vehicle calibration and protection settings). In FREE PLAY and TIME
-ATTACK the rivals stand in the first slots of the grid the run's field starts from, `RIVAL_01` frontmost, and the player
-in the slot behind them, in the first when there are none (K, 2026-11-05).
-Each FREE PLAY rival is a vehicle/color pair drawn from the rival pool (`ALL`, `CARS` or `BIKES`; every color each
-pool vehicle's sprite set declares) by the run seed: a seeded shuffle of the pairs other than the player's own,
-reused in the same order only after every pair has been drawn, so the player's pair is drawn only when the pool
-holds nothing else. Each rival drives its own vehicle by the rival role. Each entry also carries its color.
-Resolving a run with rivals requires every rival's run vehicle and, in FREE PLAY, the pool; a missing one is a
-`RangeError`, never the player's vehicle. What a run needs is decided with its entries (`runDemand`): the
-FREE PLAY rival pairs, every other vehicle that may drive in it (class entries, the pool when it has rivals, traffic
-candidates) and the clock's time budgets; the browser loads exactly these.
+`RIVAL_02`, …), its grid slot and its run vehicle (vehicle calibration and protection settings). TIME ATTACK stands
+the player alone in the first slot of the grid its vehicle starts from (`aloneClass`). An entry without a color (a
+class of any vehicle's) takes one the run seed draws among its vehicle's colors: a seeded shuffle of the colors other
+than the player's, reused in the same order only after every one has been drawn, so the player's color is drawn only
+when its vehicle has no other. Each rival drives its own vehicle by the rival role. Each entry also carries its color.
+Resolving a run with rivals requires every rival's run vehicle; a missing one is a `RangeError`, never the player's
+vehicle. What a run needs is decided with its entries (`runDemand`): every other vehicle that may drive in it (class
+entries in RACE and traffic candidates) and the clock's time budgets; the browser loads exactly these.
 The start speed is a resolved run setting: every competitor spawns at its grid slot moving at it along the
 road tangent. It is finite and may be negative; product runs and reference runs use 0. The run seed is a
 32-bit unsigned integer that run resolution takes with the configuration and checks; traffic derives from it. The
-browser picks a new seed for every run assembly ([Browser](browser.md#display-and-scheduling)); reference runs,
-FREE PLAY runs without rivals, use 0, and scenarios and tests fix theirs. The race builds each
+browser picks a new seed for every run assembly ([Browser](browser.md#display-and-scheduling)); reference runs use 0,
+and scenarios and tests fix theirs. The race builds each
 competitor's mechanics and each rival's driver from its entry's vehicle; the player's composition supplies input only.
 A course need not leave every vehicle room to stop past its FINISH (K, 2026-10-24): the road's end is a course limit
 across the road ([Barrier lines](#barrier-lines)), which holds a vehicle that cannot stop before it.
@@ -1186,8 +1163,8 @@ Recovery consumes simulation time and grants no crossing credit. Results are run
 
 `tools/course` owns reference generation, its policy and report-to-budget admission. The product
 reads completed racing lines and time budgets and owns live run driving policy.
-The measurement tool's continuous reference runs are FREE PLAY's runs without rivals or traffic, but from the last
-grid slot, where a FREE PLAY run alone starts from the first: product physics and finite routes/laps, with the
+The measurement tool's continuous reference runs are each a RACE of a class of its own, the vehicle alone without
+rivals, traffic or clock, from the last slot of the grid its vehicle starts from: product physics and finite routes/laps, with the
 standard driver alone, waiting at full throttle through READY, and no clock. It drives by its own plan along the
 racing line (`racingLinePath`), without the race's sightings of other vehicles and standing objects, so that a run's
 path is the racing line's whatever stands on it. Each successful run records the

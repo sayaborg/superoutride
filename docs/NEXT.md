@@ -5,10 +5,10 @@
 Each line is one area as it stands, with the document that owns it.
 
 - **Scene and runs.** One compiled graph scene serves TSUKUBA and the courses raised from the originals' ROMs with RACE,
-  TIME ATTACK and FREE PLAY runs. Without DEV, FREE PLAY offers the courses a series runs (TSUKUBA, and for now the
+  TIME ATTACK and FREE PLAY's classes. Without DEV, FREE PLAY offers the courses a series runs (TSUKUBA, and for now the
   originals of the ARCADE TRIBUTE series delivered); the other originals' courses, in no series, are DEV's
   ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
-- The [seven racing vehicles](racing-vehicles.md) are authored FREE PLAY entries with provisional pictures and sound.
+- The [seven racing vehicles](racing-vehicles.md) are catalog vehicles for FREE PLAY with provisional pictures and sound.
   The NSR500 of 1984 is K's SUPER HANG-ON machine ([Stage NSR](#stage-nsr--the-nsr500-of-1984-and-super-hang-ons-one-make)).
   Lotus 79 SPECIAL and McLaren M23 PP SPEC have two actual forward ratios and opt into contact explosion/recovery; the
   M23's are two of its six, named `L` and `H`, and its pictures, baked from K's model, are in eight colors
@@ -788,9 +788,6 @@ line until the cards are designed. What follows goes to K first:
 - **PAUSE's QUIT,** which takes a RACE to TITLE, and where within the rows it should lead.
 - **FREE PLAY's traffic** (GD-29): its density and speed are K's to set; until then 5 vehicles per kilometre at
   80 km/h, the former LOW.
-- **The old FREE PLAY run (GD-29c),** the last step of GD-29: FREE PLAY now runs as classes, and the former FREE PLAY
-  run mode stays only for tests, tools and DEV's rebuilt run. It goes with its rules document
-  (`content/free-play/`), its rival pools, `FreePlayRunRequest` and its URL parameters, those uses taking class runs.
 - **Defaults K is to confirm** (GD-5): a gamepad's RT confirms and LT goes back in menus, as the accelerator and
   brake. The card's y 32 is K's (2026-11-11), balanced by the path's row.
 

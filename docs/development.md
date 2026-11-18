@@ -77,9 +77,9 @@ Visual correctness remains a manual check.
 
 ### Field runs
 
-`npm run field-runs` runs FREE PLAY on every delivered course, after `npm run build`, through the same path from a
-request to a race as the scenarios: the player driven by its run driver from GO with 11 rivals (as many as the course's
-grid holds) and HIGH traffic, for 300 s or until its race ends, seed 0, three courses at once. `--course`, `--vehicle`,
+`npm run field-runs` runs FREE PLAY's RACE + TRAFFIC on every delivered course, after `npm run build`, through the same
+path from a request to a race as the scenarios: the player driven by its run driver from GO with 11 rivals of its own
+vehicle (as many as the course's grid holds) and FREE PLAY's traffic (`--traffic OFF` runs its RACE), for 300 s or until its race ends, seed 0, three courses at once. `--course`, `--vehicle`,
 `--rivals`, `--traffic`, `--seconds` and `--seed` change one of these. It prints one JSON result: each course's run (its
 rivals, the seconds run, its status, the recoveries of the player and of the rivals), the fixed step where a race threw
 and what threw, and the first vehicle whose state held a number that is not finite and where; it exits 1 when any course
@@ -1259,7 +1259,6 @@ format/version. The delivery layout (`layoutDelivery` in
 | `engine-sound`       | Sound ID                                                             | `engine-sounds/<id>.json`                 | Engine-sound document ([Audio](audio.md#observations-and-engine-sounds))                                                        |
 | `surface-sound`      | `default`                                                            | `surface-sounds/<id>.json`                | Surface-sound document ([Tire audio](tire-audio.md#surface-sounds))                                                             |
 | `audio`              | `default`                                                            | `audio/<id>.json`                         | Game-wide sound settings ([Audio](audio.md#audio-document))                                                                     |
-| `free-play`          | `default`                                                            | `free-play/<id>.json`                     | FREE PLAY rules ([Content and gameplay](content-and-gameplay.md#free-play-document))                                            |
 | `front-end`          | `selection`                                                          | `front-end/<id>.json`                     | Front end selection ([Content and gameplay](content-and-gameplay.md#front-end-selection-document))                              |
 | `puffs`              | `default`                                                            | `puffs/<id>.json`                         | Puff document ([Tire puffs](tire-puffs.md#puff-document)); its pictures are `puff-picture` entries                              |
 | `puff-picture`       | Puff picture name                                                    | `puff-pictures/<id>.json`                 | A picture the puff document names, as saved                                                                                     |

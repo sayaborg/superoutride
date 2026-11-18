@@ -26,7 +26,6 @@ import {
   loadScreenPictures,
   mainPicture,
 } from '../content/screen-picture-catalog.js';
-import { loadFreePlayRules } from '../content/free-play-rules.js';
 import { createScreenHost, TRANSITION_STEPS } from './screen-host.js';
 import { createMenuMusic } from './menu-music.js';
 import { attractClasses, createAttractDemo, createDemoRandom } from './attract-demo.js';
@@ -162,7 +161,6 @@ async function startPage(): Promise<void> {
     const screenPictures = await reading.read((delivery) => loadScreenPictures(delivery, slices));
     const music = await reading.read((delivery) => loadMusic(delivery, TEXT_COLUMNS));
     const series = await reading.read((delivery) => loadSeriesCatalog(delivery, vehicles, screenPictures, music));
-    const freePlay = await reading.read(loadFreePlayRules);
     const player = openPlayerRecord(browserStorage());
     const frontEnd = await reading.read((delivery) => loadFrontEndSelection(delivery, series, screenPictures, music));
     const explosion = await reading.read((delivery) => loadContactExplosion(delivery, slices));
@@ -238,7 +236,6 @@ async function startPage(): Promise<void> {
       materials,
       series,
       courses: courseIndex,
-      freePlay,
       music,
       vehicles,
       driving,

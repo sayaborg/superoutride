@@ -57,9 +57,8 @@ remain distinct. Runtime vehicle JSON is the sole numerical authority; the CSV i
 
 ## Existing traffic and eligibility
 
-Catalog membership makes each bike selectable in FREE PLAY and eligible for its existing BIKES/ALL rival pools.
-Rivals use each bike's own mechanics. Existing FREE PLAY traffic also draws from the whole catalog, with its
-shared 80 km/h traffic policy; this addition does not alter that policy or weaken a bike's engine.
+Catalog membership makes each bike selectable in FREE PLAY, whose rivals and traffic are then that bike, each with
+its own mechanics, at FREE PLAY's traffic speed; this does not weaken a bike's engine.
 Series eligibility is explicit and remains unchanged. A future GP500 series or a different traffic speed policy
 requires its own content decision; neither is connected by this vehicle addition.
 

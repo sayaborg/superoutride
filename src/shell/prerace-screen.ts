@@ -11,7 +11,7 @@ import { SCREEN_BACKGROUND, writeCentred } from './menu.js';
 import { formatMilliseconds, NO_TIME } from './race-time.js';
 import { courseLength } from './course-page.js';
 import { classTitleLines } from '../content/series-catalog.js';
-import { classRunCourse, isFreePlay, SESSION_NAMES, type RunRequest } from './run-request.js';
+import { classRunCourse, SESSION_NAMES, type RunRequest } from './run-request.js';
 import type { SeriesCatalog } from '../content/series-catalog.js';
 import type { CourseIndex } from '../content/course-index.js';
 
@@ -33,10 +33,10 @@ const BLACK = 0;
 export interface PreRaceCard {
   /** For a class its series image, darkened from row 16; otherwise none, on black. */
   readonly background: TilePicture | null;
-  /** The class title for a class, else FREE PLAY. */
+  /** The class title. */
   readonly title: string;
-  /** A class run's session name; null in FREE PLAY. */
-  readonly session: string | null;
+  /** The run's session name. */
+  readonly session: string;
   readonly courseName: string;
   /** The laps of a circuit's run; null on other courses and for a run without a finish. */
   readonly laps: number | null;
@@ -45,29 +45,23 @@ export interface PreRaceCard {
 }
 
 /**
- * The card a request shows: for a class its series image, class title and session, else FREE PLAY on black; its
- * course's display name and map from the course index, and its laps on a circuit (TIME ATTACK has none there). An
- * unknown class or course is a `RangeError`.
+ * The card a request shows: its series image (black for a series without one), class title and session; its course's
+ * display name and map from the course index, and its laps on a circuit (TIME ATTACK has none there). An unknown class
+ * or course is a `RangeError`.
  */
 export function preRaceCardOf(request: RunRequest, series: SeriesCatalog, courses: CourseIndex): PreRaceCard {
-  let named = null,
-    courseId: string,
-    laps: number | null;
-  if (!isFreePlay(request)) {
-    named = series.seriesClass(request.seriesId, request.classId);
-    if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
-    [courseId, laps] = [classRunCourse(named, request), request.session === 'RACE' ? named.laps : null];
-  } else [courseId, laps] = [request.courseId, request.lapCount];
+  const named = series.seriesClass(request.seriesId, request.classId);
+  if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
+  const courseId = classRunCourse(named, request);
   const course = courses.find((c) => c.id === courseId);
   if (!course) throw new RangeError(`Unknown course ${courseId}`);
-  // A class of any course runs at most the course's laps (`classOnCourse`).
-  if (laps !== null) laps = Math.min(laps, course.maxLaps);
   return Object.freeze({
-    background: named ? named.series.image : null,
-    title: named ? named.title : 'FREE PLAY',
-    session: isFreePlay(request) ? null : SESSION_NAMES[request.session],
+    background: named.series.image,
+    title: named.title,
+    session: SESSION_NAMES[request.session],
     courseName: course.name,
-    laps: course.type === 'CIRCUIT' ? laps : null,
+    // A class of any course runs at most the course's laps (`classOnCourse`); TIME ATTACK has none on a circuit.
+    laps: course.type === 'CIRCUIT' && request.session === 'RACE' ? Math.min(named.laps, course.maxLaps) : null,
     map: course.map,
   });
 }
@@ -124,7 +118,7 @@ export function createPreRaceScreen(
       } else frame.clear(SCREEN_BACKGROUND);
       text.clear();
       classTitleLines(card.title).forEach((line, i) => text.write(COLUMN, 18 + i, line, TEXT_PALETTES.YELLOW));
-      if (card.session) text.write(COLUMN, 20, card.session, TEXT_PALETTES.WHITE);
+      text.write(COLUMN, 20, card.session, TEXT_PALETTES.WHITE);
       writeCentred(text, NAME_ROW, card.courseName, TEXT_PALETTES.WHITE);
       drawCourseMap(frame, card.map, MAP_BOX, mapColors);
       const length = courseLength(card.map);

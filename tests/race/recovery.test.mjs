@@ -6,9 +6,7 @@ import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js'
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { prepareRun } from '../../src/race/run-preparation.js';
-import { formPool } from '../../src/race/free-play-field.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { routeSectionS } from '../../src/course/course-route.js';
@@ -26,13 +24,13 @@ import { driverSteering } from '../../src/vehicle/steering-rule.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { PLANNED_DRIVER } from '../../src/race/planned-driver.js';
 import { PATH_OFFSET } from '../../src/race/lane-following.js';
+import { fieldClass } from './field-class.mjs';
 
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
 const sounds = await loadEngineSounds(content);
 const definitions = await loadVehicleDefinitions(content, sounds);
-const freePlay = await loadFreePlayRules(content);
-const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials, freePlay };
+const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials };
 const TESTAROSSA = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
 const idle = { steering: 0, throttle: false, brake: false };
 const throttle = { ...idle, throttle: true };
@@ -251,15 +249,13 @@ const lineCourse = await loadDeliveredCourse(delivered, 'line', materials);
 async function run({ rivals = 0, entry = TESTAROSSA, ready = idle, on = course, progressSeconds } = {}) {
   const course = on;
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
-  const prepared = await prepareRun(delivered, catalog, course, null, {
-    mode: 'FREE_PLAY',
-    vehicleId: entry.compiledVehicle.id,
-    color: null,
-    lapCount: 1,
-    rivalCount: rivals,
-    rivalPool: formPool(freePlay, entry).id,
-    traffic: 'OFF',
-  });
+  const prepared = await prepareRun(
+    delivered,
+    catalog,
+    course,
+    fieldClass(course, entry.compiledVehicle.id, { rivals }),
+    { mode: 'RACE', vehicleId: entry.compiledVehicle.id, color: null },
+  );
   const race = createCourseRace({ setup: prepared.resolve(0), runtime: scene.runtime, progressSeconds });
   race.start();
   while (race.outcome.status === 'READY') race.advance(ready);
@@ -421,14 +417,10 @@ test('a vehicle held while drive reaches its wheels recovers on the 44th counted
 test('two vehicles pushing head on both recover', async () => {
   const { scene } = await run();
   // Two present vehicles alone, nose to nose, both with the throttle open, through the race's own contacts and step.
-  const prepared = await prepareRun(delivered, catalog, course, null, {
-    mode: 'FREE_PLAY',
+  const prepared = await prepareRun(delivered, catalog, course, fieldClass(course, TESTAROSSA.compiledVehicle.id), {
+    mode: 'RACE',
     vehicleId: TESTAROSSA.compiledVehicle.id,
     color: null,
-    lapCount: 1,
-    rivalCount: 0,
-    rivalPool: formPool(freePlay, TESTAROSSA).id,
-    traffic: 'OFF',
   });
   const setup = prepared.resolve(0);
   const { vehicle: entry } = setup.entries[0];

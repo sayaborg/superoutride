@@ -16,7 +16,7 @@ import { countSafetyNet, createSafetyNet, placeSafetyNet } from '../../src/race/
 import { contactResponseStopped } from '../../src/race/contact-response.js';
 import { resolveRunSetup } from '../../src/race/run-setup.js';
 import { compileRunConfiguration } from '../../src/race/run-configuration.js';
-import { NO_TRAFFIC, type FreePlayRules } from '../../src/content/free-play-rules.js';
+import type { ClassRules } from '../../src/content/series-catalog.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { READY_SECONDS } from '../../src/race/start-phase.js';
 import { courseRoadsAt } from '../../src/course/course-lanes.js';
@@ -44,35 +44,43 @@ export function referenceProcedure(racingLine: RacingLineProcedure) {
 export function runCourseReference(
   course: CompiledCourse,
   vehicleConfiguration: RunVehicle,
-  catalog: { readonly vehicles: readonly CompiledVehicleDefinition[]; readonly freePlay: FreePlayRules },
+  catalog: { readonly vehicles: readonly CompiledVehicleDefinition[] },
   lapCount: number,
   lines: RacingLines,
   capture = false,
 ) {
   const entry = vehicleConfiguration.vehicleDefinition,
     scene = createCourseScene(course.entry, course.gates, catalog.vehicles);
-  // A reference run is a FREE PLAY run alone, no rivals, no traffic and no clock, but from the last slot of the grid
-  // its vehicle starts from (`courseStartGrid`), where a FREE PLAY run alone starts from the first; the seed is fixed.
+  // A reference run is a class's RACE alone, `lapCount` laps without rivals, traffic or a clock, from the last slot of
+  // the grid its vehicle starts from (`courseStartGrid`); the seed is fixed.
+  const id = entry.compiledVehicle.id;
+  const reference: ClassRules = Object.freeze({
+    course: course.id,
+    laps: lapCount,
+    vehicles: Object.freeze([id]),
+    entries: Object.freeze([
+      Object.freeze({
+        vehicle: id,
+        color: null,
+        stages: null,
+        slot: courseStartGrid(course.gates, entry.listing.form === 'bike').length - 1,
+        ahead: null,
+      }),
+    ]),
+    playerSlot: 'own',
+    start: 'grid',
+    rankLimits: Object.freeze({}),
+    traffic: null,
+    timeMargin: null,
+    fixedColors: false,
+  });
   const configuration = compileRunConfiguration(
-    {
-      mode: 'FREE_PLAY',
-      vehicleId: entry.compiledVehicle.id,
-      color: null,
-      lapCount,
-      rivalCount: 0,
-      rivalPool: catalog.freePlay.rivalPools[0]!.id,
-      traffic: NO_TRAFFIC,
-    },
+    { mode: 'RACE', vehicleId: id, color: null },
     course,
-    null,
+    reference,
     catalog,
   );
-  const alone = resolveRunSetup(course, null, configuration, REFERENCE_RUN.seed, vehicleConfiguration);
-  const last = courseStartGrid(course.gates, entry.listing.form === 'bike').at(-1)!;
-  const setup = Object.freeze({
-    ...alone,
-    entries: Object.freeze([Object.freeze({ ...alone.entries[0]!, slot: last })]),
-  });
+  const setup = resolveRunSetup(course, reference, configuration, REFERENCE_RUN.seed, vehicleConfiguration);
   // The standard driver drives the player's vehicle alone (K, 2026-11-12), steering by the planned drivers' one rule.
   const race = createCourseRace({ setup, runtime: scene.runtime, playerSteering: PLANNED_DRIVER.steering });
   const { actor } = race.player;

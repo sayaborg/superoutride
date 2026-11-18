@@ -26,7 +26,6 @@ import { compileAudioSettings } from '../../src/content/audio-catalog.js';
 import type { CompiledAudioSettings } from '../../src/audio/audio-document.js';
 import { ENGINE_LOUDNESS_ID, engineLoudnessSources, readEngineLoudness } from '../../src/content/engine-loudness.js';
 import { ENGINE_LOUDNESS_PATH, engineLoudnessProcedureSha256 } from './engine-loudness.js';
-import { compileFreePlayRules, type FreePlayRules } from '../../src/content/free-play-rules.js';
 import { admitPuffPicture, compilePuffs, puffPictureNames } from '../../src/content/puff-catalog.js';
 import { readSpriteLodAsset, type SpriteLodAsset } from '../../src/image/sprite.js';
 import {
@@ -93,7 +92,6 @@ export interface CompiledContent {
     readonly documents: Readonly<Record<string, VehicleSpriteSetDocument>>;
   };
   readonly materials: SurfaceMaterialCatalog;
-  readonly freePlay: FreePlayRules;
   readonly definitions: VehicleDefinitions;
   /** The game-wide sound settings, which the engine loudness is measured with. */
   readonly audio: CompiledAudioSettings;
@@ -363,12 +361,6 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     },
   );
 
-  const freePlayFiles = await read('free-play');
-  const freePlay = await stage('free-play', inputs(freePlayFiles), async () => {
-    const documents = await sources('free-play', freePlayFiles);
-    return { rules: requireLoaded(compileFreePlayRules(documents)), files: delivered('free-play', documents) };
-  });
-
   const soundFiles = await read('engine-sounds');
   const sounds = await stage('engine-sounds', inputs(soundFiles), async () => {
     const documents = await sources('engine-sounds', soundFiles);
@@ -567,7 +559,6 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     ...explosions.value,
     ...audio.value.files,
     ...recordings.value.files,
-    ...freePlay.value.files,
     ...sounds.value.files,
     ...definitions.value.files,
     ...courses.flatMap((course) => course.value.files),
@@ -607,7 +598,6 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
     files: Object.freeze(files),
     sprites: sprites.value.sprites,
     materials: materials.value.catalog,
-    freePlay: freePlay.value.rules,
     definitions: definitions.value.definitions,
     audio: audio.value.settings,
     courses: Object.freeze(compiledCourses),

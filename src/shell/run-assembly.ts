@@ -18,11 +18,15 @@ import { writeHud, type HudFacts } from './run-hud.js';
 import type { TextLayer } from '../view/text-layer.js';
 import type { createCoursePerformanceHud } from './course-performance-hud.js';
 import { prepareRun } from '../race/run-preparation.js';
-import { formPool } from '../race/free-play-field.js';
-import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
-import { classOnCourse, loadSeriesClass, type loadSeriesCatalog, type SeriesClass } from '../content/series-catalog.js';
+import {
+  classOnCourse,
+  loadSeriesClass,
+  type CourseClass,
+  type loadSeriesCatalog,
+  type SeriesClass,
+} from '../content/series-catalog.js';
 import type { RunVehicle } from '../content/run-vehicle.js';
-import { classRunCourse, isFreePlay, RULES_NAMES, rulesRequest, type RunRequest } from './run-request.js';
+import { classRunCourse, rulesRequest, SESSION_NAMES, type RunRequest } from './run-request.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { createCourseScene } from '../view/course-scene.js';
 import { createRenderMeasurements } from '../view/renderer.js';
@@ -30,6 +34,7 @@ import type { RunFrame, RunScreenState } from './run-screen.js';
 import { drawVehicleLeanDebug } from './debug/vehicle-lean-debug.js';
 import type { loadSurfaceMaterials } from '../content/surface-material-catalog.js';
 import { compileRunConfiguration, type RunConfiguration } from '../race/run-configuration.js';
+import { aloneClass } from '../race/run-setup.js';
 import type { createRaceSprites } from '../view/race-sprites.js';
 import type { CompiledPuffs, PuffDocument } from '../content/puff-catalog.js';
 import { createTirePuffs } from '../view/tire-puffs.js';
@@ -81,7 +86,6 @@ export interface RunPage {
   readonly series: Awaited<ReturnType<typeof loadSeriesCatalog>>;
   /** The course index, whose display names the HUD shows. */
   readonly courses: CourseIndex;
-  readonly freePlay: FreePlayRules;
   /** The delivered tracks; a run plays its request's. */
   readonly music: MusicCatalog;
   readonly vehicles: Awaited<ReturnType<typeof loadVehicleDefinitions>>['vehicles'];
@@ -190,14 +194,10 @@ export async function assembleRun(
   watched?: WatchedCourses,
 ): Promise<Run> {
   const { content, materials, series } = page;
-  // A class run drives its class on the class's course; FREE PLAY drives the course it names.
-  let named: SeriesClass | null = null,
-    courseId: string;
-  if (!isFreePlay(request)) {
-    named = series.seriesClass(request.seriesId, request.classId);
-    if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
-    courseId = classRunCourse(named, request);
-  } else courseId = request.courseId;
+  // A run drives its class on the class's course, or on the course it names for a class of any course.
+  const named = series.seriesClass(request.seriesId, request.classId);
+  if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
+  const courseId = classRunCourse(named, request);
   const load = () =>
     loadDeliveredCourse(
       content,
@@ -244,7 +244,7 @@ async function assembleCourseRun(
   state: RunScreenState,
   report: RunAssemblyReport | undefined,
   compiling: Promise<CompiledCourse>,
-  named: SeriesClass | null,
+  named: SeriesClass,
   watched: boolean,
 ): Promise<Run> {
   const { content, materials, vehicles, driving, raceSprites, shell } = page;
@@ -252,16 +252,14 @@ async function assembleCourseRun(
   const performanceHud = watched ? null : page.performanceHud;
   const course = await compiling;
   report?.progress(LOADING_SHARES.compiled);
-  const runClass =
-    named && loadSeriesClass(content, classOnCourse(named, course, request.vehicleId, vehicles), course, vehicles);
-  // The one path from a request to a run: its admission and the products it needs, loaded once.
-  const prepared = await prepareRun(
+  const runClass = loadSeriesClass(
     content,
-    { vehicles, driving, materials, freePlay: page.freePlay },
+    classOnCourse(named, course, request.vehicleId, vehicles),
     course,
-    runClass,
-    rulesRequest(request),
+    vehicles,
   );
+  // The one path from a request to a run: its admission and the products it needs, loaded once.
+  const prepared = await prepareRun(content, { vehicles, driving, materials }, course, runClass, rulesRequest(request));
   const settings = prepared.configuration;
   const { vehicle } = prepared;
   const entry = vehicle.vehicleDefinition;
@@ -282,7 +280,13 @@ async function assembleCourseRun(
    * The one assembly of a run, its scene (with a new Route runtime) and its race. The run's start and every
    * DEV tuning rebuild pass through it; the page's devices persist.
    */
-  const build = (tuned: { readonly vehicle: RunVehicle; readonly configuration: RunConfiguration } | null) => {
+  const build = (
+    tuned: {
+      readonly vehicle: RunVehicle;
+      readonly runClass: CourseClass;
+      readonly configuration: RunConfiguration;
+    } | null,
+  ) => {
     // The composition root alone draws randomness: every assembly, a DEV rebuild included, takes a new seed from it.
     const setup = prepared.resolve(page.drawSeed(), tuned);
     // A watched run's onlooker also looks back, so its window keeps the drawing depth behind the field.
@@ -322,26 +326,19 @@ async function assembleCourseRun(
             active.race.recoverPlayer();
             lifecycle.reset();
           },
-          // Tuned definitions have no delivered identity, so the rebuilt run has no
-          // time budgets, rivals or time limit. It starts from the grid at once, unpaused; a new run restores the
-          // product run and the delivered definitions.
+          // Tuned definitions have no delivered identity, so the rebuilt run has no time budgets, rivals, traffic or
+          // time limit: the player alone in its class (`aloneClass`), to the class's laps. It starts from the grid at
+          // once, unpaused; a new run restores the product run and the delivered definitions.
           rebuildRun: (tunedVehicle) => {
+            const alone = aloneClass(runClass, settings.vehicleId);
             active = build({
               vehicle: tunedVehicle,
+              runClass: alone,
               configuration: compileRunConfiguration(
-                {
-                  mode: 'FREE_PLAY',
-                  vehicleId: settings.vehicleId,
-                  color: settings.color,
-                  // A run without a finish is rebuilt with the course's most laps.
-                  lapCount: active.setup.configuration.lapCount ?? course.rules.maxLaps,
-                  rivalCount: 0,
-                  rivalPool: formPool(page.freePlay, entry).id,
-                  traffic: NO_TRAFFIC,
-                },
+                { mode: 'RACE', vehicleId: settings.vehicleId, color: settings.color },
                 course,
-                runClass,
-                { vehicles, freePlay: page.freePlay },
+                alone,
+                { vehicles },
               ),
             });
             lifecycle.update(true);
@@ -444,7 +441,7 @@ async function assembleCourseRun(
     const { redlineRpm } = vehicleDefinition.compiledVehicle.powertrain;
     return {
       courseName: page.courses.find((entry) => entry.id === course.id)!.name,
-      rules: RULES_NAMES[configuration.mode],
+      rules: SESSION_NAMES[configuration.mode],
       redlineRpm,
       steeringPicture: vehicleDefinition.steeringPicture,
       gearNames: vehicleDefinition.listing.visuals.gearNames,

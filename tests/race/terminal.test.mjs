@@ -11,13 +11,12 @@ import {
 } from '../../src/course/geometry/plan-coordinate.js';
 import { resolveRunSetup } from '../../src/race/run-setup.js';
 import { compileRunConfiguration } from '../../src/race/run-configuration.js';
-import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { createRunVehicle } from '../../src/content/run-vehicle.js';
 import { createRunMechanics } from '../../src/race/run-setup.js';
 import { prepareRun } from '../../src/race/run-preparation.js';
-import { formPool } from '../../src/race/free-play-field.js';
+import { fieldClass } from './field-class.mjs';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { supportedTargetSurface, publishVehicleRenderY } from '../../src/vehicle/physics/vehicle-physics.js';
@@ -25,7 +24,7 @@ import { initializePlanCoordinateObservation } from '../../src/vehicle/physics/v
 
 const definitionContent = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
-const catalog = { vehicles: definitions.vehicles, freePlay: await loadFreePlayRules(definitionContent) };
+const catalog = { vehicles: definitions.vehicles };
 
 const materials = await loadSurfaceMaterials(definitionContent);
 const load = (stem) => loadDeliveredCourse(definitionContent, stem, materials);
@@ -70,17 +69,10 @@ test('Run accepts a short terminal runout, including solo play; a loop is not a 
     definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),
     definitions.driving,
   );
-  const request = {
-    mode: 'FREE_PLAY',
-    vehicleId: 'TESTAROSSA',
-    color: null,
-    lapCount: 1,
-    rivalCount: 0,
-    rivalPool: 'CARS',
-    traffic: 'OFF',
-  };
-  const configuration = compileRunConfiguration(request, course, null, catalog);
-  assert.doesNotThrow(() => resolveRunSetup(course, null, configuration, 0, vehicle));
+  const request = { mode: 'RACE', vehicleId: 'TESTAROSSA', color: null };
+  const alone = fieldClass(course, 'TESTAROSSA');
+  const configuration = compileRunConfiguration(request, course, alone, catalog);
+  assert.doesNotThrow(() => resolveRunSetup(course, alone, configuration, 0, vehicle));
   const short = {
     ...course,
     gates: {
@@ -94,13 +86,20 @@ test('Run accepts a short terminal runout, including solo play; a loop is not a 
       })),
     },
   };
-  assert.doesNotThrow(() => resolveRunSetup(short, null, configuration, 0, vehicle));
+  assert.doesNotThrow(() => resolveRunSetup(short, alone, configuration, 0, vehicle));
   const ringCourse = await load('tsukuba');
   const ring = createCourseRoute(ringCourse.entry);
   ring.extendThrough(ring.route.end + 1);
   assert.equal(ring.route.terminal, null);
+  const ringAlone = fieldClass(ringCourse, 'TESTAROSSA');
   assert.doesNotThrow(() =>
-    resolveRunSetup(ringCourse, null, compileRunConfiguration(request, ringCourse, null, catalog), 0, vehicle),
+    resolveRunSetup(
+      ringCourse,
+      ringAlone,
+      compileRunConfiguration(request, ringCourse, ringAlone, catalog),
+      0,
+      vehicle,
+    ),
   );
 });
 
@@ -113,18 +112,10 @@ test('the fastest vehicle over the end of the road at its top speed recovers at 
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   const prepared = await prepareRun(
     definitionContent,
-    { vehicles: definitions.vehicles, driving: definitions.driving, materials, freePlay: catalog.freePlay },
+    { vehicles: definitions.vehicles, driving: definitions.driving, materials },
     course,
-    null,
-    {
-      mode: 'FREE_PLAY',
-      vehicleId: fastest.v.compiledVehicle.id,
-      color: null,
-      lapCount: 1,
-      rivalCount: 0,
-      rivalPool: formPool(catalog.freePlay, fastest.v).id,
-      traffic: 'OFF',
-    },
+    fieldClass(course, fastest.v.compiledVehicle.id),
+    { mode: 'RACE', vehicleId: fastest.v.compiledVehicle.id, color: null },
   );
   const race = createCourseRace({ setup: prepared.resolve(0), runtime: scene.runtime });
   const idle = { steering: 0, throttle: false, brake: false };

@@ -22,7 +22,6 @@ export type ContentKind =
   | 'engine-sound'
   | 'surface-sound'
   | 'audio'
-  | 'free-play'
   | 'front-end'
   | 'puffs'
   | 'puff-picture'

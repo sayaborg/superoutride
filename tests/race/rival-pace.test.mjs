@@ -5,9 +5,7 @@ import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
-import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { prepareRun } from '../../src/race/run-preparation.js';
-import { formPool } from '../../src/race/free-play-field.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { createRivalPace, rivalTargetUtilization } from '../../src/race/rival-pace.js';
@@ -16,8 +14,7 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
-const freePlay = await loadFreePlayRules(content);
-const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials, freePlay };
+const catalog = { vehicles: definitions.vehicles, driving: definitions.driving, materials };
 const role = definitions.driving.compiledDriving.roles.rival;
 const close = (a, b, tolerance = 1e-9) => Math.abs(a - b) <= tolerance;
 
@@ -78,7 +75,7 @@ async function run(request, runClass, steps) {
   return { race, setup, replays };
 }
 
-test('RACE and FREE PLAY rivals follow the player by one rule, at their vehicles’ whole speed', async () => {
+test('rivals follow the player by one rule, at their vehicles’ whole speed', async () => {
   // A class of four TESTAROSSAs without a clock, the player in the last slot.
   const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
   const color = entry.listing.visuals.palette;
@@ -96,22 +93,7 @@ test('RACE and FREE PLAY rivals follow the player by one rule, at their vehicles
     timeMargin: null,
     fixedColors: false,
   });
-  const runs = [
-    await run({ mode: 'RACE', vehicleId: entry.compiledVehicle.id, color: null }, runClass, 300),
-    await run(
-      {
-        mode: 'FREE_PLAY',
-        vehicleId: entry.compiledVehicle.id,
-        color: null,
-        lapCount: 1,
-        rivalCount: 3,
-        rivalPool: formPool(freePlay, entry).id,
-        traffic: 'OFF',
-      },
-      null,
-      300,
-    ),
-  ];
+  const runs = [await run({ mode: 'RACE', vehicleId: entry.compiledVehicle.id, color: null }, runClass, 300)];
   for (const { race, setup, replays } of runs) {
     assert.ok(race.rivals.length > 0);
     race.rivals.forEach((rival, k) => {

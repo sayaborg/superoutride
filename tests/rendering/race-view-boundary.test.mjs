@@ -13,11 +13,11 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { resolveRunSetup } from '../../src/race/run-setup.js';
 import { compileRunConfiguration } from '../../src/race/run-configuration.js';
-import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
+import { fieldClass } from '../race/field-class.mjs';
 
 const definitionContent = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
@@ -62,22 +62,12 @@ test('shared route keeps vehicle and camera coordinates across forward and rever
 
 test('the view assembles fifteen rival sprites from race observations', async () => {
   const { course, scene, compiledVehicle } = await setup();
-  const configuration = compileRunConfiguration(
-    {
-      mode: 'FREE_PLAY',
-      vehicleId: compiledVehicle.vehicleDefinition.compiledVehicle.id,
-      color: null,
-      lapCount: 1,
-      rivalCount: 15,
-      rivalPool: 'CARS',
-      traffic: 'OFF',
-    },
-    course,
-    null,
-    { vehicles: definitions.vehicles, freePlay: await loadFreePlayRules(definitionContent) },
-  );
-  const settings = resolveRunSetup(course, null, configuration, 0, compiledVehicle, null, {
-    rivalPool: [{ vehicle: 'TESTAROSSA', color: compiledVehicle.vehicleDefinition.listing.visuals.palette }],
+  const id = compiledVehicle.vehicleDefinition.compiledVehicle.id;
+  const field = fieldClass(course, id, { rivals: 15 });
+  const configuration = compileRunConfiguration({ mode: 'RACE', vehicleId: id, color: null }, course, field, {
+    vehicles: definitions.vehicles,
+  });
+  const settings = resolveRunSetup(course, field, configuration, 0, compiledVehicle, null, {
     vehicleOf: () => ({ vehicle: compiledVehicle }),
   });
   const race = createCourseRace({ setup: settings, runtime: scene.runtime });

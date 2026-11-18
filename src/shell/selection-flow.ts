@@ -10,7 +10,7 @@ import type { TilePicture } from '../image/tile-picture.js';
 import type { MusicTrack } from '../audio/music-document.js';
 import type { MusicCatalog } from '../content/recording-catalog.js';
 import type { PlayerRecord, VolumeName } from './player-record.js';
-import { isFreePlay, latestTrack, recordedColor, type RunRequest } from './run-request.js';
+import { latestTrack, recordedColor, type RunRequest } from './run-request.js';
 import type { Screen } from './screen-host.js';
 import { clearRecordCards, settingCards } from './settings-screens.js';
 import type { CompetitorObservation } from '../race/competitor-observation.js';
@@ -384,7 +384,6 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // A run's request becomes the current selection; the rows above its row are rebuilt from it. A run outside the rows
   // (one of a series not shown, or on a course not offered) is not adopted.
   const adopt = (run: RunRequest): boolean => {
-    if (isFreePlay(run)) return false;
     vehicleId = run.vehicleId;
     if (run.color !== null) colors.set(run.vehicleId, run.color);
     classChoice = catalog.series.seriesClass(run.seriesId, run.classId);

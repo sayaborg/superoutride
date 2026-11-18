@@ -148,14 +148,7 @@ async function trace(args: readonly string[]) {
     courseBuildSha256: course.identity.buildSha256,
     procedureSha256: await procedureSha256(referenceProcedure(RACING_LINE_PROCEDURE)),
     vehicle,
-    ...runCourseReference(
-      course,
-      vehicle,
-      { vehicles: content.definitions.vehicles, freePlay: content.freePlay },
-      lapCount,
-      lines,
-      true,
-    ),
+    ...runCourseReference(course, vehicle, { vehicles: content.definitions.vehicles }, lapCount, lines, true),
   };
   const output = path.resolve(opts.get('--out')!);
   await atomicWrite(output, JSON.stringify(result) + '\n');

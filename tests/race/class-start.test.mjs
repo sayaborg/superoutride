@@ -5,7 +5,6 @@ import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js'
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { createRunVehicle } from '../../src/content/run-vehicle.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { compileRunConfiguration } from '../../src/race/run-configuration.js';
@@ -16,7 +15,7 @@ import { createCourseScene } from '../../src/view/course-scene.js';
 
 const content = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
-const catalog = { vehicles: definitions.vehicles, freePlay: await loadFreePlayRules(content) };
+const catalog = { vehicles: definitions.vehicles };
 const course = await loadDeliveredCourse(content, 'tsukuba', await loadSurfaceMaterials(content));
 const vehicle = createRunVehicle(
   definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA'),

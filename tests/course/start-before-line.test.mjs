@@ -11,7 +11,6 @@ import { runCourseReference } from '../../tools/course/reference-run.ts';
 import { createRacingLines, RACING_LINE_SPACING, racingLineStations } from '../../src/content/racing-line.js';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { loadFreePlayRules, NO_TRAFFIC } from '../../src/content/free-play-rules.js';
 import { createRunVehicle } from '../../src/content/run-vehicle.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
@@ -22,11 +21,12 @@ import { resolveRunSetup } from '../../src/race/run-setup.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { supportedTargetSurface, publishVehicleRenderY } from '../../src/vehicle/physics/vehicle-physics.js';
 import { initializePlanCoordinateObservation } from '../../src/vehicle/physics/vehicle-state.js';
+import { fieldClass } from '../race/field-class.mjs';
 
 const content = await readDeliveredContent();
 const materials = await loadSurfaceMaterials(content);
 const definitions = await loadVehicleDefinitions(content, await loadEngineSounds(content));
-const catalog = { vehicles: definitions.vehicles, freePlay: await loadFreePlayRules(content) };
+const catalog = { vehicles: definitions.vehicles };
 
 /** A sky the delivered content holds, for the synthetic circuit's one environment. */
 const SKY = 'tsukuba-sky';
@@ -188,21 +188,14 @@ test('the Route start holds a vehicle rolling back past it, and the camera has r
   const rearmost = courseStartGrid(course.gates, false).at(-1);
   assert.ok(gridRouteS(route, rearmost) - cameraDistance(CAMERA_DEFINITION) >= route.start);
   const entry = definitions.vehicles[0];
+  const alone = fieldClass(course, entry.compiledVehicle.id);
   const configuration = compileRunConfiguration(
-    {
-      mode: 'FREE_PLAY',
-      vehicleId: entry.compiledVehicle.id,
-      color: null,
-      lapCount: 1,
-      rivalCount: 0,
-      rivalPool: catalog.freePlay.rivalPools[0].id,
-      traffic: NO_TRAFFIC,
-    },
+    { mode: 'RACE', vehicleId: entry.compiledVehicle.id, color: null },
     course,
-    null,
+    alone,
     catalog,
   );
-  const setup = resolveRunSetup(course, null, configuration, 0, createRunVehicle(entry, definitions.driving));
+  const setup = resolveRunSetup(course, alone, configuration, 0, createRunVehicle(entry, definitions.driving));
   const race = createCourseRace({ setup, runtime: scene.runtime });
   const idle = { steering: 0, throttle: false, brake: false };
   race.start();

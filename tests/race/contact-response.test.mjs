@@ -5,10 +5,8 @@ import { loadVehicleDefinitions, loadVehicleSpriteSets } from '../../src/content
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadSurfaceMaterials } from '../../src/content/surface-material-catalog.js';
 import { loadDeliveredCourse } from '../../src/content/load-delivered-course.js';
-import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { compileVehicleListingDocument } from '../../src/vehicle/definition-document.js';
 import { prepareRun } from '../../src/race/run-preparation.js';
-import { formPool } from '../../src/race/free-play-field.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 import { supportedTargetSurface, publishVehicleRenderY } from '../../src/vehicle/physics/vehicle-physics.js';
@@ -21,13 +19,13 @@ import {
   createContactResponse,
 } from '../../src/race/contact-response.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
+import { fieldClass } from './field-class.mjs';
 
 const content = await readDeliveredContent();
 const sounds = await loadEngineSounds(content);
 const definitions = await loadVehicleDefinitions(content, sounds);
 const sprites = await loadVehicleSpriteSets(content);
 const materials = await loadSurfaceMaterials(content);
-const freePlay = await loadFreePlayRules(content);
 const course = await loadDeliveredCourse(content, 'tsukuba', materials);
 const original = definitions.vehicles.find((v) => v.compiledVehicle.id === 'TESTAROSSA');
 const idle = { steering: 0, throttle: false, brake: false };
@@ -46,18 +44,10 @@ async function run(enabled = true, rivals = 0, source = original, catalog = defi
   const scene = createCourseScene(course.entry, course.gates, vehicles);
   const prepared = await prepareRun(
     content,
-    { vehicles, driving: definitions.driving, materials, freePlay },
+    { vehicles, driving: definitions.driving, materials },
     course,
-    null,
-    {
-      mode: 'FREE_PLAY',
-      vehicleId: entry.compiledVehicle.id,
-      color: null,
-      lapCount: 1,
-      rivalCount: rivals,
-      rivalPool: formPool(freePlay, entry).id,
-      traffic: 'OFF',
-    },
+    fieldClass(course, entry.compiledVehicle.id, { rivals }),
+    { mode: 'RACE', vehicleId: entry.compiledVehicle.id, color: null },
   );
   const race = createCourseRace({ setup: prepared.resolve(0), runtime: scene.runtime });
   race.start();

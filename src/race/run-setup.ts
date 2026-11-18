@@ -10,13 +10,13 @@ import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseStartGrid, type CompiledGridSlot } from '../course/compiler/course-rules.js';
 import type {
   AheadAppearance,
-  CourseClass,
+  ClassRules,
   SeriesClass,
   SeriesEntry,
   StageInterval,
 } from '../content/series-catalog.js';
 import type { RunConfiguration } from './run-configuration.js';
-import { drawRivalPairs, rivalPoolPairs, type VehicleColor } from './free-play-field.js';
+import { drawRivalPairs, vehicleColors } from './free-play-field.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetColors } from '../vehicle/vehicle-sprite-set.js';
 import { KILOMETERS_PER_HOUR_PER_METER_PER_SECOND } from '../vehicle/physics/vehicle-definitions.js';
@@ -76,29 +76,35 @@ export interface ResolvedTraffic {
 }
 
 /**
- * What a run of `configuration` needs besides the player's own vehicle, decided with its entries: the
- * FREE PLAY rival pairs it draws from (`rivalPool`), every other vehicle that may drive in it — RACE's class
- * entries, FREE PLAY's pool when it has rivals, and the traffic candidates — each with its run vehicle
- * (`vehicleIds`, unique, in first-use order) and the time budgets of its clock.
+ * What a run of `configuration` needs besides the player's own vehicle: every other vehicle that may drive in it, its
+ * class's entries in RACE and its traffic candidates, each with its run vehicle (`vehicleIds`, unique, in first-use
+ * order), and the time budgets of its clock.
  */
-export function runDemand(
-  configuration: RunConfiguration,
-  runClass: CourseClass | null,
-  vehicles: readonly CompiledVehicleDefinition[],
-) {
-  const rivalPool = configuration.rivalPool === null ? [] : rivalPoolPairs(vehicles, configuration.rivalPool);
+export function runDemand(configuration: RunConfiguration, runClass: ClassRules) {
   const ids = [
-    ...(configuration.mode === 'RACE'
-      ? runClass!.entries.map((entry) => entry.vehicle)
-      : configuration.rivalCount > 0
-        ? rivalPool.map((pair) => pair.vehicle)
-        : []),
+    ...(configuration.mode === 'RACE' ? runClass.entries.map((entry) => entry.vehicle) : []),
     ...(configuration.traffic?.vehicles ?? []),
   ];
   return Object.freeze({
-    rivalPool,
     vehicleIds: Object.freeze([...new Set(ids)]),
     budgets: configuration.timeLimit,
+  });
+}
+
+/**
+ * The class with the player alone, in `vehicleId`: its own grid entry in the first slot, without traffic, clock, rank
+ * limits or a start of its own. TIME ATTACK runs it, and so does DEV's rebuilt run.
+ */
+export function aloneClass<C extends ClassRules>(runClass: C, vehicleId: string): C {
+  const own = ownEntry(runClass, vehicleId)!;
+  return Object.freeze({
+    ...runClass,
+    entries: Object.freeze([Object.freeze({ ...own, slot: 0, stages: null, ahead: null })]),
+    playerSlot: 'first',
+    start: 'grid',
+    rankLimits: Object.freeze({}),
+    traffic: null,
+    timeMargin: null,
   });
 }
 
@@ -131,20 +137,18 @@ export function runPlayerColor(
 
 /**
  * Resolve one admitted run configuration (`compileRunConfiguration`) with its `seed` before actors/ticks
- * exist. Graph and catalog objects remain shared references. `runClass` is the run's admitted class, which
- * RACE reads. The resolved
- * entries list the player first, then each rival. RACE takes the class's entries: the player the rearmost entry of
- * its vehicle, standing in that entry's slot (`own`) or the rearmost of their slots (`last`), and every other entry
- * its own vehicle (from `field.vehicleOf`) and color. FREE PLAY fills the grid from the front: the rivals in its first
- * slots, each a pair drawn from `field.rivalPool` (the configuration's pool's pairs) by the Run seed, and the player in
- * the slot behind them; TIME ATTACK stands the player alone in the grid's first slot, without traffic. The grid is the
+ * exist. Graph and catalog objects remain shared references. `runClass` is the run's admitted class on its course.
+ * The resolved entries list the player first, then each rival. RACE takes the class's entries (`classEntries`): the
+ * player the rearmost entry of its vehicle, standing in that entry's slot (`own`), the rearmost of their slots (`last`)
+ * or the frontmost (`first`), and every other entry its own vehicle (from `field.vehicleOf`) and color; TIME ATTACK
+ * stands the player alone in the grid's first slot (`aloneClass`), without traffic. The grid is the
  * slots the field's vehicles start from (`courseStartGrid`), whose last is the sixteenth or a shorter grid's last. Traffic
  * candidates come from `field.vehicleOf` with their drivers, compiled once. The player's color is
  * `runPlayerColor`'s.
  */
 export function resolveRunSetup(
   course: CompiledCourse,
-  runClass: CourseClass | null,
+  runClass: ClassRules,
   configuration: RunConfiguration,
   seed: number,
   vehicle: RunVehicle,
@@ -152,8 +156,6 @@ export function resolveRunSetup(
   field: {
     /** Every other entry's run vehicle; a run with rivals requires it. */
     readonly vehicleOf?: (vehicleId: string) => EntryVehicle;
-    /** FREE PLAY rival vehicle/color pairs; FREE PLAY with rivals requires them. */
-    readonly rivalPool?: readonly VehicleColor[];
     /** The course's racing lines; without them drivers' racing line is the centre lane. */
     readonly racingLines?: RacingLines | null;
   } = {},
@@ -166,11 +168,7 @@ export function resolveRunSetup(
     throw new RangeError('Run seed must be a 32-bit unsigned integer');
   if (vehicle.vehicleDefinition.compiledVehicle.id !== configuration.vehicleId)
     throw new Error("The run vehicle is not the configuration's vehicle");
-  const playerColor = runPlayerColor(
-    configuration.mode === 'FREE_PLAY' ? null : runClass,
-    vehicle.vehicleDefinition,
-    configuration.color,
-  );
+  const playerColor = runPlayerColor(runClass, vehicle.vehicleDefinition, configuration.color);
   if (configuration.timeLimit && !budgets)
     throw new RangeError('A time limit requires current, complete reference runs');
   if (configuration.rivalCount > 0 && !field.vehicleOf)
@@ -199,18 +197,9 @@ export function resolveRunSetup(
     }
     return driver;
   };
-  const entries =
-    configuration.mode === 'RACE'
-      ? classEntries(course, runClass!, seed, { vehicle }, playerColor, field.vehicleOf!)
-      : freePlayEntries(
-          course,
-          configuration.rivalCount,
-          seed,
-          { vehicle },
-          playerColor,
-          field.rivalPool ?? [],
-          field.vehicleOf!,
-        );
+  // TIME ATTACK starts the player alone; with no rivals, it reads no other run vehicle.
+  const started = configuration.mode === 'RACE' ? runClass : aloneClass(runClass, configuration.vehicleId);
+  const entries = classEntries(course, started, seed, { vehicle }, playerColor, field.vehicleOf!);
   // Traffic drives each candidate vehicle's driver at the traffic utilization, capped at the one traffic speed,
   // converted from km/h here once (a vehicle slower than it keeps its own maximum speed); each driver is compiled
   // once here.
@@ -257,7 +246,7 @@ export function resolveRunSetup(
     driverOf,
     budgets: configuration.timeLimit ? budgets : null,
     /** Rank limit N by gate ID; RACE only. */
-    rankLimits: configuration.mode === 'RACE' && runClass ? runClass.rankLimits : NO_RANK_LIMITS,
+    rankLimits: configuration.mode === 'RACE' ? runClass.rankLimits : NO_RANK_LIMITS,
     bodyContact,
   });
 }
@@ -302,7 +291,7 @@ export function classGridSlots<E extends SeriesEntry>(
  */
 function classEntries(
   course: CompiledCourse,
-  runClass: CourseClass,
+  runClass: ClassRules,
   seed: number,
   player: EntryVehicle,
   playerColor: string,
@@ -315,7 +304,7 @@ function classEntries(
   const drawn = drawRivalPairs(
     seed,
     slots.others.filter(({ entry }) => entry.color === null).length,
-    rivalPoolPairs([playerVehicle], { id: 'OWN', forms: [playerVehicle.listing.form] }),
+    vehicleColors(playerVehicle),
     { vehicle: playerVehicle.compiledVehicle.id, color: playerColor },
   );
   let draw = 0;
@@ -335,45 +324,6 @@ function classEntries(
         ahead: entry.ahead,
         color: entry.color ?? drawn[draw++]!.color,
         stages: entry.stages,
-        ...rivals[index]!,
-      }),
-    ),
-  ]);
-}
-
-/**
- * FREE PLAY: the drawn rivals in the grid's first slots, `RIVAL_01` frontmost, and the player in the slot behind them;
- * TIME ATTACK, which has no rivals, is the player alone in the first.
- */
-function freePlayEntries(
-  course: CompiledCourse,
-  rivalCount: number,
-  seed: number,
-  player: EntryVehicle,
-  playerColor: string,
-  pool: readonly VehicleColor[],
-  vehicleOf: (vehicleId: string) => EntryVehicle,
-): readonly RunEntry[] {
-  const playerVehicleId = player.vehicle.vehicleDefinition.compiledVehicle.id;
-  const drawn = drawRivalPairs(seed, rivalCount, pool, { vehicle: playerVehicleId, color: playerColor });
-  const rivals = drawn.map((pair) => vehicleOf(pair.vehicle));
-  const grid = fieldGrid(course, [player, ...rivals]);
-  return Object.freeze([
-    Object.freeze({
-      id: 'PLAYER',
-      slot: grid[rivalCount]!,
-      ahead: null,
-      color: playerColor,
-      stages: null,
-      ...player,
-    }),
-    ...drawn.map((pair, index) =>
-      Object.freeze({
-        id: rivalId(index),
-        slot: grid[index]!,
-        ahead: null,
-        color: pair.color,
-        stages: null,
         ...rivals[index]!,
       }),
     ),

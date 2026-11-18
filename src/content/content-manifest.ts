@@ -50,7 +50,6 @@ const CONTENT_KINDS: readonly ContentKind[] = [
   'engine-sound',
   'surface-sound',
   'audio',
-  'free-play',
   'front-end',
   'puffs',
   'puff-picture',

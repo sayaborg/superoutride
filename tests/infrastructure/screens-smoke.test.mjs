@@ -259,12 +259,12 @@ test('the PRE-RACE card holds the longest names and facts the readers admit', as
     laps: RUN_RULE_LIMITS.laps,
     map,
   });
-  // Every delivered course's FREE PLAY card, from the course index alone.
+  // Every delivered course's card in FREE PLAY's class of the longest title, from the course index alone.
   for (const course of await loadCourseIndex(content))
     draw({
       background: null,
-      title: 'FREE PLAY',
-      session: null,
+      title: 'CHASE + TRAFFIC',
+      session: SESSION_NAMES.RACE,
       courseName: course.name,
       laps: RUN_RULE_LIMITS.laps,
       map: course.map,

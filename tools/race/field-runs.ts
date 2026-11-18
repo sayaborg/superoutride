@@ -7,14 +7,15 @@ import { loadCourseIndex } from '../../src/content/course-index.js';
 import type { FieldRunJob, runField } from './field-run.js';
 
 /**
- * The field runs ([Development](../../docs/development.md#field-runs)): FREE PLAY on every delivered course (or
- * `--course`'s), the player driven by its run driver with `--rivals` rivals (11) and `--traffic` traffic (HIGH), for
+ * The field runs ([Development](../../docs/development.md#field-runs)): FREE PLAY's RACE on every delivered course (or
+ * `--course`'s), the player driven by its run driver with `--rivals` rivals (11) and `--traffic` (ON, its RACE +
+ * TRAFFIC; OFF), for
  * `--seconds` from GO (300), seed `--seed` (0), `--vehicle` the player's (TESTAROSSA); up to three courses at once, each
  * on a worker. It prints one JSON result: each course's run, and the courses whose race threw or whose vehicles' state
  * held a number not finite, and exits 1 when there are any. It reads the build's delivered content (`npm run build`).
  */
 const USAGE =
-  'Usage: npm run field-runs -- [--course ID] [--vehicle ID] [--rivals N] [--traffic LEVEL] [--seconds S] [--seed N]';
+  'Usage: npm run field-runs -- [--course ID] [--vehicle ID] [--rivals N] [--traffic ON|OFF] [--seconds S] [--seed N]';
 /** Courses run at once: each holds a whole race and its scene. */
 const WORKERS = 3;
 
@@ -59,7 +60,7 @@ try {
   const base = {
     vehicle: opts.get('--vehicle') ?? 'TESTAROSSA',
     rivals: whole('--rivals', 11, 0),
-    traffic: opts.get('--traffic') ?? 'HIGH',
+    traffic: (opts.get('--traffic') ?? 'ON') !== 'OFF',
     seconds: whole('--seconds', 300, 1),
     seed: whole('--seed', 0, 0),
   };
