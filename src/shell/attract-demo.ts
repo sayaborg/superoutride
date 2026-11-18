@@ -5,7 +5,7 @@ import { THINNING_STEPS, thinLines } from '../view/line-thinning.js';
 import { DEMO_TICKER, drawOther, tickerSteps, type DemoReel, type DemoSubjects } from './demo-director.js';
 import { spriteSetColors } from '../vehicle/vehicle-sprite-set.js';
 import { SIM_DT } from '../race/fixed-step.js';
-import type { SeriesClass } from '../content/series-catalog.js';
+import { isFixedClass, type FixedClass, type SeriesClass } from '../content/series-catalog.js';
 import { runPlayerColor } from '../race/run-setup.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import type { TextLayer } from '../view/text-layer.js';
@@ -80,7 +80,7 @@ export function createDemoRandom(seed: number): () => number {
  * `leave` ends the shown turn; the next `enter` resumes with the next class's turn. `dispose` releases every reel.
  */
 export function createAttractDemo(
-  classes: readonly SeriesClass[],
+  classes: readonly FixedClass[],
   vehicles: readonly CompiledVehicleDefinition[],
   courses: CourseIndex,
   random: () => number,
@@ -240,7 +240,10 @@ export function createAttractDemo(
   };
 }
 
-/** The product classes whose RACEs the attract demo runs, in series and class order. */
+/**
+ * The product classes whose RACEs the attract demo runs, in series and class order: those of their own course and
+ * vehicles, not FREE PLAY's (K, 2026-11-19).
+ */
 export function attractClasses(series: readonly { readonly dev: boolean; readonly classes: readonly SeriesClass[] }[]) {
-  return series.filter((s) => !s.dev).flatMap((s) => s.classes);
+  return series.filter((s) => !s.dev).flatMap((s) => s.classes.filter(isFixedClass));
 }

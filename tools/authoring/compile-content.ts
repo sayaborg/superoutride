@@ -9,7 +9,13 @@ import {
 import { authoredDocumentSource, type DocumentSource } from '../../src/content/document-catalog.js';
 import { encodeContentJson } from '../../src/content/content-manifest.js';
 import { compileCourseDocument, type CompiledCourse } from '../../src/course/compiler/compiled-course.js';
-import { admitSeriesClass, compileSeriesCatalog, type SeriesClass } from '../../src/content/series-catalog.js';
+import {
+  admitSeriesClass,
+  classOnCourse,
+  compileSeriesCatalog,
+  isFixedClass,
+  type CourseClass,
+} from '../../src/content/series-catalog.js';
 import { courseImageNames, readCourseDocumentBytes } from '../../src/course/course-document.js';
 import { CourseAssetError, courseFailures } from '../../src/course/course-diagnostics.js';
 import type { SurfaceMaterialCatalog } from '../../src/course/surface-material.js';
@@ -97,7 +103,7 @@ export interface CompiledContent {
   /** How many series the front end lists have no picture yet. */
   readonly unpicturedSeries: number;
   /** Each series course with its admitted series settings. */
-  readonly seriesClasses: readonly { readonly course: CompiledCourse; readonly settings: SeriesClass }[];
+  readonly seriesClasses: readonly { readonly course: CompiledCourse; readonly settings: CourseClass }[];
 }
 
 /** Each stage's result with the key of its inputs, which a later compile may reuse. */
@@ -511,12 +517,19 @@ async function compile(store: ContentStore, measured: boolean, stage: Stage): Pr
       );
       const seriesClasses = catalog.series.flatMap((series) => {
         const source = documents.find((s) => s.id === series.id)!;
-        return series.classes.map((settings) => {
+        // A class of its own course and vehicles is admitted here; one of any course or vehicle at each run.
+        return series.classes.filter(isFixedClass).map((settings) => {
           const course = compiledCourses.find((c) => c.id === settings.course)!;
+          const { vehicles } = definitions.value.definitions;
           return Object.freeze({
             course,
             settings: requireLoaded(
-              admitSeriesClass(settings, course, definitions.value.definitions.vehicles, source.path),
+              admitSeriesClass(
+                classOnCourse(settings, course, settings.vehicles[0]!, vehicles),
+                course,
+                vehicles,
+                source.path,
+              ),
             ),
           });
         });

@@ -390,7 +390,6 @@ async function startPage(): Promise<void> {
         frontEnd,
         vehicles,
         driving,
-        freePlay,
         music,
         player,
         dev,
@@ -421,7 +420,7 @@ async function startPage(): Promise<void> {
     // assembly. Otherwise the page starts at TITLE.
     const urlRequest = () => {
       try {
-        const named = readUrlRunRequest(parameters, series, vehicles, freePlay, player);
+        const named = readUrlRunRequest(parameters, series, vehicles, player);
         if (named) void request(named, undefined, true);
         else flow.title();
       } catch (error) {

@@ -43,7 +43,7 @@ export function classTitleLines(title: string): readonly string[] {
 }
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 18;
+export const SERIES_DOCUMENT_VERSION = 19;
 const PLAYER_SLOTS = ['own', 'last', 'first'] as const;
 const START_STYLES = ['grid', 'chase'] as const;
 const TRAFFIC_PATHS = ['lane', 'line'] as const;
@@ -58,10 +58,13 @@ export interface CompiledSeries {
   readonly title: string;
   /** Its English description, as a course's, of the series alone (K, 2026-11-11). */
   readonly description: string;
-  /** The series image: a 40×30-tile opaque screen picture, named by the document's `image`. */
-  readonly image: TilePicture;
-  /** Its title track; a course's race tracks are its course sounds' (K, 2026-11-11). */
-  readonly music: { readonly title: MusicTrack };
+  /**
+   * The series image: a 40×30-tile opaque screen picture, named by the document's `image`; null for a series without a
+   * world of its own, which stands in the main world (FREE PLAY, K, 2026-11-09 and 2026-11-19).
+   */
+  readonly image: TilePicture | null;
+  /** Its title track, null for a silent series; a course's race tracks are its course sounds' (K, 2026-11-11). */
+  readonly music: { readonly title: MusicTrack | null };
   readonly dev: boolean;
   /** The classes in selection order. */
   readonly classes: readonly SeriesClass[];
@@ -69,11 +72,12 @@ export interface CompiledSeries {
 
 /**
  * One competitor entry: its vehicle, color, pace ratio and stage interval, and how it appears: a grid slot index when
- * it takes part from STAGE 1, otherwise an ahead appearance.
+ * it takes part from STAGE 1, otherwise an ahead appearance. In a class open to every vehicle an entry's vehicle is
+ * the player's (null), in a color the run's seed draws (null).
  */
 export interface SeriesEntry {
-  readonly vehicle: VehicleId;
-  readonly color: string;
+  readonly vehicle: VehicleId | null;
+  readonly color: string | null;
   /** The stages the entry takes part in, `first` through `last`; null for the whole run. */
   readonly stages: StageInterval | null;
   readonly slot: number | null;
@@ -93,17 +97,26 @@ export interface StageInterval {
   readonly last: number;
 }
 
-/** One race of a series: its course, laps, vehicle candidates, field and traffic. */
+/** A class's traffic: its settings, a candidate null for the player's own vehicle in a class open to every vehicle. */
+export type ClassTraffic = Omit<TrafficSettings, 'vehicles'> & { readonly vehicles: readonly (VehicleId | null)[] };
+
+/**
+ * One race of a series: its course, laps, vehicle candidates, field and traffic. A class may leave its course or its
+ * vehicle to the player (K, 2026-11-19: FREE PLAY's classes): any course offered (`course` null), and any vehicle
+ * (`vehicles` null), whose field and traffic are then the player's own vehicle.
+ */
 export interface SeriesClass {
   readonly series: CompiledSeries;
   /** Unique within its series. */
   readonly id: string;
   /** The display name. */
   readonly title: string;
-  readonly course: string;
+  /** Its course; null for any course offered. */
+  readonly course: string | null;
+  /** Its laps; on any course, at most the course's lap maximum. */
   readonly laps: number;
-  /** RACE vehicle candidates in selection order. */
-  readonly vehicles: readonly VehicleId[];
+  /** RACE vehicle candidates in selection order; null for any catalog vehicle. */
+  readonly vehicles: readonly VehicleId[] | null;
   /** The whole field, grid entries in grid order; the player takes the rearmost grid entry of its vehicle. */
   readonly entries: readonly SeriesEntry[];
   /**
@@ -119,7 +132,7 @@ export interface SeriesClass {
   /** Rank limit N by race gate ID: the player fails when the N-th other competitor crosses that gate first. */
   readonly rankLimits: Readonly<Record<string, number>>;
   /** The course's RACE traffic; null for none. */
-  readonly traffic: TrafficSettings | null;
+  readonly traffic: ClassTraffic | null;
   /**
    * The clock's margin over the reference times: positive and at most `RUN_RULE_LIMITS.timeMargin`; null for a RACE
    * without a clock, which needs no reference times and whose rivals drive unpaced.
@@ -127,6 +140,21 @@ export interface SeriesClass {
   readonly timeMargin: number | null;
   /** Whether the player drives in its entry's color rather than its own chosen color. */
   readonly fixedColors: boolean;
+}
+
+/** A class of its own course and vehicles, which a run can drive as it stands: what the attract demo shows. */
+export type FixedClass = SeriesClass & { readonly course: string; readonly vehicles: readonly VehicleId[] };
+/** Whether `runClass` names its course and vehicles. */
+export const isFixedClass = (runClass: SeriesClass): runClass is FixedClass =>
+  runClass.course !== null && runClass.vehicles !== null;
+
+/** A class on its course with the player's vehicle: what a run of it drives, nothing left open. */
+export interface CourseClass extends Omit<SeriesClass, 'course' | 'vehicles' | 'entries' | 'traffic'> {
+  readonly course: string;
+  readonly vehicles: readonly VehicleId[];
+  /** The field; an entry's color null is drawn by the run's seed. */
+  readonly entries: readonly (SeriesEntry & { readonly vehicle: VehicleId })[];
+  readonly traffic: TrafficSettings | null;
 }
 
 export interface SeriesCatalog {
@@ -192,16 +220,17 @@ function readSeries(
   );
   const id = readString(root.id, '/id');
   requireAdmission(id === source.id, 'invalid_value', '/id', `Series ID must match its file name ${source.id}`);
-  const imageName = readString(root.image, '/image');
-  const image = pictures.get(imageName);
+  const imageName = root.image === null ? null : readString(root.image, '/image');
+  const image = imageName === null ? null : pictures.get(imageName);
   requireAdmission(image !== undefined, 'unresolved_reference', '/image', `Unknown screen picture ${imageName}`);
   requireAdmission(
-    image.columns === SERIES_IMAGE.columns && image.rows === SERIES_IMAGE.rows && image.opaque,
+    image === null || (image.columns === SERIES_IMAGE.columns && image.rows === SERIES_IMAGE.rows && image.opaque),
     'invalid_value',
     '/image',
     `A series image is an opaque screen picture of ${SERIES_IMAGE.columns}×${SERIES_IMAGE.rows} tiles`,
   );
   const track = (value: unknown, path: string) => {
+    if (value === null) return null;
     const name = readString(value, path);
     const found = music.find((t) => t.id === name);
     requireAdmission(found !== undefined, 'unresolved_reference', path, `Unknown track ${name}`);
@@ -236,24 +265,32 @@ function readSeries(
         'timeMargin',
         'fixedColors',
       ]);
-      const course = readString(entry.course, `${at}/course`);
-      requireAdmission(courseIds.includes(course), 'unresolved_reference', `${at}/course`, `Unknown course ${course}`);
-      const vehicles = readArray(
-        entry.vehicles,
-        `${at}/vehicles`,
-        (item, itemAt) => {
-          const vehicle = readString(item, itemAt);
-          requireAdmission(
-            vehicleOf(vehicle) !== undefined,
-            'unresolved_reference',
-            itemAt,
-            `Unknown vehicle ${vehicle}`,
-          );
-          return vehicle;
-        },
-        { min: 1 },
+      const course = entry.course === null ? null : readString(entry.course, `${at}/course`);
+      requireAdmission(
+        course === null || courseIds.includes(course),
+        'unresolved_reference',
+        `${at}/course`,
+        `Unknown course ${course}`,
       );
-      requireUnique(vehicles, `${at}/vehicles`, 'vehicle');
+      const vehicles =
+        entry.vehicles === null
+          ? null
+          : readArray(
+              entry.vehicles,
+              `${at}/vehicles`,
+              (item, itemAt) => {
+                const vehicle = readString(item, itemAt);
+                requireAdmission(
+                  vehicleOf(vehicle) !== undefined,
+                  'unresolved_reference',
+                  itemAt,
+                  `Unknown vehicle ${vehicle}`,
+                );
+                return vehicle;
+              },
+              { min: 1 },
+            );
+      if (vehicles) requireUnique(vehicles, `${at}/vehicles`, 'vehicle');
       const entries = readEntries(entry.entries, `${at}/entries`, vehicles, vehicleOf);
       const playerSlot = readEnum(entry.playerSlot, PLAYER_SLOTS, `${at}/playerSlot`);
       const start = readEnum(entry.start, START_STYLES, `${at}/start`);
@@ -262,6 +299,32 @@ function readSeries(
         'invalid_value',
         `${at}/start`,
         'A CHASE class has two grid entries, the player in the first slot',
+      );
+      const rankLimits = readDictionary(entry.rankLimits, `${at}/rankLimits`, (limit, path) =>
+        readNumber(limit, path, { min: 1, max: RUN_RULE_LIMITS.rivals, integer: true }),
+      );
+      const timeMargin =
+        entry.timeMargin === null
+          ? null
+          : readNumber(entry.timeMargin, `${at}/timeMargin`, {
+              min: 0,
+              max: RUN_RULE_LIMITS.timeMargin,
+              exclusiveMin: true,
+            });
+      const fixedColors = readBoolean(entry.fixedColors, `${at}/fixedColors`);
+      // On any course nothing depends on the course: no clock, no rank limits and no entry appearing ahead.
+      if (course === null)
+        requireAdmission(
+          timeMargin === null && Object.keys(rankLimits).length === 0 && entries.every((e) => e.stages === null),
+          'invalid_value',
+          at,
+          'A class on any course has no clock, rank limits or stages',
+        );
+      requireAdmission(
+        vehicles !== null || !fixedColors,
+        'invalid_value',
+        `${at}/fixedColors`,
+        'A class of any vehicle fixes no colors',
       );
       return Object.freeze({
         series: series as CompiledSeries,
@@ -273,19 +336,10 @@ function readSeries(
         entries,
         playerSlot,
         start,
-        rankLimits: readDictionary(entry.rankLimits, `${at}/rankLimits`, (limit, path) =>
-          readNumber(limit, path, { min: 1, max: RUN_RULE_LIMITS.rivals, integer: true }),
-        ),
-        traffic: entry.traffic === null ? null : readTraffic(entry.traffic, `${at}/traffic`, vehicleOf),
-        timeMargin:
-          entry.timeMargin === null
-            ? null
-            : readNumber(entry.timeMargin, `${at}/timeMargin`, {
-                min: 0,
-                max: RUN_RULE_LIMITS.timeMargin,
-                exclusiveMin: true,
-              }),
-        fixedColors: readBoolean(entry.fixedColors, `${at}/fixedColors`),
+        rankLimits,
+        traffic: entry.traffic === null ? null : readTraffic(entry.traffic, `${at}/traffic`, vehicles, vehicleOf),
+        timeMargin,
+        fixedColors,
       });
     },
     { min: 1 },
@@ -294,11 +348,14 @@ function readSeries(
   return Object.freeze(series);
 }
 
-/** At most a full field of entries in grid order, with at least one entry for every candidate vehicle. */
+/**
+ * At most a full field of entries in grid order, with at least one grid entry for every candidate vehicle; with no
+ * candidates (any vehicle), every entry is the player's vehicle in a drawn color, and one at least has a grid slot.
+ */
 function readEntries(
   value: unknown,
   path: string,
-  candidates: readonly VehicleId[],
+  candidates: readonly VehicleId[] | null,
   vehicleOf: (id: string) => CompiledVehicleDefinition | undefined,
 ): readonly SeriesEntry[] {
   let previous = -1;
@@ -307,16 +364,27 @@ function readEntries(
     path,
     (item, at) => {
       const record = readRecord(item, at, ['vehicle', 'color', 'stages', 'slot', 'ahead']);
-      const id = readString(record.vehicle, `${at}/vehicle`);
-      const vehicle = vehicleOf(id);
-      requireAdmission(vehicle !== undefined, 'unresolved_reference', `${at}/vehicle`, `Unknown vehicle ${id}`);
-      const color = readString(record.color, `${at}/color`);
-      requireAdmission(
-        spriteSetHasColor(vehicle!.spriteSet, color),
-        'unresolved_reference',
-        `${at}/color`,
-        `${id} has no color ${color}`,
-      );
+      let id: string | null = null,
+        color: string | null = null;
+      if (candidates === null)
+        requireAdmission(
+          record.vehicle === null && record.color === null,
+          'invalid_value',
+          at,
+          "A class of any vehicle names no vehicle or color: each entry is the player's vehicle",
+        );
+      else {
+        id = readString(record.vehicle, `${at}/vehicle`);
+        const vehicle = vehicleOf(id);
+        requireAdmission(vehicle !== undefined, 'unresolved_reference', `${at}/vehicle`, `Unknown vehicle ${id}`);
+        color = readString(record.color, `${at}/color`);
+        requireAdmission(
+          spriteSetHasColor(vehicle!.spriteSet, color),
+          'unresolved_reference',
+          `${at}/color`,
+          `${id} has no color ${color}`,
+        );
+      }
       const stages = record.stages === null ? null : readStages(record.stages, `${at}/stages`);
       // An entry from STAGE 1 stands in a grid slot; a later one appears ahead of the player.
       if (stages === null || stages.first === 1) {
@@ -350,30 +418,44 @@ function readEntries(
     },
     { min: 1, max: RUN_RULE_LIMITS.competitors },
   );
-  for (const candidate of candidates)
+  for (const candidate of candidates ?? [null])
     requireAdmission(
       entries.some((entry) => entry.vehicle === candidate && entry.slot !== null),
       'invalid_value',
       path,
-      `Candidate vehicle ${candidate} needs a grid entry for the player`,
+      `Candidate vehicle ${candidate ?? 'of the player'} needs a grid entry for the player`,
     );
   return entries;
 }
 
-/** Traffic settings: a density within the run rule ceiling, unique catalog vehicles and a speed in km/h. */
+/**
+ * Traffic settings: a density within the run rule ceiling, unique catalog vehicles and a speed in km/h; in a class of
+ * any vehicle (`classVehicles` null), the one candidate is the player's vehicle (null).
+ */
 function readTraffic(
   value: unknown,
   path: string,
+  classVehicles: readonly VehicleId[] | null,
   vehicleOf: (id: string) => CompiledVehicleDefinition | undefined,
-): TrafficSettings {
+): ClassTraffic {
   const record = readRecord(value, path, ['density', 'path', 'vehicles', 'speedKilometersPerHour']);
   const candidates = readArray(
     record.vehicles,
     `${path}/vehicles`,
     (item, at) => {
       const candidate = readRecord(item, at, ['vehicle', 'weight']);
-      const id = readString(candidate.vehicle, `${at}/vehicle`);
-      requireAdmission(vehicleOf(id) !== undefined, 'unresolved_reference', `${at}/vehicle`, `Unknown vehicle ${id}`);
+      let id: string | null = null;
+      if (classVehicles === null)
+        requireAdmission(
+          candidate.vehicle === null,
+          'invalid_value',
+          `${at}/vehicle`,
+          "A class of any vehicle names no vehicle: its traffic is the player's vehicle",
+        );
+      else {
+        id = readString(candidate.vehicle, `${at}/vehicle`);
+        requireAdmission(vehicleOf(id) !== undefined, 'unresolved_reference', `${at}/vehicle`, `Unknown vehicle ${id}`);
+      }
       const weight = readNumber(candidate.weight, `${at}/weight`, {
         min: 1,
         max: RUN_RULE_LIMITS.trafficWeight,
@@ -384,7 +466,11 @@ function readTraffic(
     { min: 1 },
   );
   const vehicles = Object.freeze(candidates.map((candidate) => candidate.id));
-  requireUnique(vehicles, `${path}/vehicles`, 'vehicle');
+  requireUnique(
+    vehicles.map((id) => id ?? 'of the player'),
+    `${path}/vehicles`,
+    'vehicle',
+  );
   return Object.freeze({
     density: readNumber(record.density, `${path}/density`, {
       min: 0,
@@ -463,6 +549,43 @@ function requireUnique(values: readonly string[], path: string, kind: string): v
 }
 
 /**
+ * The class on `course` with the player in `vehicleId`, a vehicle of the catalog `vehicles` (one of the class's
+ * candidates, when it has them): a class of any course takes `course`, its laps cut to the course's lap maximum and its
+ * grid entries to the slots its grid holds; a class of any vehicle takes the player's vehicle for its candidates, every
+ * entry and its traffic. A class of its own course runs nothing else (a `RangeError`).
+ */
+export function classOnCourse(
+  runClass: SeriesClass,
+  course: CompiledCourse,
+  vehicleId: VehicleId,
+  vehicles: readonly CompiledVehicleDefinition[],
+): CourseClass {
+  if (runClass.course !== null && runClass.course !== course.id)
+    throw new RangeError(`Class ${runClass.id} runs ${runClass.course}, not ${course.id}`);
+  const vehicleOf = (id: string) => id ?? vehicleId;
+  const entries = runClass.entries.map((entry) => Object.freeze({ ...entry, vehicle: vehicleOf(entry.vehicle!) }));
+  const bike = (id: string) => vehicles.find((v) => v.compiledVehicle.id === id)?.listing.form === 'bike';
+  const grid = courseStartGrid(
+    course.gates,
+    entries.every((entry) => bike(entry.vehicle)),
+  ).length;
+  const open = runClass.course === null;
+  return Object.freeze({
+    ...runClass,
+    course: course.id,
+    laps: open ? Math.min(runClass.laps, course.rules.maxLaps) : runClass.laps,
+    vehicles: runClass.vehicles ?? Object.freeze([vehicleId]),
+    entries: Object.freeze(open ? entries.filter((entry) => entry.slot === null || entry.slot < grid) : entries),
+    traffic:
+      runClass.traffic &&
+      Object.freeze({
+        ...runClass.traffic,
+        vehicles: Object.freeze(runClass.traffic.vehicles.map((v) => v ?? vehicleId)),
+      }),
+  });
+}
+
+/**
  * Admit a class against its compiled course and the vehicle catalog: the laps fit the course's lap maximum, every
  * entry's slot is in the grid its field starts from (`courseStartGrid`), a field that is not all bikes has no bike
  * candidate on a course with a bike grid (whose reference run starts from that grid), every ahead entry's lane exists
@@ -470,12 +593,12 @@ function requireUnique(values: readonly string[], path: string, kind: string): v
  * build admits every class; a run admits the class it drives.
  */
 export function admitSeriesClass(
-  settings: SeriesClass,
+  settings: CourseClass,
   course: CompiledCourse,
   vehicles: readonly CompiledVehicleDefinition[],
   document: string,
-): AdmissionResult<SeriesClass> {
-  const index = settings.series.classes.indexOf(settings);
+): AdmissionResult<CourseClass> {
+  const index = settings.series.classes.findIndex((c) => c.id === settings.id);
   const bike = (id: string) => vehicles.find((v) => v.compiledVehicle.id === id)!.listing.form === 'bike';
   const bikesOnly = settings.entries.every((entry) => bike(entry.vehicle));
   const grid = courseStartGrid(course.gates, bikesOnly);
@@ -563,13 +686,13 @@ export async function loadSeriesCatalog(
   return requireLoaded(compileSeriesCatalog(sources, courseIds, vehicles, pictures, music));
 }
 
-/** A delivered class admitted against its delivered course. */
+/** A delivered class on its delivered course (`classOnCourse`), admitted against it. */
 export function loadSeriesClass(
   content: ContentDelivery,
-  settings: SeriesClass,
+  settings: CourseClass,
   course: CompiledCourse,
   vehicles: readonly CompiledVehicleDefinition[],
-): SeriesClass {
+): CourseClass {
   const document = content.manifest.files.find((file) => file.kind === 'series' && file.id === settings.series.id)!;
   return requireLoaded(admitSeriesClass(settings, course, vehicles, document.path));
 }

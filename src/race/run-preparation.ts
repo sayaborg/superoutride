@@ -3,7 +3,7 @@ import { readCourseTimeBudgets } from '../content/course-time-budgets.js';
 import { admitProduct } from '../content/delivered-product.js';
 import type { FreePlayRules } from '../content/free-play-rules.js';
 import { readRacingLines } from '../content/racing-line.js';
-import type { SeriesClass } from '../content/series-catalog.js';
+import type { CourseClass } from '../content/series-catalog.js';
 import { createRunVehicle, runVehicleSha256, type RunVehicle } from '../content/run-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import type { SurfaceMaterialCatalog } from '../course/surface-material.js';
@@ -35,7 +35,7 @@ export async function prepareRun(
   content: ContentDelivery,
   catalog: RunCatalog,
   course: CompiledCourse,
-  runClass: SeriesClass | null,
+  runClass: CourseClass | null,
   request: RunRulesRequest,
   initialSpeed = 0,
 ) {

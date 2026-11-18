@@ -786,6 +786,11 @@ line until the cards are designed. What follows goes to K first:
 - **The changes outside the rows:** the PRE-RACE card, READY and the ways into and out of a run, which still go
   through black (K, 2026-11-08: line thinning alone).
 - **PAUSE's QUIT,** which takes a RACE to TITLE, and where within the rows it should lead.
+- **FREE PLAY's traffic** (GD-29): its density and speed are K's to set; until then 5 vehicles per kilometre at
+  80 km/h, the former LOW.
+- **The old FREE PLAY run (GD-29c),** the last step of GD-29: FREE PLAY now runs as classes, and the former FREE PLAY
+  run mode stays only for tests, tools and DEV's rebuilt run. It goes with its rules document
+  (`content/free-play/`), its rival pools, `FreePlayRunRequest` and its URL parameters, those uses taking class runs.
 - **Defaults K is to confirm** (GD-5): a gamepad's RT confirms and LT goes back in menus, as the accelerator and
   brake. The card's y 32 is K's (2026-11-11), balanced by the path's row.
 

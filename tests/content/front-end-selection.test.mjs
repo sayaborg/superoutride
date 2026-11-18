@@ -6,13 +6,16 @@ import { compileFrontEndSelection, FRONT_END_SELECTION_FORMAT } from '../../src/
 const DOCUMENT = 'content/front-end/selection.json';
 const track = (id) => Object.freeze({ id });
 const music = [track('placeholder-one'), track('placeholder-two')];
-const series = (id, dev = false) =>
+const picture = (columns = 40, rows = 30, opaque = true) => Object.freeze({ columns, rows, opaque });
+// A series document; `world` false for one without a world of its own (FREE PLAY), which has no image or track.
+const series = (id, dev = false, world = true) =>
   Object.freeze({
     id,
     dev,
     title: id.toUpperCase(),
     description: `${id} described`,
-    music: { title: music[0] },
+    image: world ? picture() : null,
+    music: { title: world ? music[0] : null },
     classes: [],
   });
 // A listed series' entry: one with a document names nothing, one without names its title track, title and description.
@@ -20,7 +23,6 @@ const listed = (id, music = null) =>
   music === null
     ? { id, music, title: null, description: null }
     : { id, music, title: id.toUpperCase(), description: `${id} described` };
-const picture = (columns = 40, rows = 30, opaque = true) => Object.freeze({ columns, rows, opaque });
 const catalog = (...all) => Object.freeze({ series: all, seriesClass: () => null });
 const document = (seriesEntries) => ({ ...FRONT_END_SELECTION_FORMAT, series: seriesEntries });
 // The selection admitted as the build admits it: the selection, or the one diagnostic's path and message.
@@ -39,14 +41,20 @@ const admitted = (
 
 test('the authored selection lists the series', async () => {
   const value = JSON.parse(await readFile(new URL(`../../${DOCUMENT}`, import.meta.url), 'utf8'));
-  // Every listed series has its screen picture, so SELECT SERIES shows them all, in the list's order, one with a
-  // document takes its track from it, and one without names a delivered track.
+  // Every listed series has its screen picture, or no world of its own, so SELECT SERIES shows them all, in the list's
+  // order; one with a document takes its track from it, and one without names a delivered track.
   const authored = async (directory) =>
     (await readdir(new URL(`../../content/${directory}/`, import.meta.url)))
       .filter((name) => name.endsWith('.json'))
       .map((name) => name.slice(0, -'.json'.length));
+  const imageOf = async (name) =>
+    JSON.parse(await readFile(new URL(`../../content/series/${name}.json`, import.meta.url), 'utf8')).image;
   const selection = admitted(value, {
-    all: (await authored('series')).map((name) => series(name.slice(0, -'.series'.length))),
+    all: await Promise.all(
+      (await authored('series')).map(async (name) =>
+        series(name.slice(0, -'.series'.length), false, (await imageOf(name)) !== null),
+      ),
+    ),
     pictures: new Map((await authored('screen-pictures')).map((id) => [id, picture()])),
     tracks: (await authored('music')).map(track),
   });
@@ -75,6 +83,17 @@ test('a listed series shows once its picture exists, and the series admit only w
     [
       ['club', 'club', 'placeholder-one', 'CLUB', 'club described'],
       ['tribute', null, 'placeholder-two', 'TRIBUTE', 'tribute described'],
+    ],
+  );
+  // A series without a world of its own shows without a picture, silent.
+  const free = admitted(document([listed('club'), listed('free')]), {
+    all: [series('club'), series('free', false, false)],
+  });
+  assert.deepEqual(
+    free.seriesRow(false).map((s) => [s.id, s.picture === null, s.titleTrack?.id ?? null]),
+    [
+      ['club', false, 'placeholder-one'],
+      ['free', true, null],
     ],
   );
   // DEV series follow the list with dev=1.

@@ -153,7 +153,7 @@ test('a course name as long as the course texts admit fits every screen that sho
           dim: false,
           page: classPage(
             runClass,
-            courses.find((c) => c.id === runClass.course),
+            runClass.course === null ? null : courses.find((c) => c.id === runClass.course),
             vehicleOf,
             style,
           ),

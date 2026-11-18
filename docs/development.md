@@ -1192,8 +1192,8 @@ delivered content with `dev=1` (`tests/infrastructure/screens-smoke.test.mjs`), 
 `dist/screens/<name>.png` at twice the frame's size, as the reference mockups are drawn, for inspection by eye; no test
 compares their pixels: `title`, `thinning` (halfway from TITLE to SELECT SERIES), `select-series`, `zoom` (halfway into
 the series' world), `select-class`, `class-course` (its SELECT COURSE), `select-vehicle`, `prerace`, `result`,
-`free-play` (its card on SELECT SERIES), `rules`, `select-course`, `free-play-vehicle`, `settings` (opened over it) and
-`clear-records`. A single file runs after `npm run build` with
+`free-play` (its card on SELECT SERIES), `free-play-class`, `select-course`, `free-play-vehicle`, `settings` (opened
+over it) and `clear-records`. A single file runs after `npm run build` with
 `node --import tsx --test tests/infrastructure/screens-smoke.test.mjs`.
 
 ### Listening on devices

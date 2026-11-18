@@ -8,7 +8,13 @@ import type { RacingLines } from '../content/racing-line.js';
 import type { RunVehicle } from '../content/run-vehicle.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseStartGrid, type CompiledGridSlot } from '../course/compiler/course-rules.js';
-import type { AheadAppearance, SeriesClass, StageInterval } from '../content/series-catalog.js';
+import type {
+  AheadAppearance,
+  CourseClass,
+  SeriesClass,
+  SeriesEntry,
+  StageInterval,
+} from '../content/series-catalog.js';
 import type { RunConfiguration } from './run-configuration.js';
 import { drawRivalPairs, rivalPoolPairs, type VehicleColor } from './free-play-field.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -77,7 +83,7 @@ export interface ResolvedTraffic {
  */
 export function runDemand(
   configuration: RunConfiguration,
-  runClass: SeriesClass | null,
+  runClass: CourseClass | null,
   vehicles: readonly CompiledVehicleDefinition[],
 ) {
   const rivalPool = configuration.rivalPool === null ? [] : rivalPoolPairs(vehicles, configuration.rivalPool);
@@ -106,15 +112,16 @@ const fieldGrid = (course: CompiledCourse, field: readonly EntryVehicle[]) =>
   );
 
 // The RACE class entry the player takes: the rearmost grid entry of its vehicle.
-const ownEntry = (runClass: SeriesClass, vehicleId: string) =>
-  runClass.entries.filter((entry) => entry.slot !== null && entry.vehicle === vehicleId).at(-1);
+// An entry without a vehicle is the player's own vehicle (a class of any vehicle).
+const ownEntry = <E extends SeriesEntry>(runClass: { readonly entries: readonly E[] }, vehicleId: string | null) =>
+  runClass.entries.filter((entry) => entry.slot !== null && (entry.vehicle ?? vehicleId) === vehicleId).at(-1);
 
 /**
  * The player's color in a run: in a class whose colors are fixed (RACE and TIME ATTACK alike), its own entry's;
  * else the chosen color, else the vehicle's default color. Selection screens show the same color.
  */
 export function runPlayerColor(
-  runClass: SeriesClass | null,
+  runClass: Pick<SeriesClass, 'entries' | 'fixedColors'> | null,
   vehicle: CompiledVehicleDefinition,
   chosen: string | null,
 ): string {
@@ -137,7 +144,7 @@ export function runPlayerColor(
  */
 export function resolveRunSetup(
   course: CompiledCourse,
-  runClass: SeriesClass | null,
+  runClass: CourseClass | null,
   configuration: RunConfiguration,
   seed: number,
   vehicle: RunVehicle,
@@ -194,7 +201,7 @@ export function resolveRunSetup(
   };
   const entries =
     configuration.mode === 'RACE'
-      ? classEntries(course, runClass!, { vehicle }, playerColor, field.vehicleOf!)
+      ? classEntries(course, runClass!, seed, { vehicle }, playerColor, field.vehicleOf!)
       : freePlayEntries(
           course,
           configuration.rivalCount,
@@ -264,7 +271,10 @@ export type RunSetup = ReturnType<typeof resolveRunSetup>;
  * the grid entries' slots and the other grid entries, in order, the slots in front of it, and `first` the frontmost,
  * and them the slots behind it.
  */
-export function classGridSlots(runClass: SeriesClass, playerVehicleId: string) {
+export function classGridSlots<E extends SeriesEntry>(
+  runClass: { readonly entries: readonly E[]; readonly playerSlot: SeriesClass['playerSlot'] },
+  playerVehicleId: string | null,
+) {
   const own = ownEntry(runClass, playerVehicleId)!;
   const slots = runClass.entries.filter((entry) => entry.slot !== null).map((entry) => entry.slot!);
   const otherGridSlots =
@@ -285,17 +295,30 @@ export function classGridSlots(runClass: SeriesClass, playerVehicleId: string) {
   });
 }
 
-/** RACE: the class's entries, the player taking the rearmost entry of its vehicle (`classGridSlots`). */
+/**
+ * RACE: the class's entries, the player taking the rearmost entry of its vehicle (`classGridSlots`). Entries without a
+ * color, the player's vehicle in a class of any vehicle, take colors the run's seed draws among that vehicle's, apart
+ * from the player's while it has others (`drawRivalPairs`).
+ */
 function classEntries(
   course: CompiledCourse,
-  runClass: SeriesClass,
+  runClass: CourseClass,
+  seed: number,
   player: EntryVehicle,
   playerColor: string,
   vehicleOf: (vehicleId: string) => EntryVehicle,
 ): readonly RunEntry[] {
-  const slots = classGridSlots(runClass, player.vehicle.vehicleDefinition.compiledVehicle.id);
+  const playerVehicle = player.vehicle.vehicleDefinition;
+  const slots = classGridSlots(runClass, playerVehicle.compiledVehicle.id);
   const rivals = slots.others.map(({ entry }) => vehicleOf(entry.vehicle));
   const grid = fieldGrid(course, [player, ...rivals]);
+  const drawn = drawRivalPairs(
+    seed,
+    slots.others.filter(({ entry }) => entry.color === null).length,
+    rivalPoolPairs([playerVehicle], { id: 'OWN', forms: [playerVehicle.listing.form] }),
+    { vehicle: playerVehicle.compiledVehicle.id, color: playerColor },
+  );
+  let draw = 0;
   return Object.freeze([
     Object.freeze({
       id: 'PLAYER',
@@ -310,7 +333,7 @@ function classEntries(
         id: rivalId(index),
         slot: slot === null ? null : grid[slot]!,
         ahead: entry.ahead,
-        color: entry.color,
+        color: entry.color ?? drawn[draw++]!.color,
         stages: entry.stages,
         ...rivals[index]!,
       }),

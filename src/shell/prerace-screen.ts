@@ -11,7 +11,7 @@ import { SCREEN_BACKGROUND, writeCentred } from './menu.js';
 import { formatMilliseconds, NO_TIME } from './race-time.js';
 import { courseLength } from './course-page.js';
 import { classTitleLines } from '../content/series-catalog.js';
-import { isFreePlay, SESSION_NAMES, type RunRequest } from './run-request.js';
+import { classRunCourse, isFreePlay, SESSION_NAMES, type RunRequest } from './run-request.js';
 import type { SeriesCatalog } from '../content/series-catalog.js';
 import type { CourseIndex } from '../content/course-index.js';
 
@@ -56,10 +56,12 @@ export function preRaceCardOf(request: RunRequest, series: SeriesCatalog, course
   if (!isFreePlay(request)) {
     named = series.seriesClass(request.seriesId, request.classId);
     if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
-    [courseId, laps] = [named.course, request.session === 'RACE' ? named.laps : null];
+    [courseId, laps] = [classRunCourse(named, request), request.session === 'RACE' ? named.laps : null];
   } else [courseId, laps] = [request.courseId, request.lapCount];
   const course = courses.find((c) => c.id === courseId);
   if (!course) throw new RangeError(`Unknown course ${courseId}`);
+  // A class of any course runs at most the course's laps (`classOnCourse`).
+  if (laps !== null) laps = Math.min(laps, course.maxLaps);
   return Object.freeze({
     background: named ? named.series.image : null,
     title: named ? named.title : 'FREE PLAY',

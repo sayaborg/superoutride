@@ -154,13 +154,13 @@ the changes outside them. The rows ([selection flow](../src/shell/selection-flow
   SERIES (K, 2026-11-19); the first is the user gesture that enables sound and requests fullscreen of the page where the
   browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser accepts), and it sounds
   `press-start`. BACK does nothing.
-- **SELECT SERIES:** the series shown, then FREE PLAY's card, dimmed with no course offered. BACK returns to TITLE.
+- **SELECT SERIES:** the series shown, FREE PLAY last ([front end selection](content-and-gameplay.md)); a series
+  offering no class is dimmed. BACK returns to TITLE.
 - **A series:** in the series' world SELECT CLASS (the series' classes), SELECT COURSE (the class's course alone, to
   confirm; K, 2026-11-19) and SELECT VEHICLE (the class's vehicles). Choosing another class clears the chosen vehicle.
-- **FREE PLAY:** in the main world RULES, one list card of RIVALS, POOL, TRAFFIC and LAPS at the place of a series (its
-  rules), whose CONFIRM on any entry goes on; SELECT COURSE, every course offered in the
-  [course index's](content-and-gameplay.md#course-index) order, as courses apart from any series (K, 2026-11-11); and
-  SELECT VEHICLE (every catalog vehicle). BACK on RULES returns to SELECT SERIES as a series' world does.
+  FREE PLAY's world is the main world, and its classes are of any course and any vehicle (K, 2026-11-19): its SELECT
+  COURSE shows every course offered in the [course index's](content-and-gameplay.md#course-index) order, as courses
+  apart from any series (K, 2026-11-11), and its SELECT VEHICLE every catalog vehicle.
 - **SETTINGS:** out of the path (K, 2026-11-19): PAUSE opens it from any row, TITLE included, standing in that row's
   world, and BACK or PAUSE on it, or PAUSE on its CONTROLS or CLEAR RECORDS? row, returns to that row with its card
   and entry in focus as they were. It is one list card of the settings (below); CONTROLS opens a row of its one card,
@@ -168,9 +168,9 @@ the changes outside them. The rows ([selection flow](../src/shell/selection-flow
 
 A row is shown even with one card. BACK returns to the row before, CONFIRM on SELECT VEHICLE requests the run
 (`menu-entry`), which shows the PRE-RACE card and then starts. Each row starts from the current choice, else the player
-record's latest choice (keys `series`, which holds `free-play` for FREE PLAY's card, `class`, `course` and `vehicle`),
-else its first card; each CONFIRM saves its choice as the latest. The courses FREE PLAY offers are those the offered
-series run, and with `dev=1` every delivered course.
+record's latest choice (keys `series`, `class`, `course`, a class of any course's, and `vehicle`), else its first
+card; each CONFIRM saves its choice as the latest. The courses a class of any course offers are those the offered
+series' classes run, and with `dev=1` every delivered course; with none, its class is dimmed.
 
 A card is 28×21 tiles (224×168 pixels) at 1:1. At rest the card in focus stands at x 48 (column 6) and y 32 (row 4),
 four rows clear above and below it over the path's row, which balances it in the frame (K, 2026-11-11), its
@@ -181,7 +181,6 @@ ornate large font, in two lines when it is longer than 26 characters, and one li
 
 | Row            | Name                  | Line                                                              |
 | -------------- | --------------------- | ----------------------------------------------------------------- |
-| RULES          | RULES, a list card    | RIVALS, POOL, TRAFFIC and LAPS with their values                  |
 | SETTINGS       | SETTINGS, a list card | each setting with its value (none for CONTROLS and CLEAR RECORDS) |
 | CONTROLS       | CONTROLS              | none                                                              |
 | CLEAR RECORDS? | NO, YES               | `CLEAR RECORDS?`                                                  |
@@ -442,13 +441,6 @@ its run would give the player (one rule with the race): the player record's colo
 in a class with fixed colors its entry's color, which UP and DOWN leave. CONFIRM saves a chosen color in the player
 record.
 
-RULES' values start from the player record's latest choice (keys `rivals`, `pool`, `traffic` and `laps`), else 0,
-ALL, OFF and 1, and each change is saved there: RIVALS 0–15 and LAPS from 1 to the most laps of any course FREE PLAY
-offers, both stopping at their ends, and POOL (ALL, CARS or BIKES) and TRAFFIC (OFF, LOW or HIGH), wrapping. Choosing a
-course or a vehicle changes no rule (K, 2026-11-09). The run SELECT VEHICLE requests cuts them to its course: as many
-rivals as RIVALS and the course's grid holds (`gridRivalCapacity`), and on a CIRCUIT as many laps as LAPS and the
-course's `maxLaps` allow, one lap elsewhere; the PRE-RACE card shows what it takes. RACE takes its class's traffic.
-
 DEV series and courses in no series are offered only with `dev=1`, which the composition root reads once.
 
 CREST SPEED, a DEV setting (not persisted), lays each original's course with the [crests rule](original-road-data.md#crests)
@@ -693,37 +685,33 @@ and derives its run configuration (`compileRunConfiguration`); a request from th
 screens or RETRY passes the same admission, and a DEV rebuild's request too.
 
 The URL is read once at startup, as a DEV and test entry point; selections inside the page never rewrite it. A URL
-with `series` and `class`, or with `course`, builds that run's request and starts the run directly: its PRE-RACE card leaves as soon as the run is assembled, with no minimum stay and no black before READY, so a headless check reaches its first frame; a URL with
+with `series` and `class`, or `course` alone, builds that run's request and starts the run directly: its PRE-RACE card leaves as soon as the run is assembled, with no minimum stay and no black before READY, so a headless check reaches its first frame; a URL with
 neither starts at TITLE. The player's color is the player record's color for the vehicle, and its track MUSIC OFF. A
 URL request that cannot be built fails like an assembly.
 
 Run parameters are case-sensitive:
 
-| Parameter | Meaning                                                                                                               |
-| --------- | --------------------------------------------------------------------------------------------------------------------- |
-| `series`  | Series ID; with `class`, names a run of that class                                                                    |
-| `class`   | Class ID within `series`                                                                                              |
-| `session` | A class run's session: `race` (RACE, the default) or `attack` (TIME ATTACK); other values, or one with `course`, fail |
-| `course`  | Lowercase delivered course ID; names a FREE PLAY run on it                                                            |
-| `vehicle` | Exact catalog vehicle ID for FREE PLAY, such as `TESTAROSSA`; absent uses preset                                      |
-| `rivals`  | FREE PLAY count parsed with `Number`; integer 0–15 within grid capacity; absent uses preset                           |
-| `laps`    | FREE PLAY count parsed with `Number`; positive integer within course limit                                            |
-| `pool`    | FREE PLAY rival pool: `ALL`, `CARS` or `BIKES`; absent uses the player vehicle's form; other values fail              |
-| `traffic` | FREE PLAY traffic: `OFF`, `LOW` or `HIGH`; absent is `OFF`; other values fail                                         |
+| Parameter | Meaning                                                                                                         |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| `series`  | Series ID; with `class`, names a run of that class                                                              |
+| `class`   | Class ID within `series`                                                                                        |
+| `session` | A class run's session: `race` (RACE, the default) or `attack` (TIME ATTACK); other values fail                  |
+| `course`  | Lowercase delivered course ID: a class of any course's; alone, FREE PLAY's SOLO on it (K, 2026-11-19)           |
+| `vehicle` | Exact catalog vehicle ID for a class of any vehicle, such as `TESTAROSSA`; absent, the first in selection order |
 
-RACE runs the named [class](content-and-gameplay.md#series-documents): the class's first vehicle, its entries and
-laps and its course, with the checkpoint clock, ignoring individual query overrides; TIME ATTACK runs the class's first
-vehicle alone on its course. A URL naming a course runs FREE PLAY: `session` with `course` is an error, as are
-`course` together with `series` or `class`, `series` without `class` or the reverse, and an unknown class, course or
-session. FREE PLAY exposes those settings and has no clock. There is no `mode` or `clock` parameter, so an old value
-of either is other URL data and ignored. Invalid vehicle, numeric or course/run
-combinations produce an error. FREE PLAY's defaults are the first vehicle in selection order, no rivals and one lap. A class whose course's reference times are missing from delivery
+RACE runs the named [class](content-and-gameplay.md#series-documents): the class's first vehicle (or `vehicle` in a
+class of any vehicle), its entries and laps and its course (or `course` in a class of any course), with its clock;
+TIME ATTACK runs the class's first vehicle alone on its course, and a class of any course has none. `series` without
+`class` or the reverse, `course` with a class of its own course or none with a class of any, and an unknown class,
+course, vehicle or session are errors. Other parameters, an old `mode`, `clock`, `rivals`, `laps`, `pool` or
+`traffic` among them, are other URL data and ignored. A class whose course's reference times are missing from delivery
 fails to load.
 
 ```text
 ?series=tsukuba-clubman&class=gti-cup
 ?series=tsukuba-clubman&class=911-cup&session=attack
-?course=tsukuba&vehicle=TESTAROSSA&rivals=15&laps=1
+?series=free-play&class=race&course=tsukuba&vehicle=TESTAROSSA
+?course=tsukuba&vehicle=TESTAROSSA
 ```
 
 A run started from the URL drives without a gesture; sound still requires an eligible browser gesture.
@@ -1001,7 +989,7 @@ through the record.
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `vehicleColors`    | Selected color by vehicle ID, the player's run color; default `{}`                                                                                                                              |
 | `volumes`          | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100                                                                                                           |
-| `latestSelections` | Latest choice by row key (`menu`, `series`, `class`, `course`, `vehicle`, `rivals`, `pool`, `traffic`, `laps`; `music` for the SETTINGS audition); default `{}`                                 |
+| `latestSelections` | Latest choice by row key (`series`, `class`, `course`, `vehicle`; `music` for the SETTINGS audition); default `{}`                                                                              |
 | `cameras`          | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`)                                                       |
 | `steering`         | `car` and `bike`, each `{ "reference": "front" or "center", "utilization": 1, 0.95 or 0.9 }`: the player's steering rule for that form; default `center` and 0.95 for both (`DEFAULT_STEERING`) |
 | `slowDown`         | Whether the HUD shows SLOW DOWN; default `true` (ON)                                                                                                                                            |

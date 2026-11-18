@@ -51,9 +51,10 @@ A series holds no rule values: every rule belongs to its classes, and classes of
 A series' only other setting is whether it appears without DEV, which is visibility, not a rule. Steering and camera
 belong to the player's SETTINGS alone; a class does not prescribe them.
 
-**FREE PLAY** is not a series. It is an assembly bench: any product course, any vehicle, rivals from a vehicle pool,
-traffic and laps (§4). Every delivered product course is available in FREE PLAY; a course that no class runs is
-available only there.
+**FREE PLAY** is a series like any other, of six classes that name no course and no vehicle (K, 2026-11-19): any
+course offered, any vehicle, and a field and traffic of the player's own vehicle (§4). It has no world of its own and
+stands in the main world, without music. The courses its classes offer are those the other series run; with DEV,
+every delivered course.
 
 LINEAR means one route without laps (not a straight road), and CIRCUIT a lapped course. Courses do not branch
 (K, 2026-11-12). Stages are rule intervals; they need not coincide with
@@ -87,7 +88,8 @@ real circuit's or an original's own where it has one, otherwise a general form, 
 row. TSUKUBA's car grid is two staggered columns, and its motorcycle grid three a row in steps with the pole at the
 front on the left, as in the Tsukuba road racing championship. A field of motorcycles alone starts from the motorcycle
 grid, and a field with a car from the car grid, in every run. A grid may hold more slots than sixteen; a field uses
-the front sixteen. FREE PLAY and TIME ATTACK fill them from the front, the rivals first and the player behind them.
+the front sixteen. TIME ATTACK starts the player from the first; a class of any course takes as many of its entries
+as the grid holds.
 
 **Stage interval and appearance.** An entry takes part in a stage interval. An entry starting at the
 first stage stands in its grid slot. An entry joining later appears ahead of the player by its ahead
@@ -105,7 +107,7 @@ that vehicle on the class's course and route, multiplied by the class's time mar
 
 **Rival pace.** Rivals drive vehicles about as able as the player's, so no rival follows a schedule (K,
 2026-11-12). A rival drives a little harder behind the player and a little easier ahead of it, following the player
-slowly, within its own vehicle's limits and at its vehicle's whole speed on a straight; RACE and FREE PLAY rivals
+slowly, within its own vehicle's limits and at its vehicle's whole speed on a straight; every class's rivals
 drive alike ([Rival utilization](content-and-gameplay.md#rival-utilization)). No vehicle's mechanics change. The
 difference is visible driving, not a hidden correction.
 
@@ -135,16 +137,22 @@ starts from the first grid slot. What it competes on depends on the course:
   QUIT leads to RESULT, showing the completed laps and the best; a run ended before completing a lap has no result.
 - **LINEAR: the completion time** to the goal, as a run with a finish.
 
-**FREE PLAY** runs any product course with any vehicle. There is no clock. Its RULES, chosen before the course and
-kept as chosen (K, 2026-11-09), are the rival count (0–15), the rival vehicle pool (ALL, CARS or BIKES; default ALL),
-traffic (OFF, LOW or HIGH; default OFF) and laps (1 to the most any course allows). A run takes as many rivals as the
-course's grid holds at most and, on a circuit, as many laps as the course allows at most; the PRE-RACE card shows
-what it takes. Rival vehicles and colors are drawn from
-the pool by the run's seed. FREE PLAY rivals follow the player as RACE rivals do, each at its own vehicle's limits,
-so the choice of vehicles shapes the race; FREE PLAY needs no reference runs. The rivals stand from the first grid slot
-and the player behind them, in the first when there are none.
-FREE PLAY traffic is the same on every course: LOW is 5 and HIGH 30 vehicles per kilometre, drawn from every
-vehicle, at 80 km/h. FREE PLAY records nothing.
+**FREE PLAY**'s classes (K, 2026-11-19) run RACE on any course offered with any vehicle, the player choosing the
+course after the class:
+
+| Class           | Rivals                              | Traffic | Start                                     |
+| --------------- | ----------------------------------- | ------- | ----------------------------------------- |
+| SOLO            | none                                | none    | the first grid slot                       |
+| TRAFFIC         | none                                | yes     | the first grid slot                       |
+| RACE            | as many as the grid holds, up to 15 | none    | together, the player behind the rivals    |
+| RACE + TRAFFIC  | as RACE                             | yes     | as RACE                                   |
+| CHASE           | one                                 | none    | CHASE (§7): the player leaves once passed |
+| CHASE + TRAFFIC | one                                 | yes     | as CHASE                                  |
+
+Every class runs 3 laps, at most the course's most, and a course without laps once: laps are the class's, not the
+course's. Rivals and traffic are all the player's own vehicle, their colors drawn by the run's seed; the classes name
+no vehicle. Traffic is 5 vehicles per kilometre at 80 km/h until K sets FREE PLAY's (NEXT). There is no clock, and
+FREE PLAY records nothing.
 
 ## 5. Series
 
@@ -209,7 +217,7 @@ of the series has the same; each class also has its time margin and whether it f
 TITLE: the main picture over the attract demo; PRESS START
 SELECT SERIES: the series, then FREE PLAY last
   a series:  in the series' world SELECT CLASS → SELECT COURSE → SELECT VEHICLE
-  FREE PLAY: in the main world RULES → SELECT COURSE → SELECT VEHICLE
+  FREE PLAY: in the main world SELECT CLASS → SELECT COURSE (every course offered) → SELECT VEHICLE (every vehicle)
 SETTINGS (PAUSE, from any row): one card of the settings; CONTROLS and CLEAR RECORDS each open a card of their own
 → PRE-RACE card (doubles as loading) → READY → RACE → RESULT
 RESULT: RETRY / CHANGE VEHICLE / SELECT / TITLE
@@ -270,10 +278,9 @@ TITLE, FREE PLAY's card and FREE PLAY's rows have no music. On SELECT SERIES the
 track once the row has rested, and the track plays on in that series' world (K, 2026-11-09; §13). SETTINGS keeps what
 plays in the row it was opened from.
 
-FREE PLAY's RULES are one card of RIVALS, POOL, TRAFFIC and LAPS, at the place a series takes on the SERIES side (the
-rules), chosen before the course and kept as chosen (§4). SELECT COURSE shows every course offered, in the reference
-games' order, the game's own courses last: the courses stand as courses, apart from the ARCADE TRIBUTE series, as their
-descriptions do (K, 2026-11-11). SELECT SERIES shows, in the front end's order, the
+For a class of any course, FREE PLAY's, SELECT COURSE shows every course offered, in the reference games' order, the
+game's own courses last: the courses stand as courses, apart from the ARCADE TRIBUTE series, as their descriptions do
+(K, 2026-11-11). SELECT SERIES shows, in the front end's order, the
 series whose picture exists; one without a series document yet shows its picture and denies CONFIRM (K, 2026-11-09).
 A course's and a vehicle's cards are pages to read, packed with what they are about (K, 2026-11-11: the card UI as
 before; 2026-11-12). A course's card says the course alone, its map, length, heights, corners and description, and a
@@ -293,7 +300,7 @@ only inside that class. While a run loads, the frame shows the PRE-RACE card (cl
 start slot and, in TIME ATTACK, the record); a failed load shows LOAD FAILED with RETRY and BACK. RESULT and the PAUSE
 menu are drawn over the stopped frame, dimmed to half brightness. A URL that names a class or a course starts that run
 directly, for development and tests: `series` and `class`, with `session=race` or `session=attack` (RACE when absent),
-name a class's run, and `course` names a FREE PLAY run.
+name a class's run, with `course` for a class of any course, and `course` alone names FREE PLAY's SOLO on it.
 
 ## 7. Start and finish
 
@@ -383,7 +390,7 @@ DEV UI stays separate from the HUD.
 The browser keeps one versioned record of settings and records:
 
 - **Settings:** each vehicle's selected color, the three volumes, the car and bike cameras, the car and bike steering
-  and the latest selections, FREE PLAY's options included.
+  and the latest selections.
 - **TIME ATTACK records:** one table per class, keyed by the class and the goal reached (a circuit has one). The value
   is the best lap on a CIRCUIT and the completion time otherwise, with the record run's gate times (within the record
   lap on a CIRCUIT) and the vehicle it was set with.

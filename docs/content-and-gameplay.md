@@ -930,14 +930,14 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 18) is the one owner of its classes, the races it runs. A series
+A series document (`superoutride.series` version 19) is the one owner of its classes, the races it runs. A series
 holds no rule values: every rule is a class's, and classes of one series may repeat the same values. It is saved
 as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 18,
+  "version": 19,
   "id": "example",
   "title": "EXAMPLE",
   "description": "A series for the example's sake.",
@@ -975,7 +975,8 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
 description (K, 2026-11-11), as a course's: in the text tiles' characters, at most 40 and 190 characters, of the series
 alone and never of how a mode is played. An ARCADE TRIBUTE series' describes its reference game: its maker and year,
 and what it was. `image` names its series image, an opaque 40×30-tile
-[screen picture](image-assets.md#screen-pictures). `music` names its `title` track, a delivered
+[screen picture](image-assets.md#screen-pictures), or is null for a series without a world of its own, which stands in
+the main world (FREE PLAY, K, 2026-11-19). `music` names its `title` track, or null for a silent series, a delivered
 track by ID, which plays on its SELECT SERIES card and in its world; a run's race track is its course's
 ([Course sounds](#course-sounds); K, 2026-11-11). `dev: true` marks a development series: front ends show it only with DEV; it is
 visibility, not a rule. `classes` lists at least one class in selection order. A class is one race: its `id`,
@@ -1002,6 +1003,17 @@ vehicle either way. `start` is how the field starts (K, 2026-11-19): `grid`, tog
 rival leaves at GO from the slot behind the player's while the player is held as in READY until that rival has passed
 it; a `chase` class has two grid entries and `playerSlot: first`, and like any race it is won by being ahead at the
 goal. `rankLimits` maps a race gate ID to its rank limit N.
+
+A class may leave its course and vehicle to the player (K, 2026-11-19: FREE PLAY's six classes). `course: null` is any
+course the front end offers; such a class has no clock (`timeMargin: null`), no `rankLimits` and no `stages`, its laps
+are cut to the course's lap maximum, and a course's grid takes as many of its grid entries as it holds, from the front.
+`vehicles: null` is any catalog vehicle; such a class names no vehicle and fixes no colors: each entry's `vehicle` and
+`color` are null, the player's own vehicle in a color the run's seed draws among its colors, apart from the player's
+while it has others, and its traffic's one candidate is `{ "vehicle": null, "weight": 1 }`, the player's vehicle. A
+class of any course or vehicle is admitted against its course when a run drives it (`classOnCourse`), and the attract
+demo shows only classes of their own course and vehicles. FREE PLAY's classes (`content/series/free-play.series.json`)
+run 3 laps, SOLO and TRAFFIC one grid entry (`playerSlot: first`), RACE and RACE + TRAFFIC sixteen (`last`), and CHASE
+and CHASE + TRAFFIC two (`first`, `start: chase`); their traffic is 5 vehicles per kilometre on lanes at 80 km/h.
 Admission checks each document once, from the build's files or the delivery manifest alike, against the delivered course
 IDs, the vehicle catalog, the screen pictures and the tracks. A course may be run by several classes of one or several
 series. A class is admitted against its compiled course: `laps` within `maxLaps`, every entry's slot within the slots

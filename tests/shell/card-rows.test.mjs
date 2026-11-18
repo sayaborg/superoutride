@@ -8,7 +8,6 @@ import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadSeriesCatalog } from '../../src/content/series-catalog.js';
 import { loadScreenPictures, mainPicture } from '../../src/content/screen-picture-catalog.js';
-import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadMusic } from '../../src/content/recording-catalog.js';
 import { loadFrontEndSelection } from '../../src/content/front-end-selection.js';
 import { compileTilePicture } from '../../src/image/tile-picture.js';
@@ -29,14 +28,14 @@ const music = await loadMusic(content, TEXT_COLUMNS);
 const series = await loadSeriesCatalog(content, vehicles, pictures, music);
 const delivered = await loadFrontEndSelection(content, series, pictures, music);
 const courses = await loadCourseIndex(content);
-const freePlay = await loadFreePlayRules(content);
 const tiles = await loadTextTiles(content);
 const club = series.series.find((s) => s.id === 'tsukuba-clubman');
 // TSUKUBA CLUBMAN's card on SELECT SERIES, after the ARCADE TRIBUTE series, and its picture.
 const clubAt = delivered.seriesRow(true).findIndex((entry) => entry.series === club);
 const clubPicture = delivered.seriesRow(true)[clubAt].picture;
-// SELECT SERIES' cards: the series, then FREE PLAY.
-const seriesNames = [...delivered.seriesRow(true).map((entry) => entry.name), 'FREE PLAY'];
+// SELECT SERIES' cards: the series, FREE PLAY last; and FREE PLAY's series, whose classes are of any course and vehicle.
+const seriesNames = delivered.seriesRow(true).map((entry) => entry.name);
+const freePlay = series.series.find((s) => s.id === 'free-play');
 
 // A selection over the delivered content, its devices recording what the rows asked for. `frontEnd` may add a series
 // without a document beside the delivered one.
@@ -49,7 +48,6 @@ function selection({ dev = true, frontEnd = delivered } = {}) {
       frontEnd,
       vehicles,
       driving,
-      freePlay,
       music,
       player: openPlayerRecord(null),
       dev,
@@ -139,14 +137,14 @@ test('PRESS START leads to SELECT SERIES, whose last card is FREE PLAY, and BACK
   assert.equal(send('BACK'), 'back');
   assert.equal(screen.row.kind, 'series');
   assert.equal(screen.index, clubAt);
-  // FREE PLAY: zoomed into as a series is, then RULES (one list card), SELECT COURSE (every offered course, in the
-  // course index's order) and SELECT VEHICLE, in the main world.
+  // FREE PLAY, the last card, the main world: zoomed into as a series is, then its six classes, SELECT COURSE (every
+  // offered course, in the course index's order) and SELECT VEHICLE (every vehicle), all in the main world.
   for (let i = clubAt; i < seriesNames.length - 1; i++) send('RIGHT');
+  assert.equal(names()[screen.index], 'FREE PLAY');
   assert.equal(screen.row.cards[screen.index].picture, undefined);
   assert.equal(send('CONFIRM'), 'confirm');
-  assert.deepEqual(names(), ['RULES']);
+  assert.deepEqual(names(), ['SOLO', 'TRAFFIC', 'RACE', 'RACE + TRAFFIC', 'CHASE', 'CHASE + TRAFFIC']);
   assert.equal(screen.row.world, null);
-  assert.deepEqual(items(), ['RIVALS', 'POOL', 'TRAFFIC', 'LAPS']);
   send('CONFIRM');
   assert.deepEqual(
     names(),
@@ -156,9 +154,12 @@ test('PRESS START leads to SELECT SERIES, whose last card is FREE PLAY, and BACK
   assert.equal(screen.row.cards.length, vehicles.length);
   assert.equal(screen.row.world, null);
   send('CONFIRM');
-  assert.equal(log.runs.at(-1).request.courseId, courses[0].id);
+  assert.deepEqual(
+    [log.runs.at(-1).request.seriesId, log.runs.at(-1).request.classId, log.runs.at(-1).request.courseId],
+    ['free-play', 'solo', courses[0].id],
+  );
   assert.equal(log.runs.at(-1).request.track, courses[0].raceTracks[0] ?? null);
-  for (const name of ['SELECT COURSE', 'RULES', 'SELECT SERIES']) assert.equal(send('BACK'), 'back', name);
+  for (const name of ['SELECT COURSE', 'SELECT CLASS', 'SELECT SERIES']) assert.equal(send('BACK'), 'back', name);
   assert.equal(screen.index, seriesNames.length - 1);
   // SETTINGS: one list card, which PAUSE opens; CONTROLS and CLEAR RECORDS open their own rows.
   assert.equal(send('PAUSE'), 'confirm');
@@ -304,8 +305,10 @@ test('the series plane covers a card at 0.7 and the frame at 1, scaled about one
 });
 
 test('SELECT SERIES plays the series in focus once it rests; the world keeps it, and only RESULT starts it again', () => {
-  // A second series beside the delivered one with a document, without one yet: it shows its picture and denies CONFIRM.
+  // A second series beside the delivered one with a document, without one yet: it shows its picture and denies CONFIRM;
+  // then FREE PLAY.
   const entry = delivered.seriesRow(false).find((s) => s.series === club);
+  const free = delivered.seriesRow(false).find((s) => s.series === freePlay);
   const later = Object.freeze({
     id: 'later',
     picture: entry.picture,
@@ -314,7 +317,7 @@ test('SELECT SERIES plays the series in focus once it rests; the world keeps it,
     name: 'LATER',
     description: 'A later series.',
   });
-  const frontEnd = { ...delivered, seriesRow: () => [entry, later] };
+  const frontEnd = { ...delivered, seriesRow: () => [entry, later, free] };
   const { flow, screen, log, send, settle } = selection({ frontEnd });
   assert.deepEqual(log.music, [['play', null]]);
   log.music.length = 0;
@@ -355,10 +358,12 @@ test('SELECT SERIES plays the series in focus once it rests; the world keeps it,
   assert.deepEqual(log.music, [
     ['fade', SERIES_FADE_SECONDS],
     ['fade', SERIES_FADE_SECONDS],
+    ['play', null],
   ]);
   send('CONFIRM');
   send('BACK');
   for (let i = 0; i < CARD_STEPS.rest; i++) screen.tick();
+  assert.ok(log.music.slice(3).every(([kind, id]) => kind === 'play' && id === null));
   log.music.length = 0;
   send('BACK');
   assert.deepEqual(log.music, [['fade', SERIES_FADE_SECONDS]]);
@@ -379,45 +384,29 @@ test('SELECT SERIES plays the series in focus once it rests; the world keeps it,
   ]);
 });
 
-test("FREE PLAY's RULES are kept as chosen and cut to the course when the run is requested", () => {
-  const { screen, log, send } = selection();
+test("FREE PLAY's classes run any offered course with any vehicle, which the run's class takes", () => {
+  const { screen, log, send, names } = selection();
   send('CONFIRM');
-  // FREE PLAY, the last card.
+  // FREE PLAY, the last card, and its CHASE class.
   send('LEFT');
   send('CONFIRM');
-  // RIVALS stops at 15 and LAPS at the most any offered course allows; POOL and TRAFFIC wrap.
-  for (let i = 0; i < 20; i++) send('RIGHT');
-  send('DOWN');
-  assert.equal(send('LEFT'), 'move');
-  send('DOWN');
-  send('RIGHT');
-  send('DOWN');
-  const most = Math.max(...courses.map((c) => c.maxLaps));
-  for (let i = 0; i < most + 5; i++) send('RIGHT');
-  const values = () => screen.row.cards[0].items.map((item) => item.line());
-  const chosen = values();
-  assert.deepEqual(chosen, ['15', 'BIKES', 'LOW', String(most)]);
-  // A circuit takes as many laps as it allows and as many rivals as its grid holds; a LINEAR course one lap.
+  for (let i = 0; i < 4; i++) send('RIGHT');
+  assert.equal(names()[screen.index], 'CHASE');
   send('CONFIRM');
-  const pick = (id) => {
-    const course = courses.find((c) => c.id === id);
-    for (let i = 0; screen.row.cards[screen.index].name !== course.name; i++) assert.ok(i < 80 && send('RIGHT'), id);
-    send('CONFIRM');
-    send('CONFIRM');
-    send('BACK');
-    return log.runs.at(-1).request;
-  };
-  const circuit = courses.find((c) => c.id === 'pole-position-ii-fuji');
-  const fuji = pick('pole-position-ii-fuji');
+  const course = courses.find((c) => c.id === 'pole-position-ii-fuji');
+  for (let i = 0; names()[screen.index] !== course.name; i++) assert.ok(i < 80 && send('RIGHT'));
+  send('CONFIRM');
+  const bike = vehicles.findIndex((v) => v.listing.form === 'bike');
+  for (let i = 0; i < bike; i++) send('RIGHT');
+  send('CONFIRM');
+  const { request } = log.runs.at(-1);
   assert.deepEqual(
-    [fuji.lapCount, fuji.rivalCount, fuji.rivalPool, fuji.traffic],
-    [Math.min(most, circuit.maxLaps), Math.min(15, circuit.gridSlots - 1), 'BIKES', 'LOW'],
+    [request.seriesId, request.classId, request.courseId, request.vehicleId, request.session],
+    ['free-play', 'chase', course.id, vehicles[bike].compiledVehicle.id, 'RACE'],
   );
-  const outrun = pick('outrun-a');
-  assert.equal(outrun.lapCount, 1);
-  // Choosing courses and vehicles changed no rule.
-  send('BACK');
-  assert.deepEqual(values(), chosen);
+  // The class names no course or vehicle: the run's class on its course takes the player's.
+  const chase = freePlay.classes.find((c) => c.id === 'chase');
+  assert.deepEqual([chase.course, chase.vehicles, chase.start], [null, null, 'chase']);
 });
 
 test("RESULT's SELECT and CHANGE VEHICLE rebuild the rows above from the run, and a run outside them leads to TITLE", () => {
@@ -447,12 +436,12 @@ test("RESULT's SELECT and CHANGE VEHICLE rebuild the rows above from the run, an
     names(),
     club.classes.map((c) => c.title),
   );
+  // FREE PLAY's SELECT leads to SELECT COURSE, its class before it.
   const free = {
+    seriesId: 'free-play',
+    classId: 'race',
+    session: 'RACE',
     courseId: 'outrun-short-b',
-    lapCount: 1,
-    rivalCount: 0,
-    rivalPool: 'ALL',
-    traffic: 'OFF',
     vehicleId: vehicles[0].compiledVehicle.id,
     color: null,
     track: null,
@@ -460,7 +449,7 @@ test("RESULT's SELECT and CHANGE VEHICLE rebuild the rows above from the run, an
   flow.select(free);
   assert.equal(screen.row.cards[screen.index].name, courses.find((c) => c.id === 'outrun-short-b').name);
   send('BACK');
-  assert.deepEqual(names(), ['RULES']);
+  assert.equal(names()[screen.index], 'RACE');
   // Without DEV, an original's course no series runs is not offered: its run leads to TITLE.
   const plain = selection({ dev: false });
   plain.flow.select(free);

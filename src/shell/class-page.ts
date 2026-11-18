@@ -27,13 +27,19 @@ const ordinal = (n: number) =>
 /** The catalog's vehicle of an ID. */
 type Vehicles = (id: string) => CompiledVehicleDefinition;
 
-/** One vehicle on the grid: its slot index in the course's grid, and whether it is the player's. */
+/**
+ * One vehicle on the grid: its slot index in the course's grid, its vehicle and color (null in a class of any vehicle,
+ * which shows the slot alone), and whether it is the player's.
+ */
 interface GridCar {
   readonly slot: number;
-  readonly vehicle: CompiledVehicleDefinition;
-  readonly color: string;
+  readonly vehicle: CompiledVehicleDefinition | null;
+  readonly color: string | null;
   readonly player: boolean;
 }
+/** The words for what a class leaves to the player: any course or vehicle, and a field of the player's own vehicle. */
+const ANY = 'ANY',
+  YOURS = 'SAME AS YOURS';
 
 /**
  * What a class's card says of it (K, 2026-11-19): its series, course, vehicles, laps where its course has them, where
@@ -41,12 +47,12 @@ interface GridCar {
  */
 function classParts(
   runClass: SeriesClass,
-  course: CourseIndexEntry,
+  course: CourseIndexEntry | null,
   cars: readonly GridCar[],
-  rivals: readonly string[],
+  rivals: readonly (string | null)[],
   vehicles: Vehicles,
 ) {
-  const modelOf = (id: string) => vehicles(id).listing.metadata.model.toUpperCase();
+  const modelOf = (id: string | null) => (id === null ? YOURS : vehicles(id).listing.metadata.model.toUpperCase());
   // A fact whose value and note fit a row together, else the note says how many models it names.
   const fact = (label: string, value: string, names: readonly string[] = []): PageFact => {
     const distinct = [...new Set(names)],
@@ -61,20 +67,24 @@ function classParts(
   };
   const field = cars.length,
     position = [...cars].sort((a, b) => a.slot - b.slot).findIndex((car) => car.player) + 1;
-  const candidates = runClass.vehicles.map(modelOf);
+  const candidates = runClass.vehicles?.map(modelOf) ?? [ANY];
   const traffic = runClass.traffic?.vehicles.map(modelOf) ?? [];
+  // On any course a grid may hold fewer of the field: its rivals are at most the class's, its place first or last.
+  const open = course === null;
   const facts: PageFact[] = [
-    { label: 'COURSE', value: course.name },
+    { label: 'COURSE', value: course?.name ?? ANY },
     candidates.length === 1 ? fact('VEHICLE', candidates[0]!) : fact('VEHICLE', String(candidates.length), candidates),
-    ...(course.type === 'CIRCUIT' ? [{ label: 'LAPS', value: String(runClass.laps) }] : []),
+    ...(open || course.type === 'CIRCUIT' ? [{ label: 'LAPS', value: String(runClass.laps) }] : []),
     runClass.start === 'chase'
       ? { label: 'START', value: 'CHASE', note: 'ONCE THE RIVAL PASSES' }
-      : field > 1
-        ? { label: 'START', value: ordinal(position), note: `OF ${field}` }
-        : { label: 'START', value: 'ALONE' },
+      : field === 1
+        ? { label: 'START', value: 'ALONE' }
+        : open
+          ? { label: 'START', value: position === 1 ? 'FIRST' : 'LAST', note: 'OF THE GRID' }
+          : { label: 'START', value: ordinal(position), note: `OF ${field}` },
     rivals.length === 0
       ? { label: 'RIVALS', value: 'NONE' }
-      : fact('RIVALS', String(rivals.length), rivals.map(modelOf)),
+      : fact('RIVALS', `${open && rivals.length > 1 ? 'UP TO ' : ''}${rivals.length}`, rivals.map(modelOf)),
     runClass.traffic ? fact('TRAFFIC', 'ON', traffic) : { label: 'TRAFFIC', value: 'OFF' },
     { label: 'CLOCK', value: runClass.timeMargin === null ? 'OFF' : 'ON' },
   ];
@@ -107,12 +117,13 @@ function drawGrid(
     cell = Math.min(GRID.cell, Math.floor((2 * (box.width - 2 * GRID.clear)) / (slots + 1))),
     front = Math.round(box.x + (box.width + ((slots + 1) * cell) / 2) / 2),
     middle = box.y + Math.floor(box.height / 2);
-  const sides = cars.map((car) => selectVehicleSprite(images(car), SIDE_TURN * 2 * Math.PI).asset);
+  const sides = cars.map((car) => car.vehicle && selectVehicleSprite(images(car), SIDE_TURN * 2 * Math.PI).asset);
+  const shown = sides.filter((asset) => asset !== null);
   let scale = PLAYER_DEPTH_PIXELS_PER_METER;
-  const bounds = () => sides.map((asset) => scaledSpriteBounds(asset, scale));
+  const bounds = () => shown.map((asset) => scaledSpriteBounds(asset, scale));
   while (!bounds().every((b) => b.right - b.left <= cell - 3 && b.bottom - b.top <= GRID.row - 3)) scale *= SCALE_STEP;
-  // A row is as tall as the tallest car, over a clear pixel and the slot's foot line.
-  const row = Math.ceil(Math.max(...bounds().map((b) => b.bottom - b.top))) + 3;
+  // A row is as tall as the tallest car, over a clear pixel and the slot's foot line; without cars, as a row may be.
+  const row = shown.length ? Math.ceil(Math.max(...bounds().map((b) => b.bottom - b.top))) + 3 : GRID.row;
   const dark = canvas.mainColor(TEXT_PALETTES.DARK),
     yellow = canvas.mainColor(TEXT_PALETTES.YELLOW);
   cars.forEach((car, i) => {
@@ -122,8 +133,9 @@ function drawGrid(
     // The slot's mark, painted as a grid's: a line across its front, and one along its foot.
     canvas.fill({ x: right - 1, y: top, width: 1, height: row }, mark);
     canvas.fill({ x: right - cell + 1, y: top + row - 1, width: cell - 2, height: 1 }, mark);
-    const asset = sides[i]!,
-      b = scaledSpriteBounds(asset, scale);
+    const asset = sides[i];
+    if (!asset) return;
+    const b = scaledSpriteBounds(asset, scale);
     drawScaledSprite(
       canvas.surface,
       asset,
@@ -138,25 +150,35 @@ function drawGrid(
  * A class's card (SELECT CLASS) in `style` (K, 2026-11-19): its title, tagged with its series, its facts in rows, and
  * its starting grid. The grid is the class's field as its RACE starts it with the player in the class's first vehicle
  * (`classGridSlots`), each in its entry's color, the player's in the color its run takes unless chosen otherwise;
- * entries appearing ahead are not on it.
+ * entries appearing ahead are not on it. A class of any vehicle shows its slots alone, and a class of any course
+ * (`course` null) its whole field, which a course's grid may cut.
  */
 export function classPage(
   runClass: SeriesClass,
-  course: CourseIndexEntry,
+  course: CourseIndexEntry | null,
   vehicles: Vehicles,
   style: CardStyle,
 ): CardPage {
-  const player = vehicles(runClass.vehicles[0]!);
-  const slots = classGridSlots(runClass, player.compiledVehicle.id);
+  const player = runClass.vehicles && vehicles(runClass.vehicles[0]!);
+  const slots = classGridSlots(runClass, player?.compiledVehicle.id ?? null);
   const cars: readonly GridCar[] = [
     {
       slot: slots.player,
       vehicle: player,
-      color: runPlayerColor(runClass, player, null),
+      color: player && runPlayerColor(runClass, player, null),
       player: true,
     },
     ...slots.others.flatMap(({ entry, slot }) =>
-      slot === null ? [] : [{ slot, vehicle: vehicles(entry.vehicle), color: entry.color, player: false }],
+      slot === null
+        ? []
+        : [
+            {
+              slot,
+              vehicle: entry.vehicle === null ? null : vehicles(entry.vehicle),
+              color: entry.color,
+              player: false,
+            },
+          ],
     ),
   ];
   const parts = classParts(
@@ -169,9 +191,9 @@ export function classPage(
   // Each vehicle's images in each color shown, made once.
   const made = new Map<string, VehicleSpriteImages>();
   const images = (car: GridCar) => {
-    const key = `${car.vehicle.compiledVehicle.id}/${car.color}`;
+    const key = `${car.vehicle!.compiledVehicle.id}/${car.color}`;
     let shown = made.get(key);
-    if (!shown) made.set(key, (shown = createVehiclePaletteVariant(car.vehicle.spriteSet, car.color)));
+    if (!shown) made.set(key, (shown = createVehiclePaletteVariant(car.vehicle!.spriteSet, car.color!)));
     return shown;
   };
   return Object.freeze({

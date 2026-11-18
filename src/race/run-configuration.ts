@@ -1,7 +1,7 @@
 import { RUN_RULE_LIMITS, type TrafficSettings } from '../course/run-rules.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseGridCapacity, courseStartGrid } from '../course/compiler/course-rules.js';
-import type { SeriesClass } from '../content/series-catalog.js';
+import type { CourseClass } from '../content/series-catalog.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
 import { spriteSetHasColor } from '../vehicle/vehicle-sprite-set.js';
 import { NO_TRAFFIC, type FreePlayRules, type RivalPoolRule } from '../content/free-play-rules.js';
@@ -51,7 +51,7 @@ export interface RunConfiguration extends PlayerChoice {
   /** Traffic, or null for none; TIME ATTACK has none. RACE takes its class's. */
   readonly traffic: TrafficSettings | null;
   /** How the field starts: together from the grid, or CHASE (RACE only, its class's). */
-  readonly start: SeriesClass['start'];
+  readonly start: CourseClass['start'];
 }
 
 /**
@@ -66,7 +66,7 @@ export interface RunConfiguration extends PlayerChoice {
 export function compileRunConfiguration(
   request: RunRulesRequest,
   course: Pick<CompiledCourse, 'type' | 'rules' | 'gates'>,
-  runClass: SeriesClass | null,
+  runClass: CourseClass | null,
   catalog: { readonly vehicles: readonly CompiledVehicleDefinition[]; readonly freePlay: FreePlayRules },
   initialSpeed = 0,
 ): RunConfiguration {

@@ -10,7 +10,6 @@ import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
 import { loadCourseIndex } from '../../src/content/course-index.js';
 import { CLASS_TITLE, loadSeriesCatalog } from '../../src/content/series-catalog.js';
 import { loadScreenPictures, mainPicture } from '../../src/content/screen-picture-catalog.js';
-import { loadFreePlayRules } from '../../src/content/free-play-rules.js';
 import { loadMusic } from '../../src/content/recording-catalog.js';
 import { loadFrontEndSelection } from '../../src/content/front-end-selection.js';
 import { createTextLayer, TEXT_COLUMNS } from '../../src/view/text-layer.js';
@@ -53,7 +52,6 @@ test('the front end screens render from the delivered content', async () => {
       frontEnd,
       vehicles,
       driving,
-      freePlay: await loadFreePlayRules(content),
       music,
       player,
       dev: true,
@@ -212,7 +210,7 @@ test('the front end screens render from the delivered content', async () => {
   send('CONFIRM', 'LEFT');
   await capture('free-play');
   send('CONFIRM');
-  await capture('rules');
+  await capture('free-play-class');
   send('CONFIRM');
   await capture('select-course');
   send('CONFIRM');

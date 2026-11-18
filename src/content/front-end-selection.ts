@@ -44,10 +44,14 @@ export interface FrontEndSelectionDocument {
 /** A series SELECT SERIES shows: its picture, its document (null before it has one), title track, name and description. */
 export interface SelectableSeries {
   readonly id: string;
-  /** The screen picture named by the series' ID: 40×30 tiles and opaque. */
-  readonly picture: TilePicture;
+  /**
+   * The screen picture named by the series' ID: 40×30 tiles and opaque; null for a series without a world of its own,
+   * whose card shows the main world (FREE PLAY).
+   */
+  readonly picture: TilePicture | null;
   readonly series: CompiledSeries | null;
-  readonly titleTrack: MusicTrack;
+  /** Its title track; null for a silent series. */
+  readonly titleTrack: MusicTrack | null;
   readonly name: string;
   readonly description: string;
 }
@@ -90,7 +94,7 @@ export function readFrontEndSelection(value: unknown, document = ''): AdmissionR
 
 /**
  * Admit the selection against the content: a listed series shows when the screen picture of its ID exists, which is
- * then 40×30 tiles and opaque; a series with a document takes its title track from it and lists no music, and one
+ * then 40×30 tiles and opaque, or when its document gives it no world of its own (FREE PLAY); a series with a document takes its title track from it and lists no music, and one
  * without names a delivered track; a DEV series is not listed, and every other series document is.
  */
 export function compileFrontEndSelection(
@@ -118,15 +122,17 @@ export function compileFrontEndSelection(
             ? `Series ${entry.id} takes its title track, title and description from its document`
             : `Series ${entry.id} has no document yet and names its title track, title and description`,
         );
-      const titleTrack = compiled?.music.title ?? music.find((track) => track.id === entry.music);
+      const titleTrack = compiled ? compiled.music.title : music.find((track) => track.id === entry.music);
       requireAdmission(titleTrack !== undefined, 'unresolved_reference', `${at}/music`, `Unknown track ${entry.music}`);
-      const picture = pictures.get(entry.id);
-      if (!picture) {
+      // A series without a world of its own shows the main world; any other, the picture of its ID once it exists.
+      const picture = compiled && compiled.image === null ? null : pictures.get(entry.id);
+      if (picture === undefined) {
         unpictured++;
         return;
       }
       requireAdmission(
-        picture.columns === SERIES_IMAGE.columns && picture.rows === SERIES_IMAGE.rows && picture.opaque,
+        picture === null ||
+          (picture.columns === SERIES_IMAGE.columns && picture.rows === SERIES_IMAGE.rows && picture.opaque),
         'invalid_value',
         `${at}/id`,
         `The picture ${entry.id} is an opaque ${SERIES_IMAGE.columns}×${SERIES_IMAGE.rows}-tile picture`,

@@ -20,9 +20,9 @@ import type { createCoursePerformanceHud } from './course-performance-hud.js';
 import { prepareRun } from '../race/run-preparation.js';
 import { formPool } from '../race/free-play-field.js';
 import { NO_TRAFFIC, type FreePlayRules } from '../content/free-play-rules.js';
-import { loadSeriesClass, type loadSeriesCatalog, type SeriesClass } from '../content/series-catalog.js';
+import { classOnCourse, loadSeriesClass, type loadSeriesCatalog, type SeriesClass } from '../content/series-catalog.js';
 import type { RunVehicle } from '../content/run-vehicle.js';
-import { isFreePlay, RULES_NAMES, rulesRequest, type RunRequest } from './run-request.js';
+import { classRunCourse, isFreePlay, RULES_NAMES, rulesRequest, type RunRequest } from './run-request.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { createCourseScene } from '../view/course-scene.js';
 import { createRenderMeasurements } from '../view/renderer.js';
@@ -196,7 +196,7 @@ export async function assembleRun(
   if (!isFreePlay(request)) {
     named = series.seriesClass(request.seriesId, request.classId);
     if (!named) throw new RangeError(`Unknown class ${request.classId} of series ${request.seriesId}`);
-    courseId = named.course;
+    courseId = classRunCourse(named, request);
   } else courseId = request.courseId;
   const load = () =>
     loadDeliveredCourse(
@@ -252,7 +252,8 @@ async function assembleCourseRun(
   const performanceHud = watched ? null : page.performanceHud;
   const course = await compiling;
   report?.progress(LOADING_SHARES.compiled);
-  const runClass = named && loadSeriesClass(content, named, course, vehicles);
+  const runClass =
+    named && loadSeriesClass(content, classOnCourse(named, course, request.vehicleId, vehicles), course, vehicles);
   // The one path from a request to a run: its admission and the products it needs, loaded once.
   const prepared = await prepareRun(
     content,
