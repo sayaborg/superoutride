@@ -112,9 +112,9 @@ K's decisions of 2026-11-18: ENDURO RACER's machine is the Honda XR600R of 1985,
 the stage's auditor's ([Road motorcycles](road-bikes.md#honda-xr600r-of-1985-sources-versus-authored)), on its real
 tires and with its CG 0.30 of its wheelbase high; its pictures are baked from K's model in three paints, red, blue and
 yellow, of three, two and three steps, and six greys, in eight liveries; and ARCADE TRIBUTE - ENDURO RACER is ridden
-on it. XR-1 adds the vehicle, on R80_GS_PARIS_DAKAR's pictures and sound for now.
+on it. XR-1 adds the vehicle, on R80_GS_PARIS_DAKAR's sound for now; XR-2 bakes its pictures from K's model
+([Model solids](image-assets.md#model-solids)).
 
-- XR-2: bake `xr600r-1985` from K's model (SHA-256 `55eee015…`, on `codex/xr600r-1985-glb-source`, never on main).
 - XR-3: race ENDURO RACER on it, the player in the first livery and the rivals in the second to the fifth, and its
   traffic of XR600Rs and WRANGLERs; measure its racing line again.
 - Not decided: the static front share, the redline and the torque curve's shape (no source), the two-wheeler's CG, the

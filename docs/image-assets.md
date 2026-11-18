@@ -617,9 +617,9 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `testarossa`, `911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `mclaren-m23-pp-spec` and `nsr500-1984` from models ([Model solids](#model-solids)). The other sets are provisional,
-one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by code, original, for an
-earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
+and `mclaren-m23-pp-spec`, `nsr500-1984` and `xr600r-1985` from models ([Model solids](#model-solids)). The other
+sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by
+code, original, for an earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
 octave `k` of a full-size picture whose anchor sits at the vehicle's base point (where a camera 1.75 m up and 6 m
 behind its ground line sees half the vehicle's width behind it), each reduced texel taking the set slot nearest its
 mixture's color in every color and lamp state; their shadows are the vehicle's overall length by width rectangle seen
@@ -939,6 +939,42 @@ liveries tell apart. The first is the model's own and the default. The others' b
 
 The model is K's `honda-nsr500-1984.glb` (SHA-256 `38ad7181…`), kept on K's branch `codex/nsr500-1984-glb-source`,
 never on main; it has no wheel nodes, and its front hub is its `wheel_F` centre.
+
+**The XR600R of 1985.** Its set, `xr600r-1985`, is colored by paints and baked from K's model (K, 2026-11-18), rider
+and machine as one, banking together. K painted its paints flat, the rider alike on both sides: the red (225, 10, 15)
+is the machine's body, tank, fenders, frame and hand guards, the boots and lines on the sleeves and legs, three steps;
+the blue (22, 36, 170) the seat, the gloves, the fork boots and lines on the sleeves, legs and helmet, two steps; the
+yellow (245, 195, 0) the suit, the helmet, the side covers and the front number plate, three steps; and everything
+else, the engine, the wheels, the silencer on the right, the boots' white lines and the helmet's white peak and black
+band and the belt, is the greys' six steps (K, 2026-11-18). The magenta of the square block on the rear fender's top
+(255, 0, 255), its rear face and top, is the brake lamp, whose off and on colors are `vfr750r`'s; no palette shows the
+magenta. It is lit by the light L2, as `nsr500-1984`, with gloss 0.6. Both wheels are spun, as the model's `wheel_F`
+and `wheel_R` give them: centres (0, 0.347, 0.7249) and (0, 0.326, −0.7249) m, radii 0.347 and 0.326 (its real
+80/100-21 and 110/100-17 tires), rims 0.281 and 0.230, widths 0.080 and 0.110; the large hubs, the front disc and the
+rear sprocket and drum inside the rims become grey rings. It has 64 directions by 7 bank images over ±60°, sampled
+every 8 mm; its steps are measured from 16 directions.
+
+Its eight liveries recolor the three paints (K, 2026-11-18), each giving a color for the red's place (the machine's
+body and the boots), the blue's (the seat, the gloves and the fork boots) and the yellow's (the suit, the helmet and the
+side covers); the greys and the lamp are every livery's. The yellow's place, the most seen from behind, is every
+livery's own, and so is the red's; the blue's, small, may repeat. The first is the model's own and the default. The
+others' base colors are the stage's, for K to set in DEV, and their steps keep the measured steps' relation to the
+paints; a black place's lighter steps may look grey, and a white one's like the greys:
+
+| Palette        | Name         | Red's place             | Blue's place        | Yellow's place          |
+| -------------- | ------------ | ----------------------- | ------------------- | ----------------------- |
+| `red-yellow`   | RED/YELLOW   | red 225, 10, 15         | blue 22, 36, 170    | yellow 245, 195, 0      |
+| `blue-white`   | BLUE/WHITE   | blue 22, 36, 170        | red 225, 10, 15     | white 235, 235, 233     |
+| `white-red`    | WHITE/RED    | white 235, 235, 233     | navy 22, 32, 90     | red 225, 10, 15         |
+| `yellow-blue`  | YELLOW/BLUE  | yellow 245, 195, 0      | white 235, 235, 233 | blue 22, 36, 170        |
+| `black-lime`   | BLACK/LIME   | black 38, 38, 42        | purple 120, 50, 170 | lime 150, 210, 40       |
+| `sky-orange`   | SKY/ORANGE   | light blue 70, 170, 235 | navy 22, 32, 90     | orange 240, 120, 15     |
+| `orange-black` | ORANGE/BLACK | orange 240, 120, 15     | white 235, 235, 233 | black 38, 38, 42        |
+| `pink-sky`     | PINK/SKY     | pink 240, 120, 170      | navy 22, 32, 90     | light blue 70, 170, 235 |
+
+Each name is the red's place and the yellow's. The model is K's `honda-xr600r-1985.glb` (SHA-256 `55eee015…`), kept
+on K's branch `codex/xr600r-1985-glb-source`, never on main; it has no wheel nodes, and its front hub is its `wheel_F`
+centre.
 
 ## HUD picture generator
 

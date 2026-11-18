@@ -4,10 +4,19 @@
   "form": "bike",
   "selectionOrder": 12,
   "visuals": {
-    "spriteSet": "r80-gs-paris-dakar",
-    "palette": "yellow",
+    "spriteSet": "xr600r-1985",
+    "palette": "red-yellow",
     "steeringPicture": "top-bridge",
-    "colorNames": { "yellow": "YELLOW", "white": "WHITE", "red": "RED", "blue": "BLUE" }
+    "colorNames": {
+      "red-yellow": "RED/YELLOW",
+      "blue-white": "BLUE/WHITE",
+      "white-red": "WHITE/RED",
+      "yellow-blue": "YELLOW/BLUE",
+      "black-lime": "BLACK/LIME",
+      "sky-orange": "SKY/ORANGE",
+      "orange-black": "ORANGE/BLACK",
+      "pink-sky": "PINK/SKY"
+    }
   },
   "sound": "R80_GS_PARIS_DAKAR",
   "metadata": {
