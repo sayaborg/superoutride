@@ -144,30 +144,80 @@ export interface ModelWheel {
 }
 
 /**
- * A model recipe whose samples take colors by paints: each paint a ramp of steps, everything else one ramp of greys, the
- * brake lamp slot 15. Its pictures are lit by `light` and `gloss`, and each ramp's steps are measured from them.
+ * A model recipe whose samples take colors by paints: each paint a ramp of steps, with a glossy finish the glass a ramp
+ * of its own, everything else one ramp of greys, the brake lamp slot 15. Its pictures are lit by its finish, and each
+ * ramp's steps are measured from them.
  */
 export interface ModelPaintRecipe extends ModelRecipeBase {
   /** Bank images, `count` of them (odd) evenly over ±`degrees`; absent, one upright image. */
   readonly banks: { readonly count: number; readonly degrees: number } | null;
   /**
    * A sample whose base color lies within `within` of `colors[k]` in every channel is paint `k`; one within `within`
-   * of `lamp` is the brake lamp; any other is grey.
+   * of `lamp` is the brake lamp; with a glossy finish, one its glass names is glass; any other is grey.
    */
   readonly paints: { readonly colors: readonly Rgb[]; readonly within: number; readonly lamp: Rgb };
   /**
-   * The steps of each paint's ramp and of the greys' (14 slots in all), measured from the pictures at size 0 of every
-   * `sampleYaws`th direction and every bank.
+   * The steps of each paint's ramp, of the glass's (0 without a glossy finish) and of the greys' (14 slots in all),
+   * measured from the pictures at size 0 of every `sampleYaws`th direction and every bank.
    */
-  readonly ramps: { readonly paints: readonly number[]; readonly grey: number; readonly sampleYaws: number };
-  /** The light, fixed to the picture, as a role recipe's; every sample's highlight is `gloss`. */
-  readonly light: ModelRoleRecipe['light'];
-  readonly gloss: number;
+  readonly ramps: {
+    readonly paints: readonly number[];
+    readonly glass: number;
+    readonly grey: number;
+    readonly sampleYaws: number;
+  };
+  /** How its samples are lit: a plain finish, or a glossy one that mirrors its surroundings. */
+  readonly finish: PlainFinish | GlossyFinish;
   /** The wheels spun: what lies inside a rim is averaged over a turn. */
   readonly wheels: readonly ModelWheel[];
   /** Each color of the set: a color for each paint; the first livery is the model's own paints. */
   readonly liveries: Readonly<Record<string, readonly Rgb[]>>;
   readonly brakeLamp: { readonly off: Rgb; readonly on: Rgb };
+}
+
+/** A plain finish: the light of a role recipe, every sample's highlight `gloss`. */
+export interface PlainFinish {
+  readonly kind: 'plain';
+  readonly light: ModelRoleRecipe['light'];
+  readonly gloss: number;
+}
+
+/** What a glossy surface mirrors: a sky from the horizon's color to the zenith's, and a road from haze to its own. */
+export interface ModelReflection {
+  /** The share mirrored facing the camera squarely. */
+  readonly f0: number;
+  readonly horizon: Rgb;
+  readonly zenith: Rgb;
+  readonly haze: Rgb;
+  readonly ground: Rgb;
+  /** How far below the horizon (the reflected direction's height) the haze has become the road. */
+  readonly fall: number;
+  /** The power of the reflected direction's height by which the sky turns from the horizon to the zenith. */
+  readonly power: number;
+}
+
+/**
+ * A glossy finish ([Model solids](../../docs/image-assets.md#model-solids)): glass told from the other samples by its
+ * color and roughness, a light of ambient, sky, main and fill fixed to the picture and darkened by each sample's
+ * occlusion, the sky and road mirrored by the paints and greys and by the glass, and the sun's glare.
+ */
+export interface GlossyFinish {
+  readonly kind: 'glossy';
+  /** A sample within `within` of `color` in every channel, rougher than nothing up to `rough`, is glass. */
+  readonly glass: { readonly color: Rgb; readonly within: number; readonly rough: number };
+  readonly light: {
+    readonly main: readonly [number, number, number];
+    readonly fill: readonly [number, number, number];
+    readonly ambient: number;
+    readonly sky: number;
+    readonly mainWeight: number;
+    readonly fillWeight: number;
+    /** The greys' light is this many times the others'. */
+    readonly greyGain: number;
+  };
+  readonly reflection: { readonly paint: ModelReflection; readonly glass: ModelReflection };
+  /** Each glare term: `strength × s^power`, times `glass` on glass. */
+  readonly glare: readonly { readonly power: number; readonly strength: number; readonly glass: number }[];
 }
 
 export type VehicleModelRecipe = ModelRoleRecipe | ModelPaintRecipe;
@@ -211,15 +261,25 @@ const ROLE_FIELDS = [
   'steps',
   'palettes',
 ] as const;
-const PAINT_FIELDS = ['paints', 'ramps', 'light', 'gloss', 'wheels', 'liveries', 'brakeLamp'] as const;
+const PAINT_FIELDS = ['paints', 'ramps', 'light', 'wheels', 'liveries', 'brakeLamp'] as const;
+const PLAIN_FIELDS = ['gloss'] as const;
+const GLOSSY_FIELDS = ['glass', 'reflection', 'glare'] as const;
 
-/** Admit a model recipe document: one colored by paints when it gives `paints`, else by roles. */
+/**
+ * Admit a model recipe document: one colored by paints when it gives `paints`, with a glossy finish when it also gives
+ * `glass`; else by roles.
+ */
 export function readVehicleModelRecipe(value: unknown): VehicleModelRecipe {
   const has = (field: string) => typeof value === 'object' && value !== null && Object.hasOwn(value, field);
   const painted = has('paints');
   const document = readDocument(
     value,
-    [...BASE_FIELDS, ...(painted ? [...PAINT_FIELDS, ...(has('banks') ? ['banks'] : [])] : ROLE_FIELDS)],
+    [
+      ...BASE_FIELDS,
+      ...(painted
+        ? [...PAINT_FIELDS, ...(has('glass') ? GLOSSY_FIELDS : PLAIN_FIELDS), ...(has('banks') ? ['banks'] : [])]
+        : ROLE_FIELDS),
+    ],
     VEHICLE_MODEL_RECIPE_FORMAT,
     VEHICLE_MODEL_RECIPE_VERSION,
   );
@@ -267,24 +327,91 @@ const triple = (v: unknown, at: string, domain: { min: number; max: number }) =>
   return [x!, y!, z!] as const;
 };
 
+/** A direction, made unit. */
+function readDirection(value: unknown, at: string) {
+  const d = triple(value, at, { min: -1, max: 1 });
+  const length = Math.hypot(...d);
+  requireAdmission(length > 0, 'invalid_value', at, 'Expected a direction');
+  return [d[0] / length, d[1] / length, d[2] / length] as const;
+}
+
+const lightWeight = (v: unknown, at: string) => readNumber(v, at, { min: 0, max: 4 });
+
 /** A light fixed to the picture: its main and fill directions (made unit) and weights. */
 function readLight(value: unknown): ModelRoleRecipe['light'] {
-  const direction = (v: unknown, at: string) => {
-    const d = triple(v, at, { min: -1, max: 1 });
-    const length = Math.hypot(...d);
-    requireAdmission(length > 0, 'invalid_value', at, 'Expected a direction');
-    return [d[0] / length, d[1] / length, d[2] / length] as const;
-  };
   const l = readRecord(value, '/light', ['main', 'fill', 'ambient', 'sky', 'mainWeight', 'fillWeight', 'shininess']);
-  const weight = (v: unknown, at: string) => readNumber(v, at, { min: 0, max: 4 });
   return Object.freeze({
-    main: direction(l.main, '/light/main'),
-    fill: direction(l.fill, '/light/fill'),
-    ambient: weight(l.ambient, '/light/ambient'),
-    sky: weight(l.sky, '/light/sky'),
-    mainWeight: weight(l.mainWeight, '/light/mainWeight'),
-    fillWeight: weight(l.fillWeight, '/light/fillWeight'),
+    main: readDirection(l.main, '/light/main'),
+    fill: readDirection(l.fill, '/light/fill'),
+    ambient: lightWeight(l.ambient, '/light/ambient'),
+    sky: lightWeight(l.sky, '/light/sky'),
+    mainWeight: lightWeight(l.mainWeight, '/light/mainWeight'),
+    fillWeight: lightWeight(l.fillWeight, '/light/fillWeight'),
     shininess: readNumber(l.shininess, '/light/shininess', { min: 1, max: 1000 }),
+  });
+}
+
+/** A glossy finish's fields. */
+function readGlossyFinish(document: Readonly<Record<string, unknown>>): GlossyFinish {
+  const g = readRecord(document.glass, '/glass', ['color', 'within', 'rough']);
+  const glass = Object.freeze({
+    color: readRgb(g.color, '/glass/color'),
+    within: readNumber(g.within, '/glass/within', { min: 0, max: 255, integer: true }),
+    rough: readNumber(g.rough, '/glass/rough', { min: 0, max: 1, exclusiveMin: true }),
+  });
+  const l = readRecord(document.light, '/light', [
+    'main',
+    'fill',
+    'ambient',
+    'sky',
+    'mainWeight',
+    'fillWeight',
+    'greyGain',
+  ]);
+  const light = Object.freeze({
+    main: readDirection(l.main, '/light/main'),
+    fill: readDirection(l.fill, '/light/fill'),
+    ambient: lightWeight(l.ambient, '/light/ambient'),
+    sky: lightWeight(l.sky, '/light/sky'),
+    mainWeight: lightWeight(l.mainWeight, '/light/mainWeight'),
+    fillWeight: lightWeight(l.fillWeight, '/light/fillWeight'),
+    greyGain: lightWeight(l.greyGain, '/light/greyGain'),
+  });
+  const reflection = (value: unknown, at: string): ModelReflection => {
+    const r = readRecord(value, at, ['f0', 'horizon', 'zenith', 'haze', 'ground', 'fall', 'power']);
+    return Object.freeze({
+      f0: readNumber(r.f0, `${at}/f0`, SHARE),
+      horizon: readRgb(r.horizon, `${at}/horizon`),
+      zenith: readRgb(r.zenith, `${at}/zenith`),
+      haze: readRgb(r.haze, `${at}/haze`),
+      ground: readRgb(r.ground, `${at}/ground`),
+      fall: readNumber(r.fall, `${at}/fall`, { min: 0, max: 1, exclusiveMin: true }),
+      power: readNumber(r.power, `${at}/power`, { min: 0, max: 10, exclusiveMin: true }),
+    });
+  };
+  const r = readRecord(document.reflection, '/reflection', ['paint', 'glass']);
+  const glare = readArray(
+    document.glare,
+    '/glare',
+    (v, at) => {
+      const t = readRecord(v, at, ['power', 'strength', 'glass']);
+      return Object.freeze({
+        power: readNumber(t.power, `${at}/power`, { min: 1, max: 10000 }),
+        strength: lightWeight(t.strength, `${at}/strength`),
+        glass: lightWeight(t.glass, `${at}/glass`),
+      });
+    },
+    { max: 4 },
+  );
+  return Object.freeze({
+    kind: 'glossy',
+    glass,
+    light,
+    reflection: Object.freeze({
+      paint: reflection(r.paint, '/reflection/paint'),
+      glass: reflection(r.glass, '/reflection/glass'),
+    }),
+    glare,
   });
 }
 
@@ -307,15 +434,24 @@ function readPaints(document: Readonly<Record<string, unknown>>, base: ModelReci
     within: readNumber(p.within, '/paints/within', { min: 0, max: 255, integer: true }),
     lamp: readRgb(p.lamp, '/paints/lamp'),
   });
-  const r = readRecord(document.ramps, '/ramps', ['paints', 'grey', 'sampleYaws']);
+  const glossy = Object.hasOwn(document, 'glass');
+  const finish: PlainFinish | GlossyFinish = glossy
+    ? readGlossyFinish(document)
+    : Object.freeze({
+        kind: 'plain',
+        light: readLight(document.light),
+        gloss: readNumber(document.gloss, '/gloss', { min: 0, max: 4 }),
+      });
+  const r = readRecord(document.ramps, '/ramps', ['paints', ...(glossy ? ['glass'] : []), 'grey', 'sampleYaws']);
   const step = (v: unknown, at: string) => readNumber(v, at, { min: 1, max: 14, integer: true });
   const ramps = Object.freeze({
     paints: readArray(r.paints, '/ramps/paints', step, { length: paints.colors.length }),
+    glass: glossy ? step(r.glass, '/ramps/glass') : 0,
     grey: step(r.grey, '/ramps/grey'),
     sampleYaws: readNumber(r.sampleYaws, '/ramps/sampleYaws', { min: 1, max: 256, integer: true }),
   });
   requireAdmission(
-    ramps.paints.reduce((sum, n) => sum + n, ramps.grey) === 14,
+    ramps.paints.reduce((sum, n) => sum + n, ramps.glass + ramps.grey) === 14,
     'invalid_value',
     '/ramps',
     'The ramps share the 14 picture colors',
@@ -348,8 +484,7 @@ function readPaints(document: Readonly<Record<string, unknown>>, base: ModelReci
     banks,
     paints,
     ramps,
-    light: readLight(document.light),
-    gloss: readNumber(document.gloss, '/gloss', { min: 0, max: 4 }),
+    finish,
     wheels,
     liveries,
     brakeLamp: Object.freeze({ off: readRgb(lamp.off, '/brakeLamp/off'), on: readRgb(lamp.on, '/brakeLamp/on') }),

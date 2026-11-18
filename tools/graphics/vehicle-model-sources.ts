@@ -58,7 +58,8 @@ export function drawModelSet(
   set: string,
   progress: (done: number, of: number) => void = () => {},
 ) {
-  const glb = readGlbModel(model, PNG);
+  // Only a glossy finish reads the model's roughness and occlusion.
+  const glb = readGlbModel(model, PNG, 'paints' in recipe && recipe.finish.kind === 'glossy');
   const done = (directions: number) => progress(directions, recipe.yawVariants);
   const document =
     'paints' in recipe

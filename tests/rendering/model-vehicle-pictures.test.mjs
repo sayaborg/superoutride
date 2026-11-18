@@ -8,6 +8,7 @@ import { readVehicleModelRecipe } from '../../tools/graphics/vehicle-model-recip
 import { drawModelSet, generateModelSpriteSet } from '../../tools/graphics/vehicle-model-sources.ts';
 import { drawModelSpriteSet, modelTexelRoles } from '../../tools/graphics/vehicle-role-pictures.ts';
 import { drawSize } from '../../tools/graphics/vehicle-pictures.ts';
+import { paintTexelRoles } from '../../tools/graphics/vehicle-paint-pictures.ts';
 import { createNodeContentStore } from '../../tools/build/node-content-store.ts';
 import { readVehicleSpriteSetDocument } from '../../src/vehicle/vehicle-sprite-library.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
@@ -22,23 +23,36 @@ const recipe = readVehicleModelRecipe(recipeValue);
 /**
  * A small GLB made here: one mesh of `quads` (each four corners, counter-clockwise seen from the side it faces, with
  * an optional normal at every corner) under a node moved `lift` up, textured by `pixels` (RGB rows, u across, v down)
- * over each quad whole; and a wheel node at the model's origin.
+ * over each quad whole; and a wheel node at the model's origin. With `surface` (rows of [roughness, occlusion], each
+ * 0–1, as `pixels`), one more texture holds the occlusion in its red and the roughness in its green.
  */
-function glb({ quads, pixels = [[[255, 255, 255]]], lift = 0 }) {
+function glb({ quads, pixels = [[[255, 255, 255]]], lift = 0, surface = null }) {
   const height = pixels.length,
     width = pixels[0].length;
   const png = new PNG({ width, height });
   pixels.flat().forEach(([r, g, b], k) => png.data.set([r, g, b, 255], k * 4));
   const image = PNG.sync.write(png);
+  const surfacePng = surface && new PNG({ width, height });
+  surface
+    ?.flat()
+    .forEach(([rough, seen], k) =>
+      surfacePng.data.set([Math.round(seen * 255), Math.round(rough * 255), 0, 255], k * 4),
+    );
+  const surfaceImage = surfacePng && PNG.sync.write(surfacePng);
   const withNormals = quads.every((q) => q.normals);
   const positions = new Float32Array(quads.flatMap((q) => q.corners.flat()));
   const uvs = new Float32Array(quads.flatMap(() => [0, 1, 1, 1, 1, 0, 0, 0]));
   const normals = withNormals ? new Float32Array(quads.flatMap((q) => q.normals.flat())) : null;
   const indices = new Uint16Array(quads.flatMap((_, k) => [0, 1, 2, 0, 2, 3].map((i) => k * 4 + i)));
   const pad = (n) => (n + 3) & ~3;
-  const parts = [positions, uvs, indices, image, ...(normals ? [normals] : [])].map(
-    (p) => new Uint8Array(p.buffer ?? p, p.byteOffset ?? 0, p.byteLength),
-  );
+  const parts = [
+    positions,
+    uvs,
+    indices,
+    image,
+    ...(normals ? [normals] : []),
+    ...(surfaceImage ? [surfaceImage] : []),
+  ].map((p) => new Uint8Array(p.buffer ?? p, p.byteOffset ?? 0, p.byteLength));
   const offsets = [];
   let length = 0;
   for (const part of parts) {
@@ -68,9 +82,20 @@ function glb({ quads, pixels = [[[255, 255, 255]]], lift = 0 }) {
         ],
       },
     ],
-    materials: [{ pbrMetallicRoughness: { baseColorTexture: { index: 0 } } }],
-    textures: [{ source: 0 }],
-    images: [{ bufferView: 3, mimeType: 'image/png' }],
+    materials: [
+      {
+        pbrMetallicRoughness: {
+          baseColorTexture: { index: 0 },
+          ...(surfaceImage ? { metallicRoughnessTexture: { index: 1 } } : {}),
+        },
+        ...(surfaceImage ? { occlusionTexture: { index: 1 } } : {}),
+      },
+    ],
+    textures: [{ source: 0 }, ...(surfaceImage ? [{ source: 1 }] : [])],
+    images: [
+      { bufferView: 3, mimeType: 'image/png' },
+      ...(surfaceImage ? [{ bufferView: normals ? 5 : 4, mimeType: 'image/png' }] : []),
+    ],
     accessors: [
       { bufferView: 0, componentType: 5126, count, type: 'VEC3' },
       { bufferView: 1, componentType: 5126, count, type: 'VEC2' },
@@ -369,6 +394,76 @@ test('a model colored by paints stands on its front hub, spins its wheels and dr
     'a first ramp texel',
   );
   assert.deepEqual(draw().bytes, bytes);
+});
+
+test('a glossy finish mirrors and glares by roughness, darkens by occlusion and tells glass by color and roughness', () => {
+  // A plate facing the model's rear in five columns: paint smooth and open, paint rough, paint smooth and shut, glass's
+  // color smooth, and the same color rough.
+  const columns = [
+    [[231, 10, 14], 0.1, 1],
+    [[231, 10, 14], 1, 1],
+    [[231, 10, 14], 0.1, 0],
+    [[14, 14, 16], 0.1, 1],
+    [[14, 14, 16], 0.9, 1],
+  ];
+  const model = glb({
+    quads: [quad(2, -0.5, -1, [-0.5, 0.5], [0, 0.5])],
+    pixels: [columns.map(([color]) => color)],
+    surface: [columns.map(([, rough, seen]) => [rough, seen])],
+  });
+  const { gloss: _gloss, banks: _banks, ...plain } = paintedValue;
+  const recipe = readVehicleModelRecipe({
+    ...plain,
+    spacing: 0.01,
+    model: { ...paintedValue.model, frontHub: [0, 0.3, 0] },
+    paints: { colors: [[231, 10, 14]], within: 8, lamp: [255, 0, 255] },
+    ramps: { paints: [7], glass: 3, grey: 4, sampleYaws: 16 },
+    glass: { color: [14, 14, 16], within: 4, rough: 0.5 },
+    light: {
+      main: [-0.25, 0.85, 0.46],
+      fill: [0.6, 0.2, 0.5],
+      ambient: 0.08,
+      sky: 0.14,
+      mainWeight: 0.92,
+      fillWeight: 0.06,
+      greyGain: 1.5,
+    },
+    reflection: Object.fromEntries(
+      ['paint', 'glass'].map((name) => [
+        name,
+        {
+          f0: name === 'glass' ? 0.8 : 0.1,
+          horizon: [205, 218, 238],
+          zenith: [120, 160, 230],
+          haze: [70, 66, 68],
+          ground: [20, 18, 20],
+          fall: 0.1,
+          power: 0.6,
+        },
+      ]),
+    ),
+    glare: [{ power: 30, strength: 2, glass: 1 }],
+    wheels: [],
+    liveries: { red: [[231, 10, 14]] },
+  });
+  const solid = buildModelVehicleSolid(readGlbModel(model, PNG, true), recipe, 0);
+  const drawn = drawSize(solid, paintTexelRoles(solid, recipe, 3), CAMERA_DEFINITION, 0, 0);
+  // Column k lies across the model's x from −0.5 + 0.2 k; the model's +x is the vehicle's left.
+  const at = (k) => texelAt(drawn, 0.5 - 0.2 * (k + 0.5), 0.25, -0.5);
+  const color = (k) => [0, 1, 2].map((c) => drawn.color[at(k) * 3 + c]);
+  const [smooth, rough, shut] = [0, 1, 2].map(color);
+  // A rough paint neither mirrors nor glares: its color is its base color lit, red's own hue.
+  assert.ok(Math.abs(rough[1] / rough[0] - 10 / 231) < 1e-3, `rough ${rough}`);
+  assert.ok(Math.abs(rough[2] / rough[0] - 14 / 231) < 1e-3, `rough ${rough}`);
+  // A smooth one mirrors the sky: its green and blue rise above its hue's.
+  assert.ok(smooth[1] > rough[1] + 0.01 && smooth[2] > rough[2] + 0.01, `smooth ${smooth}, rough ${rough}`);
+  // What sees none of its surroundings is black.
+  assert.ok(Math.max(...shut) < 0.01, `shut ${shut}`);
+  // Paint is group 1, the smooth glass color glass (2) and the rough one grey (3).
+  assert.deepEqual(
+    [0, 1, 2, 3, 4].map((k) => drawn.indices[at(k)]),
+    [1, 1, 1, 2, 3],
+  );
 });
 
 test('the NSR500 of 1984’s saved set: two paint ramps of three and eight greys, in eight liveries', async () => {

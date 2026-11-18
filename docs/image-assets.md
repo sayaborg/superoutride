@@ -777,11 +777,14 @@ pictures; the build, the tests and CI never read a model. `npm run pictures -- <
 ([Development](development.md#pictures-command)) takes this path when `<set>.json` is a model recipe.
 
 The model ([`glb-model.ts`](../tools/graphics/glb-model.ts)) is read as glTF 2.0 binary: its default scene's triangle
-primitives through their nodes' transforms, each material's base color texture (PNG) and factor; nothing else of it
-is used, with its vertex normals where it gives them. Its triangles are sampled evenly by area at the recipe's spacing,
-the samples following the triangles' order, so the same model and recipe always make the same solid; each sample takes
-its texture's base color (the nearest texel) and its normal: the vertex normals interpolated across its triangle, else
-its face's by its winding. The recipe's axes turn the model to the vehicle's right, up and forward;
+primitives through their nodes' transforms, each material's base color texture (PNG) and factor, and for a recipe with a
+glossy finish (below) its roughness (the metallic-roughness texture's green times `roughnessFactor`) and
+occlusion (the occlusion texture's red, the share of its surroundings a point sees, brought towards 1 by its
+`strength`); nothing else of it is used, with its vertex normals where it gives them. A material without such a
+texture, and every material for any other recipe, has roughness 1 and occlusion 1. Its triangles are sampled evenly by
+area at the recipe's spacing, the samples following the triangles' order, so the same model and recipe always make the
+same solid; each sample takes its texture's base color, roughness and occlusion (the nearest texel) and its normal: the
+vertex normals interpolated across its triangle, else its face's by its winding. The recipe's axes turn the model to the vehicle's right, up and forward;
 it then stands with its front axle the mechanics document's `frontAxle` ahead of the base point and its lowest sample on
 the road. Its front axle is its front wheels' mean node origin (`frontWheels`), or for a model without wheel nodes a
 point the recipe gives in the model's coordinates (`frontHub`). Its wheels are drawn as they stand, unless a recipe
@@ -806,7 +809,7 @@ clause = {term, above} | {term, below} | {largest: "r" | "g" | "b"}
 term   = r | g | b | value | saturation | luma | g/r   (of the base color, each channel 0–1)
 ```
 
-By paints (the model's `frontHub` in place of `frontWheels` either way):
+By paints (the model's `frontHub` in place of `frontWheels` either way), with a plain finish:
 
 ```text
 {format, version, vehicle: "NSR500_1984", yawVariants: 64,
@@ -819,30 +822,69 @@ By paints (the model's `frontHub` in place of `frontWheels` either way):
  liveries: {name: [[r, g, b] for each paint], ...}, brakeLamp: {off: [r, g, b], on: [r, g, b]}}
 ```
 
+or with a glossy finish, which a recipe gives by `glass` in place of `gloss`:
+
+```text
+{..., paints, glass: {color: [r, g, b], within, rough},
+ ramps: {paints: [7], glass: 3, grey: 4, sampleYaws: 16},
+ light: {main, fill, ambient, sky, mainWeight, fillWeight, greyGain},
+ reflection: {paint: Reflection, glass: Reflection},
+ glare: [{power, strength, glass}, ...], wheels, liveries, brakeLamp}
+Reflection = {f0, horizon: [r, g, b], zenith: [r, g, b], haze: [r, g, b], ground: [r, g, b], fall, power}
+```
+
 **Paints.** A set colored by paints sorts its samples into groups by their base colors: a sample within `within` of
-the `k`th of `paints.colors` in every channel is that paint's, one within `within` of `lamp` the brake lamp's, any other
+the `k`th of `paints.colors` in every channel is that paint's, one within `within` of `lamp` the brake lamp's; with a
+glossy finish, one within `glass.within` of `glass.color` whose roughness is below `glass.rough` the glass's; any other
 grey's. It is drawn by the shared baker's cameras, sizes and shadows, each texel of 6 by 6 camera pixels, in every bank
-image, and lit by the light of the roles below, with each sample's base color as its albedo and `gloss` as its
-highlight's strength, without hollows or step lines. A texel takes the group most of its pixels show; its color is the
-mean lit color of that group's pixels alone, so no color mixes two groups. Each group's steps are measured from its
-pictures: at size 0, of every `sampleYaws`th direction and every bank image, the group's texels are split by brightness
-(`0.30 r + 0.59 g + 0.11 b`) into the group's number of steps, `ramps.paints` for each paint and `ramps.grey` for the
-greys, by one-dimensional k-means from even quantiles; each step is the mean color of its texels. A texel takes the
+image, without hollows or step lines; with a plain finish it is lit by the light of the roles below, with each sample's
+base color as its albedo and `gloss` as its highlight's strength, and with a glossy finish as its paragraph below gives.
+A texel takes the group most of its pixels show; its color is the mean lit color of that group's pixels alone, so no
+color mixes two groups. Each group's steps are measured from its pictures: at size 0, of every `sampleYaws`th
+direction and every bank image, the group's texels are split by brightness (`0.30 r + 0.59 g + 0.11 b`) into the
+group's number of steps, `ramps.paints` for each paint, `ramps.glass` for the glass and `ramps.grey` for the greys, by
+one-dimensional k-means from even quantiles; each step is the mean color of its texels. A texel takes the
 step of its group whose brightness is nearest its own; a lamp texel slot 15, and up to size 4 a picture that shows no
 lamp texel while one texel's pixels are at least 2 % lamp draws its fullest such texel as the lamp. No dither is drawn.
-Slots 1 onward are each paint's steps and then the greys', each from dark to light (14 in all).
+Slots 1 onward are each paint's steps, then the glass's and then the greys', each from dark to light (14 in all).
 
-A livery gives a color for each paint; the greys and the lamp are every livery's. The first is the model's own paints
+A livery gives a color for each paint; the glass, the greys and the lamp are every livery's. The first is the model's own paints
 in their measured steps. Another livery keeps each measured step's relation to its paint: the step as `a` times the
 paint plus `b` of white, fitted by least squares over the three channels, applied to the livery's color.
 
 With `wheels`, each wheel is spun: the samples inside its rim, within half its width of its centre along the axle (the
 vehicle's right axis), are taken out and given back as rings round the axle, a `spacing` apart in every direction,
-each ring the mean color and mean normal of the samples it took, so spokes become a disc of concentric greys. The tyre
+each ring the mean color, mean roughness and mean normal of the samples it took, so spokes become a disc of concentric
+greys; its occlusion is the mean of those of its samples that see more than 0.3 of their surroundings, which leaves out
+the layers deep inside the wheel, or of all of them where none does. The tyre
 outside the rim is round already and stays as it is. The forks, brakes and swinging arm outside the wheel's width are
 not spun. With `banks`, the set has `count` bank images, an odd number, evenly over ±`degrees` from leaning left to
 leaning right: the model turned about the line where it meets the road (the base point's longitudinal ground line),
 rider and machine together, and its lowest sample put back on the road; without it, one.
+
+**Glossy finish.** A glossy finish is a car's: its paint and glass mirror the sky and the road, and the
+sun glares on them, by each sample's roughness, and its recesses are darkened by each sample's occlusion, both of which
+the model holds. With `n_p` a sample's unit normal in the picture's axes (x right, y up, z towards the viewer), `n_w`
+its unit normal in the turned vehicle's axes (y up), `v` the unit direction from it to its size's camera in those axes,
+`main` and `fill` made unit, and the sample's gloss `g = (1 − roughness)²`:
+
+```text
+A = ambient + sky × (0.5 + 0.5 n_w.y)
+D = mainWeight × max(0, n_p·main) + fillWeight × max(0, n_p·fill)
+o = 1 on glass, else the sample's occlusion
+L = clamp((A o + D √o) × k, 0, 1)                k = greyGain for the greys, else 1
+c = clamp(n_w·v, 0, 1),  r.y = 2 c n_w.y − v.y   the reflected direction's height
+E = horizon (1 − u) + zenith u,  u = r.y^power                         where r.y ≥ 0 (the sky)
+E = haze (1 − d) + ground d,     d = clamp(−r.y / fall, 0, 1)          where r.y < 0 (the road)
+F = (f0 + (1 − f0)(1 − c)^5) × g
+s = max(0, n_p·h),  h the unit sum of main and (0, 0, 1)
+S = Σ strength × m × s^power × g                 m = the term's glass on glass, else 1
+color = clamp(base color × L × (1 − F) + E × F × o + 255 × S × o, 0, 255)
+```
+
+Glass takes `reflection.glass`, the paints and the greys `reflection.paint`. Direct light is darkened only by the
+square root of the occlusion, so a recess between fins darkens while a wheel's face does not sink; the reflection and
+glare are darkened by the occlusion itself. The brake lamp's samples are lit alike but drawn in slot 15.
 
 **Roles.** A model recipe's set does not take the palette quantization of the sets above: its texels take colors by
 role, the recipe's alone, and no other set's pictures change. Each sample takes the first role whose clauses its base

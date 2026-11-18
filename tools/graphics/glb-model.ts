@@ -2,9 +2,10 @@ import type { PNG as PngDecoder } from 'pngjs';
 
 /**
  * A glTF 2.0 binary model (GLB) read for picture making: its triangle primitives in the scene's coordinates, with
- * their texture coordinates and the base color their materials name. Only what a picture needs is read:
- * triangle primitives, node translation, rotation, scale and matrices, and `baseColorTexture` with
- * `baseColorFactor`; anything else a model holds is ignored.
+ * their texture coordinates and the base color, roughness and occlusion their materials name. Only what a picture
+ * needs is read: triangle primitives, node translation, rotation, scale and matrices, `baseColorTexture` with
+ * `baseColorFactor`, `metallicRoughnessTexture` with `roughnessFactor`, and `occlusionTexture` with its `strength`;
+ * anything else a model holds is ignored.
  */
 
 const GLB_MAGIC = 0x46546c67,
@@ -22,10 +23,16 @@ export interface ModelTexture {
   readonly rgba: Uint8Array;
 }
 
-/** A material's base color: its factor (linear 0–1 RGBA, as written) and texture, if it has one. */
+/**
+ * A material as a picture reads it: its base color factor (linear 0–1 RGBA, as written) and texture, if it has one;
+ * its roughness factor and metallic-roughness texture, whose green channel is the roughness; and its occlusion
+ * texture, whose red channel is the share of its surroundings a point sees, and that texture's strength.
+ */
 export interface ModelMaterial {
   readonly factor: readonly [number, number, number, number];
   readonly texture: ModelTexture | null;
+  readonly roughness: { readonly factor: number; readonly texture: ModelTexture | null };
+  readonly occlusion: { readonly strength: number; readonly texture: ModelTexture | null };
 }
 
 /**
@@ -134,8 +141,12 @@ function normalMatrix(matrix: Matrix): Float64Array {
   return Float64Array.from({ length: 9 }, (_, k) => cofactor(Math.floor(k / 3), k % 3) / determinant);
 }
 
-/** Read a GLB: its JSON and binary chunks, the default scene's primitives and their materials' base colors. */
-export function readGlbModel(bytes: Uint8Array, PNG: typeof PngDecoder): GlbModel {
+/**
+ * Read a GLB: its JSON and binary chunks, the default scene's primitives and their materials' base colors, and with
+ * `surface` their roughness and occlusion; without it, every material's roughness and occlusion are 1, and their
+ * textures are not decoded.
+ */
+export function readGlbModel(bytes: Uint8Array, PNG: typeof PngDecoder, surface = false): GlbModel {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (bytes.byteLength < 20 || view.getUint32(0, true) !== GLB_MAGIC || view.getUint32(4, true) !== 2)
     throw new TypeError('Expected a glTF 2.0 binary model');
@@ -211,20 +222,51 @@ export function readGlbModel(bytes: Uint8Array, PNG: typeof PngDecoder): GlbMode
     decoded.set(source, made);
     return made;
   };
+  /** A material with no texture: white, roughness 1 and occlusion 1. */
+  const plain: ModelMaterial = Object.freeze({
+    factor: [1, 1, 1, 1] as const,
+    texture: null,
+    roughness: Object.freeze({ factor: 1, texture: null }),
+    occlusion: Object.freeze({ strength: 1, texture: null }),
+  });
+
+  /** A material's texture reference, if it has one: the texture it names, read by the first texture coordinates. */
+  const reference = (value: unknown, what: string) => {
+    if (value === undefined) return null;
+    const info = record(value, what);
+    if (Number(info.texCoord ?? 0) !== 0) throw new TypeError('Expected the first texture coordinates');
+    return { info, texture: texture(Number(info.index)) };
+  };
+  const factorOf = (value: unknown, fallback: number, what: string) => {
+    const factor = value === undefined ? fallback : Number(value);
+    if (!(factor >= 0 && factor <= 1)) throw new RangeError(`Expected ${what} from 0 to 1`);
+    return factor;
+  };
   const materials = list(json.materials, 'materials').map((v): ModelMaterial => {
-    const pbr = record(record(v, 'a material').pbrMetallicRoughness ?? {}, 'a metallic roughness');
+    const material = record(v, 'a material');
+    const pbr = record(material.pbrMetallicRoughness ?? {}, 'a metallic roughness');
     const factor = (pbr.baseColorFactor === undefined ? [1, 1, 1, 1] : list(pbr.baseColorFactor, 'a factor')).map(
       Number,
     );
     if (factor.length !== 4 || !factor.every(Number.isFinite)) throw new TypeError('Expected four factor numbers');
-    const info = pbr.baseColorTexture === undefined ? null : record(pbr.baseColorTexture, 'a texture reference');
-    if (info && Number(info.texCoord ?? 0) !== 0) throw new TypeError('Expected the first texture coordinates');
+    const occlusion = surface ? reference(material.occlusionTexture, 'an occlusion texture reference') : null;
     return Object.freeze({
       factor: factor as unknown as readonly [number, number, number, number],
-      texture: info ? texture(Number(info.index)) : null,
+      texture: reference(pbr.baseColorTexture, 'a texture reference')?.texture ?? null,
+      roughness: surface
+        ? Object.freeze({
+            factor: factorOf(pbr.roughnessFactor, 1, 'a roughness factor'),
+            texture: reference(pbr.metallicRoughnessTexture, 'a metallic roughness texture reference')?.texture ?? null,
+          })
+        : plain.roughness,
+      occlusion: occlusion
+        ? Object.freeze({
+            strength: factorOf(occlusion.info.strength, 1, 'an occlusion strength'),
+            texture: occlusion.texture,
+          })
+        : plain.occlusion,
     });
   });
-  const plain: ModelMaterial = Object.freeze({ factor: [1, 1, 1, 1] as const, texture: null });
 
   const nodes = list(json.nodes, 'nodes').map((v) => record(v, 'a node')),
     meshes = list(json.meshes, 'meshes').map((v) => record(v, 'a mesh'));
@@ -298,16 +340,36 @@ export function readGlbModel(bytes: Uint8Array, PNG: typeof PngDecoder): GlbMode
   return Object.freeze({ primitives: Object.freeze(primitives), origins, extras: json.extras ?? null });
 }
 
-/** A material's base color at texture coordinates (u, v), 8-bit RGB: the nearest texel times the factor. */
-export function baseColorAt(material: ModelMaterial, u: number, v: number): [number, number, number] {
-  const [fr, fg, fb] = material.factor;
-  const t = material.texture;
-  if (!t) return [255 * fr, 255 * fg, 255 * fb];
+/** The offset in `texture`'s RGBA of its texel nearest texture coordinates (u, v). */
+function texelOffset(texture: ModelTexture, u: number, v: number) {
   // Coordinates outside 0–1 repeat; 1 itself is the last texel.
   const wrap = (value: number, size: number) => {
     const inside = value >= 0 && value <= 1 ? value : value - Math.floor(value);
     return Math.min(size - 1, Math.floor(inside * size));
   };
-  const at = (wrap(v, t.height) * t.width + wrap(u, t.width)) * 4;
+  return (wrap(v, texture.height) * texture.width + wrap(u, texture.width)) * 4;
+}
+
+/** A material's base color at texture coordinates (u, v), 8-bit RGB: the nearest texel times the factor. */
+export function baseColorAt(material: ModelMaterial, u: number, v: number): [number, number, number] {
+  const [fr, fg, fb] = material.factor;
+  const t = material.texture;
+  if (!t) return [255 * fr, 255 * fg, 255 * fb];
+  const at = texelOffset(t, u, v);
   return [t.rgba[at]! * fr, t.rgba[at + 1]! * fg, t.rgba[at + 2]! * fb];
+}
+
+/** A material's roughness at texture coordinates (u, v), 0–1: its factor times its texture's green, if it has one. */
+export function roughnessAt(material: ModelMaterial, u: number, v: number): number {
+  const { factor, texture } = material.roughness;
+  return texture ? (factor * texture.rgba[texelOffset(texture, u, v) + 1]!) / 255 : factor;
+}
+
+/**
+ * A material's occlusion at texture coordinates (u, v), 0–1, the share of its surroundings a point sees: its texture's
+ * red brought towards 1 by its strength, or 1 without a texture.
+ */
+export function occlusionAt(material: ModelMaterial, u: number, v: number): number {
+  const { strength, texture } = material.occlusion;
+  return texture ? 1 + strength * (texture.rgba[texelOffset(texture, u, v)]! / 255 - 1) : 1;
 }

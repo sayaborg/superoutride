@@ -1,4 +1,4 @@
-import { baseColorAt, type GlbModel } from './glb-model.js';
+import { baseColorAt, occlusionAt, roughnessAt, type GlbModel } from './glb-model.js';
 import type { ModelWheel, VehicleModelRecipe } from './vehicle-model-recipe.js';
 import type { VehicleSolid } from './vehicle-solid.js';
 
@@ -7,10 +7,20 @@ const R2 = 1.324717957244746;
 const R2_U = 1 / R2,
   R2_V = 1 / (R2 * R2);
 
+/** A model's solid: each sample also carries its roughness and its occlusion (the share of its surroundings it sees). */
+export interface ModelVehicleSolid extends VehicleSolid {
+  readonly roughness: Float32Array;
+  readonly occlusion: Float32Array;
+}
+
+/** The share of its surroundings a spun wheel's sample must see to count in its ring's occlusion. */
+const RING_OCCLUSION_FROM = 0.3;
+
 /**
  * A vehicle's solid from its model, the third source beside four views and procedural shapes: the model's triangles
- * sampled evenly by area at the recipe's spacing, each sample carrying its texture's base color and its normal (the
- * model's vertex normals interpolated across the triangle, else the face's), in vehicle coordinates. The recipe's axes
+ * sampled evenly by area at the recipe's spacing, each sample carrying its texture's base color, roughness and
+ * occlusion and its normal (the model's vertex normals interpolated across the triangle, else the face's), in vehicle
+ * coordinates. The recipe's axes
  * turn the model to the vehicle's right, up and forward; the model then stands with its front axle (its front wheels'
  * mean origin, or its front hub) `frontAxle` ahead of the base point, turned by `bankRadians` about the line where it
  * meets the road (positive leaning it to its right, as a procedural solid's bank), and its lowest sample on the road.
@@ -24,7 +34,7 @@ export function buildModelVehicleSolid(
   recipe: VehicleModelRecipe,
   frontAxle: number,
   bankRadians = 0,
-): VehicleSolid {
+): ModelVehicleSolid {
   const { spacing } = recipe;
   const axis = (signed: string) => ({ index: 'xyz'.indexOf(signed[1]!), sign: signed[0] === '-' ? -1 : 1 });
   const basis = [recipe.model.right, recipe.model.up, recipe.model.forward].map(axis);
@@ -42,9 +52,11 @@ export function buildModelVehicleSolid(
 
   const positions: number[] = [],
     normals: number[] = [],
-    colors: number[] = [];
-  /** Add a sample at `p` (vehicle axes, before the base point's offsets) with normal `n` and its color. */
-  const add = (p: readonly number[], n: readonly number[], r: number, g: number, b: number) => {
+    colors: number[] = [],
+    roughness: number[] = [],
+    occlusion: number[] = [];
+  /** Add a sample at `p` (vehicle axes, before the base point's offsets) with normal `n`, its color and its surface. */
+  const add: AddSample = (p, n, r, g, b, rough, seen) => {
     if (bankRadians) {
       positions.push(p[0]! * cos + p[1]! * sin, p[1]! * cos - p[0]! * sin, p[2]! + forwardShift);
       normals.push(n[0]! * cos + n[1]! * sin, n[1]! * cos - n[0]! * sin, n[2]!);
@@ -53,6 +65,8 @@ export function buildModelVehicleSolid(
       normals.push(n[0]!, n[1]!, n[2]!);
     }
     colors.push(r, g, b);
+    roughness.push(rough);
+    occlusion.push(seen);
   };
   const spun = ('wheels' in recipe ? recipe.wheels : []).map((wheel) => spinning(wheel, turn, spacing));
   const cellArea = spacing * spacing;
@@ -106,7 +120,9 @@ export function buildModelVehicleSolid(
         const u = uvs[a * 2]! * (1 - s - q) + uvs[b * 2]! * s + uvs[c * 2]! * q,
           v = uvs[a * 2 + 1]! * (1 - s - q) + uvs[b * 2 + 1]! * s + uvs[c * 2 + 1]! * q;
         const [r, g, bl] = baseColorAt(material, u, v);
-        if (!spun.some((wheel) => wheel.take(p, n, r, g, bl))) add(p, n, r, g, bl);
+        const rough = roughnessAt(material, u, v),
+          seen = occlusionAt(material, u, v);
+        if (!spun.some((wheel) => wheel.take(p, n, r, g, bl, rough, seen))) add(p, n, r, g, bl, rough, seen);
       }
     }
   }
@@ -135,6 +151,8 @@ export function buildModelVehicleSolid(
     positions: placed,
     normals: Float32Array.from(normals),
     colors: Float32Array.from(colors),
+    roughness: Float32Array.from(roughness),
+    occlusion: Float32Array.from(occlusion),
     edge: new Float32Array(count),
     paint: new Uint8Array(count),
     glass: new Uint8Array(count),
@@ -144,6 +162,17 @@ export function buildModelVehicleSolid(
     height,
   };
 }
+
+/** Add a sample: its place and normal (vehicle axes), color (0–255), roughness and occlusion (0–1). */
+type AddSample = (
+  p: readonly number[],
+  n: readonly number[],
+  r: number,
+  g: number,
+  b: number,
+  rough: number,
+  seen: number,
+) => void;
 
 /** The mean origin of the model's nodes `names`. */
 function meanOrigin(model: GlbModel, names: readonly string[]): readonly [number, number, number] {
@@ -159,8 +188,10 @@ function meanOrigin(model: GlbModel, names: readonly string[]): readonly [number
 /**
  * A wheel spun over a turn: the samples inside its rim (within half its width of its centre along the axle) are taken
  * from the solid, held in rings of `spacing` across the axle and out from it, and given back as rings of samples a
- * `spacing` apart round the axle, each ring the mean color of its samples and their mean normal turned round with it.
- * The tyre outside the rim is round already and stays as it is. The axle is the vehicle's right axis.
+ * `spacing` apart round the axle, each ring the mean color and roughness of its samples and their mean normal turned
+ * round with it; its occlusion is the mean of its samples seeing more than `RING_OCCLUSION_FROM` of their surroundings
+ * (not the layers deep inside the wheel), or of all of them when none does. The tyre outside the rim is round already
+ * and stays as it is. The axle is the vehicle's right axis.
  */
 function spinning(
   wheel: ModelWheel,
@@ -172,11 +203,13 @@ function spinning(
   const half = wheel.width / 2;
   const across = Math.max(1, Math.ceil(wheel.width / spacing)),
     out = Math.max(1, Math.ceil(wheel.rim / spacing));
-  // Each ring's sample count, color sums and normal sums along the axle and out from it.
-  const rings = new Float64Array(across * out * 6);
+  // Each ring's sample count, color sums, normal sums along the axle and out from it, roughness sum, occlusion sum, and
+  // the count and occlusion sum of its samples seeing more than `RING_OCCLUSION_FROM`.
+  const RING = 10;
+  const rings = new Float64Array(across * out * RING);
   return {
     /** Take a sample (vehicle axes) when it lies inside the rim, adding it to its ring. */
-    take(p: readonly number[], n: readonly number[], r: number, g: number, b: number) {
+    take(p: readonly number[], n: readonly number[], r: number, g: number, b: number, rough: number, seen: number) {
       const ax = p[0]! - centre[0]!,
         dy = p[1]! - centre[1]!,
         dz = p[2]! - centre[2]!;
@@ -185,22 +218,28 @@ function spinning(
       const ring =
         (Math.min(out - 1, Math.floor(radius / spacing)) * across +
           Math.min(across - 1, Math.floor((ax + half) / spacing))) *
-        6;
+        RING;
       rings[ring]!++;
       rings[ring + 1]! += r;
       rings[ring + 2]! += g;
       rings[ring + 3]! += b;
       rings[ring + 4]! += n[0]!;
       rings[ring + 5]! += radius > 0 ? (n[1]! * dy + n[2]! * dz) / radius : 0;
+      rings[ring + 6]! += rough;
+      rings[ring + 7]! += seen;
+      if (seen > RING_OCCLUSION_FROM) {
+        rings[ring + 8]!++;
+        rings[ring + 9]! += seen;
+      }
       return true;
     },
     /** Give back every ring as samples round the axle. */
-    turned(add: (p: readonly number[], n: readonly number[], r: number, g: number, b: number) => void) {
+    turned(add: AddSample) {
       const p = [0, 0, 0],
         n = [0, 0, 0];
       for (let o = 0; o < out; o++)
         for (let a = 0; a < across; a++) {
-          const ring = (o * across + a) * 6,
+          const ring = (o * across + a) * RING,
             count = rings[ring]!;
           if (!count) continue;
           const radius = (o + 0.5) * spacing,
@@ -224,7 +263,16 @@ function spinning(
               n[0] = Math.sign(ax) || 1;
               n[1] = n[2] = 0;
             }
-            add(p, n, rings[ring + 1]! / count, rings[ring + 2]! / count, rings[ring + 3]! / count);
+            const open = rings[ring + 8]!;
+            add(
+              p,
+              n,
+              rings[ring + 1]! / count,
+              rings[ring + 2]! / count,
+              rings[ring + 3]! / count,
+              rings[ring + 6]! / count,
+              open ? rings[ring + 9]! / open : rings[ring + 7]! / count,
+            );
           }
         }
     },

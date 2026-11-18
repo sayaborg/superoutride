@@ -62,19 +62,41 @@ type Frame = VehicleSpriteSetDocument['pictures'][number]['sizes'][number];
  * fixed to the picture, and darkened by `hollows` from the picture's depths ([Model solids](../../docs/image-assets.md#model-solids)).
  * A texel takes the role most of its visible points have (the first of equals). It then holds its role plus one, its
  * brightness (the largest channel of the mean lit color of its role's points, 0–1), the share of its points whose
- * role is `kept`, and on the steps' sizes the share of its role's points lying in step cells.
+ * role is `kept`, and on the steps' sizes the share of its role's points lying in step cells. In place of an albedo,
+ * gloss and light, a `shader` may light each point.
  */
-export interface TexelRoles {
+export type TexelRoles = TexelGroups & (RoleLighting | { readonly shader: PointShader });
+
+/** What every `TexelRoles` holds: each point's role, the roles' count, the kept role, the hollows and the step lines. */
+export interface TexelGroups {
   readonly points: Uint8Array;
   readonly count: number;
   readonly kept: number;
-  readonly albedo: Float32Array;
-  readonly gloss: Float32Array;
-  readonly light: ModelRoleRecipe['light'];
   /** The hollows' darkening, or none. */
   readonly hollows: ModelRoleRecipe['hollows'] | null;
   readonly steps: ModelRoleRecipe['steps'];
 }
+
+/** Each point's albedo (three channels, 0–1) and gloss, lit by a light fixed to the picture. */
+export interface RoleLighting {
+  readonly albedo: Float32Array;
+  readonly gloss: Float32Array;
+  readonly light: ModelRoleRecipe['light'];
+  readonly shader?: undefined;
+}
+
+/**
+ * How a point looks to a camera: its unit normal in the picture's axes (x right, y up, z towards the viewer), its unit
+ * normal and the unit direction from it to the camera in the turned vehicle's axes (y up), each three values.
+ */
+export interface PointView {
+  readonly picture: Float64Array;
+  readonly normal: Float64Array;
+  readonly toCamera: Float64Array;
+}
+
+/** Light point `n` as `view` sees it: write its lit color (three channels, 0–1) to `out`. */
+export type PointShader = (n: number, view: PointView, out: Float32Array) => void;
 
 /** One drawn size before it is cropped: slot indices and the shadow on one texel grid, anchored at (`anchorX`, `anchorY`). */
 export interface DrawnSize {
@@ -122,7 +144,7 @@ function slotColors(recipe: VehiclePictureStyle) {
  * light to `specular`.
  */
 function lightByRole(
-  roles: TexelRoles,
+  roles: RoleLighting,
   n: number,
   cx: number,
   cy: number,
@@ -284,8 +306,10 @@ export function drawSize(
   const point = new Int32Array(w * h).fill(-1);
   const shaded = new Float32Array(solid.count * 3);
   const roles = 'points' in recipe ? recipe : null;
-  // With roles, `shaded` holds each point's albedo times its diffuse light, and this its specular light.
+  // With roles lit by a light, `shaded` holds each point's albedo times its diffuse light, and this its specular light;
+  // lit by a shader, `shaded` holds its lit color.
   const specular = new Float32Array(roles ? solid.count : 0);
+  const view: PointView = { picture: new Float64Array(3), normal: new Float64Array(3), toCamera: new Float64Array(3) };
   const { positions, normals, colors, edge, paint, glass } = solid;
   for (let n = 0; n < solid.count; n++) {
     const px = positions[n * 3]!,
@@ -317,6 +341,19 @@ export function drawSize(
     const nx = normals[n * 3]! * cos + normals[n * 3 + 2]! * sin,
       ny = normals[n * 3 + 1]!,
       nz = -normals[n * 3]! * sin + normals[n * 3 + 2]! * cos;
+    if (roles?.shader) {
+      // The camera stands at (0, camera height, −distance) in the turned vehicle's axes.
+      const toCamera = Math.hypot(x, y - camera.height, depth);
+      view.picture[0] = view.normal[0] = nx;
+      view.picture[1] = view.normal[1] = ny;
+      view.picture[2] = -nz;
+      view.normal[2] = nz;
+      view.toCamera[0] = -x / toCamera;
+      view.toCamera[1] = (camera.height - y) / toCamera;
+      view.toCamera[2] = -depth / toCamera;
+      roles.shader(n, view, shaded);
+      continue;
+    }
     if (roles) {
       lightByRole(roles, n, nx, ny, -nz, ny, shaded, specular);
       continue;
