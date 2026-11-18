@@ -772,15 +772,14 @@ line until the cards are designed. What follows goes to K first:
 - **Records within RACE (GD-6).** TIME ATTACK has left the menus and records are to be taken within RACE (K,
   2026-11-09). To decide: what a course without laps records (its time to the goal), whether a race whose rivals,
   traffic or clock may end it records as it runs, and how a record is kept (by class with its vehicle, as now) and
-  shown (on the class's card). Until then TIME ATTACK runs only from a URL.
+  shown (on READY and RESULT; K, 2026-11-19: no card shows a record). Until then TIME ATTACK runs only from a URL.
 - **The cards' design** (K, 2026-11-12): packed with what a card is about, no boxes drawn round its parts, and a
-  course's and a vehicle's card the same in every series and in FREE PLAY. Three styles are built to choose among
-  ([card styles](browser.md#card-styles)): when K has chosen, the others, SETTINGS' CARD DESIGN and the C key go, the
-  small print becomes a text-tile font, and the SELECT VEHICLE screen no row shows since GD-5 (`vehicle-screen.ts` and
-  its pages) goes with them. To follow in the chosen design: SERIES (its description, researched and rewritten as K
-  asked), each vehicle's description (the same), RULES, SETTINGS and CONTROLS; a class's record with GD-6. For K: a series whose classes share a course (TSUKUBA CLUBMAN) shows the
-  same course card for each, told apart by the path's row alone; and, as K's prototype offered, a course without laps
-  drawn as its stages' heights rather than from above.
+  course's and a vehicle's card the same in every series and in FREE PLAY. Three styles are built to choose among ([card
+  styles](browser.md#card-styles)): when K has chosen, the others, SETTINGS' CARD DESIGN and the C key go, the small
+  print becomes a text-tile font, and the SELECT VEHICLE screen no row shows since GD-5 (`vehicle-screen.ts` and its
+  pages) goes with them. To follow in the chosen design: SERIES (its description, researched and rewritten as K asked),
+  each vehicle's description (the same), RULES, SETTINGS and CONTROLS. For K: as K's
+  prototype offered, a course without laps drawn as its stages' heights rather than from above.
 - **The main picture:** K's 40×30 picture, whose clear parts show the attract demo; until it comes the title logo
   stands for it. Each series' picture is converted as K delivers it, named by its series' ID, and its series joins
   SELECT SERIES then.

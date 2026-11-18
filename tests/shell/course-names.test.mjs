@@ -20,6 +20,7 @@ import { createLogicalFrame } from '../../src/view/display-scale.js';
 import { CARD, cardNameLines, createCardFaces } from '../../src/shell/card-face.js';
 import { CARD_STYLES } from '../../src/shell/card-styles.js';
 import { coursePage } from '../../src/shell/course-page.js';
+import { classPage } from '../../src/shell/class-page.js';
 import { createPreRaceScreen, preRaceCardOf } from '../../src/shell/prerace-screen.js';
 import { writeHud } from '../../src/shell/run-hud.js';
 import { prepareRun } from '../../src/race/run-preparation.js';
@@ -132,8 +133,34 @@ test('a course name as long as the course texts admit fits every screen that sho
     assert.ok(lines.length <= 2 && lines.every((line) => line.length <= CARD.columns - 2), shown);
     assert.equal(lines.join(lines.length > 1 && !shown.includes(' ') ? '' : ' '), shown);
   }
-  const faces = createCardFaces(tiles, () => CARD_STYLES[0]);
-  faces.draw(frame, { name, line: '', dim: false, page: coursePage(courses[0], CARD_STYLES[0]) }, CARD.x, CARD.y);
+  for (const style of CARD_STYLES)
+    createCardFaces(tiles, () => style).draw(
+      frame,
+      { name, line: '', dim: false, page: coursePage(courses[0], style) },
+      CARD.x,
+      CARD.y,
+    );
+
+  // SELECT CLASS: the name on its own row of every class's card, in every style.
+  const vehicleOf = (id) => vehicles.find((v) => v.compiledVehicle.id === id);
+  for (const style of CARD_STYLES)
+    for (const runClass of series.series.flatMap((s) => s.classes))
+      createCardFaces(tiles, () => style).draw(
+        frame,
+        {
+          name: runClass.title,
+          line: '',
+          dim: false,
+          page: classPage(
+            runClass,
+            courses.find((c) => c.id === runClass.course),
+            vehicleOf,
+            style,
+          ),
+        },
+        CARD.x,
+        CARD.y,
+      );
 
   // The PRE-RACE card: the name on its own row, clear of the map's box (x 8–136, y 136–232).
   const [classSeries] = series.series;

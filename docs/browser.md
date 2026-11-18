@@ -155,8 +155,8 @@ the changes outside them. The rows ([selection flow](../src/shell/selection-flow
   browser allows them (a refusal is ignored, and a gamepad press is not a gesture the browser accepts), and it sounds
   `press-start`. BACK does nothing.
 - **SELECT SERIES:** the series shown, then FREE PLAY's card, dimmed with no course offered. BACK returns to TITLE.
-- **A series:** in the series' world SELECT CLASS (the series' classes) and SELECT VEHICLE (the class's vehicles).
-  Choosing another class clears the chosen vehicle.
+- **A series:** in the series' world SELECT CLASS (the series' classes), SELECT COURSE (the class's course alone, to
+  confirm; K, 2026-11-19) and SELECT VEHICLE (the class's vehicles). Choosing another class clears the chosen vehicle.
 - **FREE PLAY:** in the main world RULES, one list card of RIVALS, POOL, TRAFFIC and LAPS at the place of a series (its
   rules), whose CONFIRM on any entry goes on; SELECT COURSE, every course offered in the
   [course index's](content-and-gameplay.md#course-index) order, as courses apart from any series (K, 2026-11-11); and
@@ -192,14 +192,31 @@ entry's label and value in YELLOW with WHITE `◀` and `▶` at those columns. U
 either end, LEFT and RIGHT change its value (RIGHT the next or more), CONFIRM does the entry's action or else the
 card's, and BACK the row's; the chosen entry, not the card, rests in focus, and its path names it.
 
-A page card is read before it is chosen: a course on SELECT CLASS and SELECT COURSE, a vehicle on SELECT VEHICLE (K,
-2026-11-11: the card UI as before; [card face](../src/shell/card-face.ts)). It is packed with what it is about and
+A page card is read before it is chosen: a class on SELECT CLASS (K, 2026-11-19), a course on SELECT COURSE, a vehicle
+on SELECT VEHICLE (K, 2026-11-11: the card UI as before; [card face](../src/shell/card-face.ts)). It is packed with what it is about and
 draws no box around its parts (K, 2026-11-12), and it says its subject alone: a course's card and a vehicle's card are
 the same card in every series and in FREE PLAY, with nothing of a series' rules, its laps, field, traffic, clock or
 vehicles (K, 2026-11-12). A page gives its style its parts ([card styles](../src/shell/card-styles.ts)): a title and a
 tag, up to eight facts and up to eight more, each a label, a value with its unit and a note, a line for a choice, a
 picture, a chart and words; the style lays them out and leaves room for the picture and the chart, each on a flat
-ground.
+ground. A page without a chart, a class's, has its picture across the card over its facts, a row each, whose value
+and note together hold at most 40 characters, which the row takes in the small print.
+
+A class's page ([class page](../src/shell/class-page.ts)) says the class's rules, which no course's or vehicle's card
+does, and never a record (K, 2026-11-19); so classes on one course are told apart by their cards:
+
+- **The title and tag:** the class's title, and its series' title.
+- **The facts** (`CLASS`), a row each: `COURSE` (its name); `VEHICLE` (the one vehicle's model, or how many with their
+  models); `LAPS`, on a circuit alone; `START` (the player's place on the grid, `<n>TH` `OF <field>`, or `ALONE`);
+  `RIVALS` (`NONE`, or how many with their models); `TRAFFIC` (`OFF`, or `ON` with its models); and `CLOCK` (`ON` or
+  `OFF`). A list of models longer than its row is told as `<n> MODELS`.
+- **The picture:** the starting grid, its front to the right, as the class's RACE starts its field with the player in
+  the class's first vehicle (`classGridSlots`, which the run's setup uses too): each vehicle in side view, the yaw image
+  a quarter turn round, in its entry's color (the player's in its run's color unless chosen otherwise), in its slot's
+  cell; slots two rows apart, each half a cell behind the one before; each slot marked by a line across its front and a
+  short one at its foot, the player's YELLOW and the others DARK. Every vehicle takes the one scale, from the player
+  depth down by 3 % at a time, at which each fits its cell; a cell is at most 32 pixels long and a row 24 tall.
+  Entries appearing ahead are not on it.
 
 A course's page ([course page](../src/shell/course-page.ts)), from the [course
 index](content-and-gameplay.md#course-index):
@@ -265,7 +282,7 @@ text-tile font with the chosen design.
 
 Every row but TITLE shows its path on the frame's last row (K, 2026-11-11), as a folder's: from SUPER OUTRIDE, the
 names chosen down to the row and the card in focus (a list card's chosen entry), each in full and joined by `>` (`SUPER
-OUTRIDE>SERIES>ARCADE TRIBUTE - OUTRUN>OUTRUN A>FERRARI TESTAROSSA`), in WHITE but the card in focus in YELLOW, over a
+OUTRIDE>ARCADE TRIBUTE - OUTRUN>OUTRUN A>OUTRUN A>FERRARI TESTAROSSA`), in WHITE but the card in focus in YELLOW, over a
 plain band in the cards' ground. A path longer than the row's 40 columns is cut on its left and begins with `..` in
 DARK, the card in focus always whole; a font of 4×8 pixels may hold it all later, two characters to a tile written by
 the CPU. A row's path goes with it: it thins in and out with the row and stays through the zoom into a series.

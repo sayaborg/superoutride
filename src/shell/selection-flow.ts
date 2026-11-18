@@ -21,6 +21,7 @@ import type { CardFaces } from './card-face.js';
 import { createCardRows, PATH_ROOT, type Card, type CardRow, type MainWorld, type RowChange } from './card-rows.js';
 import type { CardPage } from './card-face.js';
 import type { CardStyle } from './card-styles.js';
+import { classPage } from './class-page.js';
 import { coursePage } from './course-page.js';
 import { vehicleCard } from './vehicle-card.js';
 import type { CompiledDrivingDefinition } from '../vehicle/compiled-driving-definition.js';
@@ -77,7 +78,8 @@ export interface SelectionDevices {
 /**
  * The selection from TITLE to a run request ([product](../../docs/product.md#6-flow-and-screens)), its rows of cards on
  * one screen, one path from PRESS START (K, 2026-11-19): SELECT SERIES, whose last card is FREE PLAY. A series leads
- * into its world, SELECT CLASS and SELECT VEHICLE; FREE PLAY, zoomed into as a series is, through RULES (one list card,
+ * into its world, SELECT CLASS (its classes' cards), SELECT COURSE (the class's course, to confirm) and SELECT VEHICLE;
+ * FREE PLAY, zoomed into as a series is, through RULES (one list card,
  * at the series' place), SELECT COURSE (every offered course, apart from any series) and SELECT VEHICLE, in the main
  * world, which is its own. PAUSE opens SETTINGS, one list card, from any row, standing in that row's world, and BACK or
  * PAUSE returns to the row it was opened from. Every row is shown, even with one card, and BACK returns to the row
@@ -228,13 +230,13 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       initial: at(chosen.classes, (c) => c.id === (classChoice?.id ?? latest('class'))),
       cards: chosen.classes.map((c): Card => ({
         name: c.title,
-        page: () => coursePageOf(c.course),
+        page: () => pageOf(`class/${chosen.id}/${c.id}`, (style) => classPage(c, courseOf(c.course), vehicleOf, style)),
         confirm: () => {
           // Another class offers its own vehicles.
           if (c !== classChoice) vehicleId = null;
           classChoice = c;
           remember('class', c.id);
-          go(vehicleRow(), 'thin');
+          go(courseRow(), 'thin');
           return 'confirm';
         },
       })),
@@ -289,24 +291,30 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       ],
       back: () => (go(seriesRow(), 'zoom-out'), 'back'),
     });
-  const courseRow = (): CardRow =>
-    row({
+  // SELECT COURSE: a class's course alone, to confirm, in its series' world; every offered course in FREE PLAY.
+  const courseRow = (): CardRow => {
+    const runClass = place === 'SERIES' ? classChoice : null;
+    const shown = runClass ? [runClass.course] : offered;
+    return row({
       kind: 'cards',
-      world: null,
-      path: [PATH_ROOT, 'FREE PLAY', 'RULES'],
-      initial: at(offered, (id) => id === (courseId ?? latest('course'))),
-      cards: offered.map((id): Card => ({
+      world: runClass ? worldOf(runClass.series) : null,
+      path: runClass ? [PATH_ROOT, runClass.series.title, runClass.title] : [PATH_ROOT, 'FREE PLAY', 'RULES'],
+      initial: at(shown, (id) => id === (courseId ?? latest('course'))),
+      cards: shown.map((id): Card => ({
         name: courseOf(id).name,
         page: () => coursePageOf(id),
         confirm: () => {
-          courseId = id;
-          remember('course', id);
+          if (!runClass) {
+            courseId = id;
+            remember('course', id);
+          }
           go(vehicleRow(), 'thin');
           return 'confirm';
         },
       })),
-      back: () => (go(rulesRow(), 'thin'), 'back'),
+      back: () => (go(runClass ? classRow() : rulesRow(), 'thin'), 'back'),
     });
+  };
 
   // SELECT VEHICLE: a class's vehicles in its series' world, or every vehicle in FREE PLAY; UP and DOWN choose the
   // color, except where the class fixes it.
@@ -319,7 +327,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       kind: 'cards',
       world: runClass ? worldOf(runClass.series) : null,
       path: runClass
-        ? [PATH_ROOT, runClass.series.title, runClass.title]
+        ? [PATH_ROOT, runClass.series.title, runClass.title, courseOf(runClass.course).name]
         : [PATH_ROOT, 'FREE PLAY', 'RULES', courseOf(courseId!).name],
       initial: at(candidates, (v) => v.compiledVehicle.id === (vehicleId ?? latest('vehicle'))),
       cards: candidates.map((v): Card => {
@@ -350,7 +358,7 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
           },
         };
       }),
-      back: () => (go(runClass ? classRow() : courseRow(), 'thin'), 'back'),
+      back: () => (go(courseRow(), 'thin'), 'back'),
     });
   };
   // The run SELECT VEHICLE requests: a class's RACE, or FREE PLAY with its RULES cut to the course (K, 2026-11-09).

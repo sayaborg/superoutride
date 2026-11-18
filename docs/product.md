@@ -208,7 +208,7 @@ of the series has the same; each class also has its time margin and whether it f
 ```text
 TITLE: the main picture over the attract demo; PRESS START
 SELECT SERIES: the series, then FREE PLAY last
-  a series:  in the series' world SELECT CLASS → SELECT VEHICLE
+  a series:  in the series' world SELECT CLASS → SELECT COURSE → SELECT VEHICLE
   FREE PLAY: in the main world RULES → SELECT COURSE → SELECT VEHICLE
 SETTINGS (PAUSE, from any row): one card of the settings; CONTROLS and CLEAR RECORDS each open a card of their own
 → PRE-RACE card (doubles as loading) → READY → RACE → RESULT
@@ -277,7 +277,10 @@ series whose picture exists; one without a series document yet shows its picture
 A course's and a vehicle's cards are pages to read, packed with what they are about (K, 2026-11-11: the card UI as
 before; 2026-11-12). A course's card says the course alone, its map, length, heights, corners and description, and a
 vehicle's the vehicle alone: each is the same card in every series and in FREE PLAY, and a series' rules, its laps,
-field, traffic and clock, are the series' to say (K, 2026-11-12; [browser](browser.md#card-rows)). The cards' design is
+field, traffic and clock, are the series' to say (K, 2026-11-12; [browser](browser.md#card-rows)). A class's card says
+them: its series, course, vehicles, laps where its course has them, where the player starts, its rivals, its traffic
+and its clock, over a picture of its starting grid, the player's place marked; no card shows a record (K, 2026-11-19).
+In a series, SELECT COURSE shows the class's course alone, to confirm (K, 2026-11-19). The cards' design is
 being chosen among styles built into the game, and the other cards' contents follow it ([NEXT](NEXT.md#card-ui)).
 
 RESULT shows the outcome (GOAL or GAME OVER), rank when two or more competitors are ranked, race time, best lap on

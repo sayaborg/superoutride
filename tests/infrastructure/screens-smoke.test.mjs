@@ -129,6 +129,8 @@ test('the front end screens render from the delivered content', async () => {
   settle();
   await capture('select-class');
   send('CONFIRM');
+  await capture('class-course');
+  send('CONFIRM');
   await capture('select-vehicle');
   send('CONFIRM');
   assert.equal(requested?.session, 'RACE');

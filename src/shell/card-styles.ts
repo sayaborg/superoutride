@@ -20,6 +20,8 @@ export interface PageFact {
  * vehicle's card is the same card wherever it appears): its title and a tag under it; up to eight facts under
  * `factsName`, up to eight more under `moreName`; a line of its own for a choice (a vehicle's color, between marks when
  * UP and DOWN change it); a picture; a chart, a low strip or a block beside the picture, under `chartName`; and words.
+ * A page without a chart (a class's) has the picture across the card over its facts, a row each, and neither more facts,
+ * a choice nor words.
  */
 export interface PageParts {
   readonly title: string;
@@ -29,7 +31,7 @@ export interface PageParts {
   readonly moreName: string;
   readonly more: readonly PageFact[];
   readonly choice: { readonly label: string; readonly value: string; readonly changes: boolean } | null;
-  readonly chart: 'strip' | 'block';
+  readonly chart: 'strip' | 'block' | null;
   readonly chartName: string;
   readonly words: { readonly heading: string | null; readonly description: string } | null;
 }
@@ -51,8 +53,14 @@ export interface CardStyle extends PlainCardStyle {
   page(canvas: PageCanvas, parts: PageParts, face: number): PageLayout;
 }
 
-/** What a page holds at most, which every style lays out. */
-export const PAGE_LIMITS = Object.freeze({ facts: 8, more: 8, titleColumns: CARD.columns - 2 });
+/**
+ * What a page holds at most, which every style lays out; a fact in a row across the card, on a page without a chart,
+ * holds its value and note together in `rowCharacters`, which the row's 168 pixels beyond its label take in the small
+ * print.
+ */
+export const PAGE_LIMITS = Object.freeze({ facts: 8, more: 8, titleColumns: CARD.columns - 2, rowCharacters: 40 });
+/** A row's label: this many pixels before its value. */
+const ROW_LABEL = 40;
 
 const rgb = (red: number, green: number, blue: number) => (red << 10) | (green << 5) | blue;
 const WIDTH = CARD.columns * TEXT_TILE_SIZE,
@@ -100,6 +108,16 @@ function factColumns(
   );
 }
 
+/** Facts in rows across the card from `y`, a row every 8 pixels, each `ROW_LABEL` pixels to its value. */
+function factRows(
+  canvas: PageCanvas,
+  facts: readonly PageFact[],
+  y: number,
+  inks: { label: number; value: number; note: number; legend: boolean },
+) {
+  facts.forEach((fact, i) => inlineFact(canvas, 8, y + i * 8, WIDTH - 16, ROW_LABEL, fact, inks));
+}
+
 /** The choice's line on text row `row`: its label in the small print, and its value YELLOW, between marks if it changes. */
 function choiceLine(canvas: PageCanvas, row: number, choice: NonNullable<PageParts['choice']>, label: number) {
   canvas.small(8, row * TEXT_TILE_SIZE, choice.label, label);
@@ -138,6 +156,12 @@ const PROGRAM: CardStyle = (() => {
       canvas.small(8, 22, parts.tag, YELLOW);
       const from = 8 + smallWidth(parts.tag) + 6;
       if (from < 216) stripes(canvas, from, 21, 216 - from);
+      if (parts.chart === null) {
+        const picture = { x: 8, y: 30, width: 208, height: 62 };
+        canvas.fill(picture, field);
+        factRows(canvas, parts.facts, 96, inks);
+        return { picture: { box: picture, ground: field }, chart: null, words: null };
+      }
       if (parts.chart === 'strip') {
         const picture = { x: 8, y: 30, width: 100, height: 62 },
           chart = { x: 8, y: 96, width: 208, height: 18 };
@@ -195,6 +219,11 @@ const PIT_BOARD: CardStyle = (() => {
       band(canvas, 0, 28);
       canvas.title(8, 3, PAGE_LIMITS.titleColumns, parts.title, 'WHITE');
       canvas.small(8, 21, parts.tag, YELLOW);
+      if (parts.chart === null) {
+        canvas.fill({ x: 0, y: 98, width: WIDTH, height: 62 }, board);
+        factRows(canvas, parts.facts, 101, onBoard);
+        return { picture: { box: { x: 8, y: 36, width: 208, height: 58 }, ground }, chart: null, words: null };
+      }
       if (parts.chart === 'strip') {
         const picture = { x: 8, y: 36, width: 100, height: 62 },
           chart = { x: 8, y: 102, width: 208, height: 16 };
@@ -219,8 +248,8 @@ const PIT_BOARD: CardStyle = (() => {
 
 /**
  * DATA: the picture as large as the card allows over a board of cells, each a fact, its label and unit in the small
- * print over its value, the cells told apart by two shades; its faces turn, the facts, then the more facts, then the
- * words, each named on the tabs under the title.
+ * print over its value, the cells told apart by two shades (on a page without a chart, rows across the card); its faces
+ * turn, the facts, then the more facts, then the words, each named on the tabs under the title.
  */
 const DATA: CardStyle = (() => {
   const ground = rgb(1, 2, 4),
@@ -280,6 +309,12 @@ const DATA: CardStyle = (() => {
         x -= smallWidth(name);
         if (x >= 8 + smallWidth(parts.tag) + 8) canvas.small(x, 22, name, name === shown ? WHITE : dim);
         x -= 8;
+      }
+      if (parts.chart === null) {
+        // The facts in rows across the card, told apart by the two shades.
+        parts.facts.forEach((_, i) => canvas.fill({ x: 0, y: 94 + i * 8, width: WIDTH, height: 8 }, shades[i % 2]!));
+        factRows(canvas, parts.facts, 94, { label, value: WHITE, note, legend: true });
+        return { picture: { box: { x: 8, y: 30, width: 208, height: 60 }, ground }, chart: null, words: null };
       }
       cells(canvas, shown === parts.moreName ? parts.more : parts.facts);
       const strip = { box: { x: 8, y: 110, width: 208, height: 22 }, ground, ink: note };

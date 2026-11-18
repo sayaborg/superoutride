@@ -99,8 +99,8 @@ test('PRESS START leads to SELECT SERIES, whose last card is FREE PLAY, and BACK
   assert.equal(screen.row.kind, 'title');
   assert.equal(send('BACK'), null);
   assert.equal(send('CONFIRM'), 'start');
-  // SELECT SERIES: the series pictures and FREE PLAY, then the series' world, which a single class and a single vehicle
-  // still show.
+  // SELECT SERIES: the series pictures and FREE PLAY, then the series' world, which a single class, the class's one
+  // course and a single vehicle still show.
   assert.equal(screen.row.kind, 'series');
   assert.deepEqual(names(), seriesNames);
   assert.equal(screen.row.world, null);
@@ -112,7 +112,11 @@ test('PRESS START leads to SELECT SERIES, whose last card is FREE PLAY, and BACK
   );
   assert.equal(screen.row.world, clubPicture);
   assert.equal(screen.wallpaper, screen.row.world);
-  // A course's card is silent; a vehicle's, at rest in focus, revs its engine and is heard.
+  // A class's card and a course's are silent; a vehicle's, at rest in focus, revs its engine and is heard.
+  for (let i = 0; i < 100; i++) screen.tick();
+  assert.equal(send('CONFIRM'), 'confirm');
+  assert.deepEqual(names(), [courses.find((c) => c.id === club.classes[0].course).name]);
+  assert.equal(screen.row.world, clubPicture);
   for (let i = 0; i < 100; i++) screen.tick();
   assert.ok(!screen.vehicleDriven && log.engines.length === 0);
   assert.equal(send('CONFIRM'), 'confirm');
@@ -128,8 +132,10 @@ test('PRESS START leads to SELECT SERIES, whose last card is FREE PLAY, and BACK
     [request.seriesId, request.classId, request.session, request.track],
     [club.id, club.classes[0].id, 'RACE', null],
   );
-  assert.equal(send('BACK'), 'back');
-  assert.equal(screen.row.world, clubPicture);
+  for (const name of ['SELECT COURSE', 'SELECT CLASS']) {
+    assert.equal(send('BACK'), 'back', name);
+    assert.equal(screen.row.world, clubPicture);
+  }
   assert.equal(send('BACK'), 'back');
   assert.equal(screen.row.kind, 'series');
   assert.equal(screen.index, clubAt);
@@ -434,6 +440,8 @@ test("RESULT's SELECT and CHANGE VEHICLE rebuild the rows above from the run, an
   assert.equal(screen.row.kind, 'series');
   flow.vehicle(run);
   assert.equal(screen.row.cards.length, club.classes[1].vehicles.length);
+  send('BACK');
+  assert.deepEqual(names(), [courses.find((c) => c.id === club.classes[1].course).name]);
   send('BACK');
   assert.deepEqual(
     names(),

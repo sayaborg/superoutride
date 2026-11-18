@@ -257,7 +257,35 @@ export function resolveRunSetup(
 
 export type RunSetup = ReturnType<typeof resolveRunSetup>;
 
-/** RACE: the class's entries, the player taking the rearmost entry of its vehicle. */
+/**
+ * Where a class's RACE starts its field, by its course grid's slot indices, the player in `playerVehicleId`: the
+ * player's slot, and each other entry, in entry order, with its slot, null for one appearing ahead. The player takes
+ * the rearmost grid entry of its vehicle; `own` keeps every grid entry's slot, `last` gives the player the rearmost of
+ * the grid entries' slots and the other grid entries, in order, the slots in front of it, and `first` the frontmost,
+ * and them the slots behind it.
+ */
+export function classGridSlots(runClass: SeriesClass, playerVehicleId: string) {
+  const own = ownEntry(runClass, playerVehicleId)!;
+  const slots = runClass.entries.filter((entry) => entry.slot !== null).map((entry) => entry.slot!);
+  const otherGridSlots =
+    runClass.playerSlot === 'own' ? null : runClass.playerSlot === 'last' ? slots.slice(0, -1) : slots.slice(1);
+  let gridIndex = 0;
+  return Object.freeze({
+    player: runClass.playerSlot === 'own' ? own.slot! : runClass.playerSlot === 'last' ? slots.at(-1)! : slots[0]!,
+    others: Object.freeze(
+      runClass.entries
+        .filter((entry) => entry !== own)
+        .map((entry) =>
+          Object.freeze({
+            entry,
+            slot: entry.slot === null ? null : otherGridSlots ? otherGridSlots[gridIndex++]! : entry.slot,
+          }),
+        ),
+    ),
+  });
+}
+
+/** RACE: the class's entries, the player taking the rearmost entry of its vehicle (`classGridSlots`). */
 function classEntries(
   course: CompiledCourse,
   runClass: SeriesClass,
@@ -265,36 +293,22 @@ function classEntries(
   playerColor: string,
   vehicleOf: (vehicleId: string) => EntryVehicle,
 ): readonly RunEntry[] {
-  const playerVehicleId = player.vehicle.vehicleDefinition.compiledVehicle.id;
-  const gridEntries = runClass.entries.filter((entry) => entry.slot !== null);
-  const own = ownEntry(runClass, playerVehicleId)!;
-  const others = runClass.entries.filter((entry) => entry !== own);
-  const rivals = others.map((entry) => vehicleOf(entry.vehicle));
+  const slots = classGridSlots(runClass, player.vehicle.vehicleDefinition.compiledVehicle.id);
+  const rivals = slots.others.map(({ entry }) => vehicleOf(entry.vehicle));
   const grid = fieldGrid(course, [player, ...rivals]);
-  // `own` keeps every grid entry's slot; `last` gives the player the rearmost of the grid entries' slots and the
-  // other grid entries, in order, the slots in front of it; `first` the frontmost, and them the slots behind it.
-  // Entries appearing ahead have no slot.
-  const slots = gridEntries.map((entry) => entry.slot!);
-  const otherGridSlots =
-    runClass.playerSlot === 'own' ? null : runClass.playerSlot === 'last' ? slots.slice(0, -1) : slots.slice(1);
-  const playerSlot =
-    runClass.playerSlot === 'own' ? own.slot! : runClass.playerSlot === 'last' ? slots.at(-1)! : slots[0]!;
-  let gridIndex = 0;
-  const slotOf = (entry: (typeof others)[number]) =>
-    entry.slot === null ? null : grid[otherGridSlots ? otherGridSlots[gridIndex++]! : entry.slot]!;
   return Object.freeze([
     Object.freeze({
       id: 'PLAYER',
-      slot: grid[playerSlot]!,
+      slot: grid[slots.player]!,
       ahead: null,
       color: playerColor,
       stages: null,
       ...player,
     }),
-    ...others.map((entry, index) =>
+    ...slots.others.map(({ entry, slot }, index) =>
       Object.freeze({
         id: rivalId(index),
-        slot: slotOf(entry),
+        slot: slot === null ? null : grid[slot]!,
         ahead: entry.ahead,
         color: entry.color,
         stages: entry.stages,
