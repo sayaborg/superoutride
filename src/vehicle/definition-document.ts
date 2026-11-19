@@ -31,8 +31,11 @@ import { compileVehicleEngineSound, type VehicleEngineSound } from '../audio/veh
 export type VehicleForm = 'car' | 'bike';
 /** The longest engine label, which SELECT VEHICLE shows before the displacement. */
 const ENGINE_LABEL_LENGTH = 5;
-/** The longest color display name: SELECT VEHICLE's color line, `^ NAME n/N v`, fits columns 1–21. */
-const COLOR_NAME_LENGTH = 13;
+/**
+ * The longest color display name, Ferrari's VERDE SCURO METALLIZZATO (K, 2026-11-19): the vehicle card's COLOR line draws
+ * a name too long for its normal font in the small print ([card styles](../shell/card-styles.ts)).
+ */
+const COLOR_NAME_LENGTH = 24;
 const COLOR_NAME = new RegExp(`^[A-Z0-9 .'&/-]{1,${COLOR_NAME_LENGTH}}$`);
 /** A gear's name is one character a segment digit draws. */
 const GEAR_NAME = new RegExp(`^[${SEGMENT_CHARACTERS}]$`);

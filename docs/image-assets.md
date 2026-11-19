@@ -1040,18 +1040,18 @@ Its eight liveries are Ferrari's colors of the period (K, 2026-11-19); the glass
 livery's. The first, the model's own and the default, is Rosso Corsa; the eight base colors are K's (2026-11-19),
 `blu-sera`'s a color chart's (#254169):
 
-| Palette       | Name        | Ferrari's name           | Code      | Base color    |
-| ------------- | ----------- | ------------------------ | --------- | ------------- |
-| `rosso-corsa` | ROSSO CORSA | Rosso Corsa              | FER 300/6 | 231, 10, 14   |
-| `giallo`      | GIALLO      | Giallo                   | FER 102   | 245, 198, 18  |
-| `bianco`      | BIANCO      | Bianco                   | FER 100   | 240, 240, 236 |
-| `nero`        | NERO        | Nero                     | FER 1240  | 22, 22, 24    |
-| `argento`     | ARGENTO     | Argento Metallizzato     | FER 101/C | 186, 190, 196 |
-| `blu-sera`    | BLU SERA    | Blu Sera Metallizzato    | FER 504/C | 37, 65, 105   |
-| `azzurro`     | AZZURRO     | Azzurro Metallizzato     | FER 505/C | 92, 148, 206  |
-| `verde-scuro` | VERDE SCURO | Verde Scuro Metallizzato | FER 603/C | 16, 60, 40    |
+| Palette       | Name                     | Ferrari's name           | Code      | Base color    |
+| ------------- | ------------------------ | ------------------------ | --------- | ------------- |
+| `rosso-corsa` | ROSSO CORSA              | Rosso Corsa              | FER 300/6 | 231, 10, 14   |
+| `giallo`      | GIALLO                   | Giallo                   | FER 102   | 245, 198, 18  |
+| `bianco`      | BIANCO                   | Bianco                   | FER 100   | 240, 240, 236 |
+| `nero`        | NERO                     | Nero                     | FER 1240  | 22, 22, 24    |
+| `argento`     | ARGENTO METALLIZZATO     | Argento Metallizzato     | FER 101/C | 186, 190, 196 |
+| `blu-sera`    | BLU SERA METALLIZZATO    | Blu Sera Metallizzato    | FER 504/C | 37, 65, 105   |
+| `azzurro`     | AZZURRO METALLIZZATO     | Azzurro Metallizzato     | FER 505/C | 92, 148, 206  |
+| `verde-scuro` | VERDE SCURO METALLIZZATO | Verde Scuro Metallizzato | FER 603/C | 16, 60, 40    |
 
-A name is at most 13 characters, so the metallics drop METALLIZZATO. The model is K's `ferrari-testarossa-1984.glb`
+Each name is the color's full name (K, 2026-11-19). The model is K's `ferrari-testarossa-1984.glb`
 (SHA-256 `c9ef7c06…`), kept on K's branch `codex/testarossa-1984-glb-source`, never on main; it has no wheel nodes,
 and its front hub is (0, 0.3155, 1.53).
 

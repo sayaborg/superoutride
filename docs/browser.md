@@ -239,7 +239,9 @@ A vehicle's page ([vehicle card](../src/shell/vehicle-card.ts)):
   with the final drive, and `DRIVE` (`RWD`, `FWD`, or `AWD` with its front and rear shares).
 - **More** (`BODY`): `YEAR`, `TYPE`, `LENGTH`, `WIDTH`, `HEIGHT`, `W/BASE`, `WEIGHT` (the shares on the front and rear
   wheels) and `TOP` (the road speed at redline in top gear).
-- **The choice:** `COLOR` with the color's name in YELLOW, between WHITE `▲` and `▼` where UP and DOWN change it.
+- **The choice:** `COLOR` with the color's name in YELLOW, between WHITE `▲` and `▼` where UP and DOWN change it: in
+  the normal font when the line then ends a tile inside the card, else in the small print, which holds the longest
+  name, 24 characters (K, 2026-11-19).
 - **The picture:** the vehicle in the color shown, its yaw image 40 of 64 (seen from ahead and its right), at the one
   scale, from the player depth down by 1 % at a time, at which every yaw image fits the room less 2 pixels all round.
 - **The chart,** a block: the engine's power (RED) and torque (YELLOW) over 20 % to 110 % of its redline, each scaled
@@ -476,19 +478,19 @@ page per vehicle on the 40×30 text grid, its values read from the compiled vehi
 holds them. Rows 0–11 stand on every page; below them three pages, ENGINE, DRIVETRAIN and
 CHASSIS, take turns. `src/shell/vehicle-page.ts` holds every position, scale and time named here.
 
-| Rows  | Columns | Content                                                                                                                                                        |
-| ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0     | 13–26   | `SELECT VEHICLE` (WHITE)                                                                                                                                       |
-| 0     | –38     | `◀ n/N ▶`, the vehicle among the offered vehicles, ending at column 38 whatever its digits (DARK)                                                              |
-| 2     | 1–39    | manufacturer and model (YELLOW)                                                                                                                                |
-| 3     | 1–20    | `physicsAnchor.modelYear`, two spaces and the identifier's official label in upper case (DARK)                                                                 |
-| 3     | 22–39   | the page's headings over its diagram                                                                                                                           |
-| 4–10  | 0–19    | the turning picture                                                                                                                                            |
-| 4–11  | 22–39   | the page's diagram                                                                                                                                             |
-| 11    | 1–21    | the color's display name, `▲ GUARDS RED 3/4 ▼` (WHITE), within 1–21 by the 13-character name and a set's at most eight colors; with fixed colors its name only |
-| 12    | 1–      | the page tabs                                                                                                                                                  |
-| 12    | 30–37   | `PAGE n/3` (DARK)                                                                                                                                              |
-| 14–29 | 0–39    | the page's values                                                                                                                                              |
+| Rows  | Columns | Content                                                                                                                                                                                                                          |
+| ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | 13–26   | `SELECT VEHICLE` (WHITE)                                                                                                                                                                                                         |
+| 0     | –38     | `◀ n/N ▶`, the vehicle among the offered vehicles, ending at column 38 whatever its digits (DARK)                                                                                                                                |
+| 2     | 1–39    | manufacturer and model (YELLOW)                                                                                                                                                                                                  |
+| 3     | 1–20    | `physicsAnchor.modelYear`, two spaces and the identifier's official label in upper case (DARK)                                                                                                                                   |
+| 3     | 22–39   | the page's headings over its diagram                                                                                                                                                                                             |
+| 4–10  | 0–19    | the turning picture                                                                                                                                                                                                              |
+| 4–11  | 22–39   | the page's diagram                                                                                                                                                                                                               |
+| 11    | 1–21    | the color's display name, `▲ GUARDS RED 3/4 ▼` (WHITE), within 1–21 for a name of up to 13 characters and a set's at most eight colors (a longer one, up to 24, runs on over the diagram's row); with fixed colors its name only |
+| 12    | 1–      | the page tabs                                                                                                                                                                                                                    |
+| 12    | 30–37   | `PAGE n/3` (DARK)                                                                                                                                                                                                                |
+| 14–29 | 0–39    | the page's values                                                                                                                                                                                                                |
 
 The picture turns through the yaw images, one every six fixed steps, in the shown color. Each vehicle has one scale,
 the largest from the player depth down (in steps of 1 %) at which every yaw image, standing at one anchor, fits columns

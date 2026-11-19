@@ -79,8 +79,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage F110](#stage-f110--the-testarossa-of-1984)'s F110-3 awaits K's choice of the color line; [Stage
-AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage
+Next PR: [Stage AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage
 RC](#stage-rc--one-recovery) and [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving) are made and await K's
 DEV check and K's choice of the replanning interval (AD-5's reports); in [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
@@ -164,14 +163,16 @@ FC3S-1 adds the vehicle, its sound and its listing, on PORSCHE_928_S_1984's pict
 K's decisions of 2026-11-19: TESTAROSSA is the first, 1984 European coupé (one mirror on the left A pillar,
 centre-lock wheels, 240/45 VR 415 and 280/45 VR 415 tyres), its wheel radii 0.3155 and 0.3335 m
 ([Vehicle physics](vehicle-physics.md)); its pictures are baked from K's model with a car's glossy finish
-(F110-1), in eight of Ferrari's colors whose base colors K has taken (F110-2, 2026-11-19;
-[Model solids](image-assets.md#model-solids)). F110-3 gives the colors their full names, METALLIZZATO included,
-once K has chosen how SELECT VEHICLE's color line holds a name of 24 characters. What stays open, for K:
+(F110-1), in eight of Ferrari's colors whose base colors K has taken (F110-2), named in full, METALLIZZATO
+included (F110-3; [Model solids](image-assets.md#model-solids)): a color name is up to 24 characters, and the vehicle
+card draws one too long for its COLOR line's normal font in the small print ([Browser](browser.md)). The stage is
+closed (K, 2026-11-19). Not decided, and K has asked for no change:
 
 - BIANCO and ARGENTO are hard to tell apart in the pictures, and two of BIANCO's steps are the same color; K keeps both.
-- The roughness (0.10 on the paint and glass, 0.90 on the other black parts) and the finish's values may move.
+- The red's steps look grainy.
+- The roughness (0.10 on the paint and glass, 0.90 on the other black parts) and the finish's values.
 - Seen squarely from the front the pictures take almost no glare (the near-level bonnet does not return a high sun to
-  the low camera); K has asked for no change.
+  the low camera).
 - Not checked against primary sources: second gear (2.104; one source gives 2.014), the compression ratio (9.2; one
   table gives 9.3) and the mass (1625 kg; its source is not recorded).
 
@@ -1213,8 +1214,9 @@ Choices made where Stage FE left them open, each recorded in its PR:
   and 1 s overlap them).
 - Menus: PAUSE, RESULT and LOAD FAILED are carousels; a single item draws no arrows; no screen advances during a
   black transition (READY's countdown starts fully bright).
-- Color display names (13 characters at most, for SELECT VEHICLE's unchanged color line): 911 TURBO 3.3 SILVER,
-  BLACK, GUARDS RED, GP WHITE; TESTAROSSA ROSSO CORSA, GIALLO, BIANCO, NERO, ARGENTO, BLU SERA, AZZURRO, VERDE SCURO; GOLF GTI 16V TORNADO RED, ALPINE
+- Color display names (24 characters at most, the card drawing a name too long for its COLOR line's normal font in
+  the small print): 911 TURBO 3.3 SILVER, BLACK, GUARDS RED, GP WHITE; TESTAROSSA ROSSO CORSA, GIALLO, BIANCO, NERO,
+  ARGENTO METALLIZZATO, BLU SERA METALLIZZATO, AZZURRO METALLIZZATO, VERDE SCURO METALLIZZATO; GOLF GTI 16V TORNADO RED, ALPINE
   WHITE, BLACK, SILVER; DELTA HF INTEGRALE BIANCO, ROSSO MONZA, BLU LANCIA, NERO; CORVETTE C4 BRIGHT RED; FXRT SPORT
   GLIDE VIVID BLACK; every other color its plain name. To confirm or replace.
 - PRE-RACE: the start bar stands at the entry Section's origin; a BRANCH map takes each fork's first exit; FREE PLAY has

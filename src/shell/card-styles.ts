@@ -118,14 +118,23 @@ function factRows(
   facts.forEach((fact, i) => inlineFact(canvas, 8, y + i * 8, WIDTH - 16, ROW_LABEL, fact, inks));
 }
 
-/** The choice's line on text row `row`: its label in the small print, and its value YELLOW, between marks if it changes. */
+/**
+ * The choice's line on text row `row`: its label in the small print, and its value YELLOW, between marks if it changes;
+ * the value in the normal font when the line then ends a tile inside the card, else in the small print (K, 2026-11-19).
+ */
 function choiceLine(canvas: PageCanvas, row: number, choice: NonNullable<PageParts['choice']>, label: number) {
   canvas.small(8, row * TEXT_TILE_SIZE, choice.label, label);
   const column = 1 + Math.ceil(smallWidth(choice.label) / TEXT_TILE_SIZE) + 1;
-  if (!choice.changes) return canvas.write(column, row, choice.value, TEXT_PALETTES.YELLOW);
+  const start = column + (choice.changes ? 2 : 0);
+  // The columns the value takes in the normal font, and the last column the line uses with it.
+  const normal = choice.value.length;
+  const fits = start + normal - 1 + (choice.changes ? 2 : 0) <= CARD.columns - 2;
+  const columns = fits ? normal : Math.ceil(smallWidth(choice.value) / TEXT_TILE_SIZE);
+  if (fits) canvas.write(start, row, choice.value, TEXT_PALETTES.YELLOW);
+  else canvas.small(start * TEXT_TILE_SIZE, row * TEXT_TILE_SIZE, choice.value, YELLOW);
+  if (!choice.changes) return;
   canvas.write(column, row, TEXT_MARKS.up);
-  canvas.write(column + 2, row, choice.value, TEXT_PALETTES.YELLOW);
-  canvas.write(column + 3 + choice.value.length, row, TEXT_MARKS.down);
+  canvas.write(start + columns + 1, row, TEXT_MARKS.down);
 }
 
 const words = (parts: PageParts, box: PixelBox, ground: number): PageWords | null =>

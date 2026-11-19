@@ -12,10 +12,10 @@
       "giallo": "GIALLO",
       "bianco": "BIANCO",
       "nero": "NERO",
-      "argento": "ARGENTO",
-      "blu-sera": "BLU SERA",
-      "azzurro": "AZZURRO",
-      "verde-scuro": "VERDE SCURO"
+      "argento": "ARGENTO METALLIZZATO",
+      "blu-sera": "BLU SERA METALLIZZATO",
+      "azzurro": "AZZURRO METALLIZZATO",
+      "verde-scuro": "VERDE SCURO METALLIZZATO"
     }
   },
   "sound": "TESTAROSSA",
