@@ -3,7 +3,7 @@ import type { CourseMap } from '../course/course-map.js';
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { courseMapColors, drawCourseMap } from '../view/course-map.js';
 import type { CardPage, PageCanvas, PixelBox } from './card-face.js';
-import type { CardStyle, PageFact, PageParts } from './card-styles.js';
+import type { CardStyle, PageFact, PageParts, PageSheet } from './card-styles.js';
 
 /** A course's length as the cards write it: its map's, in kilometres to the metre. */
 export const courseLength = (map: CourseMap) => `${(map.lengthMeters / 1000).toFixed(3)}KM`;
@@ -43,6 +43,75 @@ function drawProfile(canvas: PageCanvas, course: CourseIndexEntry, box: PixelBox
   }
 }
 
+/** A surface's share the sheet names it from, and a material ID as the sheet writes it. */
+const SURFACE_SHARE = 0.05;
+const material = (id: string) => id.replaceAll('_', ' ');
+/** A least and a most, one of them where they are the same. */
+const span = (least: string, most: string) => (least === most ? least : `${least}-${most}`);
+
+/**
+ * What SHEET writes of a course (K, 2026-11-20): the course alone, from the course index. Beside its map its type,
+ * length, laps on a circuit or else stages, grid, road (width, lanes and surfaces), forks, corners, turning per
+ * kilometre and longest straight; under its profile its tightest radius, steepest and average grade, climb with its
+ * highest and lowest points from its start, and gains and losses in all.
+ */
+function courseSheet(course: CourseIndexEntry, tag: string): PageSheet {
+  const { figures, map } = course,
+    { road } = figures,
+    kilometres = map.lengthMeters / 1000,
+    circuit = course.type === 'CIRCUIT',
+    corners = figures.corners.left + figures.corners.right;
+  const surfaces = road.surfaces.filter((surface, i) => i === 0 || surface.share >= SURFACE_SHARE);
+  const average = ((figures.ascentMeters + figures.descentMeters) / map.lengthMeters) * 100;
+  return Object.freeze({
+    line: [],
+    beside: [
+      { label: 'TYPE', value: tag },
+      { label: 'LENGTH', value: kilometres.toFixed(3), unit: 'KM', main: true },
+      circuit
+        ? { label: 'MAX LAPS', value: String(course.maxLaps) }
+        : { label: 'STAGES', value: String(map.checkpoints.length + 1) },
+      { label: 'GRID', value: String(course.gridSlots) },
+      { label: 'WIDTH', value: span(meters(road.widthMeters.least), meters(road.widthMeters.most)), unit: 'M' },
+      { label: 'LANES', value: span(String(road.lanes.least), String(road.lanes.most)) },
+      {
+        label: 'SURFACE',
+        value:
+          surfaces.length === 1
+            ? material(surfaces[0]!.material)
+            : surfaces.map((s) => `${material(s.material)} ${Math.round(s.share * 100)}%`).join(', '),
+      },
+      { label: 'FORKS', value: figures.partings === 0 ? 'NONE' : String(figures.partings) },
+      { label: 'CORNERS', value: String(corners), note: `L${figures.corners.left} R${figures.corners.right}` },
+      {
+        label: 'TURNING',
+        value: String(Math.round((figures.turnRadians * 180) / Math.PI / kilometres)),
+        unit: 'DEG/KM',
+      },
+      { label: 'STRAIGHT', value: String(figures.longestStraightMeters), unit: 'M', note: 'LONGEST' },
+    ],
+    table: null,
+    rest: [
+      figures.tightestRadiusMeters === null
+        ? { label: 'RADIUS', value: '-' }
+        : { label: 'RADIUS', value: String(figures.tightestRadiusMeters), unit: 'M', note: 'MIN' },
+      {
+        label: 'GRADE',
+        value: (figures.steepestGrade * 100).toFixed(1),
+        unit: '%',
+        note: `MAX, ${average.toFixed(1)}% AVG`,
+      },
+      {
+        label: 'CLIMB',
+        value: meters(figures.climbMeters),
+        unit: 'M',
+        note: `+${meters(Math.max(...figures.profile))}/-${meters(-Math.min(...figures.profile))}`,
+      },
+      { label: 'UP/DOWN', value: `${meters(figures.ascentMeters)}/${meters(figures.descentMeters)}`, unit: 'M' },
+    ],
+  });
+}
+
 /** What a course's card says of it: the course alone, the same in every series and in FREE PLAY (K, 2026-11-12). */
 function courseParts(course: CourseIndexEntry): PageParts {
   const { figures, map } = course,
@@ -66,7 +135,7 @@ function courseParts(course: CourseIndexEntry): PageParts {
   const tag = circuit ? 'CIRCUIT' : 'POINT TO POINT';
   return Object.freeze({
     title: course.name,
-    sheet: Object.freeze({ line: [], beside: [{ label: 'TYPE', value: tag }, ...facts], table: null, rest: [] }),
+    sheet: courseSheet(course, tag),
     tag,
     factsName: 'COURSE',
     facts,

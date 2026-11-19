@@ -74,7 +74,8 @@ test('the small print draws capitals, digits and its marks, and nothing else', (
 test('in every style the plain cards and every face of the longest course the index admits stay within the card', () => {
   const [first] = courses;
   // The longest course the index admits: its name and description, length, stages and figures.
-  const { heightMeters, grade, corners, straightMeters } = COURSE_INDEX_FIGURES;
+  const { heightMeters, grade, corners, straightMeters, totalHeightMeters, turnRadians, partings, widthMeters, lanes } =
+    COURSE_INDEX_FIGURES;
   const longest = Object.freeze({
     ...first,
     name: 'W'.repeat(COURSE_TEXT_LIMITS.nameCodeUnits),
@@ -93,6 +94,15 @@ test('in every style the plain cards and every face of the longest course the in
       corners: { left: corners, right: corners },
       longestStraightMeters: straightMeters,
       tightestRadiusMeters: COURSE_FIGURES.bendRadiusMeters,
+      ascentMeters: totalHeightMeters,
+      descentMeters: totalHeightMeters,
+      turnRadians,
+      partings,
+      road: {
+        widthMeters: { least: widthMeters, most: widthMeters },
+        lanes: { least: lanes, most: lanes },
+        surfaces: ['WET_ASPHALT', 'SHOULDER', 'ASPHALT'].map((material) => ({ material, share: 1 / 3 })),
+      },
     }),
   });
   // Words taller than their box rise; a style with room for them all holds them still.

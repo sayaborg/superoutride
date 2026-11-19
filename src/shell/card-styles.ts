@@ -560,8 +560,8 @@ const SHEET: CardStyle = (() => {
           sheet.rest.filter((_, i) => i % 2 === 0),
           MARGIN,
           15 * ROW,
-          half,
-          36,
+          half - 4,
+          32,
           2,
         );
         column(
@@ -570,12 +570,12 @@ const SHEET: CardStyle = (() => {
           MARGIN + half,
           15 * ROW,
           half,
-          36,
+          32,
           2,
         );
         return {
           picture: { box: { x: MARGIN, y: ROW, width: 96, height: 11 * ROW }, ground },
-          chart: { box: { x: MARGIN, y: 12 * ROW, width: INNER, height: 3 * ROW }, ground, ink: dim },
+          chart: { box: { x: MARGIN, y: 12 * ROW, width: INNER, height: 3 * ROW - 2 }, ground, ink: dim },
           words: parts.words && {
             ...words(parts, { x: MARGIN, y: 17 * ROW, width: INNER, height: 4 * ROW }, ground)!,
             font: 'small',

@@ -1,5 +1,5 @@
 import type { CourseIndexEntry } from '../content/course-index.js';
-import type { SeriesClass } from '../content/series-catalog.js';
+import type { SeriesClass, SeriesEntry } from '../content/series-catalog.js';
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import { classGridSlots, runPlayerColor } from '../race/run-setup.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
@@ -11,7 +11,7 @@ import {
 import { PLAYER_DEPTH_PIXELS_PER_METER } from '../view/display-scale.js';
 import { drawScaledSprite, scaledSpriteBounds } from '../view/sprite.js';
 import type { CardPage, PageCanvas, PixelBox } from './card-face.js';
-import { PAGE_LIMITS, type CardStyle, type PageFact, type PageParts } from './card-styles.js';
+import { PAGE_LIMITS, type CardStyle, type PageFact, type PageParts, type PageSheet } from './card-styles.js';
 
 /** The side view the grid shows each vehicle in: the yaw image a quarter turn round, its front to the right. */
 const SIDE_TURN = 0.25;
@@ -26,6 +26,8 @@ const ordinal = (n: number) =>
 
 /** The catalog's vehicle of an ID. */
 type Vehicles = (id: string) => CompiledVehicleDefinition;
+/** A rival's entry: its vehicle and color, each null where the player's own vehicle decides it. */
+type Rival = Pick<SeriesEntry, 'vehicle' | 'color'>;
 
 /**
  * One vehicle on the grid: its slot index in the course's grid, its vehicle and color (null in a class of any vehicle,
@@ -49,7 +51,7 @@ function classParts(
   runClass: SeriesClass,
   course: CourseIndexEntry | null,
   cars: readonly GridCar[],
-  rivals: readonly (string | null)[],
+  rivals: readonly Rival[],
   vehicles: Vehicles,
 ) {
   const modelOf = (id: string | null) => (id === null ? YOURS : vehicles(id).listing.metadata.model.toUpperCase());
@@ -84,18 +86,17 @@ function classParts(
           : { label: 'START', value: ordinal(position), note: `OF ${field}` },
     rivals.length === 0
       ? { label: 'RIVALS', value: 'NONE' }
-      : fact('RIVALS', `${open && rivals.length > 1 ? 'UP TO ' : ''}${rivals.length}`, rivals.map(modelOf)),
+      : fact(
+          'RIVALS',
+          `${open && rivals.length > 1 ? 'UP TO ' : ''}${rivals.length}`,
+          rivals.map((rival) => modelOf(rival.vehicle)),
+        ),
     runClass.traffic ? fact('TRAFFIC', 'ON', traffic) : { label: 'TRAFFIC', value: 'OFF' },
     { label: 'CLOCK', value: runClass.timeMargin === null ? 'OFF' : 'ON' },
   ];
   return Object.freeze<PageParts>({
     title: runClass.title,
-    sheet: Object.freeze({
-      line: [{ label: 'SERIES', value: runClass.series.title }],
-      beside: [],
-      table: null,
-      rest: facts,
-    }),
+    sheet: classSheet(runClass, course, facts, rivals, vehicles),
     tag: runClass.series.title,
     factsName: 'CLASS',
     facts,
@@ -105,6 +106,74 @@ function classParts(
     chart: null,
     chartName: '',
     words: null,
+  });
+}
+
+/**
+ * What SHEET writes of a class (K, 2026-11-20): its series along the title's foot, and its rules in full under its grid:
+ * its course, every vehicle, laps, start; its rivals' vehicles each with its entries' colors; its traffic's density,
+ * speed and vehicles; the rank to hold at each gate where it has one; and its clock with its margin.
+ */
+function classSheet(
+  runClass: SeriesClass,
+  course: CourseIndexEntry | null,
+  facts: readonly PageFact[],
+  rivals: readonly Rival[],
+  vehicles: Vehicles,
+): PageSheet {
+  const open = course === null;
+  const modelOf = (id: string | null) => (id === null ? YOURS : vehicles(id).listing.metadata.model.toUpperCase());
+  // Each vehicle once, in the order of its first entry, with its entries' colors, each once with how many share it.
+  const groups = new Map<string | null, string[]>();
+  for (const { vehicle, color } of rivals) {
+    const colors = groups.get(vehicle) ?? [];
+    if (color !== null) colors.push(vehicles(vehicle!).listing.visuals.colorNames[color] ?? color);
+    groups.set(vehicle, colors);
+  }
+  const counted = (names: readonly string[]) =>
+    [...new Set(names)].map((name) => {
+      const count = names.filter((other) => other === name).length;
+      return count > 1 ? `${count} ${name}` : name;
+    });
+  const field = [...groups].map(([vehicle, colors]) =>
+    colors.length === 0 ? modelOf(vehicle) : `${modelOf(vehicle)} (${counted(colors).join(', ')})`,
+  );
+  const traffic = runClass.traffic;
+  const ranks = Object.entries(runClass.rankLimits);
+  const fact = (label: string) => facts.find((item) => item.label === label)!;
+  return Object.freeze({
+    line: [{ label: 'SERIES', value: runClass.series.title }],
+    beside: [],
+    table: null,
+    rest: [
+      fact('COURSE'),
+      {
+        label: 'VEHICLE',
+        value: runClass.vehicles === null ? ANY : [...new Set(runClass.vehicles.map(modelOf))].join(', '),
+      },
+      ...facts.filter((item) => item.label === 'LAPS'),
+      fact('START'),
+      rivals.length === 0
+        ? { label: 'RIVALS', value: 'NONE' }
+        : {
+            label: 'RIVALS',
+            value: `${open && rivals.length > 1 ? 'UP TO ' : ''}${rivals.length}: ${field.join(', ')}`,
+          },
+      traffic === null
+        ? { label: 'TRAFFIC', value: 'OFF' }
+        : {
+            label: 'TRAFFIC',
+            value: `${traffic.density}/KM AT ${traffic.speedKilometersPerHour} KM/H: ${[
+              ...new Set(traffic.vehicles.map(modelOf)),
+            ].join(', ')}`,
+          },
+      ...(ranks.length === 0
+        ? []
+        : [{ label: 'RANK', value: ranks.map(([gate, rank]) => `TOP ${rank} AT ${gate.toUpperCase()}`).join(', ') }]),
+      runClass.timeMargin === null
+        ? { label: 'CLOCK', value: 'OFF' }
+        : { label: 'CLOCK', value: 'ON', note: `MARGIN ${runClass.timeMargin}` },
+    ],
   });
 }
 
@@ -191,7 +260,7 @@ export function classPage(
     runClass,
     course,
     cars,
-    slots.others.map(({ entry }) => entry.vehicle),
+    slots.others.map(({ entry }) => entry),
     vehicles,
   );
   // Each vehicle's images in each color shown, made once.

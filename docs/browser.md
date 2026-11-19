@@ -220,6 +220,12 @@ does, and never a record (K, 2026-11-19); so classes on one course are told apar
   short one at its foot, the player's YELLOW and the others DARK. Every vehicle takes the one scale, from the player
   depth down by 3 % at a time, at which each fits its cell; a cell is at most 32 pixels long and a row 24 tall.
   Entries appearing ahead are not on it.
+- **The sheet** (SHEET; K, 2026-11-20): `SERIES` along the title's foot; under the grid `COURSE`; `VEHICLE` (every
+  model, or `ANY`); `LAPS`; `START`; `RIVALS` (`NONE`, or how many and each model once in the order of its first entry
+  with its entries' colors, a color shared by several written once after their count, `UP TO` and `SAME AS YOURS` as
+  above); `TRAFFIC` (`OFF`, or its density a kilometre, its speed and its models); `RANK` where the class has rank
+  limits (`TOP <n> AT <gate>` for each); and `CLOCK` (`OFF`, or `ON` with its margin over the reference times). A list
+  too long for its row goes on in the rows under it.
 
 A course's page ([course page](../src/shell/course-page.ts)), from the [course
 index](content-and-gameplay.md#course-index):
@@ -233,6 +239,13 @@ index](content-and-gameplay.md#course-index):
 - **The chart,** a strip under the name `PROFILE`: the road's height from its start to its end, filled to the strip's
   foot under a WHITE line; a climb of 40 m or more stands as tall as the strip, and a smaller one in proportion.
 - **The words:** its description in WHITE, broken at spaces.
+- **The sheet** (SHEET; K, 2026-11-20): beside its map `TYPE`, `LENGTH` (in the normal font), `MAX LAPS` on a circuit
+  or else `STAGES`, `GRID` (its grid slots in use), `WIDTH` and `LANES` (the least and the most along its road, or the
+  one), `SURFACE` (its first material and every other of 5 % or more, with their shares when more than one), `FORKS`
+  (its partings, or `NONE`), `CORNERS`, `TURNING` (degrees a kilometre) and `STRAIGHT`; under its profile `RADIUS`,
+  `CLIMB` (with its highest and lowest points from its start), `GRADE` (the steepest and the average, its gains and
+  losses over its length) and `UP/DOWN` (its gains and losses in all); and its words in the small print. The original
+  game's name, maker and year are in no course data and are not on it.
 
 A vehicle's page ([vehicle card](../src/shell/vehicle-card.ts)):
 
