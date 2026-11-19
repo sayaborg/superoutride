@@ -1,4 +1,6 @@
 import type { CompiledCourse } from './compiler/compiled-course.js';
+import { courseBoundaryAt } from './course-boundaries.js';
+import { courseRoadOf } from './course-lanes.js';
 import { courseMapRoute } from './course-route.js';
 
 /**
@@ -27,47 +29,90 @@ export interface CourseFigures {
   readonly longestStraightMeters: number;
   /** The tightest bend's radius in metres; null on a road without a bend. */
   readonly tightestRadiusMeters: number | null;
+  /** The heights the road gains, and those it loses, in all, in metres. */
+  readonly ascentMeters: number;
+  readonly descentMeters: number;
+  /** How far the road turns in all, to either hand, in radians. */
+  readonly turnRadians: number;
+  /** The places where the roads part along the route: its `parting` gates. */
+  readonly partings: number;
+  /**
+   * The road the route runs, the one holding its Sections' centre lanes: its least and most width in metres and lanes,
+   * and the materials under its lanes' centres, each with its share of the readings, most first.
+   */
+  readonly road: {
+    readonly widthMeters: { readonly least: number; readonly most: number };
+    readonly lanes: { readonly least: number; readonly most: number };
+    readonly surfaces: readonly { readonly material: string; readonly share: number }[];
+  };
 }
 
 /**
  * The figures of a compiled course along its map's route ([course map](./course-map.ts)). A circuit's road closes, so a
- * corner or a straight across its line counts once.
+ * corner or a straight across its line counts once. Gains and losses, the road's width and lanes and what lies under its
+ * lanes' centres are read every `sampleMeters`; the turning is the plan's, its curvature over its length.
  */
 export function createCourseFigures(course: CompiledCourse): CourseFigures {
   const occurrences = courseMapRoute(course);
   const length = occurrences.reduce((sum, o) => sum + o.section.coordinates.domain.end, 0);
-  // The height at a station of the route, and the grade there.
-  const sample = { y: 0, dYdS: 0 };
-  const at = (station: number) => {
+  // The Section and its station at a station of the route; the height there, and the grade.
+  const locate = (station: number) => {
     let s = Math.min(length, Math.max(0, station));
     for (const occurrence of occurrences) {
       const end = occurrence.section.coordinates.domain.end;
-      if (s <= end || occurrence === occurrences.at(-1)) return occurrence.section.height.sampleDifferential(s, sample);
+      if (s <= end || occurrence === occurrences.at(-1)) return { section: occurrence.section, s };
       s -= end;
     }
     throw new Error('A route has an occurrence');
+  };
+  const sample = { y: 0, dYdS: 0 };
+  const at = (station: number) => {
+    const { section, s } = locate(station);
+    return section.height.sampleDifferential(s, sample);
   };
   const base = at(0).y;
   const profile = Array.from(
     { length: COURSE_FIGURES.profileIntervals + 1 },
     (_, i) => at((length * i) / COURSE_FIGURES.profileIntervals).y - base,
   );
-  let [lowest, highest, steepest] = [0, 0, 0];
+  let [lowest, highest, steepest, ascent, descent] = [0, 0, 0, 0, 0];
+  const widths = { least: Infinity, most: 0 },
+    lanes = { least: Infinity, most: 0 },
+    surfaces = new Map<string, number>();
+  let readings = 0,
+    before = base;
   const count = Math.max(1, Math.ceil(length / COURSE_FIGURES.sampleMeters));
   for (let k = 0; k <= count; k++) {
-    const { y, dYdS } = at((length * k) / count);
+    const { section, s } = locate((length * k) / count);
+    const { y, dYdS } = section.height.sampleDifferential(s, sample);
     [lowest, highest] = [Math.min(lowest, y - base), Math.max(highest, y - base)];
     steepest = Math.max(steepest, Math.abs(dYdS));
+    [ascent, descent] = [ascent + Math.max(0, y - before), descent + Math.max(0, before - y)];
+    before = y;
+    // The road holding the centre lane, which is wider than 0 all along its Section, and what lies under its lanes.
+    const road = courseRoadOf(section.lanes, section.lanes.center, s)!;
+    [widths.least, widths.most] = [
+      Math.min(widths.least, road.right - road.left),
+      Math.max(widths.most, road.right - road.left),
+    ];
+    [lanes.least, lanes.most] = [Math.min(lanes.least, road.lanes.length), Math.max(lanes.most, road.lanes.length)];
+    for (const lane of road.lanes) {
+      const material = section.material.sample(s, courseBoundaryAt(lane.center, s));
+      if (!material) throw new Error('A lane lies on supported material');
+      surfaces.set(material.id, (surfaces.get(material.id) ?? 0) + 1);
+      readings++;
+    }
   }
 
   // The route as runs of one kind: a hand of bends (-1 left, 1 right) or a stretch without one (0).
   const runs: { hand: number; meters: number; turn: number }[] = [];
-  let tightest = 0;
+  let [tightest, turn] = [0, 0];
   for (const occurrence of occurrences)
     for (const segment of occurrence.section.segments) {
       const bend = Math.abs(segment.curvature) * COURSE_FIGURES.bendRadiusMeters >= 1,
         hand = bend ? Math.sign(segment.curvature) : 0,
         meters = segment.sEnd - segment.sStart;
+      turn += Math.abs(segment.curvature) * meters;
       if (bend) tightest = Math.max(tightest, Math.abs(segment.curvature));
       const last = runs.at(-1);
       if (last?.hand === hand)
@@ -87,5 +132,22 @@ export function createCourseFigures(course: CompiledCourse): CourseFigures {
     corners: Object.freeze({ left: corners(-1), right: corners(1) }),
     longestStraightMeters: runs.reduce((longest, run) => (run.hand === 0 ? Math.max(longest, run.meters) : longest), 0),
     tightestRadiusMeters: tightest > 0 ? 1 / tightest : null,
+    ascentMeters: ascent,
+    descentMeters: descent,
+    turnRadians: turn,
+    partings: occurrences.reduce(
+      (sum, occurrence) =>
+        sum + course.gates.intervals.find((interval) => interval.section === occurrence.section)!.partings.length,
+      0,
+    ),
+    road: Object.freeze({
+      widthMeters: Object.freeze(widths),
+      lanes: Object.freeze(lanes),
+      surfaces: Object.freeze(
+        [...surfaces]
+          .sort(([a, n], [b, m]) => m - n || (a < b ? -1 : 1))
+          .map(([material, n]) => Object.freeze({ material, share: n / readings })),
+      ),
+    }),
   });
 }

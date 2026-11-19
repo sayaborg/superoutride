@@ -43,7 +43,7 @@ export interface CourseIndexEntry {
 }
 export type CourseIndex = readonly CourseIndexEntry[];
 
-export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 9 } as const);
+export const COURSE_INDEX_FORMAT = Object.freeze({ format: 'superoutride.course-index', version: 10 } as const);
 /** The course index's manifest ID. */
 export const COURSE_INDEX_ID = 'courses';
 const COURSE_TYPES: readonly CompiledCourse['type'][] = ['CIRCUIT', 'LINEAR'];
@@ -150,6 +150,15 @@ export const COURSE_INDEX_FIGURES = Object.freeze({
   grade: 9.999,
   corners: 999,
   straightMeters: 999999,
+  /** The road's gains and losses in all, to a tenth of a metre, and its turning in all, to a thousandth of a radian. */
+  totalHeightMeters: 99999,
+  turnDecimals: 3,
+  turnRadians: 99999,
+  partings: 999,
+  /** The road's width to a tenth of a metre, its lanes, and each surface's share to a thousandth. */
+  widthMeters: 999.9,
+  lanes: 99,
+  shareDecimals: 3,
 });
 
 /** A course's figures as the index delivers them ([course index](../../docs/content-and-gameplay.md#course-index)). */
@@ -162,12 +171,25 @@ function courseFiguresDocument(figures: CourseFigures) {
     corners: [figures.corners.left, figures.corners.right],
     longestStraightMeters: Math.round(figures.longestStraightMeters),
     tightestRadiusMeters: figures.tightestRadiusMeters === null ? null : Math.round(figures.tightestRadiusMeters),
+    ascentMeters: height(figures.ascentMeters),
+    descentMeters: height(figures.descentMeters),
+    turnRadians: fixed(figures.turnRadians, COURSE_INDEX_FIGURES.turnDecimals),
+    partings: figures.partings,
+    road: {
+      widthMeters: [figures.road.widthMeters.least, figures.road.widthMeters.most].map(height),
+      lanes: [figures.road.lanes.least, figures.road.lanes.most],
+      surfaces: figures.road.surfaces.map(({ material, share }) => [
+        material,
+        fixed(share, COURSE_INDEX_FIGURES.shareDecimals),
+      ]),
+    },
   };
 }
 
 /**
  * Admit delivered figures: a profile of `COURSE_FIGURES.profileIntervals` + 1 heights, a climb, a grade, two whole
- * corner counts, a longest straight, and a tightest radius of a bend or null, each within `COURSE_INDEX_FIGURES`.
+ * corner counts, a longest straight, a tightest radius of a bend or null, the gains and losses in all, the turning in
+ * all, the partings and the road, each within `COURSE_INDEX_FIGURES`.
  */
 function readCourseFigures(value: unknown, at: string): CourseFigures {
   const figures = readRecord(value, at, [
@@ -177,7 +199,13 @@ function readCourseFigures(value: unknown, at: string): CourseFigures {
     'corners',
     'longestStraightMeters',
     'tightestRadiusMeters',
+    'ascentMeters',
+    'descentMeters',
+    'turnRadians',
+    'partings',
+    'road',
   ]);
+  const total = { min: 0, max: COURSE_INDEX_FIGURES.totalHeightMeters };
   const [left, right] = readArray(
     figures.corners,
     `${at}/corners`,
@@ -212,7 +240,61 @@ function readCourseFigures(value: unknown, at: string): CourseFigures {
             exclusiveMin: true,
             max: COURSE_FIGURES.bendRadiusMeters,
           }),
+    ascentMeters: readNumber(figures.ascentMeters, `${at}/ascentMeters`, total),
+    descentMeters: readNumber(figures.descentMeters, `${at}/descentMeters`, total),
+    turnRadians: readNumber(figures.turnRadians, `${at}/turnRadians`, {
+      min: 0,
+      max: COURSE_INDEX_FIGURES.turnRadians,
+    }),
+    partings: readNumber(figures.partings, `${at}/partings`, {
+      min: 0,
+      max: COURSE_INDEX_FIGURES.partings,
+      integer: true,
+    }),
+    road: readRoad(figures.road, `${at}/road`),
   });
+}
+
+/**
+ * Admit a delivered road: its least and most width, positive, and lanes, whole and at least one, each least first; and
+ * its surfaces, at least one, each a material ID once with a share in (0, 1], the larger first, their shares summing
+ * to 1 within their rounding.
+ */
+function readRoad(value: unknown, at: string): CourseFigures['road'] {
+  const road = readRecord(value, at, ['widthMeters', 'lanes', 'surfaces']);
+  const range = (item: unknown, path: string, limits: Parameters<typeof readNumber>[2]) => {
+    const [least, most] = readArray(item, path, (n, p) => readNumber(n, p, limits), { length: 2 });
+    requireAdmission(least! <= most!, 'invalid_value', path, 'Expected the least first');
+    return Object.freeze({ least: least!, most: most! });
+  };
+  const widthMeters = range(road.widthMeters, `${at}/widthMeters`, {
+    min: 0,
+    exclusiveMin: true,
+    max: COURSE_INDEX_FIGURES.widthMeters,
+  });
+  const lanes = range(road.lanes, `${at}/lanes`, { min: 1, max: COURSE_INDEX_FIGURES.lanes, integer: true });
+  const surfaces = readArray(
+    road.surfaces,
+    `${at}/surfaces`,
+    (item, path) => {
+      const [material, share] = readArray(item, path, (entry) => entry, { length: 2 });
+      return Object.freeze({
+        material: readString(material, `${path}/0`),
+        share: readNumber(share, `${path}/1`, { min: 0, exclusiveMin: true, max: 1 }),
+      });
+    },
+    { min: 1 },
+  );
+  requireAdmission(
+    new Set(surfaces.map((surface) => surface.material)).size === surfaces.length &&
+      surfaces.every((surface, i) => i === 0 || surface.share <= surfaces[i - 1]!.share) &&
+      Math.abs(surfaces.reduce((sum, surface) => sum + surface.share, 0) - 1) <=
+        surfaces.length * 10 ** -COURSE_INDEX_FIGURES.shareDecimals,
+    'invalid_value',
+    `${at}/surfaces`,
+    'Expected each material once, the larger share first, the shares summing to 1',
+  );
+  return Object.freeze({ widthMeters, lanes, surfaces: Object.freeze(surfaces) });
 }
 
 /**

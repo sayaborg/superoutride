@@ -2048,7 +2048,7 @@ reports how many there are. Descriptions are kept unwrapped; no screen shows the
 
 ## Course index
 
-The content build delivers one course index (`superoutride.course-index` version 9) so menus can show courses
+The content build delivers one course index (`superoutride.course-index` version 10) so menus can show courses
 without loading them. It lists every compiled course once, in the [course texts'](#course-texts) order, a product
 course after its original (K, 2026-11-11: FREE PLAY lists the courses in it), as
 `{id, name, description, type, maxLaps, gridSlots, buildSha256, raceTracks, map, figures}`: the course ID, its
@@ -2065,16 +2065,24 @@ its extent, the larger of its spans east and north, of them all (Douglas–Peuck
 screen draws it, and writes points in whole metres, the length to 0.1 m and the direction to four decimals
 (`COURSE_INDEX_MAP`).
 The figures ([course figures](../src/course/course-figures.ts)) are what the road measures along the same route, for
-the cards: `{profile, climbMeters, steepestGrade, corners, longestStraightMeters, tightestRadiusMeters}`. `profile` is
+the cards: `{profile, climbMeters, steepestGrade, corners, longestStraightMeters, tightestRadiusMeters, ascentMeters,
+descentMeters, turnRadians, partings, road}`. `profile` is
 the road's height above its start at 129 even stations from the route's start to its end; heights and grades are read
 every 4 m, the climb is the highest point over the lowest, and the steepest grade is the largest rise or fall over run.
 A bend is road turning on a radius of 1000 m or less; a corner is bends of one hand in a row that turn the road 15° or
 more, counted to the left and to the right as `[left, right]`; the longest straight is the longest stretch without a
 bend, and the tightest radius the tightest bend's, null on a road without one. A circuit's road closes, so a corner or
-a straight across its line counts once. The index writes heights and the climb to 0.1 m, the grade to a thousandth and
-the straight and radius in whole metres, and admits what the cards have room to write (`COURSE_INDEX_FIGURES`): heights
-within 9999 m of the start, a grade up to 9.999, 999 corners to either hand, a straight up to 999999 m and a radius up
-to a bend's 1000 m.
+a straight across its line counts once. For the course's card (K, 2026-11-20): `ascentMeters` and `descentMeters` are
+the heights the road gains and loses in all, read every 4 m; `turnRadians` is how far the plan turns in all, to either
+hand, its curvature over its length; `partings` counts the [parting gates](#section-gates-and-run-settings) along the
+route. `road` is the road holding each Section's centre lane, read every 4 m: `{widthMeters: [least, most], lanes:
+[least, most], surfaces}`, its width edge to edge, its lanes wider than 0, and `surfaces` the materials under its lanes'
+centres as `[material, share]`, each material once with its share of the readings, the larger first. The index writes
+heights, the climb, gains, losses and widths to 0.1 m, the grade, the turning and the shares to a thousandth and the
+straight and radius in whole metres, and admits what the cards have room to write (`COURSE_INDEX_FIGURES`): heights
+within 9999 m of the start, a grade up to 9.999, 999 corners to either hand, a straight up to 999999 m, a radius up
+to a bend's 1000 m, gains and losses up to 99999 m, turning up to 99999 rad, 999 partings, a width up to 999.9 m and 99
+lanes; its surfaces' shares sum to 1 within their rounding.
 Admission requires exactly the delivered course entries of the manifest, each
 once, the rules for names and descriptions (the course texts'), laps (only `CIRCUIT` has more than one lap) and
 grid slots, and a map of points of two finite numbers, at least two on its centreline, at most 998 checkpoints (so the
