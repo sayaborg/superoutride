@@ -92,21 +92,24 @@ converted to station torque by its rolling radius and rounded to 25 Nm. Actual b
 unchanged tire, load and protection rules. This is not a reconstruction of period hydraulic brake pressure,
 ABS, spring rates, bump travel, tire temperature, handling limits or stopping-distance tests.
 
-The Esprit, 928s, Countach, 930, Mini, Toyota and Novas still lack a read, exact-year primary gearbox
+The Esprit, 928 S, Countach, 930, Mini, Toyota and Novas still lack a read, exact-year primary gearbox
 ratio table. Their provisional ratios are explicit engineering estimates, not borrowed verified facts from
 another year. The F40 uses provisional gear pairs 2.769/1.722/1.227/0.963/0.767 and effective final reduction
 `2.9*4/3`; the transfer reduction is folded into the existing single final-drive field. The GTO manual's
 published ratios already include its transfer gears and therefore must not receive that factor a second time.
-The 928 final reductions distinguish US S4 2.20 and 1984 US S 2.36; the provisional intermediate gear sets
-remain separately qualified. The 959's six ratios are its G59.01's tooth counts as the stage auditor read them
-([below](#porsche-959-of-1987-sources-versus-authored)). The ordinary Nova's exact gearbox/axle option combination remains unverified.
+The 928 final reductions distinguish US S4 2.20 and 1984 US S 2.36. The S4's gears are the 1987 US G28/13's
+4.067/2.714/1.934/1.463/1.000 ([below](#porsche-928-s4-of-1987-sources-versus-authored)), which already include the
+gearbox's 33/21 countershaft pair and must not receive it again; the 928 S's intermediate gear set remains
+provisional. The 959's six ratios are its G59.01's tooth counts as the stage auditor read them
+([below](#porsche-959-of-1987-sources-versus-authored)). The ordinary Nova's exact gearbox/axle option combination
+remains unverified.
 
 ## Evidence actually consulted
 
 Accessed 2026-10-23 UTC. Search snippets, blocked URLs and unread manuals are not treated as source verification.
 The numeric ledger distinguishes `source verified`, `calculated`, `engineering estimate` and `game design`, and for
-the 959 `source (auditor)`: the stage auditor's reading, not read for the PR that wrote it
-([below](#porsche-959-of-1987-sources-versus-authored)).
+the 959 and the 928 S4 `source (auditor)`: the stage auditor's reading, not read for the PR that wrote it
+([959](#porsche-959-of-1987-sources-versus-authored), [928 S4](#porsche-928-s4-of-1987-sources-versus-authored)).
 A source-verified secondary value means that page was read, not that it has primary-document authority.
 
 1. **928 S4 factory-table transcription**, [general/engine](https://www.jenniskens.eu/Technical/TechSpecs/TechSpecs1.htm)
@@ -176,10 +179,11 @@ estimates; this is not a dimensioned CAD reconstruction. Dimensions include a pr
 so tiny mirrors, lamps or the spare can extend slightly beyond the nominal body panel dimensions.
 
 Each car has its own existing-format sound graph with its cylinder count and evenly spaced firing phases.
-Ferrari flat-plane banks alternate; the two 928s route 1-3-7-2-6-5-4-8 by banks 1–4/5–8, while Chevy V8s route
-1-8-4-3-6-5-7-2 by odd/even banks. Flat sixes and V12 use alternating banks. All valve openings, diameters,
-pipe dimensions and collector simplifications are estimates. They are synthesized approximations, not
-recordings or independently verified exhaust acoustics. No siren, turbo sound process or physics is added.
+Ferrari flat-plane banks alternate; the two 928s route 1-3-7-2-6-5-4-8 by banks 1–4/5–8, the S4's banks meeting only
+in its rear silencer ([below](#porsche-928-s4-of-1987-sources-versus-authored)), while Chevy V8s route
+1-8-4-3-6-5-7-2 by odd/even banks. Flat sixes and V12 use alternating banks. Except the S4's, whose sources are
+given below, all valve openings, diameters, pipe dimensions and collector simplifications are estimates. They are
+synthesized approximations, not recordings or independently verified exhaust acoustics. No siren, turbo sound process or physics is added.
 
 ## Reproduction and validation
 
@@ -270,6 +274,86 @@ The existing solver on this ledger's flat, dry, windless straight with the autom
 
 It launches in G, shifts from G to 1 and on through 5 as any car through its gears, stops from its top speed and
 restarts from rest (158 km/h 8 s after stopping).
+
+## Porsche 928 S4 of 1987: sources versus authored
+
+K takes CHASE H.Q.'s car for the Porsche 928 S4 of 1987, United States, five-speed manual (K, 2026-11-20);
+nothing here claims the original says so. `PORSCHE_928_S4_1987` is the 1987 model year's US 928 S4: left-hand drive,
+the M28/41 32-valve V8, the G28/13 five-speed manual and rear drive. No series runs it yet; how CHASE H.Q.'s series
+uses it is not decided. Its numbers follow this ledger's
+[conventions](#numerical-conventions-and-remaining-uncertainty); K asked for the real car's values (K, 2026-11-20),
+and the rows below are those Stage P928 checked.
+
+The source column is the stage auditor's reading (2026-11-20) of the pages listed [below](#the-928-s4s-sources),
+except where it names item 1 of [Evidence actually consulted](#evidence-actually-consulted), read on 2026-10-23. The
+environment of the PR that wrote this section could not reach the auditor's pages, so the numeric ledger classes their
+values `source (auditor)`.
+
+| Item           | Source (auditor's reading)                                                                                                                                                    | Authored `PORSCHE_928_S4_1987`                                                        | Class                        |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------- |
+| Gearbox        | G28/13, the 1987–88 US five-speed manual (A, C); 4.067, 2.714, 1.934, 1.463, 1.000, R 3.570 (B)                                                                               | **4.067 / 2.714 / 1.934 / 1.463 / 1**; the ratios include the 33/21 countershaft pair | source (auditor)             |
+| Final drive    | 2.200 (B)                                                                                                                                                                     | 2.2                                                                                   | source (auditor)             |
+| Idle           | 675 ± 25 rpm (A, B)                                                                                                                                                           | **675 rpm**; the torque curve's first point moved to it, its 249.4 N m an estimate    | source (auditor)             |
+| Tracks         | 1,549 / 1,546 mm, the rear on the 8J × 16 rim (B); a specification list gives 1,551 front                                                                                     | **1.549** / 1.546 m                                                                   | source (auditor)             |
+| Engine         | 4,957 cc, 10.0:1, 235 kW at 6,000, 430 N m at 3,000, 6,600 rpm (item 1; A agrees: M28/41, 100 × 78.9 mm, 316 hp SAE net, the fuel cut at 6,600, firing order 1-3-7-2-6-5-4-8) | Unchanged                                                                             | source verified              |
+| Body           | 4,523 / 1,836 / 1,282 mm, wheelbase 2,500 mm, 1,590 kg (item 1; B agrees; one list gives 1,580 kg); Cd 0.34 (secondary)                                                       | Unchanged; the CdA stays an estimate                                                  | source verified              |
+| Tires          | 225/50 VR16 on 7J × 16, 245/45 VR16 on 8J × 16 (B); 631 and 627 mm across                                                                                                     | Radii 0.305 / 0.306 m, the ledger's convention (unchanged)                            | engineering estimate         |
+| Exhaust valves | Two per cylinder, 33 mm (a parts vendor); 17° BBDC to 2° BTDC at 1 mm lift, 195° (A); about 240° seat to seat, 8.5 mm lift (a cam regrinder's figure on a forum)              | `valve` 46.7 mm (33 × √2), `open` 0.3333 (240° of 720°)                               | source (auditor), calculated |
+| Exhaust        | Below                                                                                                                                                                         | [Calibration](calibration.md#exhaust-topologies)                                      | source (auditor), estimate   |
+
+The exhaust as the auditor read it: each bank has a stainless 4-into-1 manifold of 42 mm primaries about 15 and 20 cm
+long into a 52 mm collector (an owner who modelled the engine; which cylinders take the long ones is not given); the
+two banks run separately to the car's rear, "twin pipes for the full length" (A), each through its downpipe, its own
+catalyst (two from 1987) and its own centre silencer, all 52 mm inside (55 mm outside, 1.5 mm wall); the banks first
+meet in the transverse rear silencer, whose two inlets are 47 mm inside; two tailpipes about 59 mm outside leave at the
+left rear. The factory system has no crossover. The forum and vendor figures are not primary documents; no source gives
+the pipes' lengths.
+
+### The 928 S4 in the current model
+
+- The sound writes the two valves of a cylinder as one of their combined area, and each bank's collector, downpipe,
+  catalyst and centre silencer as one 52 mm pipe (2.70 m, an estimate) to the rear silencer's node, where the two banks
+  join; the silencer's body is one pipe of its two inlets' combined area, 66 mm (0.50 m, an estimate), and two tailpipes
+  of 56 mm (0.25 m, an estimate) leave it. The front two cylinders of each bank are taken as those with the long
+  primaries, an estimate. Some posts give one oval outlet on other years and markets; the 1987 US car is written with
+  two.
+- The wheel radii stay at the ledger's 0.305 and 0.306 m, about 3% under the tires' nominal 0.3157 and 0.3135 m.
+- The 50:50 axle split, the CG height and the frontal area remain unverified estimates; the torque curve's points at
+  675, 1,875 and 6,600 rpm remain estimates.
+- No turbo, boost or pursuit control is added.
+
+### The 928 S4 on the flat
+
+The existing solver on this ledger's flat, dry, windless straight with the automatic shifts, not tuned to the real
+figures:
+
+| Measure                        | Real car (US figures as quoted, not read in primary sources) | Measured                                                |
+| ------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------- |
+| 0–60 mph                       | 5.7 s (one list gives 5.1 s)                                 | 5.35 s (100 km/h in 5.62 s)                             |
+| Quarter mile                   | 14.1 s                                                       | 13.83 s, 106.8 mph                                      |
+| Top speed                      | 165 mph, about 266 km/h                                      | 271 km/h in fifth at 5,200 rpm, held by drag            |
+| Redline speeds, first to fifth | —                                                            | 85, 128, 179, 237, 346 km/h                             |
+| Shifts                         | —                                                            | 85, 128, 179 and 237 km/h, at 4.5, 8.1, 15.1 and 31.3 s |
+| Braking from 100 km/h          | —                                                            | 2.52 s, 35.5 m                                          |
+
+It launches, shifts through all five gears and restarts from rest (127 km/h 8 s after stopping). It is a little
+quicker than the quoted figures and its top speed is slightly above the claim; the numbers are left as derived.
+
+### The 928 S4's sources
+
+The stage auditor's reading (2026-11-20), not reached by the PR that wrote this section:
+
+- A: transcriptions of Porsche's Technical Specifications booklet, [928 S4 specifications](https://members.rennlist.com/pirtle/s4specs.htm)
+  and [general/engine](https://www.jenniskens.eu/Technical/TechSpecs/TechSpecs1.htm).
+- B: a transcription of the [1987 US owner's manual](https://members.rennlist.com/pirtle/87man22.htm); the
+  countershaft pair is explained in [the S4 manual transmission](https://members.rennlist.com/pirtle/s4mtrans.htm).
+- C: Porsche's [928 parts catalogue for the US, 1987–91](https://files.porsche.com/f/332100/1ff15ee75e/kat511-usa-928-91-katalog.pdf).
+- Exhaust and valves, owners' and vendors' figures: [pipe measurements](https://rennlist.com/forums/928-forum/446353-exhaust-system-measurements-rear-h-pipe-install.html),
+  [the layout by year](https://rennlist.com/forums/928-forum/36626-exhaust-pipe-sizes.html),
+  [the primaries](https://rennlist.com/forums/928-forum/755885-s4-intake-manifold-facts-and-ideas-13.html),
+  [the tailpipes](https://rennlist.com/forums/928-forum/369753-928-muffler-exhaust-tips.html),
+  [the cams](https://rennlist.com/forums/928-forum/1287743-928-gt-cams-2.html) and
+  [the exhaust valves](https://www.design911.com/porsche/928gt-5-0l-1989-91/porsche-engine-valves-guides-and-springs/).
 
 ## Mazda RX-7 Turbo II of 1987: sources versus authored
 

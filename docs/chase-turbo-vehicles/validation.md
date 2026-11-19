@@ -5,7 +5,7 @@ They are game outcomes from provisional vehicle data, not measured performance o
 
 | Vehicle               | 0–100 s |     0–200 s | Final km/h | Final gear | 100–0 m | 100–0 s |
 | --------------------- | ------: | ----------: | ---------: | ---------: | ------: | ------: |
-| PORSCHE_928_S4_1987   |    5.47 |       19.63 |      272.6 |          4 |   35.70 |    2.53 |
+| PORSCHE_928_S4_1987   |    5.62 |       19.52 |      270.8 |          5 |   35.54 |    2.52 |
 | TURBO_ESPRIT_1984     |    5.68 |       24.05 |      241.1 |          5 |   36.35 |    2.58 |
 | COUNTACH_5000_QV_1988 |    4.12 |       13.15 |      283.7 |          5 |   35.64 |    2.53 |
 | 911_TURBO_3_3_1986    |    5.25 |       18.68 |      260.9 |          4 |   35.94 |    2.55 |
@@ -22,7 +22,7 @@ They are game outcomes from provisional vehicle data, not measured performance o
 
 All fourteen stopped both after the acceleration run and from a fresh rolling 100 km/h state, restarted, and produced lateral acceleration in both directions without non-finite state. Reaction time is excluded.
 
-Both 928s and the YJ settle in fourth gear under the existing automatic-shift rule in this flat full-throttle run; their fifth ratios exist but are not reached in this observation. No new shift rule or force was added to make them use top gear. The C4 has only the four base gears represented: its overdrive limitation is documented in the [owning ledger](../chase-turbo-vehicles.md).
+The 928 S and the YJ settle in fourth gear under the existing automatic-shift rule in this flat full-throttle run; their fifth ratios exist but are not reached in this observation. No new shift rule or force was added to make them use top gear. The C4 has only the four base gears represented: its overdrive limitation is documented in the [owning ledger](../chase-turbo-vehicles.md).
 
 Acceleration differs from period road tests because mass, curve shape, tires and drag are partly estimated and the game uses shared launch assistance and instantaneous shifts. Published 0–100 times were not used to tune hidden per-car multipliers.
 

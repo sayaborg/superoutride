@@ -150,9 +150,9 @@
     },
     {
       "vehicleId": "PORSCHE_928_S4_1987",
-      "vehicleSha256": "adf32124af2149bfce05748604abc7d6ac76332b11e5221c7d48b1464bfb2a2e",
-      "soundSha256": "c32c604a65d014dca6ba053c8eaa74a973ca25fcaab21e84a737046930a9ddb5",
-      "lufs": -20.75559563769208
+      "vehicleSha256": "ea988fe084c5a40e461a7c87d2b30c9024d3d80362f692a50d8d999210585d25",
+      "soundSha256": "a460690f3773da158f1ed5b792fe86a1dcd17732fa25acc27fe83bcd6d409e3b",
+      "lufs": -19.872146492250966
     },
     {
       "vehicleId": "TURBO_ESPRIT_1984",

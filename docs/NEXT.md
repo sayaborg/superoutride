@@ -22,9 +22,10 @@ Each line is one area as it stands, with the document that owns it.
 - The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the
   catalog to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984, 38 with the
   XR600R of 1985 and 39 with the RX-7 Turbo II of 1987, K's TOP SPEED car, in the same ledger
-  ([Stage FC3S](#stage-fc3s--the-rx-7-turbo-ii-of-1987)). The 1986 Porsche 930 and 1984 Corvette C4 coexist with
-  their existing 1989 versions; the unidentified box truck remains deferred. The ledger owns specification limits and
-  validation.
+  ([Stage FC3S](#stage-fc3s--the-rx-7-turbo-ii-of-1987)). Among the fourteen, the 928 S4 of 1987 is K's CHASE H.Q.
+  car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)). The 1986 Porsche 930 and 1984
+  Corvette C4 coexist with their existing 1989 versions; the unidentified box truck remains deferred. The ledger owns
+  specification limits and validation.
 - **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
   PRODUCTION 750, GTI CUP and 911 CUP classes; the [product specification](product.md) is Stage 16's target
   ([Product courses](content-and-gameplay.md#product-courses),
@@ -211,6 +212,43 @@ colors, and the rival of TURBO OUTRUN's four classes changed from `911_TURBO_3_3
   drive, the exhaust's layout, the tires) are the stage auditor's reading, its hosts unreachable from the PR's
   environment; at TURBO OUTRUN's start the original places the 959 3.26 m left of the car, and the grid stays; the
   turbo button is the series' question.
+
+## Stage P928 — The 928 S4 of 1987
+
+K's decisions of 2026-11-19 and 2026-11-20: CHASE H.Q.'s car is taken for the Porsche 928 S4 of 1987, US specification,
+left-hand drive, the five-speed manual G28/13 and the M28/41 engine. The existing `PORSCHE_928_S4_1987` is corrected to
+the real car's values, not added again, and its exhaust is written as the real car joins it
+([Arcade car selections](chase-turbo-vehicles.md#porsche-928-s4-of-1987-sources-versus-authored)). P928-1 has done
+that: the G28/13's ratios, the 675 rpm idle and the 1,549 mm front track, and the two banks apart to the rear silencer
+([Calibration](calibration.md#exhaust-topologies)).
+
+- P928-2, a draft for K: bake `porsche-928-s4-1987` from K's model (SHA-256 `c43ba501…`, on
+  `codex/928-s4-1987-glb-source`, never on main) by the car baking of F110-1 with the RX-7's recipe, in eight colors,
+  the default `black`; the four game colors go, as do the S4's procedural shape and its ledger pictures. The 928 S of
+  1984's shape and pictures stay byte-identical.
+- To look at in DEV: the sound, the banks meeting at the rear against the former separate banks, the 675 rpm idle, and
+  the pipes' lengths (2.70 m) and the rear silencer's body (0.50 m) moved on ENGINE SOUNDS; first gear's shortness and
+  fourth's and fifth's pull. On the flat it gives 0–60 mph in 5.35 s against the quoted 5.7 s (5.1 s in one list), the
+  quarter mile in 13.83 s against 14.1 s, and 271 km/h in fifth at 5,200 rpm against the claimed 165 mph (266 km/h).
+- The stage auditor's choices, awaiting K: the stage's name and split, the eight colors (K: eight "for now") with their
+  keys and provisional base colors, the wheel radii kept, the torque curve's first point moved to the idle, the
+  exhaust's estimated values and the valve's 240°, and the pictures' rim radius (0.2207 m).
+- The eight colors' base colors are provisional, not measured from paint samples; the three metallics are flat colors
+  without flake; whether all eight were offered on the 1987 US car is not checked against a primary source.
+- The wheel radii stay at the ledger's 0.305 and 0.306 m, about 3% under the tires' nominal 0.3157 and 0.3135 m;
+  TESTAROSSA, the RX-7 and the F40 (Stage F120) use the nominal radii, the 959 the ledger's. Whether to make them one is
+  K's.
+- Estimates: the torque curve's points at 675, 1,875 and 6,600 rpm; the exhaust's lengths (2.70, 0.50 and 0.25 m),
+  which cylinders take the long primaries and whether the 42 mm is inside or outside; the 50:50 axle split, the CG
+  height and the frontal area. The exhaust valve's 33 mm and 240° and the pipes' diameters are owners' and vendors'
+  figures, not a shop manual's. The rear silencer's outlet (two round tailpipes or one oval) is said to differ by year
+  and market; the 1987 US car is written with two.
+- The cited sources were not reachable from P928-1's environment; their values are the auditor's reading.
+- The pictures (P928-2): 4,521 mm long against the car's 4,523 mm, one exhaust outlet against the car's two; the flat
+  panel between the tail lamps, in the body color, shines bright from behind, and K keeps it; the real car's PORSCHE
+  lettering recessed in it is not in the model.
+- Not decided: CHASE H.Q.'s series (the player's car, the criminals' cars, turbo, the beacon), its own tire values and
+  its steering picture.
 
 ## Stage AT — The attract demo remade
 
@@ -991,7 +1029,7 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 | OUTRUN        | TESTAROSSA is the 1984 European coupé (K, 2026-11-19).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | TURBO OUTRUN  | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](turbo-outrun-road-data.md)). F40 and 959 are period road specifications. The catalog's F40 (FERRARI_F40_1990) is a 1990 model, after [Era](product.md#era)'s 1989; the tribute needs one of 1989 or before.                           |
 | FINAL LAP 2   | The reference game is of 1990; the tribute's cars are of 1989 or before ([Era](product.md#era)). The catalog has `FERRARI_640` (1989) and `MCLAREN_MP4_4` (1988).                                                                                                                                                                                                                                                                                                                                                                       |
-| CHASE H.Q.    | 928 candidate: S4. ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition. Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                                                                                                                                                                       |
+| CHASE H.Q.    | The 928 is the S4 of 1987, US, five-speed manual (K, 2026-11-20). ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition. Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                                                                                                                        |
 | CISCO HEAT    | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. Ordinary road appearances, without police livery or lights; BROUGHAM TUNED is one explicit finished specification, used unchanged on every course. |
 | BIG RUN       | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                                                                                                                                                                                  |
 
