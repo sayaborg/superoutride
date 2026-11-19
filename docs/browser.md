@@ -199,7 +199,10 @@ vehicles (K, 2026-11-12). A page gives its style its parts ([card styles](../src
 tag, up to eight facts and up to eight more, each a label, a value with its unit and a note, a line for a choice, a
 picture, a chart and words; the style lays them out and leaves room for the picture and the chart, each on a flat
 ground. A page without a chart, a class's, has its picture across the card over its facts, a row each, whose value
-and note together hold at most 40 characters, which the row takes in the small print.
+and note together hold at most 40 characters, which the row takes in the small print. For SHEET a page gives its sheet
+in place of the tag and the facts, with no count of facts (K, 2026-11-20: as much as the card holds): facts along the
+line under the title, facts beside the picture, a table of front and rear values, and the rest, each part's facts in
+the order of what matters most.
 
 A class's page ([class page](../src/shell/class-page.ts)) says the class's rules, which no course's or vehicle's card
 does, and never a record (K, 2026-11-19); so classes on one course are told apart by their cards:
@@ -247,6 +250,16 @@ A vehicle's page ([vehicle card](../src/shell/vehicle-card.ts)):
 - **The chart,** a block: the engine's power (RED) and torque (YELLOW) over 20 % to 110 % of its redline, each scaled
   to its maximum, from the larger of idle and 20 % of redline to the fuel cut's entry, over DARK grid lines every 10 %
   of redline and every quarter of the height, lighter axes and the redline dashed RED.
+- **The sheet** (SHEET; K, 2026-11-20): the quantities its definition holds, in its units, each to four significant
+  figures without trailing zeros, and nothing worked out from them but the engine's peaks: along the title's foot
+  `YEAR` (the model year), `TYPE` (the official label) and `ENGINE` (layout and cylinders, and its [kind](vehicle-physics.md#material-vehicle-and-driving-documents),
+  `4-STROKE`, `2-STROKE` or `ROTARY`); beside the picture `DISP` (cc), `COMP` (`9.2:1`), `IDLE` and `REDLINE` (rpm),
+  `POWER` and `TORQUE` (their peaks in the normal font with their engine speeds, their labels the chart's legend),
+  `DRIVE`, `L/W/H` (m) and `MASS` (kg); a table of `FRONT` and `REAR`: `TRACK`, `CG-AXLE` (the centre of mass to the
+  axle), `RIDE` (Hz), `DAMPING`, `TRAVEL`, `WHL R` (the wheel's radius), `WHL I` (its inertia, kg·m², written `KGM2`)
+  and `BRAKE` (the most brake torque, N·m); and `GEARS` (each ratio, lowest first), `FINAL`, `CG HT` (the centre of
+  mass's height), `YAW I`, `PITCH I` and `DRAG` (`quadraticDrag`, kg/m). Neither the road speeds, the power to mass nor
+  the weight on each axle is on it.
 
 While a vehicle's card rests in focus, its picture turns from the still one, a yaw image every 6 fixed steps (a turn in
 6.4 s), and its engine revs as the catalog's ENGINE page revved it: its model, as a run builds it, held and revved from
@@ -266,18 +279,25 @@ it: text that would is an error.
 ### Card styles
 
 While the cards' design is tried (K, 2026-11-12: several designs, built and switched in the game), the cards have
-three styles ([card styles](../src/shell/card-styles.ts)), PROGRAM first. SETTINGS' CARD DESIGN steps through them, as
-the C key does on any row; the choice lasts for the page and no record keeps it. The one K chooses stays, and the
-others, the setting and the key go.
+four styles ([card styles](../src/shell/card-styles.ts)), SHEET first (K, 2026-11-20). SETTINGS' CARD DESIGN steps
+through them, as the C key does on any row; the choice lasts for the page and no record keeps it. The one K chooses
+stays, and the others, the setting and the key go.
 
-| Style     | Plain cards                                     | Page cards                                                                                                                                                                                                                                                                              |
-| --------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PROGRAM   | A navy ground, three racing stripes             | The tag on three stripes under the SUNSET title; the picture and chart on fields a shade lighter; the facts in ranged columns, labels in the small print; a course's words on the lowest six lines; a vehicle's more facts under its facts and its choice on the last row. One face.    |
-| PIT BOARD | A black ground under a red band, two stripes    | The title in the ornate WHITE style and the tag on the red band; the facts in black on a signal-yellow board, without the legend's colors; the rest as PROGRAM. One face.                                                                                                               |
-| DATA      | A dark ground over a row of cells in two shades | The picture as large as the card allows; the facts on a board of 4×2 cells in two shades, a label and its unit in the small print over each value; faces that turn, named on tabs ranged right of the tag: the facts, the more facts, and `ABOUT` with the words over a course's chart. |
+| Style     | Plain cards                                     | Page cards                                                                                                                                                                                                                                                                                                |
+| --------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SHEET     | One dark ground, nothing drawn on it            | No line, band, stripe, board, cell, tab or field behind the picture or chart (K, 2026-11-20); parts told apart by where they stand and their colors: labels dim, values WHITE, the title in the small ornate font's SUNSET; the main values in the normal font and all else in the small print. One face. |
+| PROGRAM   | A navy ground, three racing stripes             | The tag on three stripes under the SUNSET title; the picture and chart on fields a shade lighter; the facts in ranged columns, labels in the small print; a course's words on the lowest six lines; a vehicle's more facts under its facts and its choice on the last row. One face.                      |
+| PIT BOARD | A black ground under a red band, two stripes    | The title in the ornate WHITE style and the tag on the red band; the facts in black on a signal-yellow board, without the legend's colors; the rest as PROGRAM. One face.                                                                                                                                 |
+| DATA      | A dark ground over a row of cells in two shades | The picture as large as the card allows; the facts on a board of 4×2 cells in two shades, a label and its unit in the small print over each value; faces that turn, named on tabs ranged right of the tag: the facts, the more facts, and `ABOUT` with the words over a course's chart.                   |
 
 A fact stands on one line, its label in the small print and its value and unit in the normal font with its note in
-the small print, or in a cell; a value too long for its room is written in the small print instead. The small print
+the small print, or in a cell; a value too long for its room is written in the small print instead. In SHEET a fact's
+value is in the small print but for the page's main values, and one too long for its room goes on in the rows under
+it, broken at spaces; a part's facts that its rows cannot hold are left out from its last, and a title too long for
+the small ornate font is written in the small print in its color. SHEET writes a vehicle's sheet in four parts: along
+the title's foot; beside the picture, which stands over the chart at the right; the table; and the rest at the right of
+the table, over the choice's line. A course's map stands at the left with the facts beside it, the profile across the
+card under them, and its words in the small print at the foot; a class's grid stands across the card over its facts. The small print
 ([small print](../src/shell/small-print.ts)) is 3×5 glyphs in a 4×8 cell, two to a tile's width: capitals, digits and
 `. , - / : ' % + ( ) & ! ?` (K, 2026-11-12: a 4×8 font, drawn here). It is painted as pixels for now and becomes a
 text-tile font with the chosen design.

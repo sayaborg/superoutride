@@ -63,9 +63,11 @@ function courseParts(course: CourseIndexEntry): PageParts {
       ? { label: 'LOWEST', value: `-${meters(-Math.min(...figures.profile))}`, unit: 'M' }
       : { label: 'STAGES', value: String(stages) },
   ];
+  const tag = circuit ? 'CIRCUIT' : 'POINT TO POINT';
   return Object.freeze({
     title: course.name,
-    tag: circuit ? 'CIRCUIT' : 'POINT TO POINT',
+    sheet: Object.freeze({ line: [], beside: [{ label: 'TYPE', value: tag }, ...facts], table: null, rest: [] }),
+    tag,
     factsName: 'COURSE',
     facts,
     moreName: '',

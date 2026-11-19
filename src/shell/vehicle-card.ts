@@ -19,7 +19,7 @@ import { PLAYER_DEPTH_PIXELS_PER_METER } from '../view/display-scale.js';
 import { drawScaledSprite, scaledSpriteBounds } from '../view/sprite.js';
 import type { SoftwareSurface } from '../view/software-surface.js';
 import type { CardPage, PageCanvas, PixelBox } from './card-face.js';
-import type { CardStyle, PageFact, PageParts } from './card-styles.js';
+import type { CardStyle, PageFact, PageParts, PageSheet } from './card-styles.js';
 
 /** A picture too large for its box shrinks from the player depth by this factor until every yaw image fits. */
 const PICTURE_SCALE_STEP = 0.99;
@@ -191,6 +191,90 @@ function gearSpeeds(vehicle: CompiledVehicleDefinition) {
   return p.gearRatios.map((gear) => (metersPerSecond * 3.6) / (gear * p.finalDriveRatio));
 }
 
+/** A quantity of a vehicle's definition as SHEET writes it: to four significant figures, without trailing zeros. */
+const figure = (value: number) => String(Number(value.toPrecision(4)));
+
+/**
+ * What SHEET writes of a vehicle (K, 2026-11-20): the quantities its definition holds, in its units, and nothing worked
+ * out from them but its engine's peaks, whose labels are the chart's legend. Along the title's foot its model year,
+ * official label and engine with its kind; beside the picture its engine and its body's size and mass; a table of its
+ * front and rear values; and its gears, final drive, centre of mass's height, inertias and drag.
+ */
+function vehicleSheet(
+  vehicle: CompiledVehicleDefinition,
+  peaks: ReturnType<typeof enginePeaks>,
+  type: string,
+): PageSheet {
+  const { metadata } = vehicle.listing,
+    m = vehicle.mechanics,
+    p = m.powertrain,
+    front = Math.round(m.frontDriveTorqueFraction * 100);
+  const pair = (label: string, values: readonly [number, number], unit = '') => ({
+    label,
+    values: [figure(values[0]), figure(values[1])] as const,
+    unit,
+  });
+  return Object.freeze({
+    line: [
+      { label: 'YEAR', value: metadata.physicsAnchor.modelYear.toUpperCase() },
+      { label: 'TYPE', value: type || '-' },
+      { label: 'ENGINE', value: `${metadata.engine} ${metadata.engineKind}`.toUpperCase() },
+    ],
+    beside: [
+      { label: 'DISP', value: figure(p.displacementCc), unit: 'CC' },
+      { label: 'COMP', value: `${figure(p.compressionRatio)}:1` },
+      { label: 'IDLE', value: integer(p.idleRpm), unit: 'RPM' },
+      { label: 'REDLINE', value: integer(p.redlineRpm), unit: 'RPM' },
+      {
+        label: 'POWER',
+        value: quantity(peaks.power),
+        unit: 'KW',
+        note: `/${integer(peaks.powerRpm)}`,
+        ink: TEXT_PALETTES.RED,
+        main: true,
+      },
+      {
+        label: 'TORQUE',
+        value: quantity(peaks.torque),
+        unit: 'NM',
+        note: `/${integer(peaks.torqueRpm)}`,
+        ink: TEXT_PALETTES.YELLOW,
+        main: true,
+      },
+      front === 0 || front === 100
+        ? { label: 'DRIVE', value: front === 0 ? 'RWD' : 'FWD' }
+        : { label: 'DRIVE', value: 'AWD', note: `${front}/${100 - front}` },
+      {
+        label: 'L/W/H',
+        value: [m.overallLength, m.overallWidth, m.overallHeight].map(figure).join('/'),
+        unit: 'M',
+      },
+      { label: 'MASS', value: figure(m.mass), unit: 'KG' },
+    ],
+    table: {
+      heads: ['FRONT', 'REAR'] as const,
+      rows: [
+        pair('TRACK', [m.frontTrack, m.rearTrack], 'M'),
+        pair('CG-AXLE', [m.frontAxle, m.rearAxle], 'M'),
+        pair('RIDE', [m.frontRideFrequency, m.rearRideFrequency], 'HZ'),
+        pair('DAMPING', [m.frontDampingRatio, m.rearDampingRatio]),
+        pair('TRAVEL', [m.frontQTravel, m.rearQTravel], 'M'),
+        pair('WHL R', [m.frontWheelRadius, m.rearWheelRadius], 'M'),
+        pair('WHL I', [m.frontWheelInertia, m.rearWheelInertia], 'KGM2'),
+        pair('BRAKE', [m.frontBrakeTorqueMax, m.rearBrakeTorqueMax], 'NM'),
+      ],
+    },
+    rest: [
+      { label: 'GEARS', value: p.gearRatios.map(figure).join(' ') },
+      { label: 'FINAL', value: figure(p.finalDriveRatio) },
+      { label: 'CG HT', value: figure(m.desiredCgHeight), unit: 'M' },
+      { label: 'YAW I', value: figure(m.yawInertia), unit: 'KGM2' },
+      { label: 'PITCH I', value: figure(m.pitchInertia), unit: 'KGM2' },
+      { label: 'DRAG', value: figure(m.quadraticDrag), unit: 'KG/M' },
+    ],
+  });
+}
+
 /** What a vehicle's card says of it: the vehicle alone, the same in every series and in FREE PLAY (K, 2026-11-12). */
 function vehicleParts(vehicle: CompiledVehicleDefinition, shown: VehicleCardColor): PageParts {
   const { metadata, visuals } = vehicle.listing;
@@ -242,6 +326,7 @@ function vehicleParts(vehicle: CompiledVehicleDefinition, shown: VehicleCardColo
   ];
   return Object.freeze({
     title: `${metadata.manufacturer} ${metadata.model}`.toUpperCase(),
+    sheet: vehicleSheet(vehicle, peaks, type),
     tag: metadata.period.toUpperCase(),
     factsName: 'ENGINE',
     facts,

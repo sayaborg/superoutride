@@ -59,14 +59,20 @@ export interface PageCanvas {
    * one (`cardNameLines`), each 16 pixels tall in all; SUNSET by default.
    */
   title(x: number, y: number, columns: number, text: string, style?: OrnateStyle): void;
+  /** `line` from the pixel (`x`, `y`) in the small ornate font, 8×8, in `style`. */
+  ornate(x: number, y: number, line: string, style: OrnateStyle): void;
 }
 
-/** A page's words: their lines' box, a multiple of a tile each way, on a flat `ground`; a YELLOW heading or none. */
+/**
+ * A page's words: their lines' box, on a flat `ground`; a YELLOW heading or none. In the normal font (by default) the
+ * box is a multiple of a tile each way; in the small print, in capitals, a multiple of its 4×8 cell.
+ */
 export interface PageWords {
   readonly box: PixelBox;
   readonly ground: number;
   readonly heading: string | null;
   readonly description: string;
+  readonly font?: 'normal' | 'small';
 }
 
 /**
@@ -236,6 +242,8 @@ export function createCardFaces(tiles: TextTiles, style: () => PlainCardStyle) {
         within(x, y, line.length * SMALL_PRINT.width, line, SMALL_PRINT.rows);
         drawSmallPrint(surface, x, y, line, color);
       },
+      ornate: (x, y, line, ornate) =>
+        paintText(pixels, WIDTH, x, y, line, 'ornateSmall', ornatePalette('ornateSmall', ornate)),
       title: (x, y, columns, text, ornate = 'SUNSET') => {
         if (text.length <= columns)
           paintText(pixels, WIDTH, x, y, text, 'ornateLarge', ornatePalette('ornateLarge', ornate));
@@ -296,28 +304,25 @@ export function createCardFaces(tiles: TextTiles, style: () => PlainCardStyle) {
     const pixels = new Uint16Array(WIDTH * HEIGHT);
     const words = page.paint(canvasOf(pixels), face);
     if (!words) return { pixels, words: null, strip: new Uint16Array(0), overflow: 0 };
-    const { box, ground, heading, description } = words;
-    if (box.width % TEXT_TILE_SIZE || box.height % TEXT_TILE_SIZE || box.x < 0 || box.y < 0)
-      throw new RangeError("A page's words stand in whole tiles");
+    const { box, ground, heading, description } = words,
+      small = words.font === 'small',
+      cell = small ? SMALL_PRINT.width : TEXT_TILE_SIZE;
+    if (box.width % cell || box.height % TEXT_TILE_SIZE || box.x % cell || box.x < 0 || box.y < 0)
+      throw new RangeError(`A page's words stand in whole ${small ? 'cells of the small print' : 'tiles'}`);
     if (box.x + box.width > WIDTH || box.y + box.height > HEIGHT) throw new RangeError("A page's words leave its card");
     // The words, every line of them, on a strip of their own.
-    const columns = box.width / TEXT_TILE_SIZE;
+    const columns = box.width / cell;
     const lines = [
       ...(heading === null ? [] : wrappedLines(heading, columns).map((line) => [line, true] as const)),
       ...wrappedLines(description, columns).map((line) => [line, false] as const),
     ];
     const strip = new Uint16Array(box.width * Math.max(box.height, lines.length * TEXT_TILE_SIZE)).fill(ground);
-    lines.forEach(([line, yellow], i) =>
-      paintText(
-        strip,
-        box.width,
-        0,
-        i * TEXT_TILE_SIZE,
-        line,
-        'normal',
-        yellow ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE,
-      ),
-    );
+    const stripSurface = new SoftwareSurface(box.width, strip.length / box.width, strip);
+    lines.forEach(([line, yellow], i) => {
+      const palette = yellow ? TEXT_PALETTES.YELLOW : TEXT_PALETTES.WHITE;
+      if (small) drawSmallPrint(stripSurface, 0, i * TEXT_TILE_SIZE, line.toUpperCase(), tiles.mainColor(palette));
+      else paintText(strip, box.width, 0, i * TEXT_TILE_SIZE, line, 'normal', palette);
+    });
     copy(pixels, WIDTH, HEIGHT, strip.subarray(0, box.width * box.height), box.width, box.x, box.y);
     return { pixels, words, strip, overflow: strip.length / box.width - box.height };
   };

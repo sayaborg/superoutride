@@ -90,6 +90,12 @@ function classParts(
   ];
   return Object.freeze<PageParts>({
     title: runClass.title,
+    sheet: Object.freeze({
+      line: [{ label: 'SERIES', value: runClass.series.title }],
+      beside: [],
+      table: null,
+      rest: facts,
+    }),
     tag: runClass.series.title,
     factsName: 'CLASS',
     facts,
