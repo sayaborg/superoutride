@@ -12,7 +12,7 @@ import {
   requireAdmission,
   type AdmissionResult,
 } from '../core/admission.js';
-import { RUN_RULE_LIMITS, type TrafficSettings } from '../course/run-rules.js';
+import { READY_SECONDS, RUN_RULE_LIMITS, type TrafficSettings } from '../course/run-rules.js';
 import { COURSE_TEXT_LIMITS } from '../course/course-limits.js';
 import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { courseStartGrid } from '../course/compiler/course-rules.js';
@@ -43,9 +43,8 @@ export function classTitleLines(title: string): readonly string[] {
 }
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 20;
+export const SERIES_DOCUMENT_VERSION = 21;
 const PLAYER_SLOTS = ['own', 'last', 'first'] as const;
-const START_STYLES = ['grid', 'chase'] as const;
 const TRAFFIC_PATHS = ['lane', 'line'] as const;
 
 /**
@@ -125,11 +124,12 @@ export interface SeriesClass {
    */
   readonly playerSlot: (typeof PLAYER_SLOTS)[number];
   /**
-   * How the field starts: `grid`, together at GO; `chase` (K, 2026-11-19), the one rival from the slot behind the
-   * player's as READY begins, the player held until the lamps, which count once that rival has passed it, reach GO.
-   * A CHASE class has two grid entries, the player first.
+   * A CHASE start (K, 2026-11-20), or null for the field together from the grid at GO: the player alone stands on the
+   * grid, held through READY, and the one rival passes it from behind at its top speed `READY_SECONDS` after READY
+   * begins; GO comes `seconds` after it passes, at least `READY_SECONDS` so that the lamps count. A CHASE class has two
+   * entries: the player's in a grid slot, and the rival's with no slot, as it never stands on the grid.
    */
-  readonly start: (typeof START_STYLES)[number];
+  readonly chase: { readonly seconds: number } | null;
   /** Rank limit N by race gate ID: the player fails when the N-th other competitor crosses that gate first. */
   readonly rankLimits: Readonly<Record<string, number>>;
   /** The course's RACE traffic; null for none. */
@@ -263,7 +263,7 @@ function readSeries(
         'vehicles',
         'entries',
         'playerSlot',
-        'start',
+        'chase',
         'rankLimits',
         'traffic',
         'timeMargin',
@@ -295,15 +295,16 @@ function readSeries(
               { min: 1 },
             );
       if (vehicles) requireUnique(vehicles, `${at}/vehicles`, 'vehicle');
-      const entries = readEntries(entry.entries, `${at}/entries`, vehicles, vehicleOf);
+      const chase =
+        entry.chase === null
+          ? null
+          : Object.freeze({
+              seconds: readNumber(readRecord(entry.chase, `${at}/chase`, ['seconds']).seconds, `${at}/chase/seconds`, {
+                min: READY_SECONDS,
+              }),
+            });
+      const entries = readEntries(entry.entries, `${at}/entries`, vehicles, vehicleOf, chase !== null);
       const playerSlot = readEnum(entry.playerSlot, PLAYER_SLOTS, `${at}/playerSlot`);
-      const start = readEnum(entry.start, START_STYLES, `${at}/start`);
-      requireAdmission(
-        start === 'grid' || (entries.length === 2 && entries.every((e) => e.slot !== null) && playerSlot === 'first'),
-        'invalid_value',
-        `${at}/start`,
-        'A CHASE class has two grid entries, the player in the first slot',
-      );
       const rankLimits = readDictionary(entry.rankLimits, `${at}/rankLimits`, (limit, path) =>
         readNumber(limit, path, { min: 1, max: RUN_RULE_LIMITS.rivals, integer: true }),
       );
@@ -339,7 +340,7 @@ function readSeries(
         vehicles,
         entries,
         playerSlot,
-        start,
+        chase,
         rankLimits,
         traffic: entry.traffic === null ? null : readTraffic(entry.traffic, `${at}/traffic`, vehicles, vehicleOf),
         timeMargin,
@@ -361,12 +362,15 @@ function readEntries(
   path: string,
   candidates: readonly VehicleId[] | null,
   vehicleOf: (id: string) => CompiledVehicleDefinition | undefined,
+  chase: boolean,
 ): readonly SeriesEntry[] {
-  let previous = -1;
+  let previous = -1,
+    index = -1;
   const entries = readArray(
     value,
     path,
     (item, at) => {
+      index += 1;
       const record = readRecord(item, at, ['vehicle', 'color', 'stages', 'slot', 'ahead']);
       let id: string | null = null,
         color: string | null = null;
@@ -390,6 +394,16 @@ function readEntries(
         );
       }
       const stages = record.stages === null ? null : readStages(record.stages, `${at}/stages`);
+      // A CHASE class's rival, its second entry, takes part throughout and stands in no slot: it passes from behind.
+      if (chase && index === 1) {
+        requireAdmission(
+          stages === null && record.slot === null && record.ahead === null,
+          'invalid_value',
+          at,
+          'A CHASE rival takes part throughout, with no slot or ahead appearance',
+        );
+        return Object.freeze({ vehicle: id, color, stages, slot: null, ahead: null });
+      }
       // An entry from STAGE 1 stands in a grid slot; a later one appears ahead of the player.
       if (stages === null || stages.first === 1) {
         requireAdmission(record.ahead === null, 'invalid_value', `${at}/ahead`, 'A grid entry has no ahead appearance');
@@ -421,6 +435,12 @@ function readEntries(
       });
     },
     { min: 1, max: RUN_RULE_LIMITS.competitors },
+  );
+  requireAdmission(
+    !chase || entries.length === 2,
+    'invalid_value',
+    path,
+    "A CHASE class has two entries: the player's on the grid and its rival's",
   );
   for (const candidate of candidates ?? [null])
     requireAdmission(
@@ -620,6 +640,13 @@ export function admitSeriesClass(
         `/classes/${index}/entries/${i}/slot`,
         `The grid of ${course.id} has no slot ${entry.slot}`,
       ),
+    );
+    // A CHASE rival passes the player in the grid slot beside the player's.
+    requireAdmission(
+      settings.chase === null || grid.length >= 2,
+      'invalid_value',
+      `/classes/${index}/chase`,
+      `The grid of ${course.id} has no slot beside the player's for a CHASE rival to pass in`,
     );
     // A bike's reference run, alone, starts from the bike grid; its class's field must start there too.
     settings.vehicles.forEach((vehicle, i) =>

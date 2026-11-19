@@ -210,7 +210,7 @@ does, and never a record (K, 2026-11-19); so classes on one course are told apar
 - **The title and tag:** the class's title, and its series' title.
 - **The facts** (`CLASS`), a row each: `COURSE` (its name); `VEHICLE` (the one vehicle's model, or how many with their
   models); `LAPS`, on a circuit alone; `START` (the player's place on the grid, `<n>TH` `OF <field>`, or `ALONE`; `CHASE`
-  `ONCE THE RIVAL PASSES` for a CHASE);
+  `GO <n> S AFTER THE RIVAL PASSES` for a CHASE, its class's seconds);
   `RIVALS` (`NONE`, or how many with their models); `TRAFFIC` (`OFF`, or `ON` with its models); and `CLOCK` (`ON` or
   `OFF`). A list of models longer than its row is told as `<n> MODELS`.
 - **The picture:** the starting grid, its front to the right, as the class's RACE starts its field with the player in
@@ -219,7 +219,7 @@ does, and never a record (K, 2026-11-19); so classes on one course are told apar
   cell; slots two rows apart, each half a cell behind the one before; each slot marked by a line across its front and a
   short one at its foot, the player's YELLOW and the others DARK. Every vehicle takes the one scale, from the player
   depth down by 3 % at a time, at which each fits its cell; a cell is at most 32 pixels long and a row 24 tall.
-  Entries appearing ahead are not on it.
+  Entries appearing ahead are not on it, nor a CHASE's rival, which stands on no grid (K, 2026-11-20).
 - **The sheet** (SHEET; K, 2026-11-20): `SERIES` along the title's foot; under the grid `COURSE`; `VEHICLE` (every
   model, or `ANY`); `LAPS`; `START`; `RIVALS` (`NONE`, or how many and each model once in the order of its first entry
   with its entries' colors, a color shared by several written once after their count, `UP TO` and `SAME AS YOURS` as
@@ -910,7 +910,8 @@ the normal font.
 
 The race's one rival ([product](product.md#9-hud); `loneRivalId`: the only rival present, while it takes part in the
 player's stage) has RIVAL nM, its route station less the player's rounded to the metre, negative behind, and its
-marker ([rival marker](../src/view/rival-marker.ts)). The renderer finds where the frame still shows any pixel of the
+marker; a CHASE's rival has RIVAL nM from READY's beginning, before it appears where it would be (K, 2026-11-20), and its
+marker once drawn ([rival marker](../src/view/rival-marker.ts)). The renderer finds where the frame still shows any pixel of the
 rival's picture (`ShownPicture`: the picture drawn alone over its bounds, and kept where the frame's pixel is still its
 own) once what lies between has been drawn, the nearer ground past a crest, a wall or a picture between, and before the
 player's own picture, which never hides it. A rival beyond what the frame draws, or off it, has no marker. The

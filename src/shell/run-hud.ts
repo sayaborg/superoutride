@@ -343,7 +343,8 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     write: ({ race }, text) => writeArrow(text, 'parting', race.nextParting === 'left' ? 'LEFT' : 'RIGHT'),
   },
   {
-    // The one rival's distance (K, 2026-11-19), negative while it is behind: the marked rival's, by the same condition.
+    // The one rival's distance (K, 2026-11-19), negative while it is behind: the marked rival's, by the same condition,
+    // and from READY a CHASE rival's before it appears, where it would be (K, 2026-11-20).
     when: ({ race }) => race.rivalGap !== null,
     write: ({ race }, text) => write(text, 'rival', `RIVAL ${Math.round(race.rivalGap!)}M`, small('WHITE')),
   },

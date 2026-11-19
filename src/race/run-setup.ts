@@ -34,9 +34,14 @@ export interface EntryVehicle {
  */
 export interface RunEntry extends EntryVehicle {
   readonly id: string;
-  /** The grid slot of a competitor taking part from STAGE 1; null for one appearing ahead. */
+  /** The grid slot of a competitor taking part from STAGE 1; null for one appearing ahead or a CHASE rival. */
   readonly slot: CompiledGridSlot | null;
   readonly ahead: AheadAppearance | null;
+  /**
+   * A CHASE rival's: the grid slot it passes the player in, the one after the player's (or, after the last, the one
+   * before it); null for every other entry.
+   */
+  readonly beside: CompiledGridSlot | null;
   /** A color of the vehicle's sprite set. */
   readonly color: string;
   /** The stages the competitor takes part in; null for the whole run. */
@@ -101,7 +106,7 @@ export function aloneClass<C extends ClassRules>(runClass: C, vehicleId: string)
     ...runClass,
     entries: Object.freeze([Object.freeze({ ...own, slot: 0, stages: null, ahead: null })]),
     playerSlot: 'first',
-    start: 'grid',
+    chase: null,
     rankLimits: Object.freeze({}),
     traffic: null,
     timeMargin: null,
@@ -313,6 +318,7 @@ function classEntries(
       id: 'PLAYER',
       slot: grid[slots.player]!,
       ahead: null,
+      beside: null,
       color: playerColor,
       stages: null,
       ...player,
@@ -322,6 +328,7 @@ function classEntries(
         id: rivalId(index),
         slot: slot === null ? null : grid[slot]!,
         ahead: entry.ahead,
+        beside: slot === null && entry.ahead === null ? (grid[slots.player + 1] ?? grid[slots.player - 1]!) : null,
         color: entry.color ?? drawn[draw++]!.color,
         stages: entry.stages,
         ...rivals[index]!,

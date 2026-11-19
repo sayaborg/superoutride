@@ -26,7 +26,7 @@ import {
   type VehicleActor,
   type VehicleDriving,
 } from './present-vehicle.js';
-import { RUN_RULE_LIMITS } from '../course/run-rules.js';
+import { READY_SECONDS, RUN_RULE_LIMITS } from '../course/run-rules.js';
 import { createRivalPace } from './rival-pace.js';
 import { createPlannedDriverWorkspace, createVariablePlannedDriver, drivingDomainBefore } from './planned-driver.js';
 import type { DrivingInput } from '../vehicle/driving-input.js';
@@ -240,10 +240,10 @@ export function createCourseRace(options: {
   const judge = createRankLimitJudge(rankLimits, player.id);
   const rivalDriving = rivalEntries.map(drivingOf);
   const rivals = rivalEntries.map((entry, rivalIndex) => {
-    // A grid rival takes the racing line from its slot; an ahead entry names its lane, read where it appears; until
-    // then nothing reads it.
+    // A grid rival takes the racing line from its slot; an ahead entry names its lane, read where it appears, and a
+    // CHASE rival takes the line where it appears; until then nothing reads it.
     const width = modelOf(entry.vehicle).compiledVehicle.footprint;
-    const intent: LaneIntent = entry.slot ? { lane: LINE, at: 0 } : { lane: entry.ahead!.lane, at: 0, width };
+    const intent: LaneIntent = entry.ahead ? { lane: entry.ahead.lane, at: 0, width } : { lane: LINE, at: 0 };
     // A grid rival takes the racing line from its slot; an ahead entry when it appears, from its lane.
     const offset = entry.slot ? takeLine(intent, gridRouteS(runtime.route, entry.slot), entry.slot.l) : lineOffset();
     // Until it appears, an ahead entry's actor waits unmoved at the player's slot; nothing reads it.
@@ -266,6 +266,24 @@ export function createCourseRace(options: {
     );
   });
   const resync = (c: typeof player) => c.observer.resync(c.actor.vehicle.course);
+  // A CHASE rival (K, 2026-11-20) stands on no grid: it passes the player in the slot beside the player's at its top
+  // speed READY_SECONDS after READY begins, coming along the road at that speed from where it puts it then, or from the
+  // Route's start as late as the road behind the player needs. Until it appears it is absent.
+  const chaserIndex = rivalEntries.findIndex((entry) => entry.beside !== null);
+  const chaser = chaserIndex < 0 ? null : rivals[chaserIndex]!;
+  const chase = chaser && {
+    entry: rivalEntries[chaserIndex]!,
+    /** Where it passes the player: the player's station, held through READY. */
+    passS: playerActor.vehicle.course.s,
+    /** Its top speed: its drivers' speed cap, the steady speed on a level straight (`RunMechanics.speedCap`). */
+    speed: options.setup.mechanicsOf(rivalEntries[chaserIndex]!.vehicle).speedCap,
+    /** READY's fixed steps so far, and whether it has drawn level with the player. */
+    readySteps: 0,
+    passed: false,
+  };
+  if (chaser) chaser.present = chaser.appeared = false;
+  /** Where a CHASE rival is, or would be on a road reaching so far back, at READY's present step. */
+  const chaseS = () => chase!.passS - chase!.speed * (READY_SECONDS - chase!.readySteps * SIM_DT);
   const competitors = [player, ...rivals];
   // The competitors present in the run, the player first, in competitor order, and their present vehicles.
   let active = competitors.filter((c) => c.present);
@@ -385,16 +403,35 @@ export function createCourseRace(options: {
       else hold(body, revving, steeringOf(body));
     startPhase.advance();
   };
-  // A CHASE start (K, 2026-11-19): READY holds the player alone while the rival leaves from the slot behind; the lamps
-  // count once the rival is ahead of the player, and both are running at GO. The rival joins the race's progress there
+  // A CHASE start (K, 2026-11-20): READY holds the player alone. The rival comes along the road at its top speed, as
+  // the rule places it at each step: from where it is once the Route reaches so far back, on the racing line at the
+  // offset that takes it through the slot beside the player's. From the step it draws level with the player it drives,
+  // its driver driving it from its top speed, and READY counts the class's seconds. It joins the race's progress at GO
   // from where it stands, as an entry appearing ahead does: its crossings before GO are outside race time.
   const chaseReady = (input: DrivingInput | null) => {
+    const c = chaser!,
+      s = chaseS();
+    if (!chase!.passed && s >= runtime.route.start) {
+      const { intent, offset } = c.body.driving!;
+      if (!c.appeared) {
+        takeLine(intent, chase!.passS, chase!.entry.beside!.l, offset!);
+        c.present = c.appeared = true;
+        active = competitors.filter((competitor) => competitor.present);
+      }
+      const l = laneField.targetL(s, intent);
+      c.body.actor = spawn(chase!.entry, { s, l, initialSpeed: chase!.speed });
+      // It is where the rule places it: it moved from nowhere, so its contacts sweep nothing before it.
+      Object.assign(c.body.previous, { s, l });
+      refreshBodies();
+      if (s >= player.actor.vehicle.course.s) {
+        chase!.passed = true;
+        startPhase.release();
+      }
+    }
     driveField(input, null, true);
-    const at = player.actor.vehicle.course.s;
-    if (rivals.some((c) => c.present && c.actor.vehicle.course.s > at)) startPhase.release();
+    chase!.readySteps += 1;
     if (!startPhase.advance()) return;
-    for (const c of rivals)
-      if (c.present) c.observer = createRouteProgress(lines, c.actor.vehicle.course, c.actor.vehicle.course.s);
+    c.observer = createRouteProgress(lines, c.actor.vehicle.course, c.actor.vehicle.course.s);
   };
   // The AI's safety net (`countSafetyNet`): a driver asks for the player's manual recovery; with no free place behind
   // its vehicle, it asks again the next step.
@@ -597,6 +634,8 @@ export function createCourseRace(options: {
         pacing.pace.update(active[i]!.progress.s - player.progress.s);
         pacing.set(pacing.pace.utilization);
       }
+      // A CHASE rival is where its rule places it until it draws level with the player.
+      if (active[i] === chaser && !chase!.passed) continue;
       move(body, laneDriving.drive(body));
     }
     // Traffic drives as rivals do.
@@ -615,7 +654,7 @@ export function createCourseRace(options: {
   const step = (input: DrivingInput | null) => {
     if (startPhase.status === 'WAITING') return;
     if (startPhase.status === 'READY') {
-      if (configuration.start === 'chase') chaseReady(input);
+      if (chaser) chaseReady(input);
       else holdReady(input);
       return;
     }
@@ -779,11 +818,15 @@ export function createCourseRace(options: {
     },
     /**
      * The one rival's (`loneRivalId`) Route station less the player's, in metres: positive while it is ahead, negative
-     * behind. Null without one.
+     * behind; from READY, a CHASE rival's before it appears too, where it would be on a road reaching so far back. Null
+     * without one.
      */
     get rivalGap(): number | null {
       const rival = loneRival();
-      return rival ? rival.actor.vehicle.course.s - player.actor.vehicle.course.s : null;
+      if (rival) return rival.actor.vehicle.course.s - player.actor.vehicle.course.s;
+      return chaser && !chaser.appeared && startPhase.status === 'READY'
+        ? chaseS() - player.actor.vehicle.course.s
+        : null;
     },
     /**
      * The run's one status (WAITING and READY before GO, then RUNNING, GOAL, GAME_OVER or ENDED) and GAME OVER cause.
@@ -814,7 +857,7 @@ export function createCourseRace(options: {
     get playerContacts(): PlayerContacts {
       return playerContacts;
     },
-    start: () => startPhase.begin(configuration.start === 'chase'),
+    start: () => startPhase.begin(configuration.chase?.seconds ?? null),
     /**
      * Whether the player can end the run now: a running run without a finish (its run has no lap count), which
      * ends only so.

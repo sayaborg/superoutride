@@ -36,8 +36,8 @@ export interface RunConfiguration extends PlayerChoice {
   readonly initialSpeed: number;
   /** Traffic, or null for none; TIME ATTACK has none. RACE takes its class's. */
   readonly traffic: TrafficSettings | null;
-  /** How the field starts: together from the grid, or CHASE (RACE only, its class's). */
-  readonly start: ClassRules['start'];
+  /** A CHASE start, its class's (RACE only); null for the field together from the grid. */
+  readonly chase: ClassRules['chase'];
 }
 
 /**
@@ -63,7 +63,7 @@ export function compileRunConfiguration(
   if (!runClass.vehicles.includes(request.vehicleId))
     throw new RangeError('A class run requires a vehicle of its class');
   const choice = { vehicleId: request.vehicleId, color: request.color, initialSpeed };
-  const rules: Pick<RunConfiguration, 'mode' | 'rivalCount' | 'lapCount' | 'timeLimit' | 'traffic' | 'start'> =
+  const rules: Pick<RunConfiguration, 'mode' | 'rivalCount' | 'lapCount' | 'timeLimit' | 'traffic' | 'chase'> =
     request.mode === 'RACE'
       ? {
           mode: 'RACE',
@@ -72,7 +72,7 @@ export function compileRunConfiguration(
           // A class without a margin races without a clock.
           timeLimit: runClass.timeMargin !== null,
           traffic: runClass.traffic,
-          start: runClass.start,
+          chase: runClass.chase,
         }
       : {
           mode: 'TIME_ATTACK',
@@ -80,10 +80,10 @@ export function compileRunConfiguration(
           lapCount: course.type === 'CIRCUIT' ? null : runClass.laps,
           timeLimit: false,
           traffic: null,
-          start: 'grid',
+          chase: null,
         };
-  // The grid holds the rivals that start from it: the entries with a slot, not those appearing ahead, on the grid of
-  // the class's field.
+  // The grid holds the rivals that start from it: the entries with a slot, not those appearing ahead or a CHASE rival,
+  // on the grid of the class's field.
   const formOf = (id: string) => vehicles.find((v) => v.compiledVehicle.id === id)!.listing.form;
   const slots = courseStartGrid(
     course.gates,

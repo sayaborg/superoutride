@@ -849,12 +849,18 @@ count (`READY_SECONDS`), GO on the step boundary nearest its end. READY holds ev
 vehicle takes the player's input, and every driver waits at full throttle, its clutch open and its engine running up
 to the fuel cut as the player's does, and leaves at full throttle on GO (K, 2026-11-12): the rivals, and the player's
 vehicle while its standard driver drives it (a step without the player's input), the reference runs included. A
-`chase` class's run ([Series documents](#series-documents)) is READY from the start too, but holds the player alone,
-its input revving the engine and nothing else: its rival drives from the slot behind as READY begins, with every
-contact of a moving field, and no lamp lights until the rival's route station is beyond the player's; from that step
-the lamps count READY's 3 seconds as any start's (K, 2026-11-19). At GO the rival joins the race's progress from
-where it stands, as an entry appearing ahead does, its crossings before GO being outside race time, and every run
-starts at GO with the race clock. The run
+`chase` class's run ([Series documents](#series-documents); K, 2026-11-20) holds the player alone through READY, its
+input revving the engine and nothing else, and its rival, which stands on no grid, comes from behind at its top speed
+(`RunMechanics.speedCap`, the steady speed on a level straight that its drivers' plans are capped at): READY's
+`READY_SECONDS` after READY begins it draws level with the player, on the racing line held at the offset that takes it
+through the grid slot beside the player's (the one after it, or before the last). Until then the rule places it at each
+step, at that speed along that line, from where it would be once the Route reaches so far back: on a road too short
+behind the player it appears at the Route's start as late as that needs, and its distance (`rivalGap`) is where it
+would be. From the step it draws level its driver drives it from its top speed, with every contact of a moving field
+and nothing to keep it on the road at the first corner, and READY counts the class's `chase.seconds`, the lamps lit
+through their last `READY_SECONDS`. At GO the rival joins the race's progress from where it stands, as an entry
+appearing ahead does, its crossings before GO being outside race time, and every run starts at GO with the race
+clock. The run
 outcome has one owner from GO: RUNNING, then GOAL or GAME_OVER with its cause, `TIME`
 (the deadline expired) or `RANK` (a rank limit failed the player), or ENDED. Moving the field and deciding what
 happened are separate: each running step first moves every vehicle, then takes every competitor's crossing candidates
@@ -934,14 +940,14 @@ competitors present.
 
 ## Series documents
 
-A series document (`superoutride.series` version 20) is the one owner of its classes, the races it runs. A series
+A series document (`superoutride.series` version 21) is the one owner of its classes, the races it runs. A series
 holds no rule values: every rule is a class's, and classes of one series may repeat the same values. It is saved
 as `content/series/<id>.series.json`; `id` equals that file name stem, which is also its manifest ID. For example:
 
 ```json
 {
   "format": "superoutride.series",
-  "version": 20,
+  "version": 21,
   "id": "example",
   "title": "EXAMPLE",
   "description": "A series for the example's sake.",
@@ -957,7 +963,7 @@ as `content/series/<id>.series.json`; `id` equals that file name stem, which is 
       "vehicles": ["911_TURBO_3_3"],
       "entries": [{ "vehicle": "911_TURBO_3_3", "color": "silver", "stages": null, "slot": 14, "ahead": null }],
       "playerSlot": "last",
-      "start": "grid",
+      "chase": null,
       "rankLimits": {},
       "traffic": {
         "density": 6,
@@ -1003,10 +1009,12 @@ entry, which the player can take. `playerSlot` is `own` (the player stands in
 its own entry's slot), `last` (in the rearmost of the grid entries' slots, the other grid entries in order in the slots
 in front of it) or `first` (in the frontmost, the others in order in the slots behind it; K, 2026-11-10, for ENDURO
 RACER's player in the middle of its five); the player's entry, whose color it takes, is the rearmost grid entry of its
-vehicle either way. `start` is how the field starts (K, 2026-11-19): `grid`, together at GO, or `chase`, whose one
-rival leaves from the slot behind the player's as READY begins, the player held, and whose lamps count down to GO
-once that rival has passed it (version 20; until version 19 the rival left at GO); a `chase` class has two grid
-entries and `playerSlot: first`, and like any race it is won by being ahead at the goal. `rankLimits` maps a race
+vehicle either way. `chase` is a CHASE start (K, 2026-11-20), or null for the field together from the grid at GO:
+`{ "seconds": <n> }`, GO coming `n` seconds after its rival passes the player at its top speed, `n` at least
+`READY_SECONDS` (3) so that the lamps count ([race time and events](#race-time-and-events)). A `chase` class has two
+entries: the player's in a grid slot and its rival's, from STAGE 1 to the end, with no slot and no ahead appearance,
+as it stands on no grid; a course it runs has a grid slot beside the player's. Like any race it is won by being ahead
+at the goal. Version 21 replaced `start` (`grid` or `chase`, the rival leaving from the slot behind) with `chase`. `rankLimits` maps a race
 gate ID to its rank limit N.
 
 A class may leave its course and vehicle to the player (K, 2026-11-19: FREE PLAY's six classes). `course: null` is any
@@ -1018,7 +1026,7 @@ while it has others, and its traffic's one candidate is `{ "vehicle": null, "wei
 class of any course or vehicle is admitted against its course when a run drives it (`classOnCourse`), and the attract
 demo shows only classes of their own course and vehicles. FREE PLAY's classes (`content/series/free-play.series.json`)
 run 3 laps, SOLO and TRAFFIC one grid entry (`playerSlot: first`), RACE and RACE + TRAFFIC sixteen (`last`), and CHASE
-and CHASE + TRAFFIC two (`first`, `start: chase`); their traffic is LOW for now, 5 vehicles per kilometre on lanes at
+and CHASE + TRAFFIC two (`chase: { "seconds": 3 }`, the player's entry in the first slot); their traffic is LOW for now, 5 vehicles per kilometre on lanes at
 80 km/h (K, 2026-11-19).
 Admission checks each document once, from the build's files or the delivery manifest alike, against the delivered course
 IDs, the vehicle catalog, the screen pictures and the tracks. A course may be run by several classes of one or several

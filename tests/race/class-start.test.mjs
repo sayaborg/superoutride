@@ -25,8 +25,11 @@ const vehicle = createRunVehicle(
 );
 const color = vehicle.vehicleDefinition.listing.visuals.palette;
 
-/** A class of TESTAROSSAs in slots 0 to `count` − 1 with `playerSlot`, `timeMargin` and `start`. */
-const runClass = (playerSlot, timeMargin, start = 'grid', count = 3) =>
+/**
+ * A class of TESTAROSSAs in slots 0 to `count` − 1 with `playerSlot`, `timeMargin` and `chase`; a CHASE's rival, its
+ * second entry, in none.
+ */
+const runClass = (playerSlot, timeMargin, chase = null, count = 3) =>
   Object.freeze({
     series: null,
     id: 'test',
@@ -38,11 +41,11 @@ const runClass = (playerSlot, timeMargin, start = 'grid', count = 3) =>
       vehicle: 'TESTAROSSA',
       color,
       stages: null,
-      slot,
+      slot: chase && slot === 1 ? null : slot,
       ahead: null,
     })),
     playerSlot,
-    start,
+    chase,
     rankLimits: {},
     traffic: null,
     timeMargin,
@@ -82,37 +85,47 @@ test('`first` puts the player in the frontmost slot and the others behind it, in
   ]);
 });
 
-test('CHASE: READY holds the player while the rival leaves from behind; the lamps count once it has passed, to GO', () => {
-  const { configuration, setup } = race(runClass('first', null, 'chase', 2));
-  assert.equal(configuration.start, 'chase');
+test('CHASE: the rival passes the held player at its top speed READY_SECONDS into READY; GO comes its seconds later', () => {
+  const seconds = 5;
+  const { configuration, setup } = race(runClass('first', null, { seconds }, 2));
+  assert.deepEqual(configuration.chase, { seconds });
+  // The rival stands on no grid: it passes in the slot beside the player's.
+  const [, chaser] = setup.entries;
+  assert.equal(chaser.slot, null);
+  assert.equal(chaser.beside, courseStartGrid(course.gates, false)[1]);
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   const run = createCourseRace({ setup, runtime: scene.runtime });
-  run.start();
-  const [rival] = run.rivals;
   const at = (c) => c.actor.vehicle.course.s;
   const from = at(run.player);
-  assert.ok(at(rival) < from);
-  // The rival drives through READY, no lamp lit and the player held where it stands, until it is ahead.
+  assert.equal(at(run.player), from);
+  run.start();
+  // From READY the gap is measured: its top speed for READY_SECONDS behind.
+  const top = setup.mechanicsOf(chaser.vehicle).speedCap;
+  assert.ok(Math.abs(run.rivalGap + top * READY_SECONDS) < 1e-6);
+  const [rival] = run.rivals;
+  // It comes at full throttle, no lamp lit and the player held where it stands, until it draws level.
   let steps = 0;
-  while (at(rival) <= at(run.player)) {
+  while (at(rival) < at(run.player) || !rival.present) {
     assert.ok(steps++ < 600, 'the rival passes within ten seconds');
     assert.deepEqual([run.outcome.status, run.countdown.signalLamps, at(run.player)], ['READY', 0, from]);
-    // The one rival, behind: measured negative.
-    assert.ok(run.loneRivalId === rival.id && run.rivalGap <= 0);
+    assert.ok(run.rivalGap < 0);
     run.advance(null);
   }
-  assert.ok(steps > 0);
-  // From there the lamps count READY's seconds as any start's, the player still held, to GO.
-  let counted = 1;
+  // It draws level when READY_SECONDS have passed, as near as its speed holds at full throttle.
+  assert.ok(Math.abs(steps * SIM_DT - READY_SECONDS) < 0.1, `${steps * SIM_DT} s`);
+  // From there READY counts its seconds, the lamps lit in the last READY_SECONDS, the player still held, to GO.
+  const lamps = [];
   while (run.outcome.status === 'READY') {
-    assert.ok(run.countdown.signalLamps >= 1);
+    lamps.push(run.countdown.signalLamps);
     assert.equal(at(run.player), from);
     run.advance(null);
-    counted++;
   }
-  assert.equal(counted, Math.round(READY_SECONDS / SIM_DT));
+  // The step it drew level in counted the first of them.
+  assert.equal(lamps.length + 1, Math.round(seconds / SIM_DT));
+  assert.equal(lamps.filter((lit) => lit === 0).length + 1, Math.round((seconds - READY_SECONDS) / SIM_DT));
+  assert.deepEqual([...new Set(lamps)], [0, 1, 2, 3]);
   assert.equal(run.clock.elapsedSeconds, 0);
-  assert.ok(at(rival) > from && run.rivalGap > 0);
+  assert.ok(at(rival) > from && run.rivalGap > 0 && run.loneRivalId === rival.id);
   // From GO both run, and the rival's crossings count in race time from where it stood at GO.
   let crossed = false;
   for (let i = 0; i < 3000 && !crossed; i++) {

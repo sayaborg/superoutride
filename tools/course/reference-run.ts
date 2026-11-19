@@ -68,7 +68,7 @@ export function runCourseReference(
       }),
     ]),
     playerSlot: 'own',
-    start: 'grid',
+    chase: null,
     rankLimits: Object.freeze({}),
     traffic: null,
     timeMargin: null,

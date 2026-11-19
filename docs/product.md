@@ -309,11 +309,15 @@ name a class's run, with `course` for a class of any course, and `course` alone 
 Every run uses a standing start. All vehicles are held for 3 seconds of READY while signal lamps
 count down to GO; engines rev freely with the throttle. There are no rolling starts and no jump starts.
 
-A class starts its field in one of two ways (K, 2026-11-19): from the grid, all together at GO, or CHASE. In a CHASE,
-READY begins with the player held and its one rival leaving from the slot behind it; once that rival has passed the
-player, the signal lamps count down the same 3 seconds, and the player leaves at GO, where the race clock starts as in
-every run. A CHASE is won by being ahead of the rival at the goal; nothing stops a rival by contact. The rival drives
-as every rival does.
+A class starts its field in one of two ways (K, 2026-11-19): from the grid, all together at GO, or CHASE. In a CHASE
+(K, 2026-11-20), the player alone stands on the grid, held through READY as every run's player is. The one rival
+stands on no grid: 3 seconds after READY begins it passes the player, in the grid slot beside the player's, at its
+top speed, which it holds along the road until then, appearing behind where that puts it, or at the road's start as
+late as a short road behind needs. Its distance shows from READY's beginning, counting up to 0 as it comes, since the
+camera does not look back. GO comes the class's seconds after the rival draws level, 3 or more, the signal lamps lit
+through their last 3 as in every run, and the race clock starts at GO. From its pass the rival drives as every rival
+does, from its top speed, so it may not make the first corner (K: part of the fun). A CHASE is won by being ahead of
+the rival at the goal; nothing stops a rival by contact.
 
 When the player finishes, the driver takes over the player's vehicle and brakes it to a stop on the
 runout while the rest of the field keeps driving; RESULT follows after 3 seconds. The player's rank is

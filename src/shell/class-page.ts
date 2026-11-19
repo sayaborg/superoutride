@@ -77,8 +77,8 @@ function classParts(
     { label: 'COURSE', value: course?.name ?? ANY },
     candidates.length === 1 ? fact('VEHICLE', candidates[0]!) : fact('VEHICLE', String(candidates.length), candidates),
     ...(open || course.type === 'CIRCUIT' ? [{ label: 'LAPS', value: String(runClass.laps) }] : []),
-    runClass.start === 'chase'
-      ? { label: 'START', value: 'CHASE', note: 'ONCE THE RIVAL PASSES' }
+    runClass.chase
+      ? { label: 'START', value: 'CHASE', note: `GO ${runClass.chase.seconds} S AFTER THE RIVAL PASSES` }
       : field === 1
         ? { label: 'START', value: 'ALONE' }
         : open

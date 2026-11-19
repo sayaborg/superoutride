@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 20,
+  "version": 21,
   "id": "scenario-rules",
   "title": "SCENARIO RULES",
   "description": "A series of the driving scenarios, not delivered.",
@@ -40,7 +40,7 @@
         }
       ],
       "playerSlot": "own",
-      "start": "grid",
+      "chase": null,
       "rankLimits": {},
       "traffic": null,
       "timeMargin": 1.35,
@@ -62,7 +62,7 @@
         }
       ],
       "playerSlot": "last",
-      "start": "grid",
+      "chase": null,
       "rankLimits": {},
       "traffic": {
         "density": 6,

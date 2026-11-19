@@ -16,7 +16,7 @@ export function fieldClass(course, vehicleId, { rivals = 0, laps = 1, traffic = 
       ahead: null,
     })),
     playerSlot: 'last',
-    start: 'grid',
+    chase: null,
     rankLimits: {},
     traffic,
     timeMargin: null,

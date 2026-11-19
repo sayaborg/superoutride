@@ -1,6 +1,6 @@
 {
   "format": "superoutride.series",
-  "version": 20,
+  "version": 21,
   "id": "tsukuba-clubman",
   "title": "TSUKUBA CLUBMAN",
   "description": "A late-'80s club meeting at Tsukuba, where weekend racers learn their craft: production 750s, a Golf GTI cup and a 911 Turbo cup, five laps each, sixteen on the grid.",
@@ -133,7 +133,7 @@
         }
       ],
       "playerSlot": "last",
-      "start": "grid",
+      "chase": null,
       "rankLimits": {},
       "traffic": null,
       "timeMargin": 1.35,
@@ -262,7 +262,7 @@
         }
       ],
       "playerSlot": "last",
-      "start": "grid",
+      "chase": null,
       "rankLimits": {},
       "traffic": null,
       "timeMargin": 1.35,
@@ -391,7 +391,7 @@
         }
       ],
       "playerSlot": "last",
-      "start": "grid",
+      "chase": null,
       "rankLimits": {},
       "traffic": null,
       "timeMargin": 1.35,

@@ -410,7 +410,7 @@ test("FREE PLAY's classes run any offered course with any vehicle, which the run
   );
   // The class names no course or vehicle: the run's class on its course takes the player's.
   const chase = freePlay.classes.find((c) => c.id === 'chase');
-  assert.deepEqual([chase.course, chase.vehicles, chase.start], [null, null, 'chase']);
+  assert.deepEqual([chase.course, chase.vehicles, chase.chase], [null, null, { seconds: 3 }]);
 });
 
 test("RESULT's SELECT and CHANGE VEHICLE rebuild the rows above from the run, and a run outside them leads to TITLE", () => {
