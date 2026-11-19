@@ -43,7 +43,7 @@ export function classTitleLines(title: string): readonly string[] {
 }
 
 export const SERIES_DOCUMENT_FORMAT = 'superoutride.series';
-export const SERIES_DOCUMENT_VERSION = 19;
+export const SERIES_DOCUMENT_VERSION = 20;
 const PLAYER_SLOTS = ['own', 'last', 'first'] as const;
 const START_STYLES = ['grid', 'chase'] as const;
 const TRAFFIC_PATHS = ['lane', 'line'] as const;
@@ -126,7 +126,8 @@ export interface SeriesClass {
   readonly playerSlot: (typeof PLAYER_SLOTS)[number];
   /**
    * How the field starts: `grid`, together at GO; `chase` (K, 2026-11-19), the one rival from the slot behind the
-   * player's at GO, and the player once that rival has passed it. A CHASE class has two grid entries, the player first.
+   * player's as READY begins, the player held until the lamps, which count once that rival has passed it, reach GO.
+   * A CHASE class has two grid entries, the player first.
    */
   readonly start: (typeof START_STYLES)[number];
   /** Rank limit N by race gate ID: the player fails when the N-th other competitor crosses that gate first. */

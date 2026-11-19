@@ -11,6 +11,8 @@ import { compileRunConfiguration } from '../../src/race/run-configuration.js';
 import { resolveRunSetup } from '../../src/race/run-setup.js';
 import { weightedCandidate } from '../../src/race/traffic.js';
 import { createCourseRace } from '../../src/race/course-race.js';
+import { READY_SECONDS } from '../../src/race/start-phase.js';
+import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 
 const content = await readDeliveredContent();
@@ -80,26 +82,43 @@ test('`first` puts the player in the frontmost slot and the others behind it, in
   ]);
 });
 
-test('CHASE holds the player from GO until its rival, leaving from the slot behind, has passed it', () => {
+test('CHASE: READY holds the player while the rival leaves from behind; the lamps count once it has passed, to GO', () => {
   const { configuration, setup } = race(runClass('first', null, 'chase', 2));
   assert.equal(configuration.start, 'chase');
   const scene = createCourseScene(course.entry, course.gates, definitions.vehicles);
   const run = createCourseRace({ setup, runtime: scene.runtime });
   run.start();
-  while (run.outcome.status === 'READY') run.advance(null);
   const [rival] = run.rivals;
-  const from = run.player.progress.s;
-  assert.ok(rival.progress.s < from);
-  // Held where it stands while the rival is behind it; it leaves once the rival is ahead.
+  const at = (c) => c.actor.vehicle.course.s;
+  const from = at(run.player);
+  assert.ok(at(rival) < from);
+  // The rival drives through READY, no lamp lit and the player held where it stands, until it is ahead.
   let steps = 0;
-  for (; rival.progress.s <= run.player.progress.s; steps++) {
-    assert.ok(steps < 600, 'the rival passes within ten seconds');
-    assert.equal(run.player.progress.s, from);
+  while (at(rival) <= at(run.player)) {
+    assert.ok(steps++ < 600, 'the rival passes within ten seconds');
+    assert.deepEqual([run.outcome.status, run.countdown.signalLamps, at(run.player)], ['READY', 0, from]);
     run.advance(null);
   }
   assert.ok(steps > 0);
-  for (let i = 0; i < 120; i++) run.advance(null);
-  assert.ok(run.player.progress.s > from + 1, 'the player leaves');
+  // From there the lamps count READY's seconds as any start's, the player still held, to GO.
+  let counted = 1;
+  while (run.outcome.status === 'READY') {
+    assert.ok(run.countdown.signalLamps >= 1);
+    assert.equal(at(run.player), from);
+    run.advance(null);
+    counted++;
+  }
+  assert.equal(counted, Math.round(READY_SECONDS / SIM_DT));
+  assert.equal(run.clock.elapsedSeconds, 0);
+  assert.ok(at(rival) > from);
+  // From GO both run, and the rival's crossings count in race time from where it stood at GO.
+  let crossed = false;
+  for (let i = 0; i < 3000 && !crossed; i++) {
+    run.advance(null);
+    crossed = run.events.some((event) => event.competitorId === rival.id);
+  }
+  assert.ok(crossed, 'the rival crosses its next gate after GO');
+  assert.ok(at(run.player) > from + 1, 'the player leaves');
 });
 
 test('a traffic draw falls on each candidate as many times as its weight, in order', () => {

@@ -385,9 +385,17 @@ export function createCourseRace(options: {
       else hold(body, revving, steeringOf(body));
     startPhase.advance();
   };
-  // A CHASE start (K, 2026-11-19): the rival leaves at GO from behind, and the player, held as in READY, leaves once a
-  // rival has passed it.
-  let chasing = configuration.start === 'chase';
+  // A CHASE start (K, 2026-11-19): READY holds the player alone while the rival leaves from the slot behind; the lamps
+  // count once the rival is ahead of the player, and both are running at GO. The rival joins the race's progress there
+  // from where it stands, as an entry appearing ahead does: its crossings before GO are outside race time.
+  const chaseReady = (input: DrivingInput | null) => {
+    driveField(input, null, true);
+    const at = player.actor.vehicle.course.s;
+    if (rivals.some((c) => c.present && c.actor.vehicle.course.s > at)) startPhase.release();
+    if (!startPhase.advance()) return;
+    for (const c of rivals)
+      if (c.present) c.observer = createRouteProgress(lines, c.actor.vehicle.course, c.actor.vehicle.course.s);
+  };
   // The AI's safety net (`countSafetyNet`): a driver asks for the player's manual recovery; with no free place behind
   // its vehicle, it asks again the next step.
   const { progressSeconds } = options;
@@ -553,13 +561,14 @@ export function createCourseRace(options: {
     return laneDriving.drive(player.body, drivingDomainBefore(runtime.window, stopS, takeoverDomain));
   };
   /**
-   * Moves the present field one step: the player by `input`, each rival by its driver, then Route loading. A running step (`stepStart` set) also paces the rivals by their lead over the player, the progress the
-   * standing ranks by; after the run ends they hold their pace.
+   * Moves the present field one step: the player by `input` (held as in READY when `held`), each rival by its driver,
+   * then Route loading. A running step (`stepStart` set) also paces the rivals by their lead over the player, the
+   * progress the standing ranks by; after the run ends they hold their pace.
    */
-  const driveField = (input: DrivingInput | null, stepStart: number | null) => {
+  const driveField = (input: DrivingInput | null, stepStart: number | null, held = false) => {
     // Drivers see the present vehicles as they stand at the step's start.
     laneDriving.observe();
-    const playerInput = playerInputOf(input, stepStart !== null);
+    const playerInput = held ? null : playerInputOf(input, stepStart !== null);
     let minS = Infinity,
       maxS = -Infinity;
     for (const body of activeBodies) {
@@ -580,8 +589,7 @@ export function createCourseRace(options: {
           explosionSeed(options.setup.seed, body.id, sequence),
         );
     contactStarts.clear();
-    if (chasing && active.some((c) => c !== player && c.progress.s > player.progress.s)) chasing = false;
-    if (chasing) hold(activeBodies[0]!, input ?? revving, playerOwnSteering);
+    if (playerInput === null) hold(activeBodies[0]!, input ?? revving, playerOwnSteering);
     else move(activeBodies[0]!, playerInput, playerSteeringOf(input, stepStart !== null));
     for (let i = 1; i < active.length; i += 1) {
       const { body, pacing } = active[i]!;
@@ -607,7 +615,8 @@ export function createCourseRace(options: {
   const step = (input: DrivingInput | null) => {
     if (startPhase.status === 'WAITING') return;
     if (startPhase.status === 'READY') {
-      holdReady(input);
+      if (configuration.start === 'chase') chaseReady(input);
+      else holdReady(input);
       return;
     }
     handOver(input === null);
@@ -792,7 +801,7 @@ export function createCourseRace(options: {
     get playerContacts(): PlayerContacts {
       return playerContacts;
     },
-    start: () => startPhase.begin(),
+    start: () => startPhase.begin(configuration.start === 'chase'),
     /**
      * Whether the player can end the run now: a running run without a finish (its run has no lap count), which
      * ends only so.
