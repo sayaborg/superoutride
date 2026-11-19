@@ -257,8 +257,7 @@ from K's model by the car baking of Stage F110 in one color, ROSSO CORSA (F120-3
   source was found.
 - The pictures: the model's wheelbase is 2,479 mm against the car's 2,450 mm, its front fenders wider than the car's,
   so the front tyres sit about 3 cm in on each side; the real car's outer tail lamps are amber indicators, here all four
-  brake lamps (K). In the baked pictures a few texels of the black parts (the mesh panel, the headlamp openings, under
-  the tyres) take the glass's blue; the red crescent on the lamp barrels and the triangle inside the front wheels do
+  brake lamps (K). In the baked pictures the red crescent on the lamp barrels and the triangle inside the front wheels do
   not show at size 0. ROSSO CORSA's 1988 code (FER 300/6) is inferred from descriptions; the roughness and the
   finish's values stay open as the Testarossa's.
 - To look at in DEV, the pictures: near and far, the back (the four lamps, the mesh panel), the engine cover's
