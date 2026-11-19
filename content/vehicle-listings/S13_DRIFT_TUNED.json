@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 6,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1988-1991",
     "mobileLabel": "S13",
     "engine": "I4T",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "S13", "shortLabel": "S13" },
     "selectedSpecification": ["K's", "CA18DET", "DRIFT TUNED"],
     "physicsAnchor": { "modelYear": "1988", "market": "Japan" }

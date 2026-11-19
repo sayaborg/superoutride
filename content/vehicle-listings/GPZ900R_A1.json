@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "bike",
   "selectionOrder": 29,
   "visuals": {
@@ -21,6 +21,7 @@
     "period": "1984",
     "mobileLabel": "GPZ900R",
     "engine": "I4",
+    "engineKind": "4-stroke",
     "identifier": {
       "officialLabel": "ZX900-A1",
       "shortLabel": "ZX900-A1"

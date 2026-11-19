@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "bike",
   "selectionOrder": 12,
   "visuals": {
@@ -25,6 +25,7 @@
     "period": "1985",
     "mobileLabel": "XR600R",
     "engine": "1",
+    "engineKind": "4-stroke",
     "identifier": {
       "officialLabel": "XR600R",
       "shortLabel": "XR600R"

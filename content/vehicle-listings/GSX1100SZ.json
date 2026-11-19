@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "bike",
   "selectionOrder": 28,
   "visuals": {
@@ -21,6 +21,7 @@
     "period": "1982",
     "mobileLabel": "KATANA",
     "engine": "I4",
+    "engineKind": "4-stroke",
     "identifier": {
       "officialLabel": "GSX1100SZ",
       "shortLabel": "GS110X"

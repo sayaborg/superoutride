@@ -91,7 +91,10 @@ export function compileVehicleDefinitions(
     );
     if (!catalogRules.ok) return catalogRules;
     orders.add(listing.value.source.selectionOrder);
-    const vehicle = pairVehicleDefinition(mechanics.value, listing.value, listingFile!.path, '/visuals/gearNames');
+    const vehicle = pairVehicleDefinition(mechanics.value, listing.value, listingFile!.path, {
+      gears: '/visuals/gearNames',
+      engineKind: '/metadata/engineKind',
+    });
     if (!vehicle.ok) return vehicle;
     vehicles.push(vehicle.value);
   }

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 5,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1988-1989",
     "mobileLabel": "DELTA",
     "engine": "I4T",
+    "engineKind": "4-stroke",
     "identifier": null,
     "selectedSpecification": ["8V", "185 PS"],
     "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" }

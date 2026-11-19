@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "bike",
   "selectionOrder": 11,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1983-1997",
     "mobileLabel": "PX200",
     "engine": "1",
+    "engineKind": "2-stroke",
     "identifier": { "officialLabel": "VSX1T", "shortLabel": "VSX1T" },
     "selectedSpecification": ["200 cc full-power"],
     "physicsAnchor": { "modelYear": "1985", "market": "Italian/European" }

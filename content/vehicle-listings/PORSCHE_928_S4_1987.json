@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 32,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1987",
     "mobileLabel": "928 S4",
     "engine": "V8",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "928 S4", "shortLabel": "928 S4" },
     "selectedSpecification": ["5MT"],
     "physicsAnchor": { "modelYear": "1987", "market": "US" }

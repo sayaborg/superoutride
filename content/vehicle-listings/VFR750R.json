@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "bike",
   "selectionOrder": 8,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1987-1990",
     "mobileLabel": "RC30",
     "engine": "V4",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "RC30", "shortLabel": "RC30" },
     "selectedSpecification": [],
     "physicsAnchor": { "modelYear": "1988", "market": "ROW full-power" }

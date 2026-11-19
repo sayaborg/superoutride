@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "bike",
   "selectionOrder": 27,
   "visuals": {
@@ -21,6 +21,7 @@
     "period": "1981",
     "mobileLabel": "CB900F",
     "engine": "I4",
+    "engineKind": "4-stroke",
     "identifier": {
       "officialLabel": "CB900FB",
       "shortLabel": "SC01"

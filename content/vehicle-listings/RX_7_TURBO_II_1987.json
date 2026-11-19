@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 46,
   "visuals": {
@@ -25,6 +25,7 @@
     "period": "1987-1988",
     "mobileLabel": "FC3S",
     "engine": "R2T",
+    "engineKind": "rotary",
     "identifier": { "officialLabel": "FC3S", "shortLabel": "FC" },
     "selectedSpecification": ["5MT", "hood scoop", "16-inch wheels"],
     "physicsAnchor": { "modelYear": "1987", "market": "US" }

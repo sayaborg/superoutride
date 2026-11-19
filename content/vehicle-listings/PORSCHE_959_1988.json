@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 40,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1988",
     "mobileLabel": "959",
     "engine": "F6",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "959", "shortLabel": "959" },
     "selectedSpecification": ["Komfort", "G+5 mapped to 1-6", "fixed AWD split"],
     "physicsAnchor": { "modelYear": "1988", "market": "Europe" }

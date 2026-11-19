@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 26,
   "visuals": {
@@ -22,6 +22,7 @@
     "period": "1976",
     "mobileLabel": "M23",
     "engine": "V8",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "M23", "shortLabel": "M23" },
     "selectedSpecification": ["Hunt #11", "1976 base", "PROVISIONAL", "2-SPEED", "CONTACT EXPLOSION"],
     "physicsAnchor": { "modelYear": "1976", "market": "1976 base" }

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 4,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1986-1989",
     "mobileLabel": "GTI",
     "engine": "I4",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "Mk2", "shortLabel": "Mk2" },
     "selectedSpecification": ["small bumpers"],
     "physicsAnchor": { "modelYear": "1988", "market": "European/ROW" }

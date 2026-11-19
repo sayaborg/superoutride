@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 33,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1984",
     "mobileLabel": "Type 82",
     "engine": "I4",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "Type 82", "shortLabel": "Type 82" },
     "selectedSpecification": ["5MT"],
     "physicsAnchor": { "modelYear": "1984", "market": "UK" }

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 44,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1977",
     "mobileLabel": "Nova",
     "engine": "I6",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "Nova", "shortLabel": "Nova" },
     "selectedSpecification": ["3MT"],
     "physicsAnchor": { "modelYear": "1977", "market": "US" }

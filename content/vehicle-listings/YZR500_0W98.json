@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "bike",
   "selectionOrder": 22,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1988",
     "mobileLabel": "0W98",
     "engine": "V4",
+    "engineKind": "2-stroke",
     "identifier": { "officialLabel": "0W98", "shortLabel": "0W98" },
     "selectedSpecification": ["Lawson #3", "USA GP", "PROVISIONAL"],
     "physicsAnchor": { "modelYear": "1988", "market": "USA GP" }

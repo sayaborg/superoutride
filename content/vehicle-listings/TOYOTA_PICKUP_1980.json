@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 38,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1980",
     "mobileLabel": "RN42",
     "engine": "I4",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "RN42", "shortLabel": "RN42" },
     "selectedSpecification": ["20R", "2WD regular cab", "long bed / 4MT"],
     "physicsAnchor": { "modelYear": "1980", "market": "US 49-state" }

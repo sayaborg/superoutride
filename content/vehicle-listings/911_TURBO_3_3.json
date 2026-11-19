@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 2,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1989",
     "mobileLabel": "930",
     "engine": "F6T",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "Type 930", "shortLabel": "930" },
     "selectedSpecification": ["G50/50 5-speed"],
     "physicsAnchor": { "modelYear": "1989", "market": "European/ROW" }

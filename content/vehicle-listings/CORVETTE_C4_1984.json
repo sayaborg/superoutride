@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 41,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1984",
     "mobileLabel": "C4",
     "engine": "V8",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "C4 / 1YY07", "shortLabel": "C4" },
     "selectedSpecification": ["L83", "4+3: base 4 gears", "OD not simulated"],
     "physicsAnchor": { "modelYear": "1984", "market": "US" }

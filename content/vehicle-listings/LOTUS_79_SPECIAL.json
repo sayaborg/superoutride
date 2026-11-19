@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 25,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1978",
     "mobileLabel": "Type 79",
     "engine": "V8",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "Type 79", "shortLabel": "Type 79" },
     "selectedSpecification": ["Andretti #5", "Dutch GP base", "PROVISIONAL", "2-SPEED", "CONTACT EXPLOSION"],
     "physicsAnchor": { "modelYear": "1978", "market": "Dutch GP base" }

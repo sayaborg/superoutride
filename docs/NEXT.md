@@ -808,8 +808,9 @@ borrow:
   PENDING. AE86's fourth color awaits K: the early GT-APEX may have had only the three two-tones.
 - Engine sounds: S13 DELTA HF INTEGRALE's (inline four, turbocharged), AE86 GOLF GTI 16V's (inline four, 16 valves)
   ([exhausts](calibration.md#exhaust-topologies)).
-- DT-3, after K decides: FC3S DRIFT TUNED. K decides how 13B is represented (a rotary engine kind: the 2-stroke volume
-  rule in physics, ROTARY on screen, one exhaust per rotor per revolution in the engine sound) and whether its pictures
+- DT-3, after K decides: FC3S DRIFT TUNED. K decides how 13B is represented (the listing's engine kind `rotary`, as
+  RX-7 TURBO II's, ROTARY on screen; the 2-stroke volume rule in physics, one exhaust per rotor per revolution in the
+  engine sound) and whether its pictures
   are shared with OUTRUNNERS' RX-7 (FC3S), whose 1989 candidate would be the late model; its colors are decided then.
 
 ## Card UI

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 24,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1989",
     "mobileLabel": "F1-89",
     "engine": "V12",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "F1-89", "shortLabel": "F1-89" },
     "selectedSpecification": ["Mansell #27", "Belgian GP dry", "PROVISIONAL"],
     "physicsAnchor": { "modelYear": "1989", "market": "Belgian GP dry" }

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "bike",
   "selectionOrder": 30,
   "visuals": {
@@ -21,6 +21,7 @@
     "period": "1985",
     "mobileLabel": "GSX-R750",
     "engine": "I4",
+    "engineKind": "4-stroke",
     "identifier": {
       "officialLabel": "GSX-R750F",
       "shortLabel": "GSX-R750F"

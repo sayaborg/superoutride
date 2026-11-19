@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 43,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1995",
     "mobileLabel": "YJ",
     "engine": "I4",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "YJ", "shortLabel": "YJ" },
     "selectedSpecification": ["2.5L", "AX-5 5MT", "2H / soft top"],
     "physicsAnchor": { "modelYear": "1995", "market": "US" }

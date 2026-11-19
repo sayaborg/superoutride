@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 35,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1986",
     "mobileLabel": "930",
     "engine": "F6",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "930", "shortLabel": "930" },
     "selectedSpecification": ["4MT"],
     "physicsAnchor": { "modelYear": "1986", "market": "US" }

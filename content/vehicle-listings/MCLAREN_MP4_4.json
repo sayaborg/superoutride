@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 23,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1988",
     "mobileLabel": "MP4/4",
     "engine": "V6",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "MP4/4", "shortLabel": "MP4/4" },
     "selectedSpecification": ["Senna #12", "Italian GP", "PROVISIONAL"],
     "physicsAnchor": { "modelYear": "1988", "market": "Italian GP" }

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 7,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1983-1985",
     "mobileLabel": "AE86",
     "engine": "I4",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "AE86", "shortLabel": "AE86" },
     "selectedSpecification": ["GT-APEX", "3-door", "DRIFT TUNED"],
     "physicsAnchor": { "modelYear": "1983", "market": "Japan" }

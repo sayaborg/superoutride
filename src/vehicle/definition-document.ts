@@ -14,6 +14,7 @@ import {
   readBoolean,
   readDictionary,
   readDocument,
+  readEnum,
   readNumber,
   readRecord,
   readString,
@@ -62,11 +63,20 @@ export interface VehicleMetadata {
   readonly mobileLabel: string;
   /** The engine's layout and cylinders in at most five characters, such as F12 or V8. */
   readonly engine: string;
+  /**
+   * The engine's kind (K, 2026-11-20), what the vehicle's card shows of its working: not the mechanics' `cycle`, which
+   * physics reads, though it must agree with it (`ENGINE_KIND_CYCLES`).
+   */
+  readonly engineKind: EngineKind;
 }
+/** The engines' kinds, and the mechanics' powertrain cycle each takes: a rotary engine fires once a turn per rotor. */
+export const ENGINE_KIND_CYCLES = Object.freeze({ '4-stroke': 4, '2-stroke': 2, rotary: 2 } as const);
+export type EngineKind = keyof typeof ENGINE_KIND_CYCLES;
+const ENGINE_KINDS = Object.keys(ENGINE_KIND_CYCLES) as EngineKind[];
 export const VEHICLE_MECHANICS_FORMAT = 'superoutride.vehicle-mechanics';
 export const VEHICLE_MECHANICS_VERSION = 8;
 export const VEHICLE_LISTING_FORMAT = 'superoutride.vehicle-listing';
-export const VEHICLE_LISTING_VERSION = 5;
+export const VEHICLE_LISTING_VERSION = 6;
 /** The mechanics document: the vehicle's physical description, the values physics reads and its dimensions. */
 export interface VehicleMechanicsDocument extends Omit<VehicleDefinition, 'id'> {
   readonly format: typeof VEHICLE_MECHANICS_FORMAT;
@@ -252,6 +262,7 @@ export function compileVehicleListingDocument(
     const strings = ['manufacturer', 'model', 'mobileLabel', 'engine'] as const;
     const meta = readRecord(v.metadata, '/metadata', [
       ...strings,
+      'engineKind',
       'period',
       'identifier',
       'selectedSpecification',
@@ -282,6 +293,7 @@ export function compileVehicleListingDocument(
     listed(anchor.market, '/metadata/physicsAnchor/market');
     const metadata = {
       ...Object.fromEntries(strings.map((key) => [key, drawable(meta[key], `/metadata/${key}`)])),
+      engineKind: readEnum(meta.engineKind, ENGINE_KINDS, '/metadata/engineKind'),
       period: listed(meta.period, '/metadata/period'),
       identifier:
         meta.identifier === null
@@ -383,23 +395,31 @@ export function compileVehicleListingDocument(
 }
 
 /**
- * Pair one vehicle's compiled mechanics and listing, where the vehicle and its engine sound meet: under `document` at
- * `pointer`, the listing names each of the mechanics' gears or none.
+ * Pair one vehicle's compiled mechanics and listing, where the vehicle and its engine sound meet: under `document`, the
+ * listing names each of the mechanics' gears or none (at `pointers.gears`), and its engine kind takes the mechanics'
+ * cycle (at `pointers.engineKind`).
  */
 export function pairVehicleDefinition(
   mechanics: CompiledVehicleMechanics,
   listing: CompiledVehicleListing,
   document: string,
-  pointer: string,
+  pointers: { readonly gears: string; readonly engineKind: string },
 ): AdmissionResult<CompiledVehicleDefinition> {
   return admit(document, () => {
     const names = listing.source.visuals.gearNames,
-      gears = mechanics.compiledVehicle.powertrain.gearRatios.length;
+      { gearRatios, cycle } = mechanics.compiledVehicle.powertrain,
+      kind = listing.source.metadata.engineKind;
     requireAdmission(
-      names === undefined || names.length === gears,
+      names === undefined || names.length === gearRatios.length,
       'invalid_value',
-      pointer,
-      `Expected the listing to name each of the ${gears} gears`,
+      pointers.gears,
+      `Expected the listing to name each of the ${gearRatios.length} gears`,
+    );
+    requireAdmission(
+      ENGINE_KIND_CYCLES[kind] === cycle,
+      'invalid_value',
+      pointers.engineKind,
+      `Expected an engine of cycle ${cycle}, not ${kind}`,
     );
     return createVehicleDefinition(mechanics, listing);
   });
@@ -442,7 +462,7 @@ export function retuneVehicleMechanics(
       sound: definition.sound,
     },
     document,
-    '/powertrain/gearRatios',
+    { gears: '/powertrain/gearRatios', engineKind: '/powertrain/cycle' },
   );
 }
 

@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 39,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1990",
     "mobileLabel": "Tipo F120",
     "engine": "V8",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "Tipo F120", "shortLabel": "Tipo F120" },
     "selectedSpecification": ["Europe non-cat", "fixed ride height", "5MT"],
     "physicsAnchor": { "modelYear": "1990", "market": "Europe" }

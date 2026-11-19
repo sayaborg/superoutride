@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 42,
   "visuals": {
@@ -16,6 +16,7 @@
     "period": "1964 early",
     "mobileLabel": "MINI 850",
     "engine": "I4",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "A-A2S7", "shortLabel": "A-A2S7" },
     "selectedSpecification": ["4MT"],
     "physicsAnchor": { "modelYear": "1964 early", "market": "UK" }

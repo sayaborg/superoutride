@@ -1,6 +1,6 @@
 {
   "format": "superoutride.vehicle-listing",
-  "version": 5,
+  "version": 6,
   "form": "car",
   "selectionOrder": 1,
   "visuals": {
@@ -25,6 +25,7 @@
     "period": "1984-1986",
     "mobileLabel": "F110",
     "engine": "F12",
+    "engineKind": "4-stroke",
     "identifier": { "officialLabel": "Tipo F110", "shortLabel": "F110" },
     "selectedSpecification": ["single mirror", "centre-lock wheels", "TRX tyres"],
     "physicsAnchor": { "modelYear": "1984", "market": "European/ROW" }
