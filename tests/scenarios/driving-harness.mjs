@@ -19,7 +19,7 @@ import { explosionShowsVehicle } from '../../src/view/contact-explosion-sprites.
 import { createTirePuffs, PUFF_LIMIT } from '../../src/view/tire-puffs.js';
 import { loadPuffs } from '../../src/content/puff-catalog.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
-import { READY_SECONDS } from '../../src/race/start-phase.js';
+import { READY_SECONDS } from '../../src/course/run-rules.js';
 import { courseRoadsAt } from '../../src/course/course-lanes.js';
 import { courseBoundaryAt } from '../../src/course/course-boundaries.js';
 import { routeSectionS } from '../../src/course/course-route.js';

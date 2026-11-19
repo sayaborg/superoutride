@@ -1,3 +1,6 @@
+/** The standing start's hold: every vehicle is held this long in READY while signal lamps count down to GO. */
+export const READY_SECONDS = 3;
+
 /** At most sixteen competitors take part in a run, the player included. */
 const COMPETITORS = 16;
 

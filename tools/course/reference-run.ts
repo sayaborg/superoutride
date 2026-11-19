@@ -18,7 +18,7 @@ import { resolveRunSetup } from '../../src/race/run-setup.js';
 import { compileRunConfiguration } from '../../src/race/run-configuration.js';
 import type { ClassRules } from '../../src/content/series-catalog.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
-import { READY_SECONDS } from '../../src/race/start-phase.js';
+import { READY_SECONDS } from '../../src/course/run-rules.js';
 import { courseRoadsAt } from '../../src/course/course-lanes.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 

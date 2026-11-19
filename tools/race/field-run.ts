@@ -17,7 +17,7 @@ import { TEXT_COLUMNS } from '../../src/view/text-layer.js';
 import { prepareRun } from '../../src/race/run-preparation.js';
 import { createCourseRace } from '../../src/race/course-race.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
-import { READY_SECONDS } from '../../src/race/start-phase.js';
+import { READY_SECONDS } from '../../src/course/run-rules.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 
 /** A field run: the course, the player's vehicle, how many rivals and whether traffic, how long from GO, the seed. */

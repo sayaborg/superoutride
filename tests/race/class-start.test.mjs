@@ -11,7 +11,7 @@ import { compileRunConfiguration } from '../../src/race/run-configuration.js';
 import { resolveRunSetup } from '../../src/race/run-setup.js';
 import { weightedCandidate } from '../../src/race/traffic.js';
 import { createCourseRace } from '../../src/race/course-race.js';
-import { READY_SECONDS } from '../../src/race/start-phase.js';
+import { READY_SECONDS } from '../../src/course/run-rules.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { createCourseScene } from '../../src/view/course-scene.js';
 

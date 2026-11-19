@@ -1,7 +1,5 @@
+import { READY_SECONDS } from '../course/run-rules.js';
 import { SIM_DT } from './fixed-step.js';
-
-/** The standing start's hold: every vehicle is held this long in READY while signal lamps count down to GO. */
-export const READY_SECONDS = 3;
 
 /** The start phase's status: WAITING before the start, READY during the hold, GO from the start of the run. */
 export type StartStatus = 'WAITING' | 'READY' | 'GO';
