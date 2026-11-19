@@ -13,12 +13,12 @@
   "metadata": {
     "manufacturer": "Ferrari",
     "model": "F40",
-    "period": "1990",
+    "period": "1988",
     "mobileLabel": "Tipo F120",
     "engine": "V8",
     "engineKind": "4-stroke",
     "identifier": { "officialLabel": "Tipo F120", "shortLabel": "Tipo F120" },
     "selectedSpecification": ["Europe non-cat", "fixed ride height", "5MT"],
-    "physicsAnchor": { "modelYear": "1990", "market": "Europe" }
+    "physicsAnchor": { "modelYear": "1988", "market": "Europe" }
   }
 }

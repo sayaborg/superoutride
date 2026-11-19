@@ -4,7 +4,7 @@
   "cycleRevolutions": 2,
   "firingPhases": [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875],
   "exhaust": {
-    "valve": { "diameter": 0.026, "open": 0.4 },
+    "valve": { "diameter": 0.0368, "open": 0.3889 },
     "primaries": [
       { "length": 0.35, "diameter": 0.035, "to": 0 },
       { "length": 0.35, "diameter": 0.035, "to": 1 },
@@ -16,13 +16,16 @@
       { "length": 0.35, "diameter": 0.035, "to": 1 }
     ],
     "pipes": [
-      { "length": 1.22, "diameter": 0.055, "from": 0, "to": 2 },
-      { "length": 0.65, "diameter": 0.055, "from": 2, "to": null },
-      { "length": 1.22, "diameter": 0.055, "from": 1, "to": 3 },
-      { "length": 0.65, "diameter": 0.055, "from": 3, "to": null }
+      { "length": 0.6, "diameter": 0.038, "from": 1, "to": 0 },
+      { "length": 0.08, "diameter": 0.0276, "from": 0, "to": 2 },
+      { "length": 0.08, "diameter": 0.0276, "from": 1, "to": 3 },
+      { "length": 0.4, "diameter": 0.054, "from": 2, "to": 4 },
+      { "length": 0.4, "diameter": 0.054, "from": 3, "to": 4 },
+      { "length": 0.6, "diameter": 0.054, "from": 4, "to": null },
+      { "length": 0.6, "diameter": 0.054, "from": 4, "to": null }
     ]
   },
   "metadata": {
-    "note": "Provisional acoustic graph, not a measured exhaust or recording. Equal firing intervals; alternating banks; valve opening, diameters and all lengths are engineering estimates. Existing pipe solver only; silencer and turbo losses are not separately modelled."
+    "note": "Two cast manifolds, one per bank (the banks alternate in the firing order 1-5-3-7-4-8-2-6); the pipe between the manifolds (part 122561) joins the banks before the turbines and is always open (the wastegate is not moved); the left and right IHI turbines' throats (their size an estimate, as the 959's), a pipe from each turbocharger into the one silencer, no catalyst; two outer outlets from the silencer. Layout from Ferrari's part list 021 (exhaust, without catalyst), as read by the stage auditor, not read here; its drawing not read. Valve: two exhaust valves per cylinder, 26 mm each (FIA form B-293, as read by the stage auditor), written as one valve of their combined area, 36.8 mm (lift taken as at least 6.5 mm); open about 280 deg, from 54 BBDC / 10 ATDC at 0.5 mm (an owner's manual as quoted on a forum, read as the Testarossa's). Pipes after the turbines 54 mm, a replacement maker's main pipe (Tubi Style, for the catalyst car); the 70 mm tips are not represented. Primary, crossover and pipe lengths and the primaries' and crossover's diameters are estimates. Silencer bodies are straight pipes of their inlet diameter; the wastegate and its centre outlet are not represented."
   }
 }

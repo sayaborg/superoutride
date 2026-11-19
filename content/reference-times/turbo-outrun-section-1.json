@@ -6,12 +6,12 @@
   "vehicles": [
     {
       "vehicleId": "FERRARI_F40_1988",
-      "vehicleSha256": "f34bc4d44d544e25d55e66d2b93e6f97289fa9b2164012b789de511b45dd4369",
-      "initialSeconds": 82.99927638423037,
+      "vehicleSha256": "5eaf79606036c599f5c6f164b66924ea9a87ad9ab2e55df9527edc1d2d250816",
+      "initialSeconds": 81.9706331919361,
       "after": [
-        ["new-york-CP", [62.11217310755211]],
-        ["washington-d-c-CP", [76.75273272577797]],
-        ["pittsburgh-CP", [81.27165827946939]]
+        ["new-york-CP", [69.49742939109835]],
+        ["washington-d-c-CP", [62.53808507476273]],
+        ["pittsburgh-CP", [78.56499564540852]]
       ]
     }
   ]

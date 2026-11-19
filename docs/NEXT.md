@@ -250,6 +250,32 @@ that: the G28/13's ratios, the 675 rpm idle and the 1,549 mm front track, and th
 - Not decided: CHASE H.Q.'s series (the player's car, the criminals' cars, turbo, the beacon), its own tire values and
   its steering picture.
 
+## Stage F120 — The F40 of 1988
+
+K's decisions of 2026-11-19 and 2026-11-20: TURBO OUTRUN's car is the Ferrari F40 of 1988, European specification, an
+ordinary road car with left-hand drive and the 5MT; the catalog's F40 is mended rather than a second one added, renamed
+`FERRARI_F40_1988` (F120-1); it takes the European final reduction and a 1,235 kg base, with no turbo mechanism added,
+and its engine sound is written as the real car's exhaust, the pipe between the manifolds included (F120-2;
+[Arcade car selections](chase-turbo-vehicles.md#ferrari-f40-of-1988-sources-versus-authored)); its pictures are baked
+from K's model by the car baking of Stage F110 in one color, ROSSO CORSA (F120-3, a draft until K has seen them;
+[Model solids](image-assets.md#model-solids)).
+
+- To look at in DEV: SELECT VEHICLE shows the F40 as of 1988; in TURBO OUTRUN, acceleration, top speed and fifth's
+  pull; its sound against the earlier one, low and high in the revs.
+- Not checked against primary sources: the 1,235 kg (a secondary table's figure; whether it holds fuel is not known)
+  and the final reduction (FIA form B-293 and two secondary lists agree; the 1988 European owner's manual is not read).
+  The stage auditor read the sources; the PRs that wrote this stage could not reach them, nor the part list's drawing.
+- The wheel radii are the tyres' nominal ones; the rolling radius inferred from a road test's 43.5 km/h per 1,000 rpm in
+  fifth is about 0.322 m, so the game's gearing is about 3.5% longer than the car's. Every car follows the same rule,
+  so it is left.
+- The exhaust valves' lift, the turbine throats, every pipe length and the primaries' and crossover's diameters are
+  estimates; the valve timing is an owner's manual's as quoted, not read in the manual; the 54 mm downstream is a
+  replacement maker's main pipe, Ferrari's own not checked; the wastegate and the centre outlet are not sounded.
+- The idle of 1,000 rpm, the CG height of 0.44 m, the front-to-rear mass split and the frontal area stay estimates; no
+  source was found.
+- TURBO OUTRUN's turbo button (a burst of acceleration and overheating) is the series' to decide; this stage does not
+  add it.
+
 ## Stage AT — The attract demo remade
 
 K's requirements of 2026-11-14 are in place (AT-0 to AT-4): the demo is a reel of films with the run only watched;
@@ -1027,7 +1053,7 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | SUPER HANG-ON | The reference courses have 6, 10, 14 and 18 stages (AFRICA, ASIA, AMERICA, EUROPE), the export sitdown/upright cabinet's (MAME's `shangon`, K's decision; [SUPER HANG-ON](super-hang-on-road-data.md)). VFR750R keeps the existing 1988 full-power definition; GSX-R750 is the 1988 standard export model, not the 1989 GSX-R750R; 851 is a 1988 road model.                                                                                                                                                                            |
 | OUTRUN        | TESTAROSSA is the 1984 European coupé (K, 2026-11-19).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| TURBO OUTRUN  | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](turbo-outrun-road-data.md)). F40 and 959 are period road specifications. The catalog's F40 (FERRARI_F40_1988) is a 1990 model, after [Era](product.md#era)'s 1989; the tribute needs one of 1989 or before.                           |
+| TURBO OUTRUN  | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](turbo-outrun-road-data.md)). F40 and 959 are period road specifications.                                                                                                                                                              |
 | FINAL LAP 2   | The reference game is of 1990; the tribute's cars are of 1989 or before ([Era](product.md#era)). The catalog has `FERRARI_640` (1989) and `MCLAREN_MP4_4` (1988).                                                                                                                                                                                                                                                                                                                                                                       |
 | CHASE H.Q.    | The 928 is the S4 of 1987, US, five-speed manual (K, 2026-11-20). ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition. Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                                                                                                                        |
 | CISCO HEAT    | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. Ordinary road appearances, without police livery or lights; BROUGHAM TUNED is one explicit finished specification, used unchanged on every course. |

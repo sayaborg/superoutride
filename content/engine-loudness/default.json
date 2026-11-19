@@ -192,9 +192,9 @@
     },
     {
       "vehicleId": "FERRARI_F40_1988",
-      "vehicleSha256": "e71094579cb616c535c5487da61a724c733fd17a7d336120dc84442454ceaddb",
-      "soundSha256": "5891800ad1df1bb6bd110f82d47a250ea778b4b85c053c3d3b818399a35a5881",
-      "lufs": -20.400775970681753
+      "vehicleSha256": "b0db14312bf061e62681a66ef996418995daad76a6bad36dd2bda73c1e813d1f",
+      "soundSha256": "cb5471ea3853a98f0ea1f22925d642f6ab1fc61beee584fdbe5540b1f4a76e82",
+      "lufs": -22.598130580259138
     },
     {
       "vehicleId": "PORSCHE_959_1987",

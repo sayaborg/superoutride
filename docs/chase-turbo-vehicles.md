@@ -2,6 +2,7 @@
 
 This ledger owns the fourteen additional vehicle definitions selected from the supplied arcade-vehicle report, and
 the [Mazda RX-7 Turbo II of 1987](#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored), authored by its conventions.
+The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored).
 It records the chosen real-car specification, the limits of the evidence, the provisional authoring inputs and
 validation. Shared physics, images, sound and selection behavior retain their existing owners.
 
@@ -27,7 +28,7 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 | FERRARI_GTO_1985      | 1985 European GTO, Tipo F114                         | F114B, 2855.08 cc twin-turbo flat-plane V8; 5MT                 | Blue arcade recolor, rear-fender slots, paired round rear lamps         |
 | PORSCHE_928_S_1984    | 1984 MY US 928 S                                     | M28.19, 4664 cc SOHC 16-valve V8; 5MT                           | Red early body, rubber bumper trim and small spoiler                    |
 | TOYOTA_PICKUP_1980    | 1980 MY US 49-state RN42, regular cab, long bed, 2WD | 2189 cc 20R SOHC four; 4MT                                      | Open long bed, separate upright cab, rectangular lamps                  |
-| FERRARI_F40_1988      | 1990 European F40, non-catalyst, fixed ride height   | F120-family 2936.25 cc twin-turbo flat-plane V8; 5MT            | Red, high fixed wing, round rear lamps, three exhaust outlets           |
+| FERRARI_F40_1988      | 1988 European F40, non-catalyst, fixed ride height   | F120-family 2936.25 cc twin-turbo flat-plane V8; 5MT            | Red, high fixed wing, round rear lamps, three exhaust outlets           |
 | PORSCHE_959_1987      | 1987 European 959 Komfort, left-hand drive           | 2849 cc twin-turbo flat six; G59.01 G+5 MT, AWD                 | White, covered oval lamps and integrated rear wing                      |
 | CORVETTE_C4_1984      | 1984 MY US Base Coupe, 1YY07                         | L83 5733 cc Cross-Fire V8; Doug Nash 4+3                        | Blue early C4, four round rear lamps, no high-mounted stop lamp         |
 | AUSTIN_MINI_850_1964  | Early 1964 UK standard Austin Mini 850, A-A2S7       | 848 cc A-series OHV four; 4MT, rubber-cone suspension           | Green, short upright two-door saloon; not a Cooper                      |
@@ -36,7 +37,7 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 | NOVA_9C1_1977         | 1977 MY US Nova four-door COPO 9C1 basis             | LG3 5001 cc OHV V8; game 3MT conversion                         | Black/white police recolor and static roof lights                       |
 
 The supplied report's year choices are selections, not new identifications of the arcade sprites. In particular,
-Countach/GTO/F40 production-year maxima remain estimates; F40 1990 and YJ 1995 postdate the games. The 1984
+Countach/GTO production-year maxima remain estimates; YJ 1995 postdates the games. The F40 is K's 1988 choice. The 1984
 C4 intentionally substitutes a production-volume choice for an arcade appearance that may be 1986 or later.
 No annual production count is asserted by these runtime definitions. The 9C1 manual gearbox is explicitly a
 game conversion: the supplied police specification called for an automatic in the real car.
@@ -63,12 +64,12 @@ especially not claims of factory delivery colors. The stock-named palette key me
 ## Numerical conventions and remaining uncertainty
 
 Each run has one fixed 75 kg driver and no passengers or cargo. Published curb/ready masses are used as
-qualified below; fuel and fluids already in those masses are not added again. For the GTO and F40 only,
-Ferrari's dry masses are converted using 120 L fuel at an estimated 0.75 kg/L plus 15 kg of other fluids,
-then the driver. Consumption and changing fuel mass are not simulated.
+qualified below; fuel and fluids already in those masses are not added again. For the GTO only,
+Ferrari's dry mass is converted using 120 L fuel at an estimated 0.75 kg/L plus 15 kg of other fluids,
+then the driver. The F40's 1,235 kg is K's base ([below](#ferrari-f40-of-1988-sources-versus-authored)). Consumption and changing fuel mass are not simulated.
 
 Mass bases before the driver are S4 1590, Esprit 1220, Countach 1490, 930 1335, GTO 1265, early 928 S 1520,
-Pickup 1118.1, F40 1205, 959 Komfort 1600 (K's, [below](#porsche-959-of-1987-sources-versus-authored)), C4 1370, Mini 630, YJ 1331, Nova six 1410 and police Nova 1500 kg.
+Pickup 1118.1, F40 1235, 959 Komfort 1600 (K's, [below](#porsche-959-of-1987-sources-versus-authored)), C4 1370, Mini 630, YJ 1331, Nova six 1410 and police Nova 1500 kg.
 S4 is a factory-table curb anchor; Pickup is 2465 lb converted from the exact long-bed column; C4 and YJ are
 rounded secondary curb values. Other non-Ferrari masses remain estimates or uncertain secondary-market
 interpretations. They must not be relabelled as verified dry weights.
@@ -94,8 +95,8 @@ ABS, spring rates, bump travel, tire temperature, handling limits or stopping-di
 
 The Esprit, 928 S, Countach, 930, Mini, Toyota and Novas still lack a read, exact-year primary gearbox
 ratio table. Their provisional ratios are explicit engineering estimates, not borrowed verified facts from
-another year. The F40 uses provisional gear pairs 2.769/1.722/1.227/0.963/0.767 and effective final reduction
-`2.9*4/3`; the transfer reduction is folded into the existing single final-drive field. The GTO manual's
+another year. The F40 uses gear pairs 2.769/1.722/1.227/0.963/0.767 and the European effective final reduction
+`(30/11)*(28/21)`; the transfer reduction is folded into the existing single final-drive field. The GTO manual's
 published ratios already include its transfer gears and therefore must not receive that factor a second time.
 The 928 final reductions distinguish US S4 2.20 and 1984 US S 2.36. The S4's gears are the 1987 US G28/13's
 4.067/2.714/1.934/1.463/1.000 ([below](#porsche-928-s4-of-1987-sources-versus-authored)), which already include the
@@ -108,8 +109,9 @@ remains unverified.
 
 Accessed 2026-10-23 UTC. Search snippets, blocked URLs and unread manuals are not treated as source verification.
 The numeric ledger distinguishes `source verified`, `calculated`, `engineering estimate` and `game design`, and for
-the 959 and the 928 S4 `source (auditor)`: the stage auditor's reading, not read for the PR that wrote it
-([959](#porsche-959-of-1987-sources-versus-authored), [928 S4](#porsche-928-s4-of-1987-sources-versus-authored)).
+the 959, the 928 S4 and the F40 of 1988 `source (auditor)`: the stage auditor's reading, not read for the PR that
+wrote it ([959](#porsche-959-of-1987-sources-versus-authored), [928 S4](#porsche-928-s4-of-1987-sources-versus-authored),
+[F40](#ferrari-f40-of-1988-sources-versus-authored)).
 A source-verified secondary value means that page was read, not that it has primary-document authority.
 
 1. **928 S4 factory-table transcription**, [general/engine](https://www.jenniskens.eu/Technical/TechSpecs/TechSpecs1.htm)
@@ -167,7 +169,7 @@ A source-verified secondary value means that page was read, not that it has prim
 Conflicting secondary Countach pages mix incompatible bore, gearbox, power-unit and performance figures;
 they are not blanket authorities for this data. An Esprit page labelled simply “Turbo” actually describes
 the 1987 Stevens body and is not the 1984 geometry source. Unread F40 racing tables and a later owner's manual
-are not evidence for the selected 1990 non-catalyst road specification.
+are not evidence for the selected 1988 non-catalyst road specification.
 
 ## Pictures and sound
 
@@ -179,10 +181,10 @@ estimates; this is not a dimensioned CAD reconstruction. Dimensions include a pr
 so tiny mirrors, lamps or the spare can extend slightly beyond the nominal body panel dimensions.
 
 Each car has its own existing-format sound graph with its cylinder count and evenly spaced firing phases.
-Ferrari flat-plane banks alternate; the two 928s route 1-3-7-2-6-5-4-8 by banks 1–4/5–8, the S4's banks meeting only
+Ferrari flat-plane banks alternate (the F40's exhaust is written [below](#f40-exhaust-and-sound)); the two 928s route 1-3-7-2-6-5-4-8 by banks 1–4/5–8, the S4's banks meeting only
 in its rear silencer ([below](#porsche-928-s4-of-1987-sources-versus-authored)), while Chevy V8s route
-1-8-4-3-6-5-7-2 by odd/even banks. Flat sixes and V12 use alternating banks. Except the S4's, whose sources are
-given below, all valve openings, diameters, pipe dimensions and collector simplifications are estimates. They are
+1-8-4-3-6-5-7-2 by odd/even banks. Flat sixes and V12 use alternating banks. Except the S4's and the F40's, whose
+sources are given below, all valve openings, diameters, pipe dimensions and collector simplifications are estimates. They are
 synthesized approximations, not recordings or independently verified exhaust acoustics. No siren, turbo sound process or physics is added.
 
 ## Reproduction and validation
@@ -354,6 +356,87 @@ The stage auditor's reading (2026-11-20), not reached by the PR that wrote this 
   [the tailpipes](https://rennlist.com/forums/928-forum/369753-928-muffler-exhaust-tips.html),
   [the cams](https://rennlist.com/forums/928-forum/1287743-928-gt-cams-2.html) and
   [the exhaust valves](https://www.design911.com/porsche/928gt-5-0l-1989-91/porsche-engine-valves-guides-and-springs/).
+
+## Ferrari F40 of 1988: sources versus authored
+
+K takes TURBO OUTRUN's car for the Ferrari F40 of 1988, European specification (K, 2026-11-19); nothing here claims
+the original says so. `FERRARI_F40_1988` is an ordinary European road car of 1988 without catalyst, with left-hand drive,
+the fixed ride height and the five-speed manual; it mends the earlier 1990 entry rather than adding a second F40. Its
+numbers follow this ledger's [conventions](#numerical-conventions-and-remaining-uncertainty).
+
+The source column is the stage auditor's reading (2026-11-19 and 2026-11-20) of the pages listed [below](#f40-sources);
+the PRs that wrote this section could not reach them, so none is marked as read here: their class is `source (auditor)`. K's decisions are the year and
+market, the 1,235 kg base and the European gearing; the auditor's choices are the nominal wheel radii and the exhaust's
+estimates.
+
+| Item                 | Source (auditor's reading)                                                                        | Authored `FERRARI_F40_1988`                                                           | Class               |
+| -------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------- |
+| Gears                | 36/13, 31/18, 27/22, 26/27, 23/30 (FIA form B-293's standard set)                                 | 2.769 / 1.722 / 1.227 / 0.963 / 0.767, unchanged                                      | source (auditor)    |
+| Final reduction      | constant pair 28/21; European differential 30/11 (the US car's is 29/10)                          | `(30/11) × (28/21)` = **3.636363636**; overall 10.069 / 6.262 / 4.463 / 3.501 / 2.787 | source (auditor), K |
+| Mass                 | 1,235 kg for the 1988 car (a specification table; a US/European list gives 2,717 lb); not primary | **1,310 kg**: 1,235 + the 75 kg driver                                                | K, calculated       |
+| Tyres                | 245/40 ZR17 front, 335/35 ZR17 rear                                                               | Nominal radii **0.314 / 0.333 m**; inertias `25r²` / `27r²` = 2.465 / 2.994 kg m²     | calculated          |
+| Inertias             | —                                                                                                 | Box estimates **2,497 / 2,211 kg m²**                                                 | calculated          |
+| Brakes               | —                                                                                                 | 1,310 × 11.5 m/s², 65:35, × the radii, to 25 N m: **3,075 / 1,750 N m**               | game design         |
+| Redline              | the tachometer's red from 7,750 rpm (a secondary description)                                     | 7,750 rpm, unchanged                                                                  | source (auditor)    |
+| Dimensions, engine   | Ferrari's model page (read for the earlier entry)                                                 | unchanged                                                                             | source verified     |
+| Idle, CG, mass split | —                                                                                                 | 1,000 rpm, 0.44 m, 58% rear, unchanged; no source found                               | estimate            |
+
+- The FIA form took effect in December 1989; the 1988 European owner's manual is not read. The 1,235 kg is not a
+  primary figure, and whether it holds fuel is not known.
+- The radii are the tyres' nominal ones, as for every car here. A road test's 43.5 km/h per 1,000 rpm in fifth implies a
+  rolling radius of about 0.322 m, so the game's gearing is about 3.5% longer than the car's.
+- Boost onset and lag are not represented; the torque curve is the steady full-throttle envelope, unchanged.
+
+### F40 exhaust and sound
+
+The engine sound is written from Ferrari's part list 021 (exhaust, cars without catalyst), as the auditor read its text:
+one cast manifold per bank, the pipe between the manifolds (part 122561), an IHI turbocharger per bank, a pipe from each
+turbocharger into the one silencer, and three outlets, the outer two the exhaust's and the centre one the wastegate's.
+The part list's drawing is not read here, so where the crossover leaves each manifold and the silencer's inlets and
+outlets are not checked against it.
+
+| Part                          | Written                                                                            | Class                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------- |
+| Exhaust valves                | Two of 26 mm a cylinder (FIA form): equal-area 36.8 mm; lift taken ≥ 6.5 mm        | source (auditor), calculated                 |
+| Valve timing                  | 54° BBDC / 10° ATDC at 0.5 mm, read as the Testarossa's: about 280°, `open` 0.3889 | source (auditor), calculated                 |
+| Firing order                  | 1-5-3-7-4-8-2-6, the banks alternating: phases and primaries unchanged             | source (auditor)                             |
+| Eight primaries               | 0.35 × 35 mm to the right and left manifolds, unchanged                            | estimate                                     |
+| Pipe between the manifolds    | 0.60 × 38 mm, always open                                                          | connection: source (auditor); size: estimate |
+| Turbine throats               | 0.08 × 27.6 mm each, as the 959's                                                  | estimate                                     |
+| Turbochargers to the silencer | 2 × 0.40 × 54 mm                                                                   | size: a replacement maker's main pipe        |
+| Silencer to the outer outlets | 2 × 0.60 × 54 mm; the 70 mm tips are not written                                   | size: as above; lengths: estimate            |
+
+- The wastegate is not represented, nor its centre outlet, as for the RX-7; the silencer's body is a straight pipe of
+  its inlet diameter.
+- The 54 mm is a replacement maker's main pipe for the catalyst car, outside or inside not stated; Ferrari's own pipe is
+  not checked.
+- Its engine loudness, measured again, is −22.60 LUFS against the earlier −20.40.
+
+### F40 measured on the flat
+
+The existing solver on this ledger's flat, dry, windless straight with the automatic shifts, not tuned to any real
+figure:
+
+| Measure                        | Measured                                                |
+| ------------------------------ | ------------------------------------------------------- |
+| 0–100 km/h, 0–200 km/h         | 3.10 s, 9.50 s                                          |
+| 0–400 m, 0–1,000 m             | 10.9 s, 19.6 s (between 1 s samples)                    |
+| Top speed                      | 332.6 km/h in fifth at 7,465 rpm, held by drag          |
+| Redline speeds, first to fifth | 97, 155, 218, 278, 349 km/h                             |
+| Shifts                         | 97, 156, 218 and 278 km/h, at 3.0, 6.0, 11.4 and 21.2 s |
+| Braking from 100 km/h          | 2.55 s, 36.1 m                                          |
+
+It launches, shifts through all five gears and restarts from rest (182 km/h 8 s after stopping).
+
+### F40 sources
+
+The stage auditor's reading (2026-11-19 and 2026-11-20), not read for these PRs:
+[FIA homologation form B-293](https://historicdb.fia.com/sites/default/files/car_attachment/1601077201/homologation_form_number_293_group_b.pdf),
+[a US/European specification list](https://www.ferrarichat.com/forum/posts/139741571),
+[a road test's figures as quoted](https://www.gtplanet.net/forum/threads/difficult-car-ferrari-f40.310621/),
+[Ferrari's part list 021, exhaust without catalyst](https://www.allferrariparts.com/tbl12205.html) and
+[a replacement maker's catalogue](https://catalogue.tubistyle.it/ferrari/f40-1987-1992.html); the 1,235 kg is from a
+specification table of the 1988 car (cars-data).
 
 ## Mazda RX-7 Turbo II of 1987: sources versus authored
 
