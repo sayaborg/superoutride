@@ -4,10 +4,19 @@
   "form": "car",
   "selectionOrder": 46,
   "visuals": {
-    "spriteSet": "porsche-928-s-1984",
-    "palette": "stock",
+    "spriteSet": "rx-7-turbo-ii-1987",
+    "palette": "sunrise-red",
     "steeringPicture": "montecarlo",
-    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+    "colorNames": {
+      "sunrise-red": "SUNRISE RED",
+      "noble-white": "NOBLE WHITE",
+      "brilliant-black": "BRILLIANT BLACK",
+      "tornado-silver": "TORNADO SILVER METALLIC",
+      "arctic-silver": "ARCTIC SILVER METALLIC",
+      "sapphire-blue": "SAPPHIRE BLUE METALLIC",
+      "royal-maroon": "ROYAL MAROON METALLIC",
+      "satin-gold": "SATIN GOLD METALLIC"
+    }
   },
   "sound": "RX_7_TURBO_II_1987",
   "metadata": {

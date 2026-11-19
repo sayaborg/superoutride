@@ -54,8 +54,8 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
 - **Pictures.** 911 TURBO 3.3's and GOLF GTI 16V's pictures are generated sets, VFR750R's a 3D prototype,
-  TESTAROSSA's, the M23 PP SPEC's, the NSR500 of 1984's and the XR600R of 1985's baked from K's models, TESTAROSSA's
-  with a car's glossy finish, the other vehicles' converted provisional pictures
+  TESTAROSSA's, the RX-7 Turbo II of 1987's, the M23 PP SPEC's, the NSR500 of 1984's and the XR600R of 1985's baked
+  from K's models, the two cars' with a car's glossy finish, the other vehicles' converted provisional pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
   admits the measured racing lines, reference times and pace schedules, which `npm run measure` saves under `content/`
@@ -137,11 +137,11 @@ K's decisions of 2026-11-19: TOP SPEED's car is taken for the Mazda RX-7 Turbo I
 vehicle of its own as faithful to the real car as can be, 1,695 mm wide with the US mass and length; its pictures are
 baked from K's model by the car baking of Stage F110's F110-1, the model's own wheelbase (2,393 mm) left as K allowed,
 its driving on the real 2,430 mm ([Arcade car selections](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored)).
-FC3S-1 adds the vehicle, its sound and its listing, on PORSCHE_928_S_1984's pictures for now.
+FC3S-1 adds the vehicle, its sound and its listing; FC3S-2 bakes its pictures, `rx-7-turbo-ii-1987`, from K's model by
+the Testarossa's recipe in eight 1987 paints, the default `sunrise-red` ([Model solids](image-assets.md#model-solids)).
 
-- FC3S-2, after F110-1 is on main: bake `rx-7-turbo-ii-1987` from K's model (SHA-256 `58939096…`, on
-  `codex/rx7-turbo2-1987-glb-source`, never on main) in eight 1987 paints, the default `sunrise-red`; draft for K.
-- To look at in DEV: choosing RX-7 TURBO II in FREE PLAY and its ENGINE shown as `R2T`; its sound (two firings a
+- To look at in DEV: the pictures near and far in the eight paints, the brake lamp's upper row, the wheels and the
+  hood scoop; choosing RX-7 TURBO II in FREE PLAY and its ENGINE shown as `R2T`; its sound (two firings a
   revolution, the interval of a four, so likely near one; the pipes move on DEV's ENGINE SOUNDS); acceleration, top
   speed and fifth's pull. On the flat it is quicker than the real car's tests (0–60 mph in 6.13 s against 6.7 and 7.2 s,
   the quarter mile in 14.80 s against 15.2 to 15.3 s) and tops out at 246 km/h against the claimed 230 km/h.
@@ -155,6 +155,8 @@ FC3S-1 adds the vehicle, its sound and its listing, on PORSCHE_928_S_1984's pict
   340 mmHg (about 6.6 psi), not used, and gives neither the rev limit nor the redline: 7,000 rpm stays the auditor's
   proposal, awaiting K. The other cited sources were not reachable from FC3S-1's environment; their values are the
   auditor's reading.
+- The engine sound's `metadata.note` still says "one pipe through the catalyst" and that the port timing was not
+  read; it is mended with the next change to the sound, which measures its loudness again.
 - Not decided: how TOP SPEED's series uses it (the player's car, rivals, nitro), its own tire values and its steering
   picture.
 

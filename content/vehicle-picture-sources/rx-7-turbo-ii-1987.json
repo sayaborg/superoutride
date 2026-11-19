@@ -1,0 +1,243 @@
+{
+  "format": "superoutride.vehicle-model-recipe",
+  "version": 1,
+  "vehicle": "RX_7_TURBO_II_1987",
+  "yawVariants": 64,
+  "model": {
+    "sha256": "589390967f608bfde3163f6838e8efde9b1c84afe82845f14591052c4500cb6d",
+    "right": "-x",
+    "up": "+y",
+    "forward": "+z",
+    "frontHub": [
+      0,
+      0.316,
+      1.1964
+    ]
+  },
+  "spacing": 0.008,
+  "paints": {
+    "colors": [
+      [
+        243,
+        7,
+        20
+      ]
+    ],
+    "within": 8,
+    "lamp": [
+      255,
+      0,
+      255
+    ]
+  },
+  "glass": {
+    "color": [
+      10,
+      10,
+      12
+    ],
+    "within": 4,
+    "rough": 0.5
+  },
+  "ramps": {
+    "paints": [
+      7
+    ],
+    "glass": 3,
+    "grey": 4,
+    "sampleYaws": 16
+  },
+  "light": {
+    "main": [
+      -0.25,
+      0.85,
+      0.46
+    ],
+    "fill": [
+      0.6,
+      0.2,
+      0.5
+    ],
+    "ambient": 0.08,
+    "sky": 0.14,
+    "mainWeight": 0.92,
+    "fillWeight": 0.06,
+    "greyGain": 1.5
+  },
+  "reflection": {
+    "paint": {
+      "f0": 0.1,
+      "horizon": [
+        205,
+        218,
+        238
+      ],
+      "zenith": [
+        120,
+        160,
+        230
+      ],
+      "haze": [
+        70,
+        66,
+        68
+      ],
+      "ground": [
+        20,
+        18,
+        20
+      ],
+      "fall": 0.1,
+      "power": 0.6
+    },
+    "glass": {
+      "f0": 0.8,
+      "horizon": [
+        232,
+        240,
+        248
+      ],
+      "zenith": [
+        58,
+        120,
+        222
+      ],
+      "haze": [
+        205,
+        214,
+        224
+      ],
+      "ground": [
+        86,
+        88,
+        92
+      ],
+      "fall": 0.35,
+      "power": 0.6
+    }
+  },
+  "glare": [
+    {
+      "power": 30,
+      "strength": 2.0,
+      "glass": 1.0
+    },
+    {
+      "power": 220,
+      "strength": 4.0,
+      "glass": 1.5
+    }
+  ],
+  "wheels": [
+    {
+      "center": [
+        0.725,
+        0.316,
+        1.1964
+      ],
+      "radius": 0.316,
+      "rim": 0.2275,
+      "width": 0.205
+    },
+    {
+      "center": [
+        -0.725,
+        0.316,
+        1.1964
+      ],
+      "radius": 0.316,
+      "rim": 0.2275,
+      "width": 0.205
+    },
+    {
+      "center": [
+        0.72,
+        0.316,
+        -1.1964
+      ],
+      "radius": 0.316,
+      "rim": 0.2275,
+      "width": 0.205
+    },
+    {
+      "center": [
+        -0.72,
+        0.316,
+        -1.1964
+      ],
+      "radius": 0.316,
+      "rim": 0.2275,
+      "width": 0.205
+    }
+  ],
+  "liveries": {
+    "sunrise-red": [
+      [
+        243,
+        7,
+        20
+      ]
+    ],
+    "noble-white": [
+      [
+        238,
+        238,
+        232
+      ]
+    ],
+    "brilliant-black": [
+      [
+        20,
+        20,
+        22
+      ]
+    ],
+    "tornado-silver": [
+      [
+        150,
+        156,
+        162
+      ]
+    ],
+    "arctic-silver": [
+      [
+        198,
+        202,
+        206
+      ]
+    ],
+    "sapphire-blue": [
+      [
+        28,
+        44,
+        96
+      ]
+    ],
+    "royal-maroon": [
+      [
+        88,
+        20,
+        36
+      ]
+    ],
+    "satin-gold": [
+      [
+        176,
+        152,
+        104
+      ]
+    ]
+  },
+  "brakeLamp": {
+    "off": [
+      125,
+      12,
+      18
+    ],
+    "on": [
+      255,
+      70,
+      40
+    ]
+  }
+}

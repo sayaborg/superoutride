@@ -617,7 +617,8 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `mclaren-m23-pp-spec`, `nsr500-1984` and `xr600r-1985` from models ([Model solids](#model-solids)). The other
+and `testarossa`, `rx-7-turbo-ii-1987`, `mclaren-m23-pp-spec`, `nsr500-1984` and `xr600r-1985` from models
+([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by
 code, original, for an earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
 octave `k` of a full-size picture whose anchor sits at the vehicle's base point (where a camera 1.75 m up and 6 m
@@ -1054,6 +1055,35 @@ livery's. The first, the model's own and the default, is Rosso Corsa; the eight 
 Each name is the color's full name (K, 2026-11-19). The model is K's `ferrari-testarossa-1984.glb`
 (SHA-256 `c9ef7c06…`), kept on K's branch `codex/testarossa-1984-glb-source`, never on main; it has no wheel nodes,
 and its front hub is (0, 0.3155, 1.53).
+
+**The RX-7 Turbo II of 1987.** Its set, `rx-7-turbo-ii-1987`, is baked from K's model by the Testarossa's recipe
+(K, 2026-11-19): the same steps (seven reds, three glass steps and four greys), light, reflections, glare, spacing, 64
+directions and brake lamp colors, none moved for this car. What differs is the model's: the body's red (243, 7, 20) is
+its one paint, within 8; the glass is (10, 10, 12), within 4 and of roughness below 0.5, while its other black parts
+(trim, tyres, mirrors, underside) keep their own colors and are greys; the magenta (255, 0, 255) is the brake lamp, the
+tail lamps' upper row, which K painted, the lower row (amber, white, red) as the model came. The model holds its
+roughness, 0.10 on the red, the glass and the brake lamp and 0.90 on the other dark parts, and its occlusion, made as
+the Testarossa model's. Its four wheels are spun as the model's `extras` give them: centres (±0.725, 0.316, 1.1964) m
+front and (±0.72, 0.316, −1.1964) m rear, radius 0.316, width 0.205 (205/55 VR 16); the rims are 0.72 of the radius,
+0.2275. The model was scaled along each axis to the car's length, width and height, so its wheelbase is 2,393 mm
+against the car's 2,430 mm, which its driving uses (K allowed the difference, 2026-11-19).
+
+Its eight liveries are Mazda's paints for the 1987 model year (the stage auditor's choice and provisional base colors,
+awaiting K); whether all eight were offered on the Turbo II is not checked:
+
+| Palette           | Name                    | Code | Base color    |
+| ----------------- | ----------------------- | ---- | ------------- |
+| `sunrise-red`     | SUNRISE RED             | RH   | 243, 7, 20    |
+| `noble-white`     | NOBLE WHITE             | WY   | 238, 238, 232 |
+| `brilliant-black` | BRILLIANT BLACK         | PZ   | 20, 20, 22    |
+| `tornado-silver`  | TORNADO SILVER METALLIC | K8   | 150, 156, 162 |
+| `arctic-silver`   | ARCTIC SILVER METALLIC  | J5   | 198, 202, 206 |
+| `sapphire-blue`   | SAPPHIRE BLUE METALLIC  | 5A   | 28, 44, 96    |
+| `royal-maroon`    | ROYAL MAROON METALLIC   | 3A   | 88, 20, 36    |
+| `satin-gold`      | SATIN GOLD METALLIC     | 1A   | 176, 152, 104 |
+
+The model is K's `mazda-rx7-turbo2-1987.glb` (SHA-256 `58939096…`), kept on K's branch
+`codex/rx7-turbo2-1987-glb-source`, never on main; it has no wheel nodes, and its front hub is (0, 0.316, 1.1964).
 
 ## HUD picture generator
 

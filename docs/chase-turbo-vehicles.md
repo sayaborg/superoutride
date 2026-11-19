@@ -247,7 +247,8 @@ US mass and length, and the power and torque anchors.
 - The twin-scroll turbine's switch (only the primary passage below 2,700 rpm, both above; p. 4B-17), the wastegate
   built into the turbocharger and the air-cooled intercooler under the hood scoop (pp. 4B-18, 4B-45) are not
   represented; the torque curve's point at 2,000 rpm (180 N m) stays an estimate.
-- Its pictures are PORSCHE_928_S_1984's set and palettes until its own are baked from K's model (Stage FC3S, FC3S-2).
+- Its pictures are baked from K's model in eight 1987 paints ([Model solids](image-assets.md#model-solids)); the
+  model's wheelbase is 2,393 mm against the 2,430 mm its driving uses, a difference K allowed.
 
 ### Measured on the flat
 
