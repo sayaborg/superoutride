@@ -617,7 +617,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by
@@ -1116,6 +1116,41 @@ from paint samples), and the two metallics are solid colors, without flake:
 
 The model is K's `porsche-959-1987.glb` (SHA-256 `e426f91d…`), kept on K's branch `codex/porsche-959-1987-glb-source`,
 never on main; it has no wheel nodes, and its front hub is (0, 0.3216, 1.1503).
+
+**The 928 S4 of 1987.** Its set, `porsche-928-s4-1987`, is baked from K's model by the RX-7's recipe (K, 2026-11-20):
+the same steps (seven paint steps, three glass steps and four greys), light, reflections, glare, spacing, 64 directions
+and brake lamp colors, none moved for this car. What differs is the model's: the body's red (231, 10, 14) is its one
+paint, within 8; the glass is (10, 10, 12), within 4 and of roughness below 0.5, six panes (the windscreen, the doors'
+and the rear quarters' and the rear window); the magenta (255, 0, 255) is the brake lamp, the tail lamps' lower row,
+which K painted, the upper row (amber and white) as the model came. The front's low intake, which K painted black
+(17, 17, 17), the rear spoiler, the mirrors' backs and the underside keep their own dark colors and are greys. The flat
+panel between the tail lamps is the body's color and shines bright from behind; K keeps it (2026-11-20). The model holds
+its roughness, 0.10 on the red, the glass and the brake lamp and 0.90 on the other dark parts, and its occlusion, made
+as the Testarossa and RX-7 models' are. Its four wheels are spun as the model's `extras` give them: centres
+(±0.7745, 0.3157, 1.25) m front and (±0.773, 0.3135, −1.25) m rear, radii 0.3157 and 0.3135, widths 0.225 and 0.245
+(225/50 VR 16 and 245/45 VR 16); the rims are 0.2207 (the stage auditor's). The model is 4,521 × 1,836 × 1,282 mm
+(1,964 mm across the mirrors) on the car's 2,500 mm wheelbase, the full width at the front and rear fenders and the
+tracks and tires the car's. The wheels drawn are the tires' nominal size, not the 0.305 and 0.306 m its driving uses.
+Its one exhaust outlet, at the left rear, is the model's; the car has two.
+
+Its eight liveries are Porsche's colors (K: eight for now, 2026-11-20; the colors, keys and base colors are the stage
+auditor's, provisional); the three metallics are flat colors without flake, and whether all eight were offered on the
+1987 US car is not checked:
+
+| Palette                  | Name                   | Code | Base color    |
+| ------------------------ | ---------------------- | ---- | ------------- |
+| `guards-red`             | GUARDS RED             | 80K  | 231, 10, 14   |
+| `black`                  | BLACK                  | 700  | 18, 18, 20    |
+| `grand-prix-white`       | GRAND PRIX WHITE       | 908  | 238, 238, 232 |
+| `silver-metallic`        | SILVER METALLIC        | 980  | 190, 194, 198 |
+| `dark-blue`              | DARK BLUE              | 347  | 22, 30, 70    |
+| `summer-yellow`          | SUMMER YELLOW          | 10W  | 240, 205, 40  |
+| `venetian-blue-metallic` | VENETIAN BLUE METALLIC | 35U  | 40, 70, 120   |
+| `cassis-red-metallic`    | CASSIS RED METALLIC    | 80D  | 110, 24, 44   |
+
+The listing's default is `black` (K, 2026-11-20). The model is K's `porsche-928-s4-1987.glb` (SHA-256 `c43ba501…`),
+kept on K's branch `codex/928-s4-1987-glb-source`, never on main; it has no wheel nodes, and its front hub is
+(0, 0.3157, 1.25).
 
 ## HUD picture generator
 

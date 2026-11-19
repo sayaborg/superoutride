@@ -5,9 +5,18 @@
   "selectionOrder": 32,
   "visuals": {
     "spriteSet": "porsche-928-s4-1987",
-    "palette": "stock",
+    "palette": "black",
     "steeringPicture": "montecarlo",
-    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+    "colorNames": {
+      "guards-red": "GUARDS RED",
+      "black": "BLACK",
+      "grand-prix-white": "GRAND PRIX WHITE",
+      "silver-metallic": "SILVER METALLIC",
+      "dark-blue": "DARK BLUE",
+      "summer-yellow": "SUMMER YELLOW",
+      "venetian-blue-metallic": "VENETIAN BLUE METALLIC",
+      "cassis-red-metallic": "CASSIS RED METALLIC"
+    }
   },
   "sound": "PORSCHE_928_S4_1987",
   "metadata": {

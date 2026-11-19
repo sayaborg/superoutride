@@ -8,7 +8,7 @@ import { VEHICLE_SUBSTEPS } from '../../src/vehicle/physics/vehicle-model.js';
 
 /**
  * The fourteen vehicles the [ledger](../../docs/chase-turbo-vehicles.md) validates, in its order: those with procedural
- * pictures, and the Porsche 959 of 1987, whose pictures are baked from a model.
+ * pictures, and the Porsche 959 of 1987 and the 928 S4 of 1987, whose pictures are baked from models.
  */
 const CHASE_TURBO_VEHICLE_IDS = Object.freeze([
   'PORSCHE_928_S4_1987',

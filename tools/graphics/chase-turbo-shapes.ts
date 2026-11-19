@@ -5,10 +5,9 @@ import { createProceduralVehicleSolid, type Point3, type SurfaceColor } from './
 
 /**
  * Original, provisional authoring geometry. Dimensions and limitations are recorded in chase-turbo-vehicles.md. The
- * ledger's Porsche 959 has none: its pictures are baked from K's model.
+ * ledger's Porsche 959 and 928 S4 have none: their pictures are baked from K's models.
  */
 export const CHASE_TURBO_PICTURES = {
-  PORSCHE_928_S4_1987: 'porsche-928-s4-1987',
   TURBO_ESPRIT_1984: 'turbo-esprit-1984',
   COUNTACH_5000_QV_1988: 'countach-5000-qv-1988',
   '911_TURBO_3_3_1986': '911-turbo-3-3-1986',
@@ -33,7 +32,6 @@ const black: Rgb = [18, 20, 23],
   amber: Rgb = [240, 140, 20],
   paint: Rgb = [180, 180, 180];
 const bodies: Record<ChaseTurboId, Rgb> = {
-  PORSCHE_928_S4_1987: [35, 37, 41],
   TURBO_ESPRIT_1984: white,
   COUNTACH_5000_QV_1988: [245, 215, 35],
   '911_TURBO_3_3_1986': silver,
@@ -91,9 +89,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     x = m.overallWidth / 2,
     z = m.overallLength / 2,
     h = m.overallHeight;
-  const s4 = id === 'PORSCHE_928_S4_1987',
-    early928 = id === 'PORSCHE_928_S_1984',
-    p928 = s4 || early928,
+  const p928 = id === 'PORSCHE_928_S_1984',
     p930 = id === '911_TURBO_3_3_1986',
     esprit = id === 'TURBO_ESPRIT_1984',
     countach = id === 'COUNTACH_5000_QV_1988',
@@ -343,7 +339,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
               ? 0.165
               : nova
                 ? 0.185
-                : early928
+                : p928
                   ? 0.225
                   : countach
                     ? 0.345
@@ -415,7 +411,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
       );
   }
   if (pickup) for (const side of [-1, 1]) slab([side * 0.83 * x, 0.56 * h, -0.36 * z], [0.035, 0.02, 0.63 * z]);
-  if (early928) {
+  if (p928) {
     slab([0, 0.3 * h, tailZ - 0.03], [0.8 * x, 0.055, 0.035], black, 'plain');
     for (const side of [-1, 1]) slab([side * 0.77 * x, 0.42 * h, tailZ - 0.014], [0.04, 0.05, 0.01], amber, 'plain');
   }
@@ -429,17 +425,17 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     s.cylinder([0, 0.53 * h, -1.012 * z], [0, 0.53 * h, -1.016 * z], 0.18, metal);
   }
   if (p928 || p930 || countach || f40 || gto) {
-    const wingY = (s4 ? 0.68 : early928 ? 0.52 : p930 ? 0.59 : countach ? 0.88 : f40 ? 0.91 : 0.56) * h,
+    const wingY = (p928 ? 0.52 : p930 ? 0.59 : countach ? 0.88 : f40 ? 0.91 : 0.56) * h,
       wingZ = (p928 ? -0.82 : countach ? -0.83 : -0.87) * z,
       wingWidth = (countach ? 0.9 : f40 ? 0.95 : 0.79) * x;
-    if (s4 || countach || f40)
+    if (countach || f40)
       for (const side of [-1, 1])
         slab([side * (f40 ? 0.91 : 0.6) * x, (wingY + 0.48 * h) / 2, wingZ], [0.025, (wingY - 0.48 * h) / 2, 0.08 * z]);
     slab(
       [0, wingY, wingZ],
       [wingWidth, 0.035, (p930 ? 0.16 : 0.09) * z],
-      p930 || early928 ? black : paint,
-      p930 || early928 ? 'plain' : 'paint',
+      p930 || p928 ? black : paint,
+      p930 || p928 ? 'plain' : 'paint',
     );
   }
   if (esprit || countach || gto || f40) {

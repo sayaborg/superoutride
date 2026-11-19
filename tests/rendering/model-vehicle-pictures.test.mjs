@@ -531,8 +531,9 @@ test('the XR600R of 1985’s saved set: paint ramps of three, two and three, six
 for (const [vehicle, name] of [
   ['the TESTAROSSA of 1984', 'testarossa'],
   ['the RX-7 Turbo II of 1987', 'rx-7-turbo-ii-1987'],
+  ['the 928 S4 of 1987', 'porsche-928-s4-1987'],
 ])
-  test(`${vehicle}’s saved set: seven reds, three glass steps, four greys, eight liveries`, async () => {
+  test(`${vehicle}’s saved set: seven paint steps, three glass steps, four greys, eight liveries`, async () => {
     const value = JSON.parse(await readFile(new URL(`../../content/sprites/${name}.json`, import.meta.url), 'utf8'));
     const { set } = readVehicleSpriteSetDocument(value, name);
     assert.equal(set.yawVariants, 64);

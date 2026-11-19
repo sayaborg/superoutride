@@ -42,8 +42,9 @@ C4 intentionally substitutes a production-volume choice for an arcade appearance
 No annual production count is asserted by these runtime definitions. The 9C1 manual gearbox is explicitly a
 game conversion: the supplied police specification called for an automatic in the real car.
 
-All four palettes are game colors, without verified period paint codes. Blue GTO and the police livery are
-especially not claims of factory delivery colors. The stock-named palette key means the default game palette.
+Except the 959's and the 928 S4's, the four palettes are game colors, without verified period paint codes. Blue GTO
+and the police livery are especially not claims of factory delivery colors. The stock-named palette key means the
+default game palette.
 
 ## Representation within the current model
 
@@ -173,14 +174,14 @@ are not evidence for the selected 1988 non-catalyst road specification.
 
 ## Pictures and sound
 
-[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for thirteen of
-the cars; the 959's pictures are baked from K's model instead, in its four period colors
-([Model solids](image-assets.md#model-solids)). Those samples go through the existing shared camera, palette, shadows,
-sprite and six-LOD baker. Each of the thirteen has 64 yaw pictures, one bank, four palettes and the existing
-brake-lamp slot. No source photograph, ROM image or downloaded
-manual image is redistributed. Facet locations, window proportions, lights, rims, paint and details are visual
-estimates; this is not a dimensioned CAD reconstruction. Dimensions include a provisional visual envelope,
-so tiny mirrors, lamps or the spare can extend slightly beyond the nominal body panel dimensions.
+[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for twelve of
+the cars; the 959's pictures are baked from K's model instead, in its four period colors, and the 928 S4's in eight
+Porsche colors ([Model solids](image-assets.md#model-solids)). Those samples go through the existing shared camera,
+palette, shadows, sprite and six-LOD baker. Each of the twelve has 64 yaw pictures, one bank, four palettes and the
+existing brake-lamp slot. No source photograph, ROM image or downloaded manual image is redistributed. Facet
+locations, window proportions, lights, rims, paint and details are visual estimates; this is not a dimensioned CAD
+reconstruction. Dimensions include a provisional visual envelope, so tiny mirrors, lamps or the spare can extend
+slightly beyond the nominal body panel dimensions.
 
 Each car has its own existing-format sound graph with its cylinder count and evenly spaced firing phases.
 Ferrari flat-plane banks alternate (the F40's exhaust is written [below](#f40-exhaust-and-sound)); the two 928s route 1-3-7-2-6-5-4-8 by banks 1–4/5–8, the S4's banks meeting only

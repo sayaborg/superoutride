@@ -230,11 +230,14 @@ the real car's values, not added again, and its exhaust is written as the real c
 that: the G28/13's ratios, the 675 rpm idle and the 1,549 mm front track, and the two banks apart to the rear silencer
 ([Calibration](calibration.md#exhaust-topologies)).
 
-- P928-2, a draft for K: bake `porsche-928-s4-1987` from K's model (SHA-256 `c43ba501…`, on
-  `codex/928-s4-1987-glb-source`, never on main) by the car baking of F110-1 with the RX-7's recipe, in eight colors,
-  the default `black`; the four game colors go, as do the S4's procedural shape and its ledger pictures. The 928 S of
-  1984's shape and pictures stay byte-identical.
-- To look at in DEV: the sound, the banks meeting at the rear against the former separate banks, the 675 rpm idle, and
+- P928-2 has baked `porsche-928-s4-1987` from K's model (SHA-256 `c43ba501…`, on `codex/928-s4-1987-glb-source`,
+  never on main) by the car baking of F110-1 with the RX-7's recipe, in eight colors, the default `black`
+  ([Model solids](image-assets.md#model-solids)); the four game colors, the S4's procedural shape and its ledger
+  pictures are gone. The 928 S of 1984's shape and pictures are byte-identical.
+- To look at in DEV: SELECT VEHICLE's eight colors for the 928 S4, BLACK the default; the black body's shape read
+  through its reflections and steps; the glass, the rear spoiler and the back; the rear wheels a little hidden by the
+  fenders; the bright panel between the tail lamps and the brake lamp lit; the eight colors told apart far away. The
+  sound, the banks meeting at the rear against the former separate banks, the 675 rpm idle, and
   the pipes' lengths (2.70 m) and the rear silencer's body (0.50 m) moved on ENGINE SOUNDS; first gear's shortness and
   fourth's and fifth's pull. On the flat it gives 0–60 mph in 5.35 s against the quoted 5.7 s (5.1 s in one list), the
   quarter mile in 13.83 s against 14.1 s, and 271 km/h in fifth at 5,200 rpm against the claimed 165 mph (266 km/h).
