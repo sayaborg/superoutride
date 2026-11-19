@@ -4,12 +4,12 @@
   "form": "car",
   "selectionOrder": 39,
   "visuals": {
-    "spriteSet": "ferrari-f40-1990",
+    "spriteSet": "ferrari-f40-1988",
     "palette": "stock",
     "steeringPicture": "montecarlo",
     "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
   },
-  "sound": "FERRARI_F40_1990",
+  "sound": "FERRARI_F40_1988",
   "metadata": {
     "manufacturer": "Ferrari",
     "model": "F40",

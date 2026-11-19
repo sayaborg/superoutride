@@ -273,8 +273,8 @@
     ]
   },
   {
-    "id": "FERRARI_F40_1990",
-    "sprite": "ferrari-f40-1990",
+    "id": "FERRARI_F40_1988",
+    "sprite": "ferrari-f40-1988",
     "sha256": "8300f955c10ac29e037bb84ca8aa54a73f3cdd71bec3a5ec02da49aae92565f9",
     "yawVariants": 64,
     "bankVariants": 1,

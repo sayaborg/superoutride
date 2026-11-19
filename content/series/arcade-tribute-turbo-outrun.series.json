@@ -16,7 +16,7 @@
       "course": "turbo-outrun-section-1",
       "laps": 1,
       "vehicles": [
-        "FERRARI_F40_1990"
+        "FERRARI_F40_1988"
       ],
       "entries": [
         {
@@ -27,7 +27,7 @@
           "ahead": null
         },
         {
-          "vehicle": "FERRARI_F40_1990",
+          "vehicle": "FERRARI_F40_1988",
           "color": "red",
           "stages": null,
           "slot": 1,
@@ -73,7 +73,7 @@
       "course": "turbo-outrun-section-2",
       "laps": 1,
       "vehicles": [
-        "FERRARI_F40_1990"
+        "FERRARI_F40_1988"
       ],
       "entries": [
         {
@@ -84,7 +84,7 @@
           "ahead": null
         },
         {
-          "vehicle": "FERRARI_F40_1990",
+          "vehicle": "FERRARI_F40_1988",
           "color": "red",
           "stages": null,
           "slot": 1,
@@ -130,7 +130,7 @@
       "course": "turbo-outrun-section-3",
       "laps": 1,
       "vehicles": [
-        "FERRARI_F40_1990"
+        "FERRARI_F40_1988"
       ],
       "entries": [
         {
@@ -141,7 +141,7 @@
           "ahead": null
         },
         {
-          "vehicle": "FERRARI_F40_1990",
+          "vehicle": "FERRARI_F40_1988",
           "color": "red",
           "stages": null,
           "slot": 1,
@@ -187,7 +187,7 @@
       "course": "turbo-outrun-section-4",
       "laps": 1,
       "vehicles": [
-        "FERRARI_F40_1990"
+        "FERRARI_F40_1988"
       ],
       "entries": [
         {
@@ -198,7 +198,7 @@
           "ahead": null
         },
         {
-          "vehicle": "FERRARI_F40_1990",
+          "vehicle": "FERRARI_F40_1988",
           "color": "red",
           "stages": null,
           "slot": 1,

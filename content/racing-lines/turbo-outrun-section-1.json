@@ -7,7 +7,7 @@
   "lengthWeight": 0,
   "vehicles": [
     {
-      "vehicleId": "FERRARI_F40_1990",
+      "vehicleId": "FERRARI_F40_1988",
       "vehicleSha256": "f34bc4d44d544e25d55e66d2b93e6f97289fa9b2164012b789de511b45dd4369",
       "seconds": 193.352,
       "minimumCurvatureSeconds": 193.352
