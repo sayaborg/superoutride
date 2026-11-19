@@ -617,7 +617,8 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `mclaren-m23-pp-spec`, `nsr500-1984` and `xr600r-1985` from models
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+`xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by
 code, original, for an earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
@@ -1084,6 +1085,37 @@ awaiting K); whether all eight were offered on the Turbo II is not checked:
 
 The model is K's `mazda-rx7-turbo2-1987.glb` (SHA-256 `58939096…`), kept on K's branch
 `codex/rx7-turbo2-1987-glb-source`, never on main; it has no wheel nodes, and its front hub is (0, 0.316, 1.1964).
+
+**The Porsche 959 of 1987.** Its set, `porsche-959-1987`, is baked from K's model by the Testarossa's recipe (K,
+2026-11-19): the same steps (seven paint steps, three glass steps and four greys), light, reflections, glare, spacing,
+64 directions and brake lamp colors, none moved for this car. What differs is the model's: the body's red (231, 10, 14)
+is its one paint, within 8, a key for the colors and not one of them; the glass, the windscreen, the two side windows
+and the rear window, is (10, 10, 12), within 4 and of roughness below 0.5, while the low openings front and rear, which
+K painted the same black at roughness 0.90, and the other dark parts are greys; the headlamps' lenses keep their own
+color and are greys too; the magenta (255, 0, 255) is the brake lamp, the two ends of the rear band, which K painted,
+the band's middle as the model came. The model holds its roughness, 0.10 on the red, the glass and the brake lamp and
+0.90 on the other dark parts, and its occlusion, made as the Testarossa model's. Its four wheels are spun as the
+model's `extras` give them, at the real car's tracks and tyres: centres (±0.752, 0.3216, 1.1503) m front, radius
+0.3216, width 0.235 (235/45 VR 17), and (±0.775, 0.3179, −1.1503) m rear, radius 0.3179, width 0.255 (255/40 VR 17);
+the rims are the 17-inch wheels' 0.2159. These are the pictures' wheels; its driving keeps the
+[ledger's](chase-turbo-vehicles.md#numerical-conventions-and-remaining-uncertainty) radii, 0.315 and 0.311 m. The
+model was fitted along each axis to the car's length, width and height, so its wheelbase is 2,301 mm against the car's
+2,272 mm, which its driving uses (K accepted the difference, 2026-11-20).
+
+Its four colors are Porsche's of 1987 (K, 2026-11-20), named in English; the default is GRAND PRIX WHITE. The recipe's
+first color is the model's own, measured rather than recolored, so GUARDS RED, the one red, comes first and is the
+model's red; the others are recolored from it. Their base colors are provisional (the stage auditor's, not measured
+from paint samples), and the two metallics are solid colors, without flake:
+
+| Palette             | Name              | Porsche's name  | Code | Base color    |
+| ------------------- | ----------------- | --------------- | ---- | ------------- |
+| `guards-red`        | GUARDS RED        | Indischrot      | 027  | 231, 10, 14   |
+| `grand-prix-white`  | GRAND PRIX WHITE  | Grandprixweiß   | 908  | 240, 240, 234 |
+| `silver-metallic`   | SILVER METALLIC   | Silbermetallic  | 980  | 186, 190, 196 |
+| `graphite-metallic` | GRAPHITE METALLIC | Graphitmetallic | 691  | 70, 73, 79    |
+
+The model is K's `porsche-959-1987.glb` (SHA-256 `e426f91d…`), kept on K's branch `codex/porsche-959-1987-glb-source`,
+never on main; it has no wheel nodes, and its front hub is (0, 0.3216, 1.1503).
 
 ## HUD picture generator
 

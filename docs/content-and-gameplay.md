@@ -1082,10 +1082,11 @@ now, since its reference run ends off the pavement past its GOAL. The reference 
 so the clocks are generous until the driving is mended.
 
 ARCADE TRIBUTE - TURBO OUTRUN is delivered on the same terms (K, 2026-11-10), on its original SECTION 1 to 4, each one
-run with a margin of 1.35. The player drives the F40, in red, beside its one rival, a white 911 Turbo 3.3
-(the original's Porsche), both on the grid's first two slots (`own`); the traffic drives its lanes, five vehicles of
-equal weight standing for the original's (the C4 Corvette, the Nova 250, the Mini 850, the Wrangler and a 911 Turbo
-3.3), at 4 a kilometre and up to 90 km/h (provisional). The F40's reference runs recover 4 to 10 times a section.
+run with a margin of 1.35. The player drives the F40, in red, beside its one rival, the Porsche 959 of 1987 in GRAND
+PRIX WHITE (K's choice of the original's Porsche, 2026-11-19), both on the grid's first two slots (`own`); the traffic
+drives its lanes, five vehicles of equal weight standing for the original's (the C4 Corvette, the Nova 250, the Mini
+850, the Wrangler and a 911 Turbo 3.3), at 4 a kilometre and up to 90 km/h (provisional). The F40's reference runs
+recover 4 to 10 times a section.
 
 ARCADE TRIBUTE - FINAL LAP 2 is delivered on the same terms (K, 2026-11-10), on its original JAPAN, MONACO, ITALY and
 USA, 4 laps each with a margin of 1.35, without rank limits. The player drives the MP4/4, for now, from the last of

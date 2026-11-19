@@ -173,9 +173,11 @@ are not evidence for the selected 1988 non-catalyst road specification.
 
 ## Pictures and sound
 
-[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres. Those
-samples go through the existing shared camera, palette, shadows, sprite and six-LOD baker. Each car has 64 yaw
-pictures, one bank, four palettes and the existing brake-lamp slot. No source photograph, ROM image or downloaded
+[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for thirteen of
+the cars; the 959's pictures are baked from K's model instead, in its four period colors
+([Model solids](image-assets.md#model-solids)). Those samples go through the existing shared camera, palette, shadows,
+sprite and six-LOD baker. Each of the thirteen has 64 yaw pictures, one bank, four palettes and the existing
+brake-lamp slot. No source photograph, ROM image or downloaded
 manual image is redistributed. Facet locations, window proportions, lights, rims, paint and details are visual
 estimates; this is not a dimensioned CAD reconstruction. Dimensions include a provisional visual envelope,
 so tiny mirrors, lamps or the spare can extend slightly beyond the nominal body panel dimensions.
@@ -213,7 +215,8 @@ original says so. `PORSCHE_959_1987` is the 959 Komfort of the 1987 model year a
 type 959.50 twin-turbo flat six with the G59.01 gearbox, G and five road gears, and four-wheel drive. K chose the year
 as the earliest it could be, before the original's 1989, and its values as faithful to the real car as can be; where
 there is no source they are estimated. Its other numbers follow this ledger's
-[conventions](#numerical-conventions-and-remaining-uncertainty).
+[conventions](#numerical-conventions-and-remaining-uncertainty). It is the rival of ARCADE TRIBUTE - TURBO OUTRUN's
+four classes, in GRAND PRIX WHITE ([Series documents](content-and-gameplay.md#series-documents)).
 
 The source column is the stage auditor's reading (2026-11-20), not read for the PR that wrote this section: Porsche's
 parts catalogue for the 959 of the 1987 and 1988 model years, as Porsche distributes it (**catalogue**), Porsche
@@ -259,6 +262,9 @@ count. Point 1 was 235 N m at 2,000 rpm and point 2 500 N m at 5,000 rpm, both e
   not written. The two exhaust valves of each cylinder are one of their combined area: two of 33 mm (the 928 four-valve
   head's, whose seat the 959 shares; the 959's own valve not confirmed) give 46.7 mm. The valve's opening (0.36 of the
   cycle, about 260 degrees), every length and the primaries' and cross tube's diameters are estimates.
+- Its pictures are baked from K's model in four 1987 colors, GRAND PRIX WHITE the default
+  ([Model solids](image-assets.md#model-solids)); the model's wheelbase is 2,301 mm against the 2,272 mm its driving
+  uses, and its wheels are the tyres' nominal size, while its driving keeps this ledger's radii (K, 2026-11-20).
 
 ### Measured on the flat
 

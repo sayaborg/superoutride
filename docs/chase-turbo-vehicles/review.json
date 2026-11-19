@@ -312,45 +312,6 @@
     ]
   },
   {
-    "id": "PORSCHE_959_1987",
-    "sprite": "porsche-959-1987",
-    "sha256": "e2bb9a46bbb115bdb3015d2b963dc48e283054a04f8092992665615fb7f25cca",
-    "yawVariants": 64,
-    "bankVariants": 1,
-    "lods": [
-      {
-        "lod": 0,
-        "transparent": 0,
-        "lampPictures": 61
-      },
-      {
-        "lod": 1,
-        "transparent": 0,
-        "lampPictures": 57
-      },
-      {
-        "lod": 2,
-        "transparent": 0,
-        "lampPictures": 59
-      },
-      {
-        "lod": 3,
-        "transparent": 0,
-        "lampPictures": 57
-      },
-      {
-        "lod": 4,
-        "transparent": 0,
-        "lampPictures": 35
-      },
-      {
-        "lod": 5,
-        "transparent": 0,
-        "lampPictures": 0
-      }
-    ]
-  },
-  {
     "id": "CORVETTE_C4_1984",
     "sprite": "corvette-c4-1984",
     "sha256": "282f4664ce0a1634aa2b466033ed1a73f018df9cd497cde07908deace3ae08dc",

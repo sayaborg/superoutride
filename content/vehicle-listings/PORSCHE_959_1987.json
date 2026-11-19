@@ -5,9 +5,14 @@
   "selectionOrder": 40,
   "visuals": {
     "spriteSet": "porsche-959-1987",
-    "palette": "stock",
+    "palette": "grand-prix-white",
     "steeringPicture": "montecarlo",
-    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" },
+    "colorNames": {
+      "guards-red": "GUARDS RED",
+      "grand-prix-white": "GRAND PRIX WHITE",
+      "silver-metallic": "SILVER METALLIC",
+      "graphite-metallic": "GRAPHITE METALLIC"
+    },
     "gearNames": ["G", "1", "2", "3", "4", "5"]
   },
   "sound": "PORSCHE_959_1987",

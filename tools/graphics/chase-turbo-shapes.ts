@@ -3,7 +3,10 @@ import type { Rgb } from './vehicle-picture-recipe.js';
 import type { VehiclePictureStyle } from './vehicle-pictures.js';
 import { createProceduralVehicleSolid, type Point3, type SurfaceColor } from './procedural-vehicle-solid.js';
 
-/** Original, provisional authoring geometry. Dimensions and limitations are recorded in chase-turbo-vehicles.md. */
+/**
+ * Original, provisional authoring geometry. Dimensions and limitations are recorded in chase-turbo-vehicles.md. The
+ * ledger's Porsche 959 has none: its pictures are baked from K's model.
+ */
 export const CHASE_TURBO_PICTURES = {
   PORSCHE_928_S4_1987: 'porsche-928-s4-1987',
   TURBO_ESPRIT_1984: 'turbo-esprit-1984',
@@ -13,7 +16,6 @@ export const CHASE_TURBO_PICTURES = {
   PORSCHE_928_S_1984: 'porsche-928-s-1984',
   TOYOTA_PICKUP_1980: 'toyota-pickup-1980',
   FERRARI_F40_1988: 'ferrari-f40-1988',
-  PORSCHE_959_1987: 'porsche-959-1987',
   CORVETTE_C4_1984: 'corvette-c4-1984',
   AUSTIN_MINI_850_1964: 'austin-mini-850-1964',
   WRANGLER_YJ_1995: 'wrangler-yj-1995',
@@ -39,7 +41,6 @@ const bodies: Record<ChaseTurboId, Rgb> = {
   PORSCHE_928_S_1984: red,
   TOYOTA_PICKUP_1980: [190, 115, 55],
   FERRARI_F40_1988: red,
-  PORSCHE_959_1987: white,
   CORVETTE_C4_1984: blue,
   AUSTIN_MINI_850_1964: [45, 115, 75],
   WRANGLER_YJ_1995: [180, 150, 95],
@@ -94,7 +95,6 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     early928 = id === 'PORSCHE_928_S_1984',
     p928 = s4 || early928,
     p930 = id === '911_TURBO_3_3_1986',
-    p959 = id === 'PORSCHE_959_1987',
     esprit = id === 'TURBO_ESPRIT_1984',
     countach = id === 'COUNTACH_5000_QV_1988',
     gto = id === 'FERRARI_GTO_1985',
@@ -184,7 +184,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
         [0.85, 0.83, 0.36, 0.43],
         [1, 0.62, 0.29, 0.32],
       ]
-    : p930 || p959
+    : p930
       ? [
           [-1, 0.76, 0.4, 0.48],
           [-0.7, 1, 0.5, 0.57],
@@ -271,9 +271,9 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
   // A separate cabin with framed front, rear and side glazing. Positive z faces the road ahead.
   const floor = (mini ? 0.63 : jeep ? 0.54 : pickup ? 0.56 : nova ? 0.56 : 0.56) * h;
   const roofFront =
-    (mini ? 0.52 : jeep ? 0.21 : pickup ? 0.35 : nova ? 0.03 : p930 || p959 ? 0.08 : p928 || c4 ? -0.03 : 0.13) * z;
+    (mini ? 0.52 : jeep ? 0.21 : pickup ? 0.35 : nova ? 0.03 : p930 ? 0.08 : p928 || c4 ? -0.03 : 0.13) * z;
   const roofRear =
-    (mini ? -0.62 : jeep ? -0.75 : pickup ? -0.02 : nova ? -0.42 : p930 || p959 ? -0.4 : p928 || c4 ? -0.4 : -0.24) * z;
+    (mini ? -0.62 : jeep ? -0.75 : pickup ? -0.02 : nova ? -0.42 : p930 ? -0.4 : p928 || c4 ? -0.4 : -0.24) * z;
   const baseFront = roofFront + (jeep ? 0.07 : pickup ? 0.16 : mini ? 0.13 : 0.3) * z,
     baseRear = roofRear - (jeep ? 0.06 : pickup ? 0.04 : mini ? 0.13 : nova ? 0.18 : 0.34) * z;
   const roofY = (police ? 0.92 : 1) * h,
@@ -329,7 +329,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
         m.frontTrack,
         m.frontWheelRadius,
         mini ? 0.13 : jeep ? 0.205 : pickup ? 0.165 : nova ? 0.185 : 0.225,
-        mini ? 10 : pickup || nova ? 14 : countach || jeep ? 15 : f40 || p959 ? 17 : 16,
+        mini ? 10 : pickup || nova ? 14 : countach || jeep ? 15 : f40 ? 17 : 16,
       ],
       [
         -m.rearAxle,
@@ -352,7 +352,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
                       : gto
                         ? 0.265
                         : 0.245,
-        mini ? 10 : pickup || nova ? 14 : countach || jeep ? 15 : f40 || p959 ? 17 : 16,
+        mini ? 10 : pickup || nova ? 14 : countach || jeep ? 15 : f40 ? 17 : 16,
       ],
     ])
       s.wheel(
@@ -384,7 +384,6 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
       );
     if (p930 || mini || nova) roundLamp(side * 0.68 * x, (mini ? 0.57 : nova ? 0.44 : 0.5) * h, noseZ, 0.09);
     else if (p928) s.ellipsoid([side * 0.65 * x, 0.45 * h, 0.78 * z], [0.13, 0.025, 0.16], white);
-    else if (p959) s.ellipsoid([side * 0.68 * x, 0.44 * h, 0.79 * z], [0.13, 0.045, 0.18], white);
     else
       slab(
         [side * (jeep ? 0.49 : 0.64) * x, (jeep ? 0.5 : pickup ? 0.44 : 0.25) * h, noseZ],
@@ -429,11 +428,11 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     s.cylinder([0, 0.53 * h, -0.91 * z], [0, 0.53 * h, -1.01 * z], 0.32, black);
     s.cylinder([0, 0.53 * h, -1.012 * z], [0, 0.53 * h, -1.016 * z], 0.18, metal);
   }
-  if (p928 || p930 || p959 || countach || f40 || gto) {
-    const wingY = (s4 ? 0.68 : early928 ? 0.52 : p930 ? 0.59 : p959 ? 0.62 : countach ? 0.88 : f40 ? 0.91 : 0.56) * h,
+  if (p928 || p930 || countach || f40 || gto) {
+    const wingY = (s4 ? 0.68 : early928 ? 0.52 : p930 ? 0.59 : countach ? 0.88 : f40 ? 0.91 : 0.56) * h,
       wingZ = (p928 ? -0.82 : countach ? -0.83 : -0.87) * z,
       wingWidth = (countach ? 0.9 : f40 ? 0.95 : 0.79) * x;
-    if (s4 || countach || f40 || p959)
+    if (s4 || countach || f40)
       for (const side of [-1, 1])
         slab([side * (f40 ? 0.91 : 0.6) * x, (wingY + 0.48 * h) / 2, wingZ], [0.025, (wingY - 0.48 * h) / 2, 0.08 * z]);
     slab(

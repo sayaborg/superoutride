@@ -3,13 +3,33 @@ import { compileContent } from '../authoring/compile-content.js';
 import { createNodeContentStore } from './node-content-store.js';
 import { requireCompiled, reportError } from '../course/authoring-io.js';
 import { measureRacingVehicle, measureVehicleBraking } from '../course/racing-vehicle-check.js';
-import { CHASE_TURBO_PICTURES } from '../graphics/chase-turbo-shapes.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
 import { VEHICLE_SUBSTEPS } from '../../src/vehicle/physics/vehicle-model.js';
 
+/**
+ * The fourteen vehicles the [ledger](../../docs/chase-turbo-vehicles.md) validates, in its order: those with procedural
+ * pictures, and the Porsche 959 of 1987, whose pictures are baked from a model.
+ */
+const CHASE_TURBO_VEHICLE_IDS = Object.freeze([
+  'PORSCHE_928_S4_1987',
+  'TURBO_ESPRIT_1984',
+  'COUNTACH_5000_QV_1988',
+  '911_TURBO_3_3_1986',
+  'FERRARI_GTO_1985',
+  'PORSCHE_928_S_1984',
+  'TOYOTA_PICKUP_1980',
+  'FERRARI_F40_1988',
+  'PORSCHE_959_1987',
+  'CORVETTE_C4_1984',
+  'AUSTIN_MINI_850_1964',
+  'WRANGLER_YJ_1995',
+  'NOVA_250_1977',
+  'NOVA_9C1_1977',
+]);
+
 try {
   const { definitions } = requireCompiled(await compileContent(createNodeContentStore(), { measured: false }));
-  const vehicles = Object.keys(CHASE_TURBO_PICTURES).map((id) => {
+  const vehicles = CHASE_TURBO_VEHICLE_IDS.map((id) => {
     const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === id);
     if (!entry) throw new Error(`Missing vehicle ${id}`);
     const result = {
