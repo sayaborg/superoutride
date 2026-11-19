@@ -234,45 +234,6 @@
     ]
   },
   {
-    "id": "FERRARI_F40_1988",
-    "sprite": "ferrari-f40-1988",
-    "sha256": "8300f955c10ac29e037bb84ca8aa54a73f3cdd71bec3a5ec02da49aae92565f9",
-    "yawVariants": 64,
-    "bankVariants": 1,
-    "lods": [
-      {
-        "lod": 0,
-        "transparent": 0,
-        "lampPictures": 29
-      },
-      {
-        "lod": 1,
-        "transparent": 0,
-        "lampPictures": 30
-      },
-      {
-        "lod": 2,
-        "transparent": 0,
-        "lampPictures": 33
-      },
-      {
-        "lod": 3,
-        "transparent": 0,
-        "lampPictures": 31
-      },
-      {
-        "lod": 4,
-        "transparent": 0,
-        "lampPictures": 30
-      },
-      {
-        "lod": 5,
-        "transparent": 0,
-        "lampPictures": 0
-      }
-    ]
-  },
-  {
     "id": "CORVETTE_C4_1984",
     "sprite": "corvette-c4-1984",
     "sha256": "282f4664ce0a1634aa2b466033ed1a73f018df9cd497cde07908deace3ae08dc",

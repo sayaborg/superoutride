@@ -14,7 +14,6 @@ export const CHASE_TURBO_PICTURES = {
   FERRARI_GTO_1985: 'ferrari-gto-1985',
   PORSCHE_928_S_1984: 'porsche-928-s-1984',
   TOYOTA_PICKUP_1980: 'toyota-pickup-1980',
-  FERRARI_F40_1988: 'ferrari-f40-1988',
   CORVETTE_C4_1984: 'corvette-c4-1984',
   AUSTIN_MINI_850_1964: 'austin-mini-850-1964',
   WRANGLER_YJ_1995: 'wrangler-yj-1995',
@@ -38,7 +37,6 @@ const bodies: Record<ChaseTurboId, Rgb> = {
   FERRARI_GTO_1985: blue,
   PORSCHE_928_S_1984: red,
   TOYOTA_PICKUP_1980: [190, 115, 55],
-  FERRARI_F40_1988: red,
   CORVETTE_C4_1984: blue,
   AUSTIN_MINI_850_1964: [45, 115, 75],
   WRANGLER_YJ_1995: [180, 150, 95],
@@ -94,7 +92,6 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     esprit = id === 'TURBO_ESPRIT_1984',
     countach = id === 'COUNTACH_5000_QV_1988',
     gto = id === 'FERRARI_GTO_1985',
-    f40 = id === 'FERRARI_F40_1988',
     c4 = id === 'CORVETTE_C4_1984',
     mini = id === 'AUSTIN_MINI_850_1964',
     pickup = id === 'TOYOTA_PICKUP_1980',
@@ -325,7 +322,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
         m.frontTrack,
         m.frontWheelRadius,
         mini ? 0.13 : jeep ? 0.205 : pickup ? 0.165 : nova ? 0.185 : 0.225,
-        mini ? 10 : pickup || nova ? 14 : countach || jeep ? 15 : f40 ? 17 : 16,
+        mini ? 10 : pickup || nova ? 14 : countach || jeep ? 15 : 16,
       ],
       [
         -m.rearAxle,
@@ -343,12 +340,10 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
                   ? 0.225
                   : countach
                     ? 0.345
-                    : f40
-                      ? 0.335
-                      : gto
-                        ? 0.265
-                        : 0.245,
-        mini ? 10 : pickup || nova ? 14 : countach || jeep ? 15 : f40 ? 17 : 16,
+                    : gto
+                      ? 0.265
+                      : 0.245,
+        mini ? 10 : pickup || nova ? 14 : countach || jeep ? 15 : 16,
       ],
     ])
       s.wheel(
@@ -370,7 +365,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
   const roundLamp = (cx: number, cy: number, cz: number, r: number, brake = false) =>
     s.cylinder([cx, cy, cz + 0.008], [cx, cy, cz - 0.012], r, brake ? red : white, brake ? 'lamp' : 'plain');
   for (const side of [-1, 1]) {
-    if (c4 || gto || f40) for (const offset of [0.48, 0.72]) roundLamp(side * offset * x, 0.4 * h, tailZ, 0.075, true);
+    if (c4 || gto) for (const offset of [0.48, 0.72]) roundLamp(side * offset * x, 0.4 * h, tailZ, 0.075, true);
     else
       slab(
         [side * 0.67 * x, (pickup ? 0.43 : jeep ? 0.4 : mini ? 0.48 : p928 ? 0.43 : 0.4) * h, tailZ],
@@ -424,13 +419,13 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     s.cylinder([0, 0.53 * h, -0.91 * z], [0, 0.53 * h, -1.01 * z], 0.32, black);
     s.cylinder([0, 0.53 * h, -1.012 * z], [0, 0.53 * h, -1.016 * z], 0.18, metal);
   }
-  if (p928 || p930 || countach || f40 || gto) {
-    const wingY = (p928 ? 0.52 : p930 ? 0.59 : countach ? 0.88 : f40 ? 0.91 : 0.56) * h,
+  if (p928 || p930 || countach || gto) {
+    const wingY = (p928 ? 0.52 : p930 ? 0.59 : countach ? 0.88 : 0.56) * h,
       wingZ = (p928 ? -0.82 : countach ? -0.83 : -0.87) * z,
-      wingWidth = (countach ? 0.9 : f40 ? 0.95 : 0.79) * x;
-    if (countach || f40)
+      wingWidth = (countach ? 0.9 : 0.79) * x;
+    if (countach)
       for (const side of [-1, 1])
-        slab([side * (f40 ? 0.91 : 0.6) * x, (wingY + 0.48 * h) / 2, wingZ], [0.025, (wingY - 0.48 * h) / 2, 0.08 * z]);
+        slab([side * 0.6 * x, (wingY + 0.48 * h) / 2, wingZ], [0.025, (wingY - 0.48 * h) / 2, 0.08 * z]);
     slab(
       [0, wingY, wingZ],
       [wingWidth, 0.035, (p930 ? 0.16 : 0.09) * z],
@@ -438,18 +433,17 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
       p930 || p928 ? 'plain' : 'paint',
     );
   }
-  if (esprit || countach || gto || f40) {
+  if (esprit || countach || gto) {
     for (let i = 0; i < 7; i++)
       slab([0, 0.59 * h, -(0.45 + i * 0.055) * z], [0.5 * x, 0.01, 0.014 * z], black, 'plain');
     for (const side of [-1, 1]) {
       slab([side * 0.94 * x, 0.43 * h, -0.38 * z], [0.018, 0.08, 0.13 * z], black, 'plain');
       if (countach) slab([side * 0.72 * x, 0.73 * h, -0.36 * z], [0.15, 0.1, 0.14], black, 'plain');
-      if (gto || f40)
+      if (gto)
         for (let i = 0; i < 3; i++)
           slab([side * 0.92 * x, 0.42 * h, -(0.82 + i * 0.045) * z], [0.02, 0.095, 0.012], black, 'plain');
     }
   }
-  if (f40) slab([0, 0.17 * h, tailZ - 0.03], [0.035, 0.035, 0.07], metal, 'plain');
   if (c4) slab([0, 0.46 * h, tailZ], [0.36, 0.08, 0.008], black, 'plain');
   if (police) {
     slab([0, 0.94 * h, -0.18 * z], [0.6 * x, 0.025, 0.11], metal, 'plain');

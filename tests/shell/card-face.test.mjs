@@ -145,8 +145,9 @@ test("in every style every delivered vehicle's card fits in each of its colors, 
           for (let face = 1; face < page.faces; face++) draw(faces, faceOf(page), at(face, FACE_TURN.thin));
           return draw(faces, faceOf(page), 0);
         });
+        // A set of one color has no second to tell apart.
         const names = Object.values(vehicle.listing.visuals.colorNames);
-        if (new Set(names).size === names.length) assert.ok(!same(first, second), vehicle.compiledVehicle.id);
+        if (second && new Set(names).size === names.length) assert.ok(!same(first, second), vehicle.compiledVehicle.id);
       }
   }
 });

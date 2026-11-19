@@ -174,10 +174,10 @@ are not evidence for the selected 1988 non-catalyst road specification.
 
 ## Pictures and sound
 
-[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for twelve of
-the cars; the 959's pictures are baked from K's model instead, in its four period colors, and the 928 S4's in eight
-Porsche colors ([Model solids](image-assets.md#model-solids)). Those samples go through the existing shared camera,
-palette, shadows, sprite and six-LOD baker. Each of the twelve has 64 yaw pictures, one bank, four palettes and the
+[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for eleven of
+the cars; the 959's pictures are baked from K's model instead, in its four period colors, the 928 S4's in eight
+Porsche colors and the F40's in one, ROSSO CORSA ([Model solids](image-assets.md#model-solids)). Those samples go through the existing shared camera,
+palette, shadows, sprite and six-LOD baker. Each of the eleven has 64 yaw pictures, one bank, four palettes and the
 existing brake-lamp slot. No source photograph, ROM image or downloaded manual image is redistributed. Facet
 locations, window proportions, lights, rims, paint and details are visual estimates; this is not a dimensioned CAD
 reconstruction. Dimensions include a provisional visual envelope, so tiny mirrors, lamps or the spare can extend

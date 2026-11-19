@@ -617,7 +617,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `ferrari-f40-1988`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by
@@ -1152,6 +1152,25 @@ auditor's, provisional); the three metallics are flat colors without flake, and 
 The listing's default is `black` (K, 2026-11-20). The model is K's `porsche-928-s4-1987.glb` (SHA-256 `c43ba501…`),
 kept on K's branch `codex/928-s4-1987-glb-source`, never on main; it has no wheel nodes, and its front hub is
 (0, 0.3157, 1.25).
+
+**The F40 of 1988.** Its set, `ferrari-f40-1988`, is baked from K's model by the Testarossa's recipe (K, 2026-11-19):
+the same steps (seven reds, three glass steps and four greys), light, reflections, glare, spacing, 64 directions and
+brake lamp colors, none moved for this car. What differs is the model's: the body's red (231, 10, 14) is its one
+paint, within 8; the glass (10, 10, 12), within 4 and of roughness below 0.5, is the windscreen, the side windows and
+the engine cover, black and glossy so that it mirrors the sky, with the cover's louvres kept in its shape; the magenta
+(255, 0, 255) is the brake lamp, the red rings of all four tail lamps (about 35 to 71 mm from their centres), their
+white cores left as the model came and so greys. The real car's outer lamps are amber indicators; indicators are not
+drawn, so all four are brake lamps (K). The rear mesh panel is one flat face whose picture of the engine and silencer
+behind it is darkened, a grey. The model holds its roughness, 0.10 on the red, the glass and the brake lamp and 0.90
+on the other dark parts, and its occlusion, made as the Testarossa model's. Its four wheels are spun as the model's
+`extras` give them, on the real car's tracks: centres (±0.797, 0.314, 1.2393) m front, radius 0.314, width 0.245
+(245/40 ZR 17), and (±0.803, 0.333, −1.2393) m rear, radius 0.333, width 0.335 (335/35 ZR 17); both rims are 17-inch,
+0.2335, as the model gives them rather than 0.72 of the radii. The model's wheelbase is 2,479 mm against the car's
+2,450 mm, which its driving uses (K, 2026-11-19).
+
+Its one livery is `rosso-corsa`, ROSSO CORSA, (231, 10, 14), the model's own; the four game colors of its earlier,
+drawn set are gone (K, 2026-11-19). The model is K's `ferrari-f40-1988.glb` (SHA-256 `f8898631…`), kept on K's
+branch `codex/f40-1988-glb-source`, never on main; it has no wheel nodes, and its front hub is (0, 0.314, 1.2393).
 
 ## HUD picture generator
 

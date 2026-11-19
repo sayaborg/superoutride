@@ -5,9 +5,9 @@
   "selectionOrder": 39,
   "visuals": {
     "spriteSet": "ferrari-f40-1988",
-    "palette": "stock",
+    "palette": "rosso-corsa",
     "steeringPicture": "montecarlo",
-    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+    "colorNames": { "rosso-corsa": "ROSSO CORSA" }
   },
   "sound": "FERRARI_F40_1988",
   "metadata": {
