@@ -948,7 +948,7 @@ bottom row; its middle row holds only the line, which every palette draws alike.
 
 The speed shows `round(speed*3.6)` km/h, held at 999, in three italic segment digits right-aligned in SEG_VFD; a
 leading digit the speed does not reach shows all its segments unlit. The gear is one segment digit in SEG_VFD, and in
-SEG_YELLOW after a shift: its name where the vehicle's listing names its gears (`L` and `H`), else its number; unlit
+SEG_YELLOW after a shift: its name where the vehicle's listing names its gears (the M23 PP SPEC's `L` and `H`, the 959's `G` and `1` to `5`), else its number; unlit
 segments are a dark trace of the lit color. The tachometer's 26 italic bars, 2 pixels wide
 with a pixel's gap, stand on row 28's bottom ([Image assets](image-assets.md#text-tiles)); bar `i` (from 0) lights once
 the engine speed reaches `(i+1)/26 * 1.10 * redlineRpm`, the full scale being 110 % of the player vehicle's redline,

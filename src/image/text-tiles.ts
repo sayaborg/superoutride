@@ -113,12 +113,12 @@ export const tireGaugePalette = (step: number) => TEXT_PALETTES.TIRES_AIR - TIRE
 /** A segment digit is 2 by 3 tiles, its six patterns row by row from the top left. */
 export const DIGIT_TILES = Object.freeze({ columns: 2, rows: 3 });
 /**
- * The characters a segment digit draws: the digits, and the letters a vehicle may name its gears by (`L` and `H`, each
- * of seven segments).
+ * The characters a segment digit draws: the digits, and the letters a vehicle may name its gears by (`L`, `H` and `G`,
+ * each of seven segments).
  */
-export const SEGMENT_CHARACTERS = '0123456789LH';
+export const SEGMENT_CHARACTERS = '0123456789LHG';
 /** The segment glyphs in the text tiles' order of `DIGIT_g_k`: the digits, OFF (every segment unlit), the letters. */
-export const SEGMENT_GLYPHS: readonly string[] = Object.freeze([...'0123456789', 'OFF', ...'LH']);
+export const SEGMENT_GLYPHS: readonly string[] = Object.freeze([...'0123456789', 'OFF', ...'LHG']);
 /** The signal lamp is 2 by 2 tiles, its patterns row by row from the top left. */
 export const LAMP_TILES = 2;
 /** The road arrow is 4 by 4 tiles, its patterns row by row from the top left. */

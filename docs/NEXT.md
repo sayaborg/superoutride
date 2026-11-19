@@ -79,7 +79,7 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage
+Next PR: [Stage P959](#stage-p959--the-porsche-959-of-1987-and-turbo-outruns-rival)'s P959-3; [Stage AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage
 RC](#stage-rc--one-recovery) and [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving) are made and await K's
 DEV check and K's choice of the replanning interval (AD-5's reports); in [Stage
 RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage CS](#stage-cs--cisco-heat-from-the-roms)'s raising;
@@ -177,6 +177,40 @@ closed (K, 2026-11-19). Not decided, and K has asked for no change:
   the low camera).
 - Not checked against primary sources: second gear (2.104; one source gives 2.014), the compression ratio (9.2; one
   table gives 9.3) and the mass (1625 kg; its source is not recorded).
+
+## Stage P959 — The Porsche 959 of 1987 and TURBO OUTRUN's rival
+
+K's decisions of 2026-11-19 and 20: TURBO OUTRUN's rival is the Porsche 959, the existing vehicle corrected rather
+than a new one: `PORSCHE_959_1987`, the 1987 European Komfort, left-hand drive, its values the real car's as far as
+they are known and estimated as faithfully as can be where they are not, its mass based on 1,600 kg, its gears shown
+G 1 2 3 4 5, no mechanism added (the second turbo's onset, PSK's varying split and the ride height stay out; the
+steady curve and the fixed 0.4 front share stay), its exhaust in the real car's form, four period colors in English
+with GRAND PRIX WHITE the default, and its pictures baked from K's model by the car baking of F110-1
+([Arcade car selections](chase-turbo-vehicles.md#porsche-959-of-1987-sources-versus-authored)). P959-1 renamed it;
+P959-2 corrected its driving, sound, listing and gear names, `G` added to the segment characters. Next is P959-3: its
+pictures from K's model (`porsche-959-1987`, kept on `codex/porsche-959-1987-glb-source`, not for main), the four
+colors, and the rival of TURBO OUTRUN's four classes changed from `911_TURBO_3_3`'s `white` to it, as a draft for K.
+
+- The stage auditor's choices, for K: the stage's name and its split into three PRs, the identifiers, the curve's
+  second point at 2,500 rpm (401 N m), the redline of 7,300 rpm, the mass's derived values, the drag and the 40:60
+  share, the sound's estimates, the wheel radii kept at this ledger's 0.315 and 0.311 m, the colors' RGB, the `G`'s
+  form (a 6 without its middle bar) and the rival's change in the pictures' PR.
+- To look at in DEV: SELECT VEHICLE showing the 959 as 1987; G 1 2 3 4 5 on the HUD and the card, and the `G`'s form;
+  G's shortness, fifth's pull, the strength below 2,500 rpm (more than before) and the 150 kg added; the sound against
+  the old one, low and high.
+- Not decided: the redline of 7,300 rpm and the torques at 2,500 and 3,000 rpm are secondary figures, not checked in
+  the factory's curve or the owner's manual; below 2,500 rpm there is no source (the curve gives about 326 N m at
+  2,000 rpm, against the estimated 235 before); at 3,000 rpm the curve gives 417.5 N m against the article's 408, no
+  point added to keep five; the second turbo's onset (about 4,200 to 4,300 rpm) is not in the curve (K); the wheel
+  radii follow this ledger's rule (0.315, 0.311 m), about 2 % below the tires' nominal 0.3216 and 0.3179 m, which the
+  TESTAROSSA, the RX-7 and the F40 use, and whether to make one rule is K's; the 1,600 kg is the nominal 1,450 + 150
+  rounded (K), the weighed figures spread over 1,530 to 1,630 kg; the 40:60 share and the frontal area of 1.92 m² are
+  not checked in primary sources; the sound's exhaust valve of 33 mm, its opening, the lengths and the primaries' and
+  cross tube's diameters are estimates and the outlets' number is not confirmed, and the switching valve and the
+  wastegate are not in the sound; the fixed 0.4 front share is provisional; the catalogue's values (ratios, final
+  drive, the exhaust's layout, the tires) are the stage auditor's reading, its hosts unreachable from the PR's
+  environment; at TURBO OUTRUN's start the original places the 959 3.26 m left of the car, and the grid stays; the
+  turbo button is the series' question.
 
 ## Stage AT — The attract demo remade
 

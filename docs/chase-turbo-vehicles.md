@@ -28,7 +28,7 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 | PORSCHE_928_S_1984    | 1984 MY US 928 S                                     | M28.19, 4664 cc SOHC 16-valve V8; 5MT                           | Red early body, rubber bumper trim and small spoiler                    |
 | TOYOTA_PICKUP_1980    | 1980 MY US 49-state RN42, regular cab, long bed, 2WD | 2189 cc 20R SOHC four; 4MT                                      | Open long bed, separate upright cab, rectangular lamps                  |
 | FERRARI_F40_1990      | 1990 European F40, non-catalyst, fixed ride height   | F120-family 2936.25 cc twin-turbo flat-plane V8; 5MT            | Red, high fixed wing, round rear lamps, three exhaust outlets           |
-| PORSCHE_959_1987      | 1988 European 959 Komfort                            | 2849 cc twin-turbo flat six; G+5 MT, AWD                        | White, covered oval lamps and integrated rear wing                      |
+| PORSCHE_959_1987      | 1987 European 959 Komfort, left-hand drive           | 2849 cc twin-turbo flat six; G59.01 G+5 MT, AWD                 | White, covered oval lamps and integrated rear wing                      |
 | CORVETTE_C4_1984      | 1984 MY US Base Coupe, 1YY07                         | L83 5733 cc Cross-Fire V8; Doug Nash 4+3                        | Blue early C4, four round rear lamps, no high-mounted stop lamp         |
 | AUSTIN_MINI_850_1964  | Early 1964 UK standard Austin Mini 850, A-A2S7       | 848 cc A-series OHV four; 4MT, rubber-cone suspension           | Green, short upright two-door saloon; not a Cooper                      |
 | WRANGLER_YJ_1995      | 1995 MY US Wrangler S YJ, soft top                   | 2464 cc MPI four; AX-5 5MT                                      | Tan, rectangular headlights, family cage, rear spare and high stop lamp |
@@ -49,9 +49,9 @@ especially not claims of factory delivery colors. The stock-named palette key me
 - The C4 retains the four base ratios of the 4+3 gearbox. The separate overdrive unit and its engagement logic
   are absent. Consequently this version does not reproduce the real car's overdrive cruising or maximum-speed
   gearing. It is not presented as a seven-speed manual or given an invented fifth gear.
-- The 959's G position and five road gears use six existing numeric forward positions, displayed as 1–6.
-  Its front drive fraction is a fixed provisional 0.4. Dynamic PSK distribution, ride-height control and a
-  separate low-range control are absent.
+- The 959's G position and five road gears are six ordinary forward gears, shown G and 1–5 by its listing's gear
+  names ([below](#porsche-959-of-1987-sources-versus-authored)). Its front drive fraction is a fixed provisional 0.4.
+  Dynamic PSK distribution, ride-height control and a separate low-range control are absent.
 - The Wrangler is in 2H, using the existing rear-drive model. No transfer-case selector or four-wheel-drive
   mode is introduced. Its family cage is beneath the soft top; no early slanted cage is substituted.
 - Existing automatic shifts and launch assistance operate all these manually geared source vehicles. They
@@ -68,7 +68,7 @@ Ferrari's dry masses are converted using 120 L fuel at an estimated 0.75 kg/L pl
 then the driver. Consumption and changing fuel mass are not simulated.
 
 Mass bases before the driver are S4 1590, Esprit 1220, Countach 1490, 930 1335, GTO 1265, early 928 S 1520,
-Pickup 1118.1, F40 1205, 959 Komfort 1450, C4 1370, Mini 630, YJ 1331, Nova six 1410 and police Nova 1500 kg.
+Pickup 1118.1, F40 1205, 959 Komfort 1600 (K's, [below](#porsche-959-of-1987-sources-versus-authored)), C4 1370, Mini 630, YJ 1331, Nova six 1410 and police Nova 1500 kg.
 S4 is a factory-table curb anchor; Pickup is 2465 lb converted from the exact long-bed column; C4 and YJ are
 rounded secondary curb values. Other non-Ferrari masses remain estimates or uncertain secondary-market
 interpretations. They must not be relabelled as verified dry weights.
@@ -92,18 +92,21 @@ converted to station torque by its rolling radius and rounded to 25 Nm. Actual b
 unchanged tire, load and protection rules. This is not a reconstruction of period hydraulic brake pressure,
 ABS, spring rates, bump travel, tire temperature, handling limits or stopping-distance tests.
 
-The Esprit, 928s, Countach, 930, 959, Mini, Toyota and Novas still lack a read, exact-year primary gearbox
+The Esprit, 928s, Countach, 930, Mini, Toyota and Novas still lack a read, exact-year primary gearbox
 ratio table. Their provisional ratios are explicit engineering estimates, not borrowed verified facts from
 another year. The F40 uses provisional gear pairs 2.769/1.722/1.227/0.963/0.767 and effective final reduction
 `2.9*4/3`; the transfer reduction is folded into the existing single final-drive field. The GTO manual's
 published ratios already include its transfer gears and therefore must not receive that factor a second time.
 The 928 final reductions distinguish US S4 2.20 and 1984 US S 2.36; the provisional intermediate gear sets
-remain separately qualified. The ordinary Nova's exact gearbox/axle option combination remains unverified.
+remain separately qualified. The 959's six ratios are its G59.01's tooth counts as the stage auditor read them
+([below](#porsche-959-of-1987-sources-versus-authored)). The ordinary Nova's exact gearbox/axle option combination remains unverified.
 
 ## Evidence actually consulted
 
 Accessed 2026-10-23 UTC. Search snippets, blocked URLs and unread manuals are not treated as source verification.
-The numeric ledger distinguishes `source verified`, `calculated`, `engineering estimate` and `game design`.
+The numeric ledger distinguishes `source verified`, `calculated`, `engineering estimate` and `game design`, and for
+the 959 `source (auditor)`: the stage auditor's reading, not read for the PR that wrote it
+([below](#porsche-959-of-1987-sources-versus-authored)).
 A source-verified secondary value means that page was read, not that it has primary-document authority.
 
 1. **928 S4 factory-table transcription**, [general/engine](https://www.jenniskens.eu/Technical/TechSpecs/TechSpecs1.htm)
@@ -147,7 +150,7 @@ A source-verified secondary value means that page was read, not that it has prim
    [959](https://en.wikipedia.org/wiki/Porsche_959). These support engine families and headline anchors, with
    exact-year application still provisional where noted in the CSV. The 930 US anchor is 282 mechanical hp
    at 5500 and 377 Nm at 4000, not the European 300 PS value. The QV's carburetted 455 PS is distinct from
-   the US injected 420 hp. Komfort's adopted curb base is 1450 kg, not the lighter Sport's 1350 kg.
+   the US injected 420 hp. The 959's mass is K's 1,600 kg ([below](#porsche-959-of-1987-sources-versus-authored)), no longer the 1450 kg Komfort curb mass first adopted.
 9. **Mini secondary specifications**, [Mini 850](https://www.uniquecarsandparts.com/mini_850_technical_specifications.htm).
    Mixed-market page supports the 848 cc OHV family and approximate envelope, but is not an exact early-1964
    UK homologation. The 34 hp/5500, 44 lb-ft/2900, 8.3:1, curb mass and gearbox choices remain estimates.
@@ -196,6 +199,77 @@ The validation observer uses the existing solver for fixed-duration acceleration
 it does not create game reference times. Catalog-dependent non-series line-comparison products and engine
 loudness are refreshed only because existing content admission requires current products. No new series,
 series lap-time target or time limit is authored. Existing TSUKUBA series reference products remain unchanged.
+
+## Porsche 959 of 1987: sources versus authored
+
+K takes TURBO OUTRUN's rival for the Porsche 959 of 1987, European Komfort (K, 2026-11-19); nothing here claims the
+original says so. `PORSCHE_959_1987` is the 959 Komfort of the 1987 model year as sold in Europe, left-hand drive: the
+type 959.50 twin-turbo flat six with the G59.01 gearbox, G and five road gears, and four-wheel drive. K chose the year
+as the earliest it could be, before the original's 1989, and its values as faithful to the real car as can be; where
+there is no source they are estimated. Its other numbers follow this ledger's
+[conventions](#numerical-conventions-and-remaining-uncertainty).
+
+The source column is the stage auditor's reading (2026-11-20), not read for the PR that wrote this section: Porsche's
+parts catalogue for the 959 of the 1987 and 1988 model years, as Porsche distributes it (**catalogue**), Porsche
+Newsroom (**Porsche**), and articles and specification tables (**secondary**). The catalogue's hosts were not
+reachable from the PR's environment. K's decisions are the year, the specification, the mass and the gear names.
+
+| Item              | Source (auditor's reading)                                                                                                               | Authored `PORSCHE_959_1987`                                                                       | Class                         |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Built             | 113 in 1987, 179 in 1988, 292 in all (Porsche)                                                                                           | The car of 1987 (K)                                                                               | source, K                     |
+| Gearbox           | G59.01 with engine 959.50; G 42/12, 1st 35/17, 2nd 31/22, 3rd 29/28, 4th 26/32, 5th 23/36; final 33/8 (catalogue)                        | **3.5, 2.058823529, 1.409090909, 1.035714286, 0.8125, 0.638888889**; final 4.125; shown G and 1–5 | source, calculated            |
+| Power             | 331 kW (450 PS) at 6,500 rpm (Porsche)                                                                                                   | Point 3: 486.24201 N m at 6,500 (450 PS)                                                          | source, calculated            |
+| Greatest torque   | 500 N m at 5,500 rpm (German sources agree; some give 5,000)                                                                             | Point 2: 500 N m at **5,500**                                                                     | secondary                     |
+| Low-speed torque  | About 401 N m at 2,500 and about 408 at 3,000, said to be read from Porsche's 1987 curve (an article; the curve itself not seen)         | Point 1: **401 N m at 2,500**; 3,000 is not a point (the curve gives 417.5 there)                 | secondary                     |
+| Redline           | The tachometer's red from 7,300 rpm (evo, an article)                                                                                    | **7,300 rpm**; point 4 at 7,300: 398.718448 N m, 0.82 of point 3's torque                         | secondary, estimate           |
+| Idle point        | —                                                                                                                                        | 160 N m at 900                                                                                    | estimate                      |
+| Turbochargers     | A KKK K26 (turbine size 6) left and right; the second joins at 4,000 to 4,300 rpm (catalogue, articles)                                  | Steady full-throttle curve; the second turbo's onset is not represented (K)                       | catalogue, secondary          |
+| Tires             | 235/45 VR17 front, 255/40 VR17 rear (catalogue)                                                                                          | Radii 0.315 / 0.311 m (this ledger's, unchanged)                                                  | source, estimate              |
+| Front track       | 1,504 mm (specification tables)                                                                                                          | **1.504 m**                                                                                       | secondary                     |
+| Mass              | 1,450 kg nominal (Porsche); about 1,530 to 1,630 kg weighed (AMS's 1,566 kg among them); nominal said 150 to 200 kg light (Frère, cited) | **1,675 kg**: K's 1,600 (nominal + 150) + the 75 kg driver                                        | K, calculated                 |
+| Front : rear mass | 40 : 60 (specification tables, articles)                                                                                                 | Axles **1.3632 / 0.9088 m** from the CG (wheelbase 2.272 × 0.60, × 0.40)                          | secondary                     |
+| Drag              | cW 0.31 (Porsche); frontal area 1.92 m² (a forum's transcription of Porsche's table)                                                     | `q = 0.5 × 1.225 × 0.31 × 1.92` = **0.36456 kg/m**                                                | source, secondary, calculated |
+| Inertias          | —                                                                                                                                        | Box estimates **3,006 / 2,762 kg m²**                                                             | calculated                    |
+| Brakes            | —                                                                                                                                        | 1,675 × 11.5 m/s², 65:35, × 0.315 / 0.311 m, to 25 N m: **3,950 / 2,100 N m**                     | game design                   |
+| Exhaust           | Two manifolds, a cross tube, two K26, one silencer (catalogue)                                                                           | [Calibration](calibration.md#exhaust-topologies); below                                           | catalogue, estimate           |
+| Unchanged         | Length, width, height, rear track, wheelbase 2,272 mm, 2,849 cc, compression ratio                                                       | As before; CG 0.47 m, suspension, front drive 0.4, idle 900                                       | as in the CSV                 |
+
+The six ratios were 3.5, 2.059, 1.409, 1.074, 0.861 and 0.696; the upper three are a 911 G50's and fit no 959 tooth
+count. Point 1 was 235 N m at 2,000 rpm and point 2 500 N m at 5,000 rpm, both estimates; the curve now gives about
+326 N m at 2,000 rpm. Point 4 keeps this ledger's rule, 0.82 of point 3's torque, and moves to the new redline.
+
+### Representation within the current model
+
+- G and the five road gears are six forward gears like any car's; the listing names them `G`, `1` to `5`
+  (`gearNames`), which the HUD's gear digit, the card's GEARS and DRIVETRAIN show, as they show the M23 PP SPEC's `L`
+  and `H`. Launch and the automatic shifts start in G and treat it as any first gear.
+- The torque curve is the steady full-throttle envelope of five points, as every car's. The second turbocharger's
+  onset, boost and its lag, PSK's varying split (the front share stays a fixed 0.4) and the ride-height control are
+  not represented (K).
+- The engine sound follows the catalogue's layout: each bank's three cylinders into its manifold, the right bank's
+  cross tube to the left turbine, so the banks join before the turbines, the two turbines' throats (6 cm²), a pipe from
+  each into the one silencer (inlet clamps 60 mm, no catalyst) and two outlets (the outlets' number not confirmed). The
+  switching valve is not moved: the cross tube and both turbines are always open. The wastegate and its silencer are
+  not written. The two exhaust valves of each cylinder are one of their combined area: two of 33 mm (the 928 four-valve
+  head's, whose seat the 959 shares; the 959's own valve not confirmed) give 46.7 mm. The valve's opening (0.36 of the
+  cycle, about 260 degrees), every length and the primaries' and cross tube's diameters are estimates.
+
+### Measured on the flat
+
+The existing solver on this ledger's flat, dry, windless straight with the automatic shifts
+([validation](chase-turbo-vehicles/validation.md)), not compared with or tuned to the real car's figures:
+
+| Measure                | Measured                                                          |
+| ---------------------- | ----------------------------------------------------------------- |
+| 0–100 km/h, 0–200 km/h | 3.75 s, 12.45 s                                                   |
+| 0–400 m                | About 11.8 s, at about 197 km/h (between the run's 1 s samples)   |
+| Top speed              | 320 km/h in 5 (the sixth forward gear) at 7,193 rpm, held by drag |
+| Redline speeds, G to 5 | 59, 101, 147, 200, 255, 325 km/h                                  |
+| Shifts                 | 60, 102, 148, 201 and 257 km/h, at 1.9, 3.8, 7.0, 12.6 and 22.7 s |
+| Braking from 100 km/h  | 2.57 s, 36.1 m                                                    |
+
+It launches in G, shifts from G to 1 and on through 5 as any car through its gears, stops from its top speed and
+restarts from rest (158 km/h 8 s after stopping).
 
 ## Mazda RX-7 Turbo II of 1987: sources versus authored
 

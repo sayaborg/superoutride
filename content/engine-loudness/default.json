@@ -198,9 +198,9 @@
     },
     {
       "vehicleId": "PORSCHE_959_1987",
-      "vehicleSha256": "2a6c1508214a7a16180c70a704ba03bc463621ed2a286b8b3ba2f8f83cc36d32",
-      "soundSha256": "a612cd557856870e1879e00f12656cdfa0934f446eeb3c55ca816e7f227c615c",
-      "lufs": -18.601271698329796
+      "vehicleSha256": "f803fd88bac8be8fc981cf9c503daa8a66c5e03831d36dd38950cbe9b6eae62a",
+      "soundSha256": "c8fcff9f78c35264b437b32fece1b332fa009625c6e317b0b3c9445d924ddf9a",
+      "lufs": -21.903807762601602
     },
     {
       "vehicleId": "CORVETTE_C4_1984",

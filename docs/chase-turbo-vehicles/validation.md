@@ -13,7 +13,7 @@ They are game outcomes from provisional vehicle data, not measured performance o
 | PORSCHE_928_S_1984    |    6.28 |       27.15 |      238.2 |          4 |   35.71 |    2.55 |
 | TOYOTA_PICKUP_1980    |   11.30 | not reached |      157.3 |          4 |   35.86 |    2.57 |
 | FERRARI_F40_1990      |    3.00 |        9.25 |      327.7 |          5 |   36.23 |    2.57 |
-| PORSCHE_959_1987      |    3.43 |       11.50 |      306.8 |          6 |   36.19 |    2.58 |
+| PORSCHE_959_1987      |    3.75 |       12.45 |      320.2 |          6 |   36.06 |    2.57 |
 | CORVETTE_C4_1984      |    6.45 |       27.87 |      214.7 |          4 |   35.23 |    2.50 |
 | AUSTIN_MINI_850_1964  |   22.63 | not reached |      119.7 |          4 |   37.48 |    2.67 |
 | WRANGLER_YJ_1995      |   11.02 | not reached |      163.2 |          4 |   36.14 |    2.57 |

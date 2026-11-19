@@ -1143,13 +1143,13 @@ parts and holds 64 palette slots per 8×8 tile, row by row; a character list mus
 their order, and a slot outside a source's slots does not admit. A source palette holds 16 RGB555 colors, as the text tiles save them. The
 PNG files beside them are previews, which nothing reads.
 
-| Source                      | Content                                                                                                                                                                                 |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `font-normal-patterns.json` | The normal font: `ascii`, U+0020–U+007E, and `extra`, the marks with their `codePoint`; slots 1–2                                                                                       |
-| `font-ornate-patterns.json` | The ornate fonts, every character: `small` (slots 1–8), `large` with `top` and `bottom` (slots 1–9) and the SUNSET `palettes`                                                           |
-| `seg-digits.json`           | The italic segment digits 0–9, OFF and the letters L and H (each segment lit as in 8 or unlit as in OFF), each 2×3 tiles row by row (slots 1–4), and the VFD, YELLOW and RED `palettes` |
-| `lamp.json`                 | The signal lamp, 2×2 tiles row by row (slots 1–15), and its OFF, RED_ON and GREEN_ON `palettes`                                                                                         |
-| `arrow.json`                | The road arrow, 4×4 tiles row by row `left` and `right` (slots 1–10), and its `palette`                                                                                                 |
+| Source                      | Content                                                                                                                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `font-normal-patterns.json` | The normal font: `ascii`, U+0020–U+007E, and `extra`, the marks with their `codePoint`; slots 1–2                                                                                          |
+| `font-ornate-patterns.json` | The ornate fonts, every character: `small` (slots 1–8), `large` with `top` and `bottom` (slots 1–9) and the SUNSET `palettes`                                                              |
+| `seg-digits.json`           | The italic segment digits 0–9, OFF and the letters L, H and G (each segment lit as in 8 or unlit as in OFF), each 2×3 tiles row by row (slots 1–4), and the VFD, YELLOW and RED `palettes` |
+| `lamp.json`                 | The signal lamp, 2×2 tiles row by row (slots 1–15), and its OFF, RED_ON and GREEN_ON `palettes`                                                                                            |
+| `arrow.json`                | The road arrow, 4×4 tiles row by row `left` and `right` (slots 1–10), and its `palette`                                                                                                    |
 
 ## Screen pictures
 
