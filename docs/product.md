@@ -151,7 +151,7 @@ course after the class:
 
 Every class runs 3 laps, at most the course's most, and a course without laps once: laps are the class's, not the
 course's. Rivals and traffic are all the player's own vehicle, their colors drawn by the run's seed; the classes name
-no vehicle. Traffic is 5 vehicles per kilometre at 80 km/h until K sets FREE PLAY's (NEXT). There is no clock, and
+no vehicle. Traffic is LOW for now, 5 vehicles per kilometre at 80 km/h (K, 2026-11-19). There is no clock, and
 FREE PLAY records nothing.
 
 ## 5. Series

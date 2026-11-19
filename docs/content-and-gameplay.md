@@ -1018,7 +1018,8 @@ while it has others, and its traffic's one candidate is `{ "vehicle": null, "wei
 class of any course or vehicle is admitted against its course when a run drives it (`classOnCourse`), and the attract
 demo shows only classes of their own course and vehicles. FREE PLAY's classes (`content/series/free-play.series.json`)
 run 3 laps, SOLO and TRAFFIC one grid entry (`playerSlot: first`), RACE and RACE + TRAFFIC sixteen (`last`), and CHASE
-and CHASE + TRAFFIC two (`first`, `start: chase`); their traffic is 5 vehicles per kilometre on lanes at 80 km/h.
+and CHASE + TRAFFIC two (`first`, `start: chase`); their traffic is LOW for now, 5 vehicles per kilometre on lanes at
+80 km/h (K, 2026-11-19).
 Admission checks each document once, from the build's files or the delivery manifest alike, against the delivered course
 IDs, the vehicle catalog, the screen pictures and the tracks. A course may be run by several classes of one or several
 series. A class is admitted against its compiled course: `laps` within `maxLaps`, every entry's slot within the slots

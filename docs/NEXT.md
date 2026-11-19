@@ -836,8 +836,6 @@ line until the cards are designed. What follows goes to K first:
 - **The changes outside the rows:** the PRE-RACE card, READY and the ways into and out of a run, which still go
   through black (K, 2026-11-08: line thinning alone).
 - **PAUSE's QUIT,** which takes a RACE to TITLE, and where within the rows it should lead.
-- **FREE PLAY's traffic** (GD-29): its density and speed are K's to set; until then 5 vehicles per kilometre at
-  80 km/h, the former LOW.
 - **Defaults K is to confirm** (GD-5): a gamepad's RT confirms and LT goes back in menus, as the accelerator and
   brake. The card's y 32 is K's (2026-11-11), balanced by the path's row.
 
