@@ -719,94 +719,94 @@ FERRARI_F40_1990,content/engine-sounds/FERRARI_F40_1990.json,exhaust.pipes.2.to,
 FERRARI_F40_1990,content/engine-sounds/FERRARI_F40_1990.json,exhaust.pipes.3.length,0.65,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
 FERRARI_F40_1990,content/engine-sounds/FERRARI_F40_1990.json,exhaust.pipes.3.diameter,0.055,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
 FERRARI_F40_1990,content/engine-sounds/FERRARI_F40_1990.json,exhaust.pipes.3.from,3,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,overallLength,4.26,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,overallWidth,1.84,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,overallHeight,1.28,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,frontTrack,1.508,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,rearTrack,1.55,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,mass,1525,kg,calculated,,Qualified ready mass + 75 kg driver; dry-to-ready calculation only for GTO/F40; see mass table.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,yawInertia,2737,kg m^2,calculated,,"Uniform box: mass*(length^2+width^2)/12, rounded; geometry and distribution uncertain."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,pitchInertia,2514,kg m^2,calculated,,"Uniform box: mass*(length^2+height^2)/12, rounded; geometry and distribution uncertain."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,frontAxle,1.34048,m,calculated,,Wheelbase * estimated rear weight fraction; see adopted-parameters.csv.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,rearAxle,0.93152,m,calculated,,Wheelbase * (1 - estimated rear weight fraction); see adopted-parameters.csv.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,desiredCgHeight,0.47,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,frontRideFrequency,1.5,Hz,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,rearRideFrequency,1.5,Hz,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,frontDampingRatio,0.4,ratio,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,rearDampingRatio,0.4,ratio,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,frontQTravel,0.3,m,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,rearQTravel,0.3,m,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,frontWheelRadius,0.315,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,rearWheelRadius,0.311,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,frontWheelInertia,2.481,kg m^2,calculated,,"25 * front rolling radius^2, rounded; assumed rotating assembly."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,rearWheelInertia,2.611,kg m^2,calculated,,"27 * rear rolling radius^2, rounded; assumed rotating assembly."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,frontDriveTorqueFraction,0.4,Nm,game design,https://en.wikipedia.org/wiki/Porsche_959,Fixed 40:60 AWD approximation; PSK not modelled.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,frontBrakeTorqueMax,3600,Nm,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,rearBrakeTorqueMax,1900,Nm,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,quadraticDrag,0.37975,kg/m,calculated,,0.5 * 1.225 kg/m^3 * estimated CdA; see adopted-parameters.csv.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.displacementCc,2849,cm^3,source verified,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.cycle,4,strokes,source verified,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline; four-stroke family identity
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.compressionRatio,8.3,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.idleRpm,900,rpm,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.redlineRpm,7200,rpm,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.finalDriveRatio,4.125,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.gearRatios.0,3.5,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.gearRatios.1,2.059,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.gearRatios.2,1.409,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.gearRatios.3,1.074,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.gearRatios.4,0.861,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.gearRatios.5,0.696,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.torqueCurve.0.rpm,900,rpm,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.torqueCurve.0.torqueNewtonMeters,160.0,Nm,engineering estimate,,Estimated envelope point; upper segment keeps peak power at point 3. Not a measured torque sample.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.torqueCurve.1.rpm,2000,rpm,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.torqueCurve.1.torqueNewtonMeters,235.0,Nm,engineering estimate,,Estimated envelope point; upper segment keeps peak power at point 3. Not a measured torque sample.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.torqueCurve.2.rpm,5000,rpm,source verified,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.torqueCurve.2.torqueNewtonMeters,500,Nm,source verified,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.torqueCurve.3.rpm,6500,rpm,source verified,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.torqueCurve.3.torqueNewtonMeters,486.24201,Nm,calculated,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline; torque = adopted kW*1000/(power rpm*2*pi/60); source power/application may be provisional.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.torqueCurve.4.rpm,7200,rpm,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
-PORSCHE_959_1988,content/vehicles/PORSCHE_959_1988.json,powertrain.torqueCurve.4.torqueNewtonMeters,398.718448,Nm,engineering estimate,,Estimated envelope point; upper segment keeps peak power at point 3. Not a measured torque sample.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,cycleRevolutions,2,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,firingPhases.0,0.0,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,firingPhases.1,0.16666666666666666,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,firingPhases.2,0.3333333333333333,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,firingPhases.3,0.5,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,firingPhases.4,0.6666666666666666,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,firingPhases.5,0.8333333333333334,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.valve.diameter,0.032,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.valve.open,0.4,ratio,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.0.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.0.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.0.to,0,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.1.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.1.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.1.to,1,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.2.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.2.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.2.to,0,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.3.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.3.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.3.to,1,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.4.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.4.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.4.to,0,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.5.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.5.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.primaries.5.to,1,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.0.length,1.193,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.0.diameter,0.05,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.0.from,0,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.0.to,2,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.1.length,0.65,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.1.diameter,0.05,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.1.from,2,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.2.length,1.193,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.2.diameter,0.05,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.2.from,1,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.2.to,3,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.3.length,0.65,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.3.diameter,0.05,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
-PORSCHE_959_1988,content/engine-sounds/PORSCHE_959_1988.json,exhaust.pipes.3.from,3,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,overallLength,4.26,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,overallWidth,1.84,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,overallHeight,1.28,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,frontTrack,1.508,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,rearTrack,1.55,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,mass,1525,kg,calculated,,Qualified ready mass + 75 kg driver; dry-to-ready calculation only for GTO/F40; see mass table.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,yawInertia,2737,kg m^2,calculated,,"Uniform box: mass*(length^2+width^2)/12, rounded; geometry and distribution uncertain."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,pitchInertia,2514,kg m^2,calculated,,"Uniform box: mass*(length^2+height^2)/12, rounded; geometry and distribution uncertain."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,frontAxle,1.34048,m,calculated,,Wheelbase * estimated rear weight fraction; see adopted-parameters.csv.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,rearAxle,0.93152,m,calculated,,Wheelbase * (1 - estimated rear weight fraction); see adopted-parameters.csv.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,desiredCgHeight,0.47,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,frontRideFrequency,1.5,Hz,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,rearRideFrequency,1.5,Hz,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,frontDampingRatio,0.4,ratio,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,rearDampingRatio,0.4,ratio,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,frontQTravel,0.3,m,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,rearQTravel,0.3,m,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,frontWheelRadius,0.315,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,rearWheelRadius,0.311,m,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,frontWheelInertia,2.481,kg m^2,calculated,,"25 * front rolling radius^2, rounded; assumed rotating assembly."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,rearWheelInertia,2.611,kg m^2,calculated,,"27 * rear rolling radius^2, rounded; assumed rotating assembly."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,frontDriveTorqueFraction,0.4,Nm,game design,https://en.wikipedia.org/wiki/Porsche_959,Fixed 40:60 AWD approximation; PSK not modelled.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,frontBrakeTorqueMax,3600,Nm,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,rearBrakeTorqueMax,1900,Nm,game design,,"Existing provisional suspension values; brake force 11.5 m/s^2 * mass, split .65/.35, times radius, rounded to 25 Nm."
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,quadraticDrag,0.37975,kg/m,calculated,,0.5 * 1.225 kg/m^3 * estimated CdA; see adopted-parameters.csv.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.displacementCc,2849,cm^3,source verified,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.cycle,4,strokes,source verified,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline; four-stroke family identity
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.compressionRatio,8.3,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.idleRpm,900,rpm,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.redlineRpm,7200,rpm,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.finalDriveRatio,4.125,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.gearRatios.0,3.5,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.gearRatios.1,2.059,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.gearRatios.2,1.409,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.gearRatios.3,1.074,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.gearRatios.4,0.861,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.gearRatios.5,0.696,ratio,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.torqueCurve.0.rpm,900,rpm,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.torqueCurve.0.torqueNewtonMeters,160.0,Nm,engineering estimate,,Estimated envelope point; upper segment keeps peak power at point 3. Not a measured torque sample.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.torqueCurve.1.rpm,2000,rpm,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.torqueCurve.1.torqueNewtonMeters,235.0,Nm,engineering estimate,,Estimated envelope point; upper segment keeps peak power at point 3. Not a measured torque sample.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.torqueCurve.2.rpm,5000,rpm,source verified,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.torqueCurve.2.torqueNewtonMeters,500,Nm,source verified,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.torqueCurve.3.rpm,6500,rpm,source verified,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.torqueCurve.3.torqueNewtonMeters,486.24201,Nm,calculated,https://en.wikipedia.org/wiki/Porsche_959,Secondary Komfort baseline; torque = adopted kW*1000/(power rpm*2*pi/60); source power/application may be provisional.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.torqueCurve.4.rpm,7200,rpm,engineering estimate,,Provisional authored input; exact-year measurement not established. See owning ledger.
+PORSCHE_959_1987,content/vehicles/PORSCHE_959_1987.json,powertrain.torqueCurve.4.torqueNewtonMeters,398.718448,Nm,engineering estimate,,Estimated envelope point; upper segment keeps peak power at point 3. Not a measured torque sample.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,cycleRevolutions,2,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,firingPhases.0,0.0,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,firingPhases.1,0.16666666666666666,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,firingPhases.2,0.3333333333333333,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,firingPhases.3,0.5,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,firingPhases.4,0.6666666666666666,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,firingPhases.5,0.8333333333333334,ratio,calculated,,Four-stroke cycle and equal firing intervals from cylinder count; see source identity.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.valve.diameter,0.032,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.valve.open,0.4,ratio,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.0.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.0.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.0.to,0,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.1.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.1.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.1.to,1,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.2.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.2.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.2.to,0,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.3.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.3.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.3.to,1,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.4.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.4.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.4.to,0,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.5.length,0.4,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.5.diameter,0.04,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.primaries.5.to,1,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.0.length,1.193,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.0.diameter,0.05,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.0.from,0,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.0.to,2,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.1.length,0.65,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.1.diameter,0.05,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.1.from,2,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.2.length,1.193,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.2.diameter,0.05,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.2.from,1,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.2.to,3,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.3.length,0.65,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.3.diameter,0.05,m,engineering estimate,,Estimated valve opening or acoustic pipe dimension; no measured exhaust dimensions claimed.
+PORSCHE_959_1987,content/engine-sounds/PORSCHE_959_1987.json,exhaust.pipes.3.from,3,index,game design,,Node index in the provisional acoustic graph; bank routing documented in ledger.
 CORVETTE_C4_1984,content/vehicles/CORVETTE_C4_1984.json,overallLength,4.483,m,calculated,https://www.corvsport.com/1984-corvette-specifications/,Secondary 1984 L83 specification; source dimensions converted to metres / rounded as listed.
 CORVETTE_C4_1984,content/vehicles/CORVETTE_C4_1984.json,overallWidth,1.803,m,calculated,https://www.corvsport.com/1984-corvette-specifications/,Secondary 1984 L83 specification; source dimensions converted to metres / rounded as listed.
 CORVETTE_C4_1984,content/vehicles/CORVETTE_C4_1984.json,overallHeight,1.186,m,calculated,https://www.corvsport.com/1984-corvette-specifications/,Secondary 1984 L83 specification; source dimensions converted to metres / rounded as listed.

@@ -4,12 +4,12 @@
   "form": "car",
   "selectionOrder": 40,
   "visuals": {
-    "spriteSet": "porsche-959-1988",
+    "spriteSet": "porsche-959-1987",
     "palette": "stock",
     "steeringPicture": "montecarlo",
     "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
   },
-  "sound": "PORSCHE_959_1988",
+  "sound": "PORSCHE_959_1987",
   "metadata": {
     "manufacturer": "Porsche",
     "model": "959 Komfort",

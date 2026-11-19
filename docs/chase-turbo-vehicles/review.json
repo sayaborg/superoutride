@@ -312,8 +312,8 @@
     ]
   },
   {
-    "id": "PORSCHE_959_1988",
-    "sprite": "porsche-959-1988",
+    "id": "PORSCHE_959_1987",
+    "sprite": "porsche-959-1987",
     "sha256": "e2bb9a46bbb115bdb3015d2b963dc48e283054a04f8092992665615fb7f25cca",
     "yawVariants": 64,
     "bankVariants": 1,
