@@ -97,6 +97,8 @@ test('CHASE: READY holds the player while the rival leaves from behind; the lamp
   while (at(rival) <= at(run.player)) {
     assert.ok(steps++ < 600, 'the rival passes within ten seconds');
     assert.deepEqual([run.outcome.status, run.countdown.signalLamps, at(run.player)], ['READY', 0, from]);
+    // The one rival, behind: measured negative.
+    assert.ok(run.loneRivalId === rival.id && run.rivalGap <= 0);
     run.advance(null);
   }
   assert.ok(steps > 0);
@@ -110,7 +112,7 @@ test('CHASE: READY holds the player while the rival leaves from behind; the lamp
   }
   assert.equal(counted, Math.round(READY_SECONDS / SIM_DT));
   assert.equal(run.clock.elapsedSeconds, 0);
-  assert.ok(at(rival) > from);
+  assert.ok(at(rival) > from && run.rivalGap > 0);
   // From GO both run, and the rival's crossings count in race time from where it stood at GO.
   let crossed = false;
   for (let i = 0; i < 3000 && !crossed; i++) {

@@ -98,7 +98,7 @@ export const HUD_LAYOUT = Object.freeze({
   bestTime: [10, 5],
   parting: [18, 3],
   pass: [27, 4],
-  target: [24, 5],
+  rival: [24, 5],
   extend: ['center', 7],
   split: ['center', 7],
   slowDown: ['center', 8],
@@ -343,8 +343,9 @@ const HUD_ELEMENTS: readonly HudElement[] = [
     write: ({ race }, text) => writeArrow(text, 'parting', race.nextParting === 'left' ? 'LEFT' : 'RIGHT'),
   },
   {
-    when: ({ race }) => (race.stageRivalGap ?? 0) > 0,
-    write: ({ race }, text) => write(text, 'target', `TARGET ${Math.round(race.stageRivalGap!)}M`, small('WHITE')),
+    // The one rival's distance (K, 2026-11-19), negative while it is behind: the marked rival's, by the same condition.
+    when: ({ race }) => race.rivalGap !== null,
+    write: ({ race }, text) => write(text, 'rival', `RIVAL ${Math.round(race.rivalGap!)}M`, small('WHITE')),
   },
   {
     // The speed in km/h, right-aligned segment digits; a missing leading digit is unlit.

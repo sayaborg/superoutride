@@ -16,6 +16,7 @@ import type { CompetitorObservation } from '../race/competitor-observation.js';
 import { runResult } from './run-result.js';
 import { writeHud, type HudFacts } from './run-hud.js';
 import type { TextLayer } from '../view/text-layer.js';
+import { drawRivalMarker } from '../view/rival-marker.js';
 import type { createCoursePerformanceHud } from './course-performance-hud.js';
 import { prepareRun } from '../race/run-preparation.js';
 import {
@@ -473,7 +474,8 @@ async function assembleCourseRun(
     puffSprites.push(...explosionSprites([observations.player, ...otherVehicles], scene.world.coordinates));
     // The renderer reads no clock; with DEV its caller times the scene render for the performance HUD.
     const renderStarted = performanceHud ? performance.now() : 0;
-    scene.render(
+    // The one rival's picture where the frame shows it, which the HUD marks; an onlooker's frame has no HUD.
+    const marked = scene.render(
       shell.framebuffer,
       playerAsOther || !explosionShowsVehicle(page.explosion.script, observations.player.contactResponse)
         ? null
@@ -486,10 +488,12 @@ async function assembleCourseRun(
       puffSprites,
       observations.knocked,
       measurements,
+      playerAsOther ? null : race.loneRivalId,
     );
     const renderMilliseconds = performanceHud ? performance.now() - renderStarted : 0;
     return {
-      writeHud: (text: TextLayer, menu: boolean) =>
+      writeHud: (text: TextLayer, menu: boolean) => {
+        if (marked) drawRivalMarker(shell.framebuffer, text, marked);
         writeHud(
           {
             race,
@@ -501,7 +505,8 @@ async function assembleCourseRun(
           },
           text,
           menu,
-        ),
+        );
+      },
       present() {
         const { player } = observations;
         shell.updateAudio(player, otherVehicles);

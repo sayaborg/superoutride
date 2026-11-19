@@ -117,6 +117,8 @@ export function createRenderWorkspace() {
     shadowPool: [] as PlacedShadow[],
     /** The frame's pictures lying on the ground, far to near, and their places and the places' pool. */
     lying: [] as VisibleCourseSprite[],
+    /** The watched picture drawn alone, to find which of its pixels the finished frame still shows. */
+    watch: null as SoftwareSurface | null,
     lyingPlaces: [] as GroundPlace[],
     shadowAnchor: { x: 0, y: 0, z: 0, s: 0 },
     shadowProjection: { x: 0, y: 0, scale: 0, depth: 0, cameraRightDistance: 0 },
@@ -141,12 +143,54 @@ interface RenderOptions {
   readonly ground: StripGroundReader;
 }
 
+/** Where a picture shows in a drawn frame: the column of its middle and the row of its top. */
+export interface ShownPicture {
+  readonly x: number;
+  readonly top: number;
+}
+
+/** A pixel no picture writes: RGB555 leaves the top bit clear. */
+const UNWRITTEN = 0xffff;
+
+/**
+ * Where `sprite` shows in `target` as drawn so far: drawn alone into `mask` over its bounds, it shows where some pixel of
+ * it is still the frame's; null where what was drawn after it (the nearer ground over a crest, a wall, a picture
+ * between) covers it, or where it lies outside the frame.
+ */
+function shownPicture(
+  target: SoftwareSurface,
+  sprite: VisibleCourseSprite,
+  mask: SoftwareSurface,
+): ShownPicture | null {
+  const { x, y, scale } = sprite.projection;
+  const bounds = scaledSpriteBounds(sprite.asset, scale);
+  const left = Math.max(0, Math.floor(x + bounds.left)),
+    right = Math.min(target.width - 1, Math.ceil(x + bounds.right)),
+    top = Math.max(0, Math.floor(y + bounds.top)),
+    bottom = Math.min(target.height - 1, Math.ceil(y + bounds.bottom));
+  if (left > right || top > bottom) return null;
+  for (let row = top; row <= bottom; row++)
+    mask.pixels.fill(UNWRITTEN, row * target.width + left, row * target.width + right + 1);
+  drawScaledSprite(mask, sprite.asset, x, y, scale, top, bottom + 1);
+  for (let row = top; row <= bottom; row++)
+    for (let i = row * target.width + left, end = row * target.width + right; i <= end; i++)
+      if (mask.pixels[i] !== UNWRITTEN && mask.pixels[i] === target.pixels[i])
+        return { x: x + (bounds.left + bounds.right) / 2, top: y + bounds.top };
+  return null;
+}
+
+/**
+ * Render the driving frame into `target`; with `watched`, the name of a picture among the world's, where that picture
+ * shows (`ShownPicture`) under the ground, walls and pictures drawn after it, but not the player's picture or those
+ * nearer than it, else null.
+ */
 export function renderDriving(
   target: SoftwareSurface,
   { background, guide, camera, player, terrainParameters, worldSprites, walls }: RenderScene,
   { ground, workspace }: RenderOptions,
   measurements: RenderMeasurements | null = null,
-): void {
+  watched: string | null = null,
+): ShownPicture | null {
   const renderCamera = camera;
   // The terrain's forward visible interval also bounds the course sprites; it is computed once per frame.
   const { lines: terrain, visible } = generateTerrainLines(guide, camera, terrainParameters, workspace.terrain);
@@ -324,13 +368,23 @@ export function renderDriving(
     nearSprites,
   );
 
+  // The watched picture shows where what is drawn after it, up to the player's picture, leaves any of it: the player's
+  // own picture, and the pictures nearer, hide none of it.
+  const watchedIndex = watched === null ? -1 : sprites.findIndex((sprite) => sprite.name === watched);
+  if (watchedIndex >= 0 && (workspace.watch?.width !== target.width || workspace.watch.height !== target.height))
+    workspace.watch = new SoftwareSurface(target.width, target.height);
+  const watch = () => shownPicture(target, sprites[watchedIndex]!, workspace.watch!);
+  let shown = watchedIndex >= 0 && watchedIndex < nearSprites ? watch() : null;
   const playerStats = selected
     ? drawScaledSprite(target, selected.asset, playerProjection!.x, playerProjection!.y, playerProjection!.scale)
     : { outputSamples: 0, writtenPixels: 0 };
-  for (let i = nearSprites; i < sprites.length; i++) drawRows(sprites[i]!, 0, height);
+  for (let i = nearSprites; i < sprites.length; i++) {
+    drawRows(sprites[i]!, 0, height);
+    if (i === watchedIndex) shown = watch();
+  }
 
   // Only a measured render keeps the frame's measurements; the product render leaves them.
-  if (!measurements) return;
+  if (!measurements) return shown;
   Object.assign(measurements.stripGround, stripStats);
   measurements.terrainLineCount = terrain.length;
   measurements.terrainOutputPixels = terrainOutputPixels;
@@ -347,4 +401,5 @@ export function renderDriving(
   measurements.playerRelativeYaw = relativeYaw;
   measurements.spriteOutputSamplesIncludingPlayer = spriteOutputSamples + playerStats.outputSamples;
   measurements.spriteWrittenPixelsIncludingPlayer = spriteWrittenPixels + playerStats.writtenPixels;
+  return shown;
 }

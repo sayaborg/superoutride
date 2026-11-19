@@ -348,12 +348,19 @@ elements, each reading one observation; the active run rules determine which app
 | Next gate has a rank limit     | PASS n                                                                      |
 | LINEAR                         | STAGE n                                                                     |
 | CIRCUIT                        | LAP x/y (LAP x without a lap count), lap time, BEST lap                     |
-| One rival per stage            | TARGET distance while that rival is ahead                                   |
+| One rival in the race          | ▼ RIVAL over that rival while it shows; RIVAL distance, negative behind     |
 | Ended                          | GOAL, or GAME OVER with TIME UP or RANK OUT, until RESULT                   |
 | Camera held at its yaw limit   | An arrow at the screen's edge pointing the way the road goes                |
 | A parting ahead, no gate first | The road arrow at the top centre, pointing the side the course takes there  |
 | TIME ATTACK record exists      | RECORD at READY; the difference at each gate and lap                        |
 | Slowing needed (SETTINGS)      | SLOW DOWN                                                                   |
+
+A race of one rival marks it and measures to it, by one condition (K, 2026-11-19, widening TARGET's one rival per
+stage): the only rival present, while it takes part in the player's stage, in any class, a CHASE, TURBO OUTRUN's or
+one of a stage alone. Its marker, a downward arrow under RIVAL in the 8×8 font, one size at any distance, stands over
+the rival's picture whenever the frame shows any of it, and not while a hill or a bend hides it or it is off the
+screen. Beside LAP, RIVAL gives the distance to it along the road in metres, negative while it is behind
+(`RIVAL -35M`).
 
 Race rules sit in the upper rows, the vehicle's state in the lower rows, and passing notices in the
 middle; the road stays clear, and the steering picture may lie over the player's vehicle. Times read `1'23"456`. TIME

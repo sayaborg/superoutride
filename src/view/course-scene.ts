@@ -7,7 +7,7 @@ import type { CompiledCourse } from '../course/compiler/compiled-course.js';
 import { cameraDistance, type CameraState } from './camera.js';
 import { CAMERA_DEFINITION } from './camera-definition.js';
 import type { VehicleRenderRead } from '../vehicle/physics/vehicle-contract.js';
-import { createRenderWorkspace, renderDriving, type RenderMeasurements } from './renderer.js';
+import { createRenderWorkspace, renderDriving, type RenderMeasurements, type ShownPicture } from './renderer.js';
 import type { CourseSprite } from './course-sprite.js';
 import type { SpriteAsset } from '../image/sprite.js';
 import type { VehicleSpriteImages } from '../vehicle/vehicle-sprite-set.js';
@@ -126,7 +126,9 @@ export function createCourseScene(
       knocked: readonly KnockedObjectObservation[],
       /** DEV and tools only: receives the frame's measurements. */
       measurements: RenderMeasurements | null = null,
-    ) {
+      /** A vehicle's picture, by its name, whose place in the finished frame is returned (`ShownPicture`). */
+      watched: string | null = null,
+    ): ShownPicture | null {
       const readers = runtime.readers;
       const renderData = rendering.read();
       // Route occurrences change exactly when a successor is selected or appended.
@@ -213,6 +215,7 @@ export function createCourseScene(
         },
         { ground: view.ground, workspace: renderWorkspace },
         measurements,
+        watched,
       );
     },
   });

@@ -695,6 +695,15 @@ export function createCourseRace(options: {
     stepObservation.recovered = player.body.recovered;
   };
 
+  // The only rival present, while it takes part in the player's STAGE.
+  const loneRival = () => {
+    const present = rivals.filter((c) => c.present);
+    if (present.length !== 1) return null;
+    const [rival] = present;
+    const stage = playerGates + 1;
+    return rival!.stages === null || (stage >= rival!.stages.first && stage <= rival!.stages.last) ? rival! : null;
+  };
+
   return Object.freeze({
     player,
     rivals,
@@ -761,16 +770,20 @@ export function createCourseRace(options: {
       return next && Object.hasOwn(rankLimits, next.landmark.id) ? rankLimits[next.landmark.id]! : null;
     },
     /**
-     * When the only present rival takes part in a stage interval holding the player's STAGE (one rival per stage), its
-     * Route station less the player's, in metres: positive while it is ahead. Null otherwise.
+     * The race's one rival (K, 2026-11-19), which the view marks and the HUD measures to: the only rival present, while
+     * it takes part in the player's STAGE (its stage interval holds it, or it has none). Null in a race of no rival or
+     * several.
      */
-    get stageRivalGap(): number | null {
-      const present = rivals.filter((c) => c.present);
-      if (present.length !== 1) return null;
-      const [rival] = present;
-      const stage = playerGates + 1;
-      if (rival!.stages === null || stage < rival!.stages.first || stage > rival!.stages.last) return null;
-      return rival!.progress.s - player.progress.s;
+    get loneRivalId(): string | null {
+      return loneRival()?.id ?? null;
+    },
+    /**
+     * The one rival's (`loneRivalId`) Route station less the player's, in metres: positive while it is ahead, negative
+     * behind. Null without one.
+     */
+    get rivalGap(): number | null {
+      const rival = loneRival();
+      return rival ? rival.actor.vehicle.course.s - player.actor.vehicle.course.s : null;
     },
     /**
      * The run's one status (WAITING and READY before GO, then RUNNING, GOAL, GAME_OVER or ENDED) and GAME OVER cause.
@@ -892,7 +905,8 @@ export type RaceFacts = Pick<
   | 'courseType'
   | 'standing'
   | 'nextRankLimit'
-  | 'stageRivalGap'
+  | 'loneRivalId'
+  | 'rivalGap'
   | 'outcome'
 > & {
   readonly clock: Pick<CourseRace['clock'], 'elapsedSeconds' | 'deadlineSeconds' | 'lastExtension'>;

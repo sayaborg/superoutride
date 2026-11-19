@@ -81,6 +81,26 @@ export function createTextLayer(tiles: TextTiles) {
       overlays[index] = pattern;
       overlayPalettes[index] = palette;
     },
+    /**
+     * Paint `text` in the normal font and `palette` straight into `frame` from the pixel (`x`, `y`), off the text grid:
+     * characters that move with something drawn, a picture of their own. The text lies within the frame.
+     */
+    stamp(frame: SoftwareSurface, x: number, y: number, text: string, palette: number) {
+      requirePalette(palette);
+      const codes = tiles.encode(text);
+      if (
+        !Number.isInteger(x) ||
+        !Number.isInteger(y) ||
+        x < 0 ||
+        y < 0 ||
+        x + codes.length * TEXT_TILE_SIZE > frame.width ||
+        y + TEXT_TILE_SIZE > frame.height
+      )
+        throw new RangeError('stamped text lies outside the frame');
+      codes.forEach((code, i) =>
+        tiles.paint(frame.pixels, y * frame.width + x + i * TEXT_TILE_SIZE, frame.width, code, palette),
+      );
+    },
     /** Paint the non-empty tiles over a logical frame, each cell's overlay tile over its tile. */
     draw(frame: SoftwareSurface) {
       if (frame.width !== LOGICAL_WIDTH || frame.height !== LOGICAL_HEIGHT)

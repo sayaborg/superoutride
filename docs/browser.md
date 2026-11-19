@@ -852,7 +852,7 @@ characters.
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1–2   | Ornate large: TIME and the remaining seconds (rounded up) beside it, race time, POS n/m, STAGE n                                                                            |
 | 3–6   | Columns 18–21: the 4×4-tile road arrow, steady, pointing the side of the next parting while no gate comes before it                                                         |
-| 4–5   | Ornate small: LAP x/y (LAP x without a lap count) and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, TARGET nM                     |
+| 4–5   | Ornate small: LAP x/y (LAP x without a lap count) and the lap's time, BEST and the best lap (`-'--"---` before one), PASS n until the ending, RIVAL nM                      |
 | 7     | Ornate small: `EXTEND +12"0` (seconds and tenths), SUNSET, while TIME is SUNSET after an extension                                                                          |
 | 7     | Ornate small: TIME ATTACK with a record, the difference from the record run for 2 s after each compared crossing                                                            |
 | 8–9   | Ornate large, columns 15–23: `SLOW DOWN` while the race shows a stage and SLOW DOWN is ON: YELLOW, ORANGE, or RED blinking ([SLOW DOWN](#slow-down))                        |
@@ -869,11 +869,21 @@ characters.
 Rows 1–2 hold each label with its value beside it: TIME in columns 1–4 with the seconds right-aligned to column 8,
 race time from column 11, POS from column 21 with its value from column 25, and STAGE from column 31 with its number
 right-aligned to column 38. Their styles: TIME and the seconds WHITE, the seconds RED under 10 s and SUNSET after an
-extension; race time, POS and STAGE SUNSET. LAP and its time are SUNSET; BEST, PASS and TARGET WHITE; the difference
+extension; race time, POS and STAGE SUNSET. LAP and its time are SUNSET; BEST, PASS and RIVAL WHITE; the difference
 from the record run GREEN or RED. A two-row line keeps its anchor and first row, and the line under it moves down a
 row: GAME OVER's cause stands on rows 18–19. RESULT's title (GOAL or GAME OVER) and its RANK line are the ornate
 large font in the race's styles (the rank SUNSET); its other lines, its items, the menus and the other screens keep
 the normal font.
+
+The race's one rival ([product](product.md#9-hud); `loneRivalId`: the only rival present, while it takes part in the
+player's stage) has RIVAL nM, its route station less the player's rounded to the metre, negative behind, and its
+marker ([rival marker](../src/view/rival-marker.ts)). The renderer finds where the frame still shows any pixel of the
+rival's picture (`ShownPicture`: the picture drawn alone over its bounds, and kept where the frame's pixel is still its
+own) once what lies between has been drawn, the nearer ground past a crest, a wall or a picture between, and before the
+player's own picture, which never hides it. A rival beyond what the frame draws, or off it, has no marker. The
+marker is RIVAL over a `▼` in the normal font, YELLOW with the font's shadow, 40×16 pixels at any distance, the arrow
+centred 2 pixels clear above the picture's top, kept within the frame; it is stamped over everything the scene draws,
+the HUD's text over it. A watched run's onlooker, the attract demo's, draws none.
 
 The steering picture, in the middle of the frame's width, is the one the player vehicle's listing names
 ([Image assets](image-assets.md#text-tiles)) and shows where the front wheel actually points: the player

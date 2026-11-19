@@ -18,6 +18,10 @@ import { createCameraRig, updateCamera } from '../../src/view/camera.js';
 import { CAMERA_DEFINITION } from '../../src/view/camera-definition.js';
 import { createRaceSprites } from '../../src/view/race-sprites.js';
 import { fieldClass } from '../race/field-class.mjs';
+import { createLogicalFrame } from '../../src/view/display-scale.js';
+import { createTextLayer } from '../../src/view/text-layer.js';
+import { loadTextTiles } from '../../src/content/text-tiles-catalog.js';
+import { drawRivalMarker } from '../../src/view/rival-marker.js';
 
 const definitionContent = await readDeliveredContent();
 const definitions = await loadVehicleDefinitions(definitionContent, await loadEngineSounds(definitionContent));
@@ -83,4 +87,61 @@ test('the view assembles fifteen rival sprites from race observations', async ()
     observed.rivals.map((a) => a.id),
   );
   assert.ok(sprites.every((s) => s.asset && Number.isFinite(s.x) && Number.isFinite(s.y) && Number.isFinite(s.z)));
+});
+
+test('a race of one rival marks it where the frame shows it and measures to it; a race of two does neither', async () => {
+  const { course, scene, compiledVehicle } = await setup();
+  const id = compiledVehicle.vehicleDefinition.compiledVehicle.id;
+  const raceOf = (rivals) => {
+    const field = fieldClass(course, id, { rivals });
+    const configuration = compileRunConfiguration({ mode: 'RACE', vehicleId: id, color: null }, course, field, {
+      vehicles: definitions.vehicles,
+    });
+    const setup = resolveRunSetup(course, field, configuration, 0, compiledVehicle, null, {
+      vehicleOf: () => ({ vehicle: compiledVehicle }),
+    });
+    return createCourseRace({ setup, runtime: scene.runtime });
+  };
+  const race = raceOf(1);
+  race.start();
+  // The rival stands in the slot in front of the player: marked, and measured ahead of it.
+  assert.equal(race.loneRivalId, race.rivals[0].id);
+  assert.ok(race.rivalGap > 0);
+  const frame = createLogicalFrame();
+  const rig = createCameraRig();
+  const pictures = createRaceSprites(definitions.vehicles, () => true);
+  const frameShows = () => {
+    const observed = race.observe();
+    const camera = updateCamera(rig, scene.world, observed.player, CAMERA_DEFINITION, 'FACING');
+    return scene.render(
+      frame,
+      null,
+      camera,
+      pictures(observed.rivals, camera, scene.world),
+      [],
+      [],
+      null,
+      race.loneRivalId,
+    );
+  };
+  // On the grid it stands beside the camera's view, off the frame: no marker.
+  assert.equal(frameShows(), null);
+  // Once the field runs, it comes into view ahead, its picture entering the frame from the side.
+  let shown = null;
+  for (let step = 0; step < 900 && !shown; step++) {
+    race.advance(null);
+    shown = frameShows();
+  }
+  assert.ok(shown && Number.isFinite(shown.x) && shown.top < frame.height, 'the rival comes into view');
+  // A picture the frame does not draw is not found.
+  const camera = updateCamera(rig, scene.world, race.observe().player, CAMERA_DEFINITION, 'FACING');
+  assert.equal(scene.render(frame, null, camera, [], [], [], null, race.loneRivalId), null);
+  // The marker stands within the frame wherever the picture is.
+  const text = createTextLayer(await loadTextTiles(definitionContent));
+  for (const at of [shown, { x: -50, top: -100 }, { x: 400, top: 500 }])
+    assert.doesNotThrow(() => drawRivalMarker(frame, text, at));
+  // With two rivals, none is the race's one rival.
+  const two = raceOf(2);
+  two.start();
+  assert.deepEqual([two.loneRivalId, two.rivalGap], [null, null]);
 });
