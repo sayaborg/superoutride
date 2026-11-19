@@ -202,33 +202,35 @@ series lap-time target or time limit is authored. Existing TSUKUBA series refere
 K takes TOP SPEED's car for the Mazda RX-7 Turbo II of 1987 (K, 2026-11-19); nothing here claims the original says so.
 `RX_7_TURBO_II_1987` is the 1987 model year's FC Series 4 Turbo II as sold in the US: left-hand drive, the 13B
 two-rotor engine with an intercooled single turbocharger, a five-speed manual and rear drive. Its listing selects the
-5MT, the hood scoop and the 16-inch wheels; its engine is shown as `R2T`, a two-rotor turbo. FREE PLAY's classes offer it
-through catalog membership, as every vehicle; no other series runs it, and how TOP SPEED's series will use it is not
+5MT, the hood scoop and the 16-inch wheels; its engine is shown as `R2T`, a two-rotor turbo. FREE PLAY's classes offer
+it through catalog membership, as every vehicle; no other series runs it, and how TOP SPEED's series will use it is not
 decided. Its numbers follow this ledger's [conventions](#numerical-conventions-and-remaining-uncertainty).
 
-The source column is the stage auditor's reading (2026-11-19) of the pages listed below; the sources were not
-reachable from this PR's environment, so no value here is marked as read for this PR. K's decisions are the width,
-the US mass and length, and the power and torque anchors.
+The source column has two kinds of reading, both the stage auditor's on 2026-11-19, none made for the PRs that
+wrote this section. Rows of class **source (T)** were read by the auditor in K's copy of Mazda's Turbo II training
+material (`S4T2training.pdf`, 75 pages, not in the repository), on the pages given. Rows of class **source** are the
+auditor's reading of the other pages listed [below](#sources), not read for these PRs. K's decisions are the width, the
+US mass and length, and the power and torque anchors.
 
-| Item                  | Source (auditor's reading)                                                    | Authored `RX_7_TURBO_II_1987`                                                            | Class               |
-| --------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------- |
-| Length, width, height | 168.9 / 66.5 / 49.8 in (US); width 1,690 mm in other sources                  | **4.29 / 1.695 / 1.265 m**; the width is K's                                             | source, K           |
-| Wheelbase             | 2,430 mm, 95.7 in (two sources agree)                                         | Axles **1.215 / 1.215 m** from the CG: 50:50 (a press description, not a primary source) | source, estimate    |
-| Tracks                | 1,450 / 1,440 mm (two sources agree)                                          | 1.45 / 1.44 m                                                                            | source              |
-| Mass                  | 2,845 lb (1,290 kg) US Turbo curb; 2,851 lb elsewhere                         | **1,365 kg**: 1,290 + the 75 kg driver                                                   | source, calculated  |
-| Engine                | 13B, 2 × 654 cc = 1,308 cc, 8.5:1, idle 750 rpm                               | 1,308 cc, `cycle` 2 (below), 8.5, idle 750                                               | source              |
-| Power, torque         | 182 hp SAE net at 6,500 rpm; 183 lb-ft at 3,500 rpm (K's anchors)             | Point 2: 248.114684 N m at 3,500; point 3: 199.385493 N m at 6,500 (135.7 kW)            | K, calculated       |
-| Curve's other points  | —                                                                             | 110 N m at 750, 180 at 2,000, 180 at 7,000 (power stays greatest at 6,500)               | estimate            |
-| Redline               | —                                                                             | **7,000 rpm**, the tachometer's red (the auditor's)                                      | game design         |
-| Transmission          | 3.483, 2.015, 1.391, 1.000, 0.762; final 4.100, clutch-type LSD (two sources) | As the source; the LSD is not represented                                                | source              |
-| Tires                 | 205/55VR16 on 16 × 7J, 632 mm outside diameter                                | Radii 0.316 m; inertias `25r²` / `27r²` = 2.496 / 2.696 kg m²; the default tire          | source, calculated  |
-| Drag                  | Cd 0.31 at launch (press); 0.29 is the aero package's and is not adopted      | `q = 0.5 × 1.225 × 0.31 × 1.79 m²` = **0.34 kg/m**; the frontal area is an estimate      | source, estimate    |
-| CG height             | —                                                                             | 0.48 m                                                                                   | estimate            |
-| Inertias              | —                                                                             | Box estimates **2,420 / 2,275 kg m²**                                                    | calculated          |
-| Brakes                | —                                                                             | 1,365 × 11.5 m/s², 65:35, × 0.316 m, to 25 N m: **3,225 / 1,725 N m**                    | game design         |
-| Suspension            | —                                                                             | 1.5 Hz, 0.4, 0.3 m                                                                       | game design         |
-| Exhaust port          | Opens 75° BBDC, closes 48° ATDC (training-material excerpt)                   | `valve.open` 0.95 (below)                                                                | source, game design |
-| Exhaust               | Turbine, catalyst, Y-pipe, one silencer per side (1986–92 description)        | [Calibration](calibration.md#exhaust-topologies); lengths and diameters are estimates    | estimate            |
+| Item                  | Source (auditor's reading)                                                                                         | Authored `RX_7_TURBO_II_1987`                                                            | Class                   |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ----------------------- |
+| Length, width, height | 168.9 / 66.5 / 49.8 in (US); width 1,690 mm in other sources                                                       | **4.29 / 1.695 / 1.265 m**; the width is K's                                             | source, K               |
+| Wheelbase             | 2,430 mm, 95.7 in (two sources agree)                                                                              | Axles **1.215 / 1.215 m** from the CG: 50:50 (a press description, not a primary source) | source, estimate        |
+| Tracks                | 1,450 / 1,440 mm (two sources agree)                                                                               | 1.45 / 1.44 m                                                                            | source                  |
+| Mass                  | 2,845 lb (1,290 kg) US Turbo curb; 2,851 lb elsewhere                                                              | **1,365 kg**: 1,290 + the 75 kg driver                                                   | source, calculated      |
+| Engine                | 13B, two rotors, 2 × 654 cc; 8.5:1 (9.4 without turbo); 4 intake ports (6); idle 750 ± 25 rpm (pp. 1, 4B-3, 4B-45) | 1,308 cc, `cycle` 2 (below), 8.5, idle 750                                               | source (T)              |
+| Power, torque         | 182 hp SAE net at 6,500 rpm; 183 lb-ft at 3,500 rpm (K's anchors)                                                  | Point 2: 248.114684 N m at 3,500; point 3: 199.385493 N m at 6,500 (135.7 kW)            | K, calculated           |
+| Curve's other points  | —                                                                                                                  | 110 N m at 750, 180 at 2,000, 180 at 7,000 (power stays greatest at 6,500)               | estimate                |
+| Redline               | —                                                                                                                  | **7,000 rpm**, the tachometer's red (the auditor's)                                      | game design             |
+| Transmission          | 3.483, 2.015, 1.391, 1.000, 0.762; final 4.100, clutch-type LSD (two sources)                                      | As the source; the LSD is not represented                                                | source                  |
+| Tires                 | 205/55VR16 on 16 × 7J, 632 mm outside diameter                                                                     | Radii 0.316 m; inertias `25r²` / `27r²` = 2.496 / 2.696 kg m²; the default tire          | source, calculated      |
+| Drag                  | Cd 0.31 at launch (press); 0.29 is the aero package's and is not adopted                                           | `q = 0.5 × 1.225 × 0.31 × 1.79 m²` = **0.34 kg/m**; the frontal area is an estimate      | source, estimate        |
+| CG height             | —                                                                                                                  | 0.48 m                                                                                   | estimate                |
+| Inertias              | —                                                                                                                  | Box estimates **2,420 / 2,275 kg m²**                                                    | calculated              |
+| Brakes                | —                                                                                                                  | 1,365 × 11.5 m/s², 65:35, × 0.316 m, to 25 N m: **3,225 / 1,725 N m**                    | game design             |
+| Suspension            | —                                                                                                                  | 1.5 Hz, 0.4, 0.3 m                                                                       | game design             |
+| Exhaust port          | Opens 75° BBDC, closes 48° ATDC (p. 1)                                                                             | `valve.open` 0.95 (below)                                                                | source (T), game design |
+| Exhaust               | Manifold, turbo, front and main converters, Y, two 12,000 cc main silencers (pp. 4B-3, 4B-41, 4B-45)               | [Calibration](calibration.md#exhaust-topologies); lengths and diameters are estimates    | source (T), estimate    |
 
 ### Representation within the current model
 
@@ -239,8 +241,12 @@ the US mass and length, and the power and torque anchors.
   four-stroke four; a rotor's three chambers firing over three revolutions are not represented. Each rotor's port is
   open 75 + 270 + 48 = 393 output-shaft degrees, more than the revolution, so `valve.open` is 0.95, near the format's
   limit below 1.
-- Boost onset and lag, the LSD and the clutch are not represented, as for the other cars. Boost pressure (sources give
-  5.5 to 7 psi) and the rev limit are not checked against a primary source and are not used.
+- Boost onset and lag, the LSD and the clutch are not represented, as for the other cars. The training material gives
+  the greatest boost as 340 mmHg (13.4 inHg, about 45 kPa or 6.6 psi; p. 4B-45); it is not used. The training material
+  gives neither the rev limit nor the redline.
+- The twin-scroll turbine's switch (only the primary passage below 2,700 rpm, both above; p. 4B-17), the wastegate
+  built into the turbocharger and the air-cooled intercooler under the hood scoop (pp. 4B-18, 4B-45) are not
+  represented; the torque curve's point at 2,000 rpm (180 N m) stays an estimate.
 - Its pictures are PORSCHE_928_S_1984's set and palettes until its own are baked from K's model (Stage FC3S, FC3S-2).
 
 ### Measured on the flat
@@ -262,9 +268,12 @@ the real car's tests and its top speed is above the claim; the numbers are left 
 
 ### Sources
 
-The stage auditor's starting points (2026-11-19), not read for this PR:
+[Mazda's Turbo II training material](http://foxed.ca/rx7manual/manuals/S4T2training.pdf): K's copy, 75 pages, read
+by the stage auditor (2026-11-19) on the pages cited above; it is not in the repository. It gives no power, torque or
+torque curve, redline or rev limit, gear ratios, mass, dimensions, tires, or exhaust lengths, diameters and port areas.
+
+The stage auditor's other starting points (2026-11-19), not read for these PRs:
 [1987 North American specifications](https://www.automobile-catalog.com/car/1987/1639295/mazda_rx-7_turbo_ii.html),
 [a transcription of the US specifications and ratios](https://www.rotarycarclub.com/rotary_forum/showthread.php?p=44127),
-[Mazda's Turbo II training material](http://foxed.ca/rx7manual/manuals/S4T2training.pdf) (excerpts only),
 [the launch drag coefficient](https://features.csmonitor.com/1985/1107/hmazda.html) and
 [1987 Mazda paint codes](https://paintref.com/cgi-bin/colorcodedisplay.cgi?manuf=Mazda&model=&year=1987).

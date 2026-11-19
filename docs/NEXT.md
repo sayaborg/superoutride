@@ -150,8 +150,10 @@ FC3S-1 adds the vehicle, its sound and its listing, on PORSCHE_928_S_1984's pict
   ROTARY on screen); one decision serves both.
 - Estimates: the CG height, the frontal area, the torque curve's points at 750, 2,000 and 7,000 rpm, and the exhaust's
   lengths and diameters.
-- Not checked against a primary source and not used: the boost pressure (sources give 5.5 to 7 psi) and the rev limit.
-  The cited sources were not reachable from FC3S-1's environment; the values are the auditor's reading.
+- Mazda's Turbo II training material (K's copy, read by the stage auditor, 2026-11-19) gives the greatest boost as
+  340 mmHg (about 6.6 psi), not used, and gives neither the rev limit nor the redline: 7,000 rpm stays the auditor's
+  proposal, awaiting K. The other cited sources were not reachable from FC3S-1's environment; their values are the
+  auditor's reading.
 - Not decided: how TOP SPEED's series uses it (the player's car, rivals, nitro), its own tire values and its steering
   picture.
 
