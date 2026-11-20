@@ -5,13 +5,15 @@
   "firingPhases": [0],
   "exhaust": {
     "valve": { "diameter": 0.0438, "open": 0.3681 },
-    "primaries": [{ "length": 0.6, "diameter": 0.0495, "to": 0 }],
+    "primaries": [{ "length": 0.42, "diameter": 0.0365, "to": 0 }],
     "pipes": [
-      { "length": 0.95, "diameter": 0.045, "from": 0, "to": 1 },
-      { "length": 0.1, "diameter": 0.028, "from": 1, "to": null }
+      { "length": 0.18, "diameter": 0.152, "from": 0, "to": 1 },
+      { "length": 0.16, "diameter": 0.04, "from": 1, "to": 2 },
+      { "length": 0.44, "diameter": 0.131, "from": 2, "to": 3 },
+      { "length": 0.12, "diameter": 0.04, "from": 3, "to": null }
     ]
   },
   "metadata": {
-    "note": "The radial four-valve head's two exhaust ports and their two head pipes, round the front of the engine to their join, as one tube of their combined area (two of 35 mm); the single pipe on into the silencer on the right, and its small outlet. Every length and diameter is an estimate. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: two exhaust valves of 31 mm (replacement parts) and 8.0 mm lift (estimate), so the curtain is the head's area; about 265 deg seat to seat from 45 BBDC / 5 ATDC at 1 mm (Honda manual as quoted), widened as VFR750R's. Two 28 mm carburetors (1985) feed the intake, which is not modelled."
+    "note": "The radial four-valve head's two exhaust ports and their two head pipes, round the front of the engine to their join, written as one tube of their combined area: two of about 26 mm inside (1 1/8 in outside and a little under 1/16 in of wall, an owner's measurement of the XR650L's stock header, which an owners' forum says shares the XR600R's small primaries; whether it holds for the 1985 header, part 18320-MK2-670, is not confirmed). The joined pipe is 40 mm inside (1 11/16 in outside, the same measurement). Between the head pipes and the joined pipe stands an expansion chamber the motorcycle does not have (K, 2026-11-21, by ear). The silencer on the right is a wide pipe, and its outlet is as wide as the joined pipe: a narrower outlet sharpened the report and raised the closed-throttle drone. The whole run, 1.32 m, is an estimate from the wheelbase and the engine's place. All lengths are estimates; the chamber's and the silencer's widths were set by ear. Valve: two exhaust valves of 31 mm (replacement parts) and 8.0 mm lift (estimate), so the curtain is the head's area; about 265 deg seat to seat from 45 BBDC / 5 ATDC at 1 mm (Honda manual as quoted), widened as VFR750R's. Two 28 mm carburetors (1985) feed the intake, which is not modelled."
   }
 }

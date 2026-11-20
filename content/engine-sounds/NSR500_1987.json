@@ -2,27 +2,35 @@
   "format": "superoutride.engine-sound",
   "version": 2,
   "cycleRevolutions": 1,
-  "firingPhases": [0, 0.3111111111111111, 0.5, 0.8111111111111111],
+  "firingPhases": [0, 0.25, 0.5, 0.75],
   "exhaust": {
     "valve": { "diameter": 0.028, "open": 0.5556 },
     "primaries": [
-      { "length": 0.58, "diameter": 0.032, "to": 0 },
-      { "length": 0.66, "diameter": 0.032, "to": 1 },
-      { "length": 0.48, "diameter": 0.032, "to": 2 },
-      { "length": 0.52, "diameter": 0.032, "to": 3 }
+      { "length": 0.2, "diameter": 0.038, "to": 0 },
+      { "length": 0.2, "diameter": 0.038, "to": 1 },
+      { "length": 0.2, "diameter": 0.038, "to": 2 },
+      { "length": 0.2, "diameter": 0.038, "to": 3 }
     ],
     "pipes": [
-      { "length": 0.3, "diameter": 0.07, "from": 0, "to": 4 },
-      { "length": 0.3, "diameter": 0.07, "from": 1, "to": 5 },
-      { "length": 0.3, "diameter": 0.07, "from": 2, "to": 6 },
-      { "length": 0.3, "diameter": 0.07, "from": 3, "to": 7 },
-      { "length": 0.28, "diameter": 0.02, "from": 4, "to": null },
-      { "length": 0.28, "diameter": 0.02, "from": 5, "to": null },
-      { "length": 0.28, "diameter": 0.02, "from": 6, "to": null },
-      { "length": 0.28, "diameter": 0.02, "from": 7, "to": null }
+      { "length": 0.45, "diameter": 0.083, "from": 0, "to": 4 },
+      { "length": 0.49, "diameter": 0.088, "from": 1, "to": 5 },
+      { "length": 0.45, "diameter": 0.083, "from": 2, "to": 6 },
+      { "length": 0.49, "diameter": 0.088, "from": 3, "to": 7 },
+      { "length": 0.18, "diameter": 0.024, "from": 4, "to": 8 },
+      { "length": 0.18, "diameter": 0.024, "from": 5, "to": 9 },
+      { "length": 0.18, "diameter": 0.024, "from": 6, "to": 10 },
+      { "length": 0.18, "diameter": 0.024, "from": 7, "to": 11 },
+      { "length": 0.26, "diameter": 0.065, "from": 8, "to": 12 },
+      { "length": 0.26, "diameter": 0.065, "from": 9, "to": 13 },
+      { "length": 0.26, "diameter": 0.065, "from": 10, "to": 14 },
+      { "length": 0.26, "diameter": 0.065, "from": 11, "to": 15 },
+      { "length": 0.12, "diameter": 0.024, "from": 12, "to": null },
+      { "length": 0.12, "diameter": 0.024, "from": 13, "to": null },
+      { "length": 0.12, "diameter": 0.024, "from": 14, "to": null },
+      { "length": 0.12, "diameter": 0.024, "from": 15, "to": null }
     ]
   },
   "metadata": {
-    "note": "1987 112-degree single-crank V4 timing is unverified; assumed 180-degree crank with bank offset, not the later Big Bang. One cycle per revolution. Four independent pipes; straight chamber and stinger surrogates. Port area approximated by a 28 mm equivalent circle, 200 degrees open. All pipe dimensions and port timing are engineering estimates; see docs/racing-vehicles.md."
+    "note": "112-degree single-crank V4 firing one cylinder every 90 degrees: the NSR500 fired at even 90-degree intervals until the 180-degree paired engine of 1990 (Japanese and English histories of the machine agree; a 1988 magazine's \"180-degree intervals\" is not followed). The banks are taken to alternate, each bank's two cylinders half a turn apart (not confirmed). One cycle per revolution. Four independent pipes, each a header, an expansion chamber, a stinger, a silencer and an outlet. The rear bank's two (firing at 0 and 0.5; from 1987 they exhaust rearward) and the front bank's two differ a little in their chambers' length and volume (K, 2026-11-21: four alike sounded too even). The chambers are straight wide pipes: header and chamber together are the tuned length for 13,000 rpm and 200 degrees of port, about 0.67 m, and the chambers' volume started from the real shape's (cones from 38 mm to 100 mm, Honda's figure for the 1985 machine's widest, and back to the stinger); their widths and the silencers' were then set by ear. Port area approximated by a 28 mm equivalent circle, 200 degrees open. Every length and diameter is an estimate."
   }
 }

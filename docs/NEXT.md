@@ -70,9 +70,9 @@ Each line is one area as it stands, with the document that owns it.
   and recovery ([Vehicle physics](vehicle-physics.md)); [Stage TR](#stage-tr--the-brush-tire)'s values await K's DEV.
 - **Audio.** The audio scene and sound graph, engine sounds by one model of the exhaust's tubes and spaces (Stage ES:
   afterfires the powertrain decides, ENGINE SOUND QUALITY's rates, a compressor before each vehicle's measured gain;
-  silencers in three so far, [Stage MF](#stage-mf--silencers-in-three-engine-sounds)), tire audio (UNIFIED), recordings
-  and music, effects and contact sound; the recordings are placeholders until K's files replace them ([Audio](audio.md),
-  [Tire audio](tire-audio.md), [placeholder recordings](#placeholder-recordings)).
+  silencers in eight so far, [Stage MF](#stage-mf--silencers-and-turbines-in-the-engine-sounds)), tire audio (UNIFIED),
+  recordings and music, effects and contact sound; the recordings are placeholders until K's files replace them
+  ([Audio](audio.md), [Tire audio](tire-audio.md), [placeholder recordings](#placeholder-recordings)).
 - **Tire puffs.** Smoke, spray and dust by the surface under each tire ([Tire puffs](tire-puffs.md)).
 - **Front end and HUD.** TITLE to RESULT inside the frame, the selection's rows of cards ([Card UI](#card-ui)), the
   HUD's fonts, the player record and `dev=1` ([Browser](browser.md),
@@ -187,12 +187,12 @@ procedural shapes no longer draw it.
   below the tires' nominal 0.3216 and 0.3179 m, which the TESTAROSSA, the RX-7 and the F40 use, and whether to make one
   rule is K's; the 1,600 kg is the nominal 1,450 + 150 rounded (K), the weighed figures spread over 1,530 to 1,630 kg;
   the 40:60 share and the frontal area of 1.92 m² are not checked in primary sources; the sound's exhaust valve of 33
-  mm, its opening, the lengths and the primaries' and cross tube's diameters are estimates and the outlets' number is
-  not confirmed, and the switching valve and the wastegate are not in the sound; the fixed 0.4 front share is
-  provisional; the pictures' wheelbase is 2,301 mm against the real 2,272 mm (K accepted it); the catalogue's values
-  (ratios, final drive, the exhaust's layout, the tires) are the stage auditor's reading, its hosts unreachable from the
-  PR's environment; at TURBO OUTRUN's start the original places the 959 3.26 m left of the car, and the grid stays; the
-  turbo button is the series' question.
+  mm, its opening, the lengths and the primaries' diameter are estimates and the outlets' number is not confirmed, and
+  the cross tube ([Stage MF](#stage-mf--silencers-and-turbines-in-the-engine-sounds)), the switching valve and the
+  wastegate are not in the sound; the fixed 0.4 front share is provisional; the pictures' wheelbase is 2,301 mm against
+  the real 2,272 mm (K accepted it); the catalogue's values (ratios, final drive, the exhaust's layout, the tires) are
+  the stage auditor's reading, its hosts unreachable from the PR's environment; at TURBO OUTRUN's start the original
+  places the 959 3.26 m left of the car, and the grid stays; the turbo button is the series' question.
 
 ## Stage P928 — The 928 S4 of 1987
 
@@ -211,10 +211,10 @@ that: the G28/13's ratios, the 675 rpm idle and the 1,549 mm front track, and th
   through its reflections and steps; the glass, the rear spoiler and the back; the rear wheels a little hidden by the
   fenders; the bright panel between the tail lamps and the brake lamp lit; the eight colors told apart far away. The
   sound, the banks meeting at the rear against the former separate banks, the 675 rpm idle, and the pipes' lengths and
-  the catalysts' and silencers' bodies ([Stage MF](#stage-mf--silencers-in-three-engine-sounds)) moved on ENGINE SOUNDS;
-  first gear's shortness and fourth's and fifth's pull. On the flat it gives 0–60 mph in 5.35 s against the quoted 5.7 s
-  (5.1 s in one list), the quarter mile in 13.83 s against 14.1 s, and 271 km/h in fifth at 5,200 rpm against the
-  claimed 165 mph (266 km/h).
+  the catalysts' and silencers' bodies ([Stage MF](#stage-mf--silencers-and-turbines-in-the-engine-sounds)) moved on
+  ENGINE SOUNDS; first gear's shortness and fourth's and fifth's pull. On the flat it gives 0–60 mph in 5.35 s against
+  the quoted 5.7 s (5.1 s in one list), the quarter mile in 13.83 s against 14.1 s, and 271 km/h in fifth at 5,200 rpm
+  against the claimed 165 mph (266 km/h).
 - The stage auditor's choices, awaiting K: the stage's name and split, the eight colors (K: eight "for now") with their
   keys and provisional base colors, the wheel radii kept, the torque curve's first point moved to the idle, the
   exhaust's estimated values and the valve's 240°, and the pictures' rim radius (0.2207 m).
@@ -224,10 +224,10 @@ that: the G28/13's ratios, the 675 rpm idle and the 1,549 mm front track, and th
   TESTAROSSA, the RX-7 and the F40 (Stage F120) use the nominal radii, the 959 the ledger's. Whether to make them one is
   K's.
 - Estimates: the torque curve's points at 675, 1,875 and 6,600 rpm; the exhaust's lengths ([Stage
-  MF](#stage-mf--silencers-in-three-engine-sounds)), which cylinders take the long primaries and whether the 42 mm is
-  inside or outside; the 50:50 axle split, the CG height and the frontal area. The exhaust valve's 33 mm and 240° and
-  the pipes' diameters are owners' and vendors' figures, not a shop manual's. The rear silencer's outlet (two round
-  tailpipes or one oval) is said to differ by year and market; the 1987 US car is written with two.
+  MF](#stage-mf--silencers-and-turbines-in-the-engine-sounds)), which cylinders take the long primaries and whether the
+  42 mm is inside or outside; the 50:50 axle split, the CG height and the frontal area. The exhaust valve's 33 mm and
+  240° and the pipes' diameters are owners' and vendors' figures, not a shop manual's. The rear silencer's outlet (two
+  round tailpipes or one oval) is said to differ by year and market; the 1987 US car is written with two.
 - The cited sources were not reachable from P928-1's environment; their values are the auditor's reading.
 - The pictures (P928-2): 4,521 mm long against the car's 4,523 mm, one exhaust outlet against the car's two; the flat
   panel between the tail lamps, in the body color, shines bright from behind, and K keeps it; the real car's PORSCHE
@@ -253,9 +253,10 @@ from K's model by the car baking of Stage F110 in one color, ROSSO CORSA (F120-3
 - The wheel radii are the tyres' nominal ones; the rolling radius inferred from a road test's 43.5 km/h per 1,000 rpm in
   fifth is about 0.322 m, so the game's gearing is about 3.5% longer than the car's. Every car follows the same rule,
   so it is left.
-- The exhaust valves' lift, the turbine throats, every pipe length and the primaries' and crossover's diameters are
-  estimates; the valve timing is an owner's manual's as quoted, not read in the manual; the 54 mm downstream is a
-  replacement maker's main pipe, Ferrari's own not checked; the wastegate and the centre outlet are not sounded.
+- The exhaust valves' lift, the turbine throats, every pipe length and the primaries' diameter are estimates, and the
+  pipe between the manifolds is not written ([Stage MF](#stage-mf--silencers-and-turbines-in-the-engine-sounds)); the
+  valve timing is an owner's manual's as quoted, not read in the manual; the 54 mm downstream is a replacement maker's
+  main pipe, Ferrari's own not checked; the wastegate and the centre outlet are not sounded.
 - The idle of 1,000 rpm, the CG height of 0.44 m, the front-to-rear mass split and the frontal area stay estimates; no
   source was found.
 - The pictures: the model's wheelbase is 2,479 mm against the car's 2,450 mm, its front fenders wider than the car's,
@@ -268,7 +269,7 @@ from K's model by the car baking of Stage F110 in one color, ROSSO CORSA (F120-3
 - TURBO OUTRUN's turbo button (a burst of acceleration and overheating) is the series' to decide; this stage does not
   add it.
 
-## Stage MF — Silencers in three engine sounds
+## Stage MF — Silencers and turbines in the engine sounds
 
 K's decisions of 2026-11-21, taken by listening on SELECT VEHICLE's ENGINE page: a silencer or a catalyst is written
 into an engine sound as the real car's body, a wide pipe among its `pipes`, with no new field or equation; the bodies
@@ -281,13 +282,38 @@ Y's two alike sides as one) and the 928 S4 of 1987's (each bank's catalyst and c
 two tails as one) ([Arcade car selections](chase-turbo-vehicles.md)). The stage's name, `MF`, is the auditor's; K has
 not decided it. What stays open, for K:
 
-- All three are settled for now: K heard them on the ENGINE page and decides them again after driving them in the game.
+- MF-1's three are settled for now: K heard them on the ENGINE page and decides them again after driving them in the
+  game.
 - No vehicle's silencer or catalyst has a source for its dimensions: the lengths are estimates and the diameters were
   chosen by ear. When a real car's dimensions are found, its lengths are matched and its diameters chosen again.
 - The 928 S4's centre silencers are absorptive (straight-through) in the real car; the model has no absorption.
-- The RX-7's turbine throat is written with both passages open; below 2,700 rpm the real car closes one.
-- The other vehicles, the 959 among them, have no bodies written yet; until theirs are, their engines are loud and
-  rough (K, 2026-11-20).
+- The RX-7's turbine throat is written with both passages open; below 2,700 rpm the real car closes one. MF-2 added
+  only the turbine's room to it, its bodies are MF-1's, and its highs are lower than the other turbocharged cars' (K:
+  "this is fine").
+
+MF-2 (K's decisions of 2026-11-21, by listening on the same page) writes every turbine in one form, two pipes: a throat
+of the real turbine's diameter, 0.08 m long, and right after it a room 0.11 m long and 150 mm wide, where the throat's
+stream loses its head as it does to the wheel; a twin-turbo engine has one pair for each turbine, with no new field or
+equation ([Calibration](calibration.md#exhaust-topologies)). The 959, the F40 and the RX-7 Turbo II take it; the 959
+and the F40 lose the pipe between their banks, have unequal primaries and a silencer of two rooms, and their two tails
+written as one. MF-2 also writes the XR600R of 1985's silencer and an expansion chamber after its head pipes, and the
+NSR500 of 1987's four paths each with a stinger, a silencer and an outlet, firing at even 90-degree intervals instead
+of the earlier 0, 112, 180 and 292 degrees, which were wrong ([Racing vehicles](racing-vehicles.md)); the NSR500 of
+1984 borrows that sound. What stays open, for K:
+
+- All five are settled for now: K heard them on the ENGINE page and decides them again after driving them in the game.
+- The room's 0.11 m × 150 mm is one value chosen by ear (0.10 m first; K took 0.11 m so that the wall loss stays
+  within its contract, [Audio](audio.md)), larger than a real turbine wheel's housing (about 0.3 L by
+  estimate); the wheel itself is not in the model.
+- The 959's cross tube and the F40's pipe between the manifolds are in the real cars and not written (K: with the
+  959's, the sound was noise).
+- The XR600R's expansion chamber after the head pipes is not on the motorcycle; its outlet is as wide as the joined
+  pipe, unnarrowed, because the 1985 baffle's diameter was not found.
+- No source says which of the NSR500's banks fires first. At 12 kHz and 6 kHz (a rival's) its highs fall away much
+  more than the others' (not yet checked by ear).
+- The other turbocharged vehicles (DELTA HF INTEGRALE, 911 TURBO 3.3, the GTO, TURBO ESPRIT and MP4/4) keep the throat
+  alone, and the other vehicles have no bodies written yet; until theirs are, their engines are loud and rough (K,
+  2026-11-20).
 
 ## Stage AT — The attract demo remade
 

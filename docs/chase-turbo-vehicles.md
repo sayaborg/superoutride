@@ -256,13 +256,17 @@ count. Point 1 was 235 N m at 2,000 rpm and point 2 500 N m at 5,000 rpm, both e
 - The torque curve is the steady full-throttle envelope of five points, as every car's. The second turbocharger's
   onset, boost and its lag, PSK's varying split (the front share stays a fixed 0.4) and the ride-height control are
   not represented (K).
-- The engine sound follows the catalogue's layout: each bank's three cylinders into its manifold, the right bank's
-  cross tube to the left turbine, so the banks join before the turbines, the two turbines' throats (6 cm²), a pipe from
-  each into the one silencer (inlet clamps 60 mm, no catalyst) and two outlets (the outlets' number not confirmed). The
-  switching valve is not moved: the cross tube and both turbines are always open. The wastegate and its silencer are
-  not written. The two exhaust valves of each cylinder are one of their combined area: two of 33 mm (the 928 four-valve
+- The engine sound follows the catalogue's layout, but for the right bank's cross tube to the left turbine, which is not
+  written: with it the sound was noise (K, 2026-11-21, by ear), so each bank's three cylinders (primaries of 0.47, 0.35
+  and 0.23 m) feed its own turbine. Each turbine is written in the one form of every turbine
+  ([Calibration](calibration.md#exhaust-topologies)): its throat (6 cm², 27.6 mm, 0.08 m) and a room of 0.11 m × 150
+  mm after it. A 56 mm pipe from each (inlet clamps 60 mm; 0.52 and 0.62 m) enters the one silencer, written as two
+  rooms (0.46 m × 250 mm and 0.28 m × 210 mm) joined by a 70 mm pipe (0.35 m), the division this model's; its two outlets
+  (the number not confirmed) are one of their combined area, 79 mm (0.30 m). No catalyst; the wastegate and its
+  silencer are not written. The two exhaust valves of each cylinder are one of their combined area: two of 33 mm (the 928 four-valve
   head's, whose seat the 959 shares; the 959's own valve not confirmed) give 46.7 mm. The valve's opening (0.36 of the
-  cycle, about 260 degrees), every length and the primaries' and cross tube's diameters are estimates.
+  cycle, about 260 degrees), every length, the primaries' diameter and the silencer's widths (set by ear) are
+  estimates.
 - Its pictures are baked from K's model in four 1987 colors, GRAND PRIX WHITE the default
   ([Model solids](image-assets.md#model-solids)); the model's wheelbase is 2,301 mm against the 2,272 mm its driving
   uses, and its wheels are the tyres' nominal size, while its driving keeps this ledger's radii (K, 2026-11-20).
@@ -404,22 +408,22 @@ turbocharger into the one silencer, and three outlets, the outer two the exhaust
 The part list's drawing is not read here, so where the crossover leaves each manifold and the silencer's inlets and
 outlets are not checked against it.
 
-| Part                          | Written                                                                            | Class                                        |
-| ----------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------- |
-| Exhaust valves                | Two of 26 mm a cylinder (FIA form): equal-area 36.8 mm; lift taken ≥ 6.5 mm        | source (auditor), calculated                 |
-| Valve timing                  | 54° BBDC / 10° ATDC at 0.5 mm, read as the Testarossa's: about 280°, `open` 0.3889 | source (auditor), calculated                 |
-| Firing order                  | 1-5-3-7-4-8-2-6, the banks alternating: phases and primaries unchanged             | source (auditor)                             |
-| Eight primaries               | 0.35 × 35 mm to the right and left manifolds, unchanged                            | estimate                                     |
-| Pipe between the manifolds    | 0.60 × 38 mm, always open                                                          | connection: source (auditor); size: estimate |
-| Turbine throats               | 0.08 × 27.6 mm each, as the 959's                                                  | estimate                                     |
-| Turbochargers to the silencer | 2 × 0.40 × 54 mm                                                                   | size: a replacement maker's main pipe        |
-| Silencer to the outer outlets | 2 × 0.60 × 54 mm; the 70 mm tips are not written                                   | size: as above; lengths: estimate            |
+| Part                          | Written                                                                            | Class                                 |
+| ----------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------- |
+| Exhaust valves                | Two of 26 mm a cylinder (FIA form): equal-area 36.8 mm; lift taken ≥ 6.5 mm        | source (auditor), calculated          |
+| Valve timing                  | 54° BBDC / 10° ATDC at 0.5 mm, read as the Testarossa's: about 280°, `open` 0.3889 | source (auditor), calculated          |
+| Firing order                  | 1-5-3-7-4-8-2-6, the banks alternating: phases and primaries unchanged             | source (auditor)                      |
+| Eight primaries               | 0.47, 0.29, 0.20 and 0.38 × 35 mm in each bank's firing order, turbine behind      | estimate                              |
+| Pipe between the manifolds    | Not written, as the 959's cross tube (K, 2026-11-21)                               | connection: source (auditor)          |
+| Turbines                      | Throat 0.08 × 27.6 mm (the 959's) and a room 0.11 × 150 mm, each                   | throat: estimate; room: game design   |
+| Turbochargers to the silencer | 2 × 0.42 × 54 mm                                                                   | size: a replacement maker's main pipe |
+| Silencer                      | Rooms 0.50 × 220 and 0.26 × 210 mm joined by 0.34 × 70 mm                          | lengths: estimate; widths: by ear (K) |
+| Outer outlets                 | One of the two's combined area, 0.32 × 76 mm; the 70 mm tips are not written       | size: as above, calculated            |
 
-- The wastegate is not represented, nor its centre outlet, as for the RX-7; the silencer's body is a straight pipe of
-  its inlet diameter.
+- The wastegate is not represented, nor its centre outlet, as for the RX-7. No dimension of the silencer was found;
+  its two rooms are this model's division, about ten times the displacement in all.
 - The 54 mm is a replacement maker's main pipe for the catalyst car, outside or inside not stated; Ferrari's own pipe is
   not checked.
-- Its engine loudness, measured again, is −22.60 LUFS against the earlier −20.40.
 
 ### F40 measured on the flat
 

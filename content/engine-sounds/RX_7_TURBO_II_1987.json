@@ -10,7 +10,8 @@
       { "length": 0.31, "diameter": 0.048, "to": 0 }
     ],
     "pipes": [
-      { "length": 0.08, "diameter": 0.044, "from": 0, "to": 1 },
+      { "length": 0.08, "diameter": 0.044, "from": 0, "to": 7 },
+      { "length": 0.11, "diameter": 0.15, "from": 7, "to": 1 },
       { "length": 0.9, "diameter": 0.054, "from": 1, "to": 2 },
       { "length": 0.35, "diameter": 0.13, "from": 2, "to": 3 },
       { "length": 0.75, "diameter": 0.054, "from": 3, "to": 4 },
@@ -20,6 +21,6 @@
     ]
   },
   "metadata": {
-    "note": "1987 United States. The 13B's two rotors fire twice per output-shaft revolution, written as two equal firing phases in one revolution; a rotor's three chambers are not represented. Each rotor's port and its runner in the cast manifold to the turbine (48 mm, the engine's exhaust outlet, from an owners' forum; 0.13 and 0.31 m are estimates from the layout: the turbine's inlet stands nearer one rotor). The port is open 75 BBDC to 48 ATDC, 393 of 360 output-shaft degrees, written as 0.95, the format's limit being below 1 (stage auditor's figures from Mazda's Turbo II training material, not read here). The turbine's throat: the twin-scroll housing's two passages, 6.00 and 9.48 cm2 (Yamaguchi, quoted on forums), written as one of their combined area, 44 mm, both open; 0.08 m is an estimate. One 54 mm pipe (the 2.25 in converters, an owners' forum) to the Y, with the main converter written as a wide pipe in it. The Y's two 48 mm pipes, their two silencers and two tails are alike, and are written as one of their combined area. The silencer and the converter are wide pipes: their lengths are estimates and their widths were set by ear (K, 2026-11-21). All lengths are estimates."
+    "note": "1987 United States. The 13B's two rotors fire twice per output-shaft revolution, written as two equal firing phases in one revolution; a rotor's three chambers are not represented. Each rotor's port and its runner in the cast manifold to the turbine (48 mm, the engine's exhaust outlet, from an owners' forum; 0.13 and 0.31 m are estimates from the layout: the turbine's inlet stands nearer one rotor). The port is open 75 BBDC to 48 ATDC, 393 of 360 output-shaft degrees, written as 0.95, the format's limit being below 1 (stage auditor's figures from Mazda's Turbo II training material, not read here). The turbine's throat: the twin-scroll housing's two passages, 6.00 and 9.48 cm2 (Yamaguchi, quoted on forums), written as one of their combined area, 44 mm, both open; 0.08 m is an estimate. After the throat stands a room 0.11 m long and 150 mm wide, where the throat's stream loses its head as it does to the wheel: the one form of every turbine here (K, 2026-11-21). One 54 mm pipe (the 2.25 in converters, an owners' forum) to the Y, with the main converter written as a wide pipe in it. The Y's two 48 mm pipes, their two silencers and two tails are alike, and are written as one of their combined area. The silencer and the converter are wide pipes: their lengths are estimates and their widths were set by ear (K, 2026-11-21). All lengths are estimates."
   }
 }

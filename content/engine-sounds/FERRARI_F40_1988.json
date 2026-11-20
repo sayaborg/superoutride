@@ -6,26 +6,29 @@
   "exhaust": {
     "valve": { "diameter": 0.0368, "open": 0.3889 },
     "primaries": [
-      { "length": 0.35, "diameter": 0.035, "to": 0 },
-      { "length": 0.35, "diameter": 0.035, "to": 1 },
-      { "length": 0.35, "diameter": 0.035, "to": 0 },
-      { "length": 0.35, "diameter": 0.035, "to": 1 },
-      { "length": 0.35, "diameter": 0.035, "to": 0 },
-      { "length": 0.35, "diameter": 0.035, "to": 1 },
-      { "length": 0.35, "diameter": 0.035, "to": 0 },
-      { "length": 0.35, "diameter": 0.035, "to": 1 }
+      { "length": 0.47, "diameter": 0.035, "to": 0 },
+      { "length": 0.47, "diameter": 0.035, "to": 1 },
+      { "length": 0.29, "diameter": 0.035, "to": 0 },
+      { "length": 0.29, "diameter": 0.035, "to": 1 },
+      { "length": 0.2, "diameter": 0.035, "to": 0 },
+      { "length": 0.2, "diameter": 0.035, "to": 1 },
+      { "length": 0.38, "diameter": 0.035, "to": 0 },
+      { "length": 0.38, "diameter": 0.035, "to": 1 }
     ],
     "pipes": [
-      { "length": 0.6, "diameter": 0.038, "from": 1, "to": 0 },
-      { "length": 0.08, "diameter": 0.0276, "from": 0, "to": 2 },
-      { "length": 0.08, "diameter": 0.0276, "from": 1, "to": 3 },
-      { "length": 0.4, "diameter": 0.054, "from": 2, "to": 4 },
-      { "length": 0.4, "diameter": 0.054, "from": 3, "to": 4 },
-      { "length": 0.6, "diameter": 0.054, "from": 4, "to": null },
-      { "length": 0.6, "diameter": 0.054, "from": 4, "to": null }
+      { "length": 0.08, "diameter": 0.0276, "from": 0, "to": 8 },
+      { "length": 0.11, "diameter": 0.15, "from": 8, "to": 2 },
+      { "length": 0.08, "diameter": 0.0276, "from": 1, "to": 9 },
+      { "length": 0.11, "diameter": 0.15, "from": 9, "to": 3 },
+      { "length": 0.42, "diameter": 0.054, "from": 2, "to": 4 },
+      { "length": 0.42, "diameter": 0.054, "from": 3, "to": 4 },
+      { "length": 0.5, "diameter": 0.22, "from": 4, "to": 5 },
+      { "length": 0.34, "diameter": 0.07, "from": 5, "to": 6 },
+      { "length": 0.26, "diameter": 0.21, "from": 6, "to": 7 },
+      { "length": 0.32, "diameter": 0.076, "from": 7, "to": null }
     ]
   },
   "metadata": {
-    "note": "Two cast manifolds, one per bank (the banks alternate in the firing order 1-5-3-7-4-8-2-6); the pipe between the manifolds (part 122561) joins the banks before the turbines and is always open (the wastegate is not moved); the left and right IHI turbines' throats (their size an estimate, as the 959's), a pipe from each turbocharger into the one silencer, no catalyst; two outer outlets from the silencer. Layout from Ferrari's part list 021 (exhaust, without catalyst), as read by the stage auditor, not read here; its drawing not read. Valve: two exhaust valves per cylinder, 26 mm each (FIA form B-293, as read by the stage auditor), written as one valve of their combined area, 36.8 mm (lift taken as at least 6.5 mm); open about 280 deg, from 54 BBDC / 10 ATDC at 0.5 mm (an owner's manual as quoted on a forum, read as the Testarossa's). Pipes after the turbines 54 mm, a replacement maker's main pipe (Tubi Style, for the catalyst car); the 70 mm tips are not represented. Primary, crossover and pipe lengths and the primaries' and crossover's diameters are estimates. Silencer bodies are straight pipes of their inlet diameter; the wastegate and its centre outlet are not represented."
+    "note": "Two cast manifolds, one per bank (the banks alternate in the firing order 1-5-3-7-4-8-2-6); the left and right IHI turbines' throats (their size an estimate, as the 959's), a pipe from each turbocharger into the one silencer, no catalyst; two outer outlets from the silencer. The manifolds' primaries are unequal (0.47, 0.29, 0.20 and 0.38 m in each bank's firing order, the turbine behind the bank; estimates). The pipe between the manifolds (part 122561) is not written, as the 959's cross tube is not (K, 2026-11-21). Each turbine is written in the one form of every turbine here: its throat, 0.08 m long, and a room 0.11 m long and 150 mm wide after it. The one silencer is written as two rooms joined by a 70 mm pipe (the division is this model's; no dimension of the silencer was found), about ten times the displacement in all; its two outer outlets are written as one of their combined area. Lengths are estimates; the silencer's widths were set by ear. Layout from Ferrari's part list 021 (exhaust, without catalyst), as read by the stage auditor, not read here; its drawing not read. Valve: two exhaust valves per cylinder, 26 mm each (FIA form B-293, as read by the stage auditor), written as one valve of their combined area, 36.8 mm (lift taken as at least 6.5 mm); open about 280 deg, from 54 BBDC / 10 ATDC at 0.5 mm (an owner's manual as quoted on a forum, read as the Testarossa's). Pipes after the turbines 54 mm, a replacement maker's main pipe (Tubi Style, for the catalyst car); the 70 mm tips are not represented. The wastegate and its centre outlet are not represented."
   }
 }
