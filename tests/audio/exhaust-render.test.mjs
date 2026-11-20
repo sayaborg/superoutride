@@ -19,7 +19,10 @@ const segments = [
   { samples: 12032, from: 'cut', to: 'cut', opening: 1, burns: false, afterfire: false },
   { samples: 12032, from: 'middle', to: 'middle', opening: 0, burns: true, afterfire: true },
 ];
-/** The saved values: each vehicle's sound at each divisor, first taken from K's reference kernel of 2026-11-20. */
+/**
+ * The saved values: each vehicle's sound at each divisor, taken from K's reference kernel of 2026-11-20 with its
+ * cylinders silent until their first opening (2026-11-21).
+ */
 const VALUES = new URL('./exhaust-render.values.json', import.meta.url);
 /** Where every saved sample is taken, as shares of the drive. */
 const PICKS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];

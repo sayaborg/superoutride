@@ -117,7 +117,9 @@ four-stroke's exhaust stroke, and at a two-stroke's bottom dead centre; the pist
 and `r` the compression ratio, both from the vehicle's mechanics). As its valve opens, a cylinder takes its charge: the
 share `closedCharge + (1 - closedCharge) × opening` of a full one, varied at each firing by up to `chargeVariation`
 (seeded xorshift32, drawn only at firings, so the same input history gives the same sound), burned at `burnedKelvin` and
-let out with the density that follows from its expansion.
+let out with the density that follows from its expansion. A cylinder holds nothing and lets nothing out from the
+kernel's start until its valve first opens (K, 2026-11-21): a valve already open when the kernel starts stays shut to
+the flow until it opens again, so a new kernel starts without a burst.
 
 **Fuel cut and afterfire.** While the observation reports fuel cut, a cylinder lets out the air it drew, unburned, at
 the intake's temperature. An afterfire is a charge that does not burn in its cylinder: `afterfire()` marks the next
@@ -245,7 +247,7 @@ one drive, the same for every vehicle at its own idle and redline:
 Engine speed changes linearly within a segment; fuel is never cut and nothing afterfires. The engine's compressed sound,
 after the chain's compressor from silence and before its gain and soft clip, is metered by ITU-R BS.1770-4 integrated
 loudness: K-weighting, the mean square of 400 ms blocks every 100 ms, the absolute gate at −70 LUFS and the relative
-gate 10 LU below the gated mean. The procedure's record (`ENGINE_LOUDNESS_PROCEDURE`, version 3) holds the drive, the
+gate 10 LU below the gated mean. The procedure's record (`ENGINE_LOUDNESS_PROCEDURE`, version 4) holds the drive, the
 rate, the divisors and what it meters; the SHA-256 of its JSON is its identity, and a change to its results raises its
 version.
 

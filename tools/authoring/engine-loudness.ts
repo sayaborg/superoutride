@@ -14,7 +14,7 @@ import { procedureSha256 } from '../course/procedure.js';
  */
 export const ENGINE_LOUDNESS_PROCEDURE = Object.freeze({
   name: 'superoutride.engine-loudness',
-  version: 3,
+  version: 4,
   sampleRate: 48000,
   divisors: EXHAUST_RATE_DIVISORS,
   measured: 'compressed',

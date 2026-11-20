@@ -100,6 +100,11 @@ export class ExhaustWaveguide {
   private readonly valveFlow: Float64Array;
   /** The charge (of the tubes' gas, a volume) each cylinder let out unburned for an afterfire, until its valve shuts. */
   private readonly unburned: Float64Array;
+  /**
+   * Whether each cylinder's valve has opened since the kernel began: until it first opens, a cylinder holds nothing
+   * and lets nothing out, and its first opening sets its charge as every opening does.
+   */
+  private readonly hasOpened: Uint8Array;
   // Afterfires burning, in the order they began: each one's junction, volume and samples elapsed.
   private burnJunction: Int32Array;
   private burnVolume: Float64Array;
@@ -205,8 +210,9 @@ export class ExhaustWaveguide {
     this.swelling = new Float64Array(junctions.length);
     this.sweptVolume = sound.sweptVolume;
     this.clearance = sound.sweptVolume / (sound.compressionRatio - 1);
-    this.gas = new Float64Array(cylinders).fill(sound.sweptVolume);
-    this.density = new Float64Array(cylinders).fill(GAS.pipeKelvin / GAS.burnedKelvin);
+    this.gas = new Float64Array(cylinders);
+    this.density = new Float64Array(cylinders);
+    this.hasOpened = new Uint8Array(cylinders);
     this.valveArea = Float64Array.from(primaries, ({ diameter }) => diameter * diameter);
     this.valveArriving = new Float64Array(cylinders);
     this.valveFlow = new Float64Array(cylinders);
@@ -507,6 +513,7 @@ export class ExhaustWaveguide {
         // The volume matters only as the valve opens and while it is open.
         const volume = crossed || since < valve.open ? clearance + (sweptVolume * (1 - Math.cos(angle))) / 2 : 0;
         if (crossed) {
+          this.hasOpened[i] = 1;
           let varied = charge;
           this.chargeSeed = xorshift(this.chargeSeed);
           varied += EXHAUST_LISTENING.chargeVariation * (this.chargeSeed / 2147483648);
@@ -530,7 +537,8 @@ export class ExhaustWaveguide {
         const arriving = this.read(cylinders + i);
         valveArriving[i] = arriving;
         valveFlow[i] = 0;
-        if (since < valve.open) {
+        // A valve open since before the kernel began lets nothing out: its cylinder has no charge yet.
+        if (since < valve.open && this.hasOpened[i]) {
           const position = since / valve.open;
           const lift = position * (1 - position);
           // The valve's effective area over its primary's, a lift curve of zero value and slope at both ends.
