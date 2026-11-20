@@ -70,9 +70,9 @@ Each line is one area as it stands, with the document that owns it.
   and recovery ([Vehicle physics](vehicle-physics.md)); [Stage TR](#stage-tr--the-brush-tire)'s values await K's DEV.
 - **Audio.** The audio scene and sound graph, engine sounds by one model of the exhaust's tubes and spaces (Stage ES:
   afterfires the powertrain decides, ENGINE SOUND QUALITY's rates, a compressor before each vehicle's measured gain;
-  no silencers yet), tire audio
-  (UNIFIED), recordings and music, effects and contact sound; the recordings are placeholders until K's files replace
-  them ([Audio](audio.md), [Tire audio](tire-audio.md), [placeholder recordings](#placeholder-recordings)).
+  silencers in three so far, [Stage MF](#stage-mf--silencers-in-three-engine-sounds)), tire audio (UNIFIED), recordings
+  and music, effects and contact sound; the recordings are placeholders until K's files replace them ([Audio](audio.md),
+  [Tire audio](tire-audio.md), [placeholder recordings](#placeholder-recordings)).
 - **Tire puffs.** Smoke, spray and dust by the surface under each tire ([Tire puffs](tire-puffs.md)).
 - **Front end and HUD.** TITLE to RESULT inside the frame, the selection's rows of cards ([Card UI](#card-ui)), the
   HUD's fonts, the player record and `dev=1` ([Browser](browser.md),
@@ -210,10 +210,11 @@ that: the G28/13's ratios, the 675 rpm idle and the 1,549 mm front track, and th
 - To look at in DEV: SELECT VEHICLE's eight colors for the 928 S4, BLACK the default; the black body's shape read
   through its reflections and steps; the glass, the rear spoiler and the back; the rear wheels a little hidden by the
   fenders; the bright panel between the tail lamps and the brake lamp lit; the eight colors told apart far away. The
-  sound, the banks meeting at the rear against the former separate banks, the 675 rpm idle, and
-  the pipes' lengths (2.70 m) and the rear silencer's body (0.50 m) moved on ENGINE SOUNDS; first gear's shortness and
-  fourth's and fifth's pull. On the flat it gives 0–60 mph in 5.35 s against the quoted 5.7 s (5.1 s in one list), the
-  quarter mile in 13.83 s against 14.1 s, and 271 km/h in fifth at 5,200 rpm against the claimed 165 mph (266 km/h).
+  sound, the banks meeting at the rear against the former separate banks, the 675 rpm idle, and the pipes' lengths and
+  the catalysts' and silencers' bodies ([Stage MF](#stage-mf--silencers-in-three-engine-sounds)) moved on ENGINE SOUNDS;
+  first gear's shortness and fourth's and fifth's pull. On the flat it gives 0–60 mph in 5.35 s against the quoted 5.7 s
+  (5.1 s in one list), the quarter mile in 13.83 s against 14.1 s, and 271 km/h in fifth at 5,200 rpm against the
+  claimed 165 mph (266 km/h).
 - The stage auditor's choices, awaiting K: the stage's name and split, the eight colors (K: eight "for now") with their
   keys and provisional base colors, the wheel radii kept, the torque curve's first point moved to the idle, the
   exhaust's estimated values and the valve's 240°, and the pictures' rim radius (0.2207 m).
@@ -222,11 +223,11 @@ that: the G28/13's ratios, the 675 rpm idle and the 1,549 mm front track, and th
 - The wheel radii stay at the ledger's 0.305 and 0.306 m, about 3% under the tires' nominal 0.3157 and 0.3135 m;
   TESTAROSSA, the RX-7 and the F40 (Stage F120) use the nominal radii, the 959 the ledger's. Whether to make them one is
   K's.
-- Estimates: the torque curve's points at 675, 1,875 and 6,600 rpm; the exhaust's lengths (2.70, 0.50 and 0.25 m),
-  which cylinders take the long primaries and whether the 42 mm is inside or outside; the 50:50 axle split, the CG
-  height and the frontal area. The exhaust valve's 33 mm and 240° and the pipes' diameters are owners' and vendors'
-  figures, not a shop manual's. The rear silencer's outlet (two round tailpipes or one oval) is said to differ by year
-  and market; the 1987 US car is written with two.
+- Estimates: the torque curve's points at 675, 1,875 and 6,600 rpm; the exhaust's lengths ([Stage
+  MF](#stage-mf--silencers-in-three-engine-sounds)), which cylinders take the long primaries and whether the 42 mm is
+  inside or outside; the 50:50 axle split, the CG height and the frontal area. The exhaust valve's 33 mm and 240° and
+  the pipes' diameters are owners' and vendors' figures, not a shop manual's. The rear silencer's outlet (two round
+  tailpipes or one oval) is said to differ by year and market; the 1987 US car is written with two.
 - The cited sources were not reachable from P928-1's environment; their values are the auditor's reading.
 - The pictures (P928-2): 4,521 mm long against the car's 4,523 mm, one exhaust outlet against the car's two; the flat
   panel between the tail lamps, in the body color, shines bright from behind, and K keeps it; the real car's PORSCHE
@@ -266,6 +267,27 @@ from K's model by the car baking of Stage F110 in one color, ROSSO CORSA (F120-3
   reflection and how the front tyres sit.
 - TURBO OUTRUN's turbo button (a burst of acceleration and overheating) is the series' to decide; this stage does not
   add it.
+
+## Stage MF — Silencers in three engine sounds
+
+K's decisions of 2026-11-21, taken by listening on SELECT VEHICLE's ENGINE page: a silencer or a catalyst is written
+into an engine sound as the real car's body, a wide pipe among its `pipes`, with no new field or equation; the bodies
+are chosen one vehicle at a time, their lengths near the real car's (estimates where no source gives them) and their
+diameters by ear; pipes of one length and diameter that leave one joint and run on alike to the open air are written as
+one of their combined area; primaries, turbine throats and pipe diameters are the sources' where there are any
+([Calibration](calibration.md#exhaust-topologies)). MF-1 has written TESTAROSSA's (the 1984 European car's four
+silencers, two in series per bank, the banks apart to the end), the RX-7 Turbo II of 1987's (the main converter and the
+Y's two alike sides as one) and the 928 S4 of 1987's (each bank's catalyst and centre silencer, the rear silencer, the
+two tails as one) ([Arcade car selections](chase-turbo-vehicles.md)). The stage's name, `MF`, is the auditor's; K has
+not decided it. What stays open, for K:
+
+- All three are settled for now: K heard them on the ENGINE page and decides them again after driving them in the game.
+- No vehicle's silencer or catalyst has a source for its dimensions: the lengths are estimates and the diameters were
+  chosen by ear. When a real car's dimensions are found, its lengths are matched and its diameters chosen again.
+- The 928 S4's centre silencers are absorptive (straight-through) in the real car; the model has no absorption.
+- The RX-7's turbine throat is written with both passages open; below 2,700 rpm the real car closes one.
+- The other vehicles, the 959 among them, have no bodies written yet; until theirs are, their engines are loud and
+  rough (K, 2026-11-20).
 
 ## Stage AT — The attract demo remade
 
@@ -1295,7 +1317,6 @@ and switching is a cut.
 | Audio            | Whether a decoded track (about 63 MB for three minutes of stereo at 44.1 kHz) fits the devices' memory budget                                                                                                                                                                                                                                                                            |
 | Audio            | Whether the music, passing the master compressor with the engines, pumps with them (real devices)                                                                                                                                                                                                                                                                                        |
 | Audio            | The mix after the engines' chain (effects, music, the final bound): an engine's sound now reaches 2 (K decides separately, 2026-11-21)                                                                                                                                                                                                                                                   |
-| Audio            | Each vehicle's silencer, written into its engine sound as a wide pipe, one vehicle at a time (another thread); until then the engines are loud and rough (K, 2026-11-20)                                                                                                                                                                                                                 |
 | Audio            | The afterfire's exhaust flame, from the powertrain's afterfire count; and the afterfire's provisional condition and rate (K, 2026-11-21)                                                                                                                                                                                                                                                 |
 | Audio            | The engine kernel's cost on devices: MID is about three times main's before Stage ES (K's estimate); no WASM or other optimisation yet                                                                                                                                                                                                                                                   |
 | Audio            | Whether impacts need finer recordings than one per counterpart (by kind of wall, by object or by strength)                                                                                                                                                                                                                                                                               |

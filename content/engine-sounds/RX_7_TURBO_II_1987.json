@@ -6,17 +6,20 @@
   "exhaust": {
     "valve": { "diameter": 0.033, "open": 0.95 },
     "primaries": [
-      { "length": 0.22, "diameter": 0.04, "to": 0 },
-      { "length": 0.22, "diameter": 0.04, "to": 0 }
+      { "length": 0.13, "diameter": 0.048, "to": 0 },
+      { "length": 0.31, "diameter": 0.048, "to": 0 }
     ],
     "pipes": [
-      { "length": 0.08, "diameter": 0.03, "from": 0, "to": 1 },
-      { "length": 2, "diameter": 0.054, "from": 1, "to": 2 },
-      { "length": 1.2, "diameter": 0.048, "from": 2, "to": null },
-      { "length": 1.2, "diameter": 0.048, "from": 2, "to": null }
+      { "length": 0.08, "diameter": 0.044, "from": 0, "to": 1 },
+      { "length": 0.9, "diameter": 0.054, "from": 1, "to": 2 },
+      { "length": 0.35, "diameter": 0.13, "from": 2, "to": 3 },
+      { "length": 0.75, "diameter": 0.054, "from": 3, "to": 4 },
+      { "length": 0.55, "diameter": 0.068, "from": 4, "to": 5 },
+      { "length": 0.45, "diameter": 0.27, "from": 5, "to": 6 },
+      { "length": 0.2, "diameter": 0.068, "from": 6, "to": null }
     ]
   },
   "metadata": {
-    "note": "Provisional acoustic graph, not a measured exhaust or recording. The 13B's two rotors fire twice per output-shaft revolution, written as two equal firing phases in one revolution; a rotor's three chambers are not represented. Each rotor's port and its primary to the turbine, the turbine's throat, one pipe through the catalyst to the Y, and two pipes through the left and right silencers to the tails. The port is open 75 BBDC to 48 ATDC, 393 of 360 output-shaft degrees, written as 0.95, the format's limit being below 1 (stage auditor's figures from Mazda's Turbo II training material, not read here). Port area, all lengths and diameters are engineering estimates. Existing pipe solver only; catalyst, silencers and wastegate are not separately modelled."
+    "note": "1987 United States. The 13B's two rotors fire twice per output-shaft revolution, written as two equal firing phases in one revolution; a rotor's three chambers are not represented. Each rotor's port and its runner in the cast manifold to the turbine (48 mm, the engine's exhaust outlet, from an owners' forum; 0.13 and 0.31 m are estimates from the layout: the turbine's inlet stands nearer one rotor). The port is open 75 BBDC to 48 ATDC, 393 of 360 output-shaft degrees, written as 0.95, the format's limit being below 1 (stage auditor's figures from Mazda's Turbo II training material, not read here). The turbine's throat: the twin-scroll housing's two passages, 6.00 and 9.48 cm2 (Yamaguchi, quoted on forums), written as one of their combined area, 44 mm, both open; 0.08 m is an estimate. One 54 mm pipe (the 2.25 in converters, an owners' forum) to the Y, with the main converter written as a wide pipe in it. The Y's two 48 mm pipes, their two silencers and two tails are alike, and are written as one of their combined area. The silencer and the converter are wide pipes: their lengths are estimates and their widths were set by ear (K, 2026-11-21). All lengths are estimates."
   }
 }

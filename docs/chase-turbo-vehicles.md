@@ -320,12 +320,14 @@ the pipes' lengths.
 
 ### The 928 S4 in the current model
 
-- The sound writes the two valves of a cylinder as one of their combined area, and each bank's collector, downpipe,
-  catalyst and centre silencer as one 52 mm pipe (2.70 m, an estimate) to the rear silencer's node, where the two banks
-  join; the silencer's body is one pipe of its two inlets' combined area, 66 mm (0.50 m, an estimate), and two tailpipes
-  of 56 mm (0.25 m, an estimate) leave it. The front two cylinders of each bank are taken as those with the long
-  primaries, an estimate. Some posts give one oval outlet on other years and markets; the 1987 US car is written with
-  two.
+- The sound writes the two valves of a cylinder as one of their combined area, and each bank's 52 mm run, 2.70 m in all,
+  as its downpipe (0.60 m), its catalyst as a wide pipe (0.35 m × 120 mm), a link (0.35 m), its centre silencer as a
+  wide pipe (0.50 m × 150 mm) and a pipe to the rear silencer's node (0.90 m), where the two banks join; the rear
+  silencer is a wide pipe (0.60 m × 240 mm), and its two tailpipes of 55 mm inside (an owners' measurement) are one of
+  their combined area, 78 mm (0.25 m). The lengths are estimates and the wide pipes' diameters were chosen by ear (K,
+  2026-11-21; [Calibration](calibration.md#exhaust-topologies)). The front two cylinders of each bank are taken as those
+  with the long primaries, an estimate. Some posts give one oval outlet on other years and markets; the 1987 US car is
+  written with two.
 - The wheel radii stay at the ledger's 0.305 and 0.306 m, about 3% under the tires' nominal 0.3157 and 0.3135 m.
 - The 50:50 axle split, the CG height and the frontal area remain unverified estimates; the torque curve's points at
   675, 1,875 and 6,600 rpm remain estimates.
@@ -496,10 +498,12 @@ US mass and length, and the power and torque anchors.
 - The twin-scroll turbine's switch (only the primary passage below 2,700 rpm, both above; p. 4B-17), the wastegate
   built into the turbocharger and the air-cooled intercooler under the hood scoop (pp. 4B-18, 4B-45) are not
   represented; the torque curve's point at 2,000 rpm (180 N m) stays an estimate.
-- Its engine sound's `metadata.note` predates the training material's reading: it says "one pipe through the catalyst"
-  and that the port timing was not read here. The pipes and values match the material's order
-  ([Calibration](calibration.md#exhaust-topologies)); the note is mended with the next change to the sound, which
-  measures its loudness again.
+- Its engine sound writes each rotor's runner in the cast manifold (48 mm, 0.13 and 0.31 m), the twin-scroll turbine's
+  throat as one of its two passages' combined area, 44 mm, both open, one 54 mm pipe to the Y with the main converter as
+  a wide pipe in it, and the Y's two alike sides, each a 48 mm pipe, a silencer and a tail, as one of their combined
+  area; the converter and the silencer are wide pipes whose lengths are estimates and whose diameters were chosen by ear
+  (K, 2026-11-21; [Calibration](calibration.md#exhaust-topologies)). The front converter is not written. Its note keeps
+  the port timing's sentence as it was, which still says the training material was not read here.
 - Its pictures are baked from K's model in eight 1987 paints ([Model solids](image-assets.md#model-solids)); the
   model's wheelbase is 2,393 mm against the 2,430 mm its driving uses, a difference K allowed.
 

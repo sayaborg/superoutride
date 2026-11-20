@@ -16,14 +16,21 @@
       { "length": 0.15, "diameter": 0.042, "to": 1 }
     ],
     "pipes": [
-      { "length": 2.7, "diameter": 0.052, "from": 0, "to": 2 },
-      { "length": 2.7, "diameter": 0.052, "from": 1, "to": 2 },
-      { "length": 0.5, "diameter": 0.066, "from": 2, "to": 3 },
-      { "length": 0.25, "diameter": 0.056, "from": 3, "to": null },
-      { "length": 0.25, "diameter": 0.056, "from": 3, "to": null }
+      { "length": 0.6, "diameter": 0.052, "from": 0, "to": 4 },
+      { "length": 0.35, "diameter": 0.12, "from": 4, "to": 5 },
+      { "length": 0.35, "diameter": 0.052, "from": 5, "to": 6 },
+      { "length": 0.5, "diameter": 0.15, "from": 6, "to": 7 },
+      { "length": 0.9, "diameter": 0.052, "from": 7, "to": 2 },
+      { "length": 0.6, "diameter": 0.052, "from": 1, "to": 8 },
+      { "length": 0.35, "diameter": 0.12, "from": 8, "to": 9 },
+      { "length": 0.35, "diameter": 0.052, "from": 9, "to": 10 },
+      { "length": 0.5, "diameter": 0.15, "from": 10, "to": 11 },
+      { "length": 0.9, "diameter": 0.052, "from": 11, "to": 2 },
+      { "length": 0.6, "diameter": 0.24, "from": 2, "to": 3 },
+      { "length": 0.25, "diameter": 0.078, "from": 3, "to": null }
     ]
   },
   "metadata": {
-    "note": "Firing order 1-3-7-2-6-5-4-8, equal intervals; cylinders 1-4 the right bank, 5-8 the left. Each bank's stainless 4-into-1 manifold (primaries 42 mm, about 0.20 and 0.15 m long; the front two of each bank taken as the long ones, an estimate), its downpipe, catalyst and centre silencer as one 52 mm pipe to the transverse rear silencer, where the banks first meet (no crossover); its body is one pipe of the two 47 mm inlets' combined area; two tailpipes, 59 mm outside, 1.5 mm wall. Diameters and the 4-into-1 form are owners' measurements on forums, not primary documents; the run, silencer and tailpipe lengths are estimates. Valve: the two 33 mm exhaust valves (a parts vendor) as one of their combined area, open about 240 deg seat to seat (a cam regrinder's figure quoted on a forum; 195 deg at 1 mm lift in Porsche's table). Silencer and catalyst bodies are straight pipes of their inlet diameter."
+    "note": "Firing order 1-3-7-2-6-5-4-8, equal intervals; cylinders 1-4 the right bank, 5-8 the left. Each bank's stainless 4-into-1 manifold (primaries 42 mm, about 0.20 and 0.15 m long; the front two of each bank taken as the long ones, an estimate), its downpipe, catalyst and centre silencer as one 52 mm pipe to the transverse rear silencer, where the banks first meet (no crossover). Each bank's pipe carries its catalyst (two from 1987) and its centre silencer (a straight-through resonator; the 1987 ones are the larger) as wide pipes; the transverse rear silencer, where the banks first meet, is a wide pipe; its two tailpipes (55 mm inside, owners' measurement) are written as one of their combined area. The silencers' and catalysts' lengths are estimates and their widths were set by ear (K, 2026-11-21). Diameters and the 4-into-1 form are owners' measurements on forums, not primary documents; the run, silencer and tailpipe lengths are estimates. Valve: the two 33 mm exhaust valves (a parts vendor) as one of their combined area, open about 240 deg seat to seat (a cam regrinder's figure quoted on a forum; 195 deg at 1 mm lift in Porsche's table)."
   }
 }
