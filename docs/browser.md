@@ -459,7 +459,8 @@ the SETTINGS audition plays while the MUSIC entry is in focus. A run from the ro
 ([Course sounds](content-and-gameplay.md#course-sounds)).
 
 SETTINGS' entries are MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGHT change in steps of 5 within
-0–100 (to the adjacent multiple of 5, stopping at the ends), CAR CAMERA and BIKE CAMERA (FACING or MOVING; [camera
+0–100 (to the adjacent multiple of 5, stopping at the ends), ENGINE SOUND QUALITY (LOW, MID or HIGH; K, 2026-11-21:
+the rate the engines' sound is computed at, [Audio](audio.md#engine-synthesis)), which the sound follows at once, CAR CAMERA and BIKE CAMERA (FACING or MOVING; [camera
 yaw](architecture.md#camera-and-fixed-metric)) for runs with a vehicle of that form, CAR STEERING and BIKE STEERING
 (FRONT or CENTER), CAR STEERING USE and BIKE STEERING USE (100%, 95% and 90%; [steering
 rule](vehicle-physics.md#actuators-and-steering)), SLOW DOWN (ON or OFF; [SLOW DOWN](#slow-down)) and CARD DESIGN
@@ -1028,18 +1029,19 @@ blocks only after this HUD asks them to ([Audio](audio.md#mix-and-lifetime)). Th
 ## Player record
 
 [`src/shell/player-record.ts`](../src/shell/player-record.ts) owns the browser's one player record: a
-localStorage entry `super-outride-player` holding `{ "version": 8, "settings": { … }, "records": { … } }`. The
+localStorage entry `super-outride-player` holding `{ "version": 9, "settings": { … }, "records": { … } }`. The
 composition root opens it once at page load; shell controls read the admitted settings and records and change them only
 through the record.
 
-| Setting            | Shape and default                                                                                                                                                                               |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vehicleColors`    | Selected color by vehicle ID, the player's run color; default `{}`                                                                                                                              |
-| `volumes`          | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100                                                                                                           |
-| `latestSelections` | Latest choice by row key (`series`, `class`, `course`, `vehicle`; `music` for the SETTINGS audition); default `{}`                                                                              |
-| `cameras`          | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`)                                                       |
-| `steering`         | `car` and `bike`, each `{ "reference": "front" or "center", "utilization": 1, 0.95 or 0.9 }`: the player's steering rule for that form; default `center` and 0.95 for both (`DEFAULT_STEERING`) |
-| `slowDown`         | Whether the HUD shows SLOW DOWN; default `true` (ON)                                                                                                                                            |
+| Setting              | Shape and default                                                                                                                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vehicleColors`      | Selected color by vehicle ID, the player's run color; default `{}`                                                                                                                              |
+| `volumes`            | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100                                                                                                           |
+| `engineSoundQuality` | `HIGH`, `MID` or `LOW`: the player's engine's kernel at the output's rate over 1, 2 or 4, a rival's at half the player's; default `MID` (`DEFAULT_ENGINE_SOUND_QUALITY`)                        |
+| `latestSelections`   | Latest choice by row key (`series`, `class`, `course`, `vehicle`; `music` for the SETTINGS audition); default `{}`                                                                              |
+| `cameras`            | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`)                                                       |
+| `steering`           | `car` and `bike`, each `{ "reference": "front" or "center", "utilization": 1, 0.95 or 0.9 }`: the player's steering rule for that form; default `center` and 0.95 for both (`DEFAULT_STEERING`) |
+| `slowDown`           | Whether the HUD shows SLOW DOWN; default `true` (ON)                                                                                                                                            |
 
 `records` holds `timeAttack`, an object of TIME ATTACK records by key, one table per class. A key is the JSON array
 `[series ID, class ID, goal]`, made in one place, the goal being the FINISH gate the run reached (a circuit has one);
@@ -1074,7 +1076,7 @@ record, or one whose settings are malformed, starts from the defaults and is rep
 entry whose key or value is malformed is dropped alone. Each settings or records change saves the whole record at
 once. Where localStorage is missing or reading or writing it throws, the record lives in memory for the page and the
 game continues. SETTINGS and the DEV volume stepper ([Sound controls](#sound-controls)) save volumes, SETTINGS saves
-the cameras, steering and SLOW DOWN, and a run reads its vehicle form's camera and steering rule and SLOW DOWN when it
+ENGINE SOUND QUALITY, which the audio lifetime gives the scene at each update, the cameras, steering and SLOW DOWN, and a run reads its vehicle form's camera and steering rule and SLOW DOWN when it
 is assembled. The race
 applies the player's steering rule only while the player's own input reaches the player's vehicle; whenever a driver
 drives it (the run driver on request, the takeover after GOAL) it drives by that driver's rule, switching at once.

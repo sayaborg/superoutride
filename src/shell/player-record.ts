@@ -1,10 +1,15 @@
+import {
+  DEFAULT_ENGINE_SOUND_QUALITY,
+  ENGINE_SOUND_QUALITIES,
+  type EngineSoundQuality,
+} from '../audio/exhaust-rate.js';
 import type { CameraYawSource } from '../view/camera.js';
 import type { VehicleForm } from '../vehicle/definition-document.js';
 import { createSteeringRule, STEERING_REFERENCES, type SteeringRule } from '../vehicle/steering-rule.js';
 
 /** The browser's one versioned player record; see [Browser operation](../../docs/browser.md#player-record). */
 const PLAYER_RECORD_KEY = 'super-outride-player';
-const PLAYER_RECORD_VERSION = 8;
+const PLAYER_RECORD_VERSION = 9;
 
 export const VOLUME_NAMES = ['master', 'music', 'effects'] as const;
 export type VolumeName = (typeof VOLUME_NAMES)[number];
@@ -31,6 +36,8 @@ export interface PlayerSettings {
   readonly vehicleColors: Readonly<Record<string, string>>;
   /** Integer percentages, 0–100. */
   readonly volumes: Readonly<Record<VolumeName, number>>;
+  /** The rate the engines' sound is computed at: the player's engine's, a rival's half of it. */
+  readonly engineSoundQuality: EngineSoundQuality;
   /** Latest selection by selection-screen key. */
   readonly latestSelections: Readonly<Record<string, string>>;
   /** What the camera yaw follows, by the player vehicle's form. */
@@ -76,6 +83,7 @@ export interface PlayerRecord {
 const DEFAULT_SETTINGS = freezeSettings({
   vehicleColors: {},
   volumes: { master: 35, music: 100, effects: 100 },
+  engineSoundQuality: DEFAULT_ENGINE_SOUND_QUALITY,
   latestSelections: {},
   cameras: DEFAULT_CAMERAS,
   steering: DEFAULT_STEERING,
@@ -159,12 +167,21 @@ function admitPlayerRecord(value: unknown): { settings: PlayerSettings; records:
 
 /** Settings of exactly the declared shape, or null. */
 function admitSettings(settings: unknown): PlayerSettings | null {
-  const keys = ['vehicleColors', 'volumes', 'latestSelections', 'cameras', 'steering', 'slowDown'];
+  const keys = [
+    'vehicleColors',
+    'volumes',
+    'engineSoundQuality',
+    'latestSelections',
+    'cameras',
+    'steering',
+    'slowDown',
+  ];
   if (!hasExactKeys(settings, keys)) return null;
-  const { vehicleColors, volumes, latestSelections, cameras, steering, slowDown } = settings;
+  const { vehicleColors, volumes, engineSoundQuality, latestSelections, cameras, steering, slowDown } = settings;
   if (!isStringMap(vehicleColors) || !isStringMap(latestSelections) || !hasExactKeys(volumes, VOLUME_NAMES))
     return null;
   if (!VOLUME_NAMES.every((name) => isPercent(volumes[name]))) return null;
+  if (!ENGINE_SOUND_QUALITIES.includes(engineSoundQuality as EngineSoundQuality)) return null;
   if (!hasExactKeys(cameras, VEHICLE_FORMS)) return null;
   if (!VEHICLE_FORMS.every((form) => CAMERA_YAW_SOURCES.includes(cameras[form] as CameraYawSource))) return null;
   if (!hasExactKeys(steering, VEHICLE_FORMS) || !VEHICLE_FORMS.every((form) => isSteeringChoice(steering[form])))
@@ -173,6 +190,7 @@ function admitSettings(settings: unknown): PlayerSettings | null {
   return freezeSettings({
     vehicleColors,
     volumes: volumes as Record<VolumeName, number>,
+    engineSoundQuality: engineSoundQuality as EngineSoundQuality,
     latestSelections,
     cameras: cameras as Record<VehicleForm, CameraYawSource>,
     steering: steering as Record<VehicleForm, SteeringRule>,
@@ -234,6 +252,7 @@ function freezeSettings(settings: PlayerSettings): PlayerSettings {
   return Object.freeze({
     vehicleColors: Object.freeze({ ...settings.vehicleColors }),
     volumes: Object.freeze({ ...settings.volumes }),
+    engineSoundQuality: settings.engineSoundQuality,
     latestSelections: Object.freeze({ ...settings.latestSelections }),
     cameras: Object.freeze({ ...settings.cameras }),
     steering: Object.freeze({

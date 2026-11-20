@@ -287,7 +287,8 @@ The engine sound has no DEV settings (K, 2026-11-21). Its values are [derived](#
 | `DOWNSHIFT_BLIP.opening`             | A locked downshift's blip opening peak                        | 1      | K (EX-10)     |
 | `DOWNSHIFT_BLIP.decaySeconds`        | Its exponential decay time                                    | 0.25 s | K (EX-10)     |
 
-The kernels run at ENGINE SOUND QUALITY MID's rates (K, 2026-11-21; [Audio](audio.md#engine-synthesis)).
+The rate the kernels run at is the player's ENGINE SOUND QUALITY, MID by default (K, 2026-11-21;
+[Audio](audio.md#engine-synthesis)).
 
 ## UNIFIED tire settings
 

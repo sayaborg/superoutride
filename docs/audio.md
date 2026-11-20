@@ -133,8 +133,9 @@ two at or above `4N + 8` values, so a sound of at most 2 × (16 + 32) lines stor
 ([`ExhaustRenderer`](../src/audio/exhaust-rate.ts)), and its sound is brought up to the output's rate by doubling once
 for each halving: each sample between two is the cubic through the four around it, `(-a + 9b + 9c - d)/16`. The kernel
 takes the observations of the first output sample of each of its own. It is the same model at every rate, only the rate
-it is given differs; tube lengths are rounded to the samples of that rate (K, by listening). ENGINE SOUND QUALITY
-(K, 2026-11-21) sets the player's divisor, and a rival runs at half the player's rate; the voices run at MID's:
+it is given differs; tube lengths are rounded to the samples of that rate (K, by listening). The player's ENGINE SOUND
+QUALITY (K, 2026-11-21; [Browser](browser.md#player-record)) sets the player's divisor, and a rival runs at half the
+player's rate:
 
 | ENGINE SOUND QUALITY | Player            | Rival      |
 | -------------------- | ----------------- | ---------- |
@@ -142,7 +143,9 @@ it is given differs; tube lengths are rounded to the samples of that rate (K, by
 | MID (default)        | 2 (24 kHz)        | 4 (12 kHz) |
 | LOW                  | 4 (12 kHz)        | 8 (6 kHz)  |
 
-A wall-loss shelf whose corner the rate does not carry is left out ([derived values](#derived-values)).
+A wall-loss shelf whose corner the rate does not carry is left out ([derived values](#derived-values)). A change of
+quality is a change of the voices' kernels: each voice fades to silence and installs its new one, as for any change of
+sound.
 
 ## Engine chain
 
@@ -257,7 +260,7 @@ The game loads it once with the catalog (`loadEngineLoudness`), refusing a deliv
 delivered documents'. Each engine voice, the rival's included, takes the gain `engineGain` of its vehicle's loudness at
 the divisor it runs at; the rival's inverse-distance gain follows the chain. A delivery without the engine loudness (the
 workbench's build while measurements are stale) gives every engine the gain 1, unlevelled. A changed gain (a DEV MIX
-change, another rival vehicle) fades and replaces the kernel as any change does. DEV's ENGINE SOUNDS
+change, another rival vehicle, another quality) fades and replaces the kernel as any change does. DEV's ENGINE SOUNDS
 panel changes the engines at once, but the loudness stays the one measured for the delivered values: the DEV panel says
 so ([Browser](browser.md#sound-controls)) until the changed values are adopted and measured again.
 

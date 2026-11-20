@@ -312,7 +312,8 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
   // stands on, and BACK or PAUSE closes, back to that row as it was (K, 2026-11-19); CONTROLS and CLEAR RECORDS open
   // their own rows.
   let opened: { readonly row: CardRow; readonly index: number; readonly item: number } | null = null;
-  const settingsRow = (initialItem = 0): CardRow => {
+  // SETTINGS, on its first card or on the card named `at`.
+  const settingsRow = (at: string | null = null): CardRow => {
     const items = settingCards(
       player,
       {
@@ -335,27 +336,26 @@ export function createSelectionFlow(catalog: SelectionCatalog, devices: Selectio
       kind: 'cards',
       world: opened!.row.world,
       path: [PATH_ROOT, 'SETTINGS'],
-      initialItem,
+      initialItem: at === null ? 0 : items.findIndex(({ name }) => name === at),
       cards: [{ name: 'SETTINGS', items }],
       back: () => (close(), 'back'),
     });
   };
-  const settingsAt = (name: string) => settingsRow(11 + Number(name === 'CLEAR RECORDS'));
   const controlsRow = (): CardRow =>
     row({
       kind: 'cards',
       world: opened!.row.world,
       path: [PATH_ROOT, 'SETTINGS'],
       cards: [{ name: 'CONTROLS' }],
-      back: () => (go(settingsAt('CONTROLS'), 'thin'), 'back'),
+      back: () => (go(settingsRow('CONTROLS'), 'thin'), 'back'),
     });
   const clearRow = (): CardRow =>
     row({
       kind: 'cards',
       world: opened!.row.world,
       path: [PATH_ROOT, 'SETTINGS', 'CLEAR RECORDS'],
-      cards: clearRecordCards(player, () => go(settingsAt('CLEAR RECORDS'), 'thin')),
-      back: () => (go(settingsAt('CLEAR RECORDS'), 'thin'), 'back'),
+      cards: clearRecordCards(player, () => go(settingsRow('CLEAR RECORDS'), 'thin')),
+      back: () => (go(settingsRow('CLEAR RECORDS'), 'thin'), 'back'),
     });
   // Back to the row SETTINGS was opened from, its card and entry in focus as they were.
   const close = () => {
