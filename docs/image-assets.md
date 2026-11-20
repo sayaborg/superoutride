@@ -1169,7 +1169,7 @@ on the other dark parts, and its occlusion, made as the Testarossa model's. Its 
 2,450 mm, which its driving uses (K, 2026-11-19).
 
 Its one livery is `rosso-corsa`, ROSSO CORSA, (231, 10, 14), the model's own; the four game colors of its earlier,
-drawn set are gone (K, 2026-11-19). The model is K's `ferrari-f40-1988.glb` (SHA-256 `4977fa1f…`), kept on K's
+drawn set are gone (K, 2026-11-19). The model is K's `ferrari-f40-1988.glb` (SHA-256 `1d15daa6…`), kept on K's
 branch `codex/f40-1988-glb-source`, never on main; it has no wheel nodes, and its front hub is (0, 0.314, 1.2393).
 
 ## HUD picture generator

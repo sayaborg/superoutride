@@ -4,7 +4,7 @@
   "vehicle": "FERRARI_F40_1988",
   "yawVariants": 64,
   "model": {
-    "sha256": "4977fa1f80f6898786b4ee168a0011165574e123f292d17613170f6a51e1a2e8",
+    "sha256": "1d15daa64c325c7645dc6101fc0aaf7a190388d070b5f4bbdc7dd0e48c7e9eeb",
     "right": "-x",
     "up": "+y",
     "forward": "+z",
