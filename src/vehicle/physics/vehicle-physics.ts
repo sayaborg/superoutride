@@ -9,6 +9,7 @@ import {
 import { clamp, wrapAngle } from '../../core/math.js';
 import { assertExclusivePedalInput, type DrivingInput } from '../driving-input.js';
 import {
+  advanceAfterfire,
   boundedOpening,
   completeAutomaticPowertrain,
   createAutomaticPowertrainState,
@@ -76,6 +77,11 @@ interface VehicleSpawnOptions {
   readonly s: number;
   readonly l: number;
   readonly initialSpeed: number;
+  /**
+   * The vehicle's own 32-bit word, its afterfires' draws: a race's from its seed, so a run's afterfires repeat; 1 for
+   * a vehicle outside a race.
+   */
+  readonly seed?: number;
 }
 
 /**
@@ -100,7 +106,7 @@ export function supportedTargetSurface({ coordinates, height, surfaces }: Vehicl
 export function createVehicle(
   model: VehicleModel,
   world: VehicleWorld,
-  { s, l, initialSpeed }: VehicleSpawnOptions,
+  { s, l, initialSpeed, seed }: VehicleSpawnOptions,
 ): VehicleState {
   const { compiledVehicle } = model;
   const { coordinates } = world;
@@ -134,6 +140,7 @@ export function createVehicle(
       compiledVehicle.powertrain,
       model.powertrain,
       drivenWheelOmega(compiledVehicle, frontOmega, rearOmega),
+      seed,
     ),
     tires: createVehicleTireObservation(),
   } as VehicleState;
@@ -187,6 +194,7 @@ export function updateHeldVehicle(vehicle: HeldVehicleState, model: VehicleModel
       0,
     );
     completeAutomaticPowertrain(vehicle.powertrain, powertrainStep, vehicle.actuator.throttle, UNBOUNDED_DRIVE);
+    advanceAfterfire(vehicle.powertrain, compiledVehicle.powertrain, substep);
   }
   vehicle.control.throttleActuator = vehicle.actuator.throttle;
   vehicle.control.brakeActuator = vehicle.actuator.brake;
@@ -355,6 +363,7 @@ export function updateVehicle(
       requestedOpening,
       driveTorqueBounds,
     );
+    advanceAfterfire(vehicle.powertrain, compiledVehicle.powertrain, substep);
     delivered = Math.max(delivered, driveTorque);
     // Signed drive torque, engine braking included, reaches the wheels untrimmed, the locked engine's inertia with it.
     const resolved = solveProtectedWheelPair(

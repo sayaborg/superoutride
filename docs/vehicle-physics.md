@@ -369,6 +369,17 @@ consumer reads each shift once by its sequence and recognizes an update without 
 unchanged sequence. Recovery sets the gear without a shift and keeps the record. Mechanics never
 read the observation.
 
+The powertrain also decides when its engine afterfires, for every vehicle, whether it is heard or not (K, 2026-11-21):
+an afterfire is a charge that leaves its cylinder unburned and burns in the exhaust, which the engine sound sounds
+([Audio](audio.md#engine-synthesis)) and an exhaust flame will later show. After each mechanics substep of `dt`, while
+the effective opening is below `AFTERFIRE.openingBelow` (0.02), engine RPM is above `AFTERFIRE.idleRatio` (1.3) times
+idle and fuel is not cut, the engine afterfires with chance `AFTERFIRE.perSecond × dt`, once a second on average; the
+three values are provisional ([`automatic-powertrain.ts`](../src/vehicle/physics/automatic-powertrain.ts)). Each such
+substep draws once from a xorshift32 word the powertrain keeps, never 0; a race seeds each vehicle's from the run's
+seed and the competitor's ID (`vehicleWord`), so a run of the same seed and inputs afterfires alike; a vehicle outside a
+race starts from 1. The powertrain publishes the afterfires' count from 0, `afterfire.count`, which a consumer reads once
+by its count; recovery keeps it, and mechanics never read it.
+
 Fuel cut is a hysteretic latch on engine RPM, whatever the clutch state. It enters when RPM exceeds
 `redlineRpm * fuelCutEnterRedlineRatio`, clears when RPM returns to `redlineRpm * fuelCutClearRedlineRatio` or
 below, and holds the effective opening's upper bound at 0 while latched. There is no pre-redline torque taper. The

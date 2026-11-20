@@ -12,15 +12,18 @@ operation.
 The [acoustic observation](../src/audio/vehicle-audio-observation.ts) contains powertrain and tire
 inputs. A vehicle audio emitter ([audio scene](../src/audio/audio-scene.ts)) adds the competitor ID and
 its physical world pose; player and rivals are supplied in the same emitter form. From the powertrain, audio reads
-engine RPM, the effective opening (`effectiveOpening`, the engine's only command), the fuel-cut latch (`fuelCut`) and the
-last shift (sequence, direction and engine RPM before and after), as
-[vehicle physics](vehicle-physics.md#wheel-and-powertrain) publishes them. A sequence the voice has not yet
-heard marks a new shift. A new `DOWN` shift with `toRpm > fromRpm` (a locked downshift) plays a blip:
+engine RPM, the effective opening (`effectiveOpening`, the engine's only command), the fuel-cut latch (`fuelCut`), the
+last shift (sequence, direction and engine RPM before and after) and the afterfires' count (`afterfire`), as
+[vehicle physics](vehicle-physics.md#wheel-and-powertrain) publishes them. A sequence or count the voice has not yet
+heard marks a new shift or new afterfires. A new `DOWN` shift with `toRpm > fromRpm` (a locked downshift) plays a blip:
 an opening peak of `DOWNSHIFT_BLIP.opening` (1), decaying exponentially with `DOWNSHIFT_BLIP.decaySeconds` (0.25 s),
 combined with the effective opening by `max`; the two values are the owner's, chosen by listening, and the code keeps
-them ([engine voice](../src/audio/engine-voice.ts)). The first sequence a voice reads, and the first after `silence()`
-(a rival reassignment), is only recorded. The browser supplies them once per presented frame from the race's borrowed
-competitor observations, which are copied at the end of each fixed step; audio reads nothing else.
+them ([engine voice](../src/audio/engine-voice.ts)). Each afterfire not yet heard sends the kernel one `afterfire()`, in
+the same form. The first sequence and count a voice reads, and the first after `silence()` (a rival reassignment), are
+only recorded. The browser supplies them once per presented frame from the race's borrowed competitor observations,
+which are copied at the end of each fixed step; audio reads nothing else. When an engine afterfires is the game's to
+decide, not the sound's: the powertrain decides it for every vehicle, whether it sounds or not
+([vehicle physics](vehicle-physics.md#wheel-and-powertrain)).
 Physics owns RPM, actuators, contact loads, wheel motion and dissipated work; audio owns oscillator,
 filter and envelope state. Player tire sound reads the player's observed tire observations;
 rival sound uses the rival's observed powertrain values and its own vehicle's engine sound.

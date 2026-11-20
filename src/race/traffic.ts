@@ -1,4 +1,4 @@
-import { mix } from './seed-mix.js';
+import { AFTERFIRE_SALT, mix, vehicleWord } from './seed-mix.js';
 import type { ResolvedTraffic, TrafficCandidate } from './run-setup.js';
 import type { createCourseLaneField } from './course-lane-field.js';
 import type { LaneIntent, PathOffset } from './lane-following.js';
@@ -151,8 +151,13 @@ export function createTrafficField(options: {
         // Traffic of the racing line takes it from its lane's centre where it appears, as an appearing rival does.
         const offset = options.traffic!.path === 'line' ? takeLine(intent, s, l) : null;
         if (offset) lane = (station: number) => laneField.targetL(station, intent);
-        const vehicle = createVehicle(model, runtime.readers, { s, l, initialSpeed: speed });
         const id = `TRAFFIC_${String(position + 1).padStart(4, '0')}`;
+        const vehicle = createVehicle(model, runtime.readers, {
+          s,
+          l,
+          initialSpeed: speed,
+          seed: vehicleWord(seed, AFTERFIRE_SALT, id),
+        });
         const color = candidate.colors[trafficDraw(seed, 'color', position, candidate.colors.length)]!;
         const driving = {
           driver: candidate.driver,

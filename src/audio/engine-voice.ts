@@ -43,8 +43,9 @@ export function createEngineVoice(
     entry.divisor === divisor &&
     entry.gain === gain &&
     sameControlSettings(entry.control, control);
-  // The last shift sequence heard; null until the first update after construction or silence.
+  // The last shift and afterfire sequences heard; null until the first update after construction or silence.
   let heardShift: number | null = null;
+  let heardAfterfire: number | null = null;
   return {
     update(
       state: VehicleAudioObservation,
@@ -67,7 +68,7 @@ export function createEngineVoice(
         active = { sound, divisor, gain, control };
         exhaust.port.postMessage(active);
       }
-      const { shift } = state;
+      const { shift, afterfire } = state;
       if (
         heardShift !== null &&
         shift.sequence !== heardShift &&
@@ -80,6 +81,10 @@ export function createEngineVoice(
         blip.setTargetAtTime(0, now, DOWNSHIFT_BLIP.decaySeconds);
       }
       heardShift = shift.sequence;
+      // Each afterfire not yet heard sends the kernel one.
+      if (heardAfterfire !== null)
+        for (let sequence = heardAfterfire; sequence < afterfire; sequence++) exhaust.port.postMessage('afterfire');
+      heardAfterfire = afterfire;
       // The kernel is the only smoothing authority for its observations.
       exhaust.parameters.get('rpm')!.value = state.rpm;
       exhaust.parameters.get('load')!.value = clamp(state.effectiveOpening, 0, 1);
@@ -99,8 +104,9 @@ export function createEngineVoice(
       exhaust.port.postMessage({ measure: listener !== null });
     },
     silence(): void {
-      // A newly assigned competitor's earlier shifts must not sound.
+      // A newly assigned competitor's earlier shifts and afterfires must not sound.
       heardShift = null;
+      heardAfterfire = null;
       fadeToSilence(output.gain, context.currentTime, control.fadeSeconds);
     },
     dispose(): void {

@@ -27,6 +27,7 @@ export function readVehicleAudio(competitor: CompetitorObservation, result: Emit
   result.shift.direction = powertrain.shift.direction;
   result.shift.fromRpm = powertrain.shift.fromRpm;
   result.shift.toRpm = powertrain.shift.toRpm;
+  result.afterfire = powertrain.afterfire;
   result.front.load = tires.front.load;
   result.front.longitudinalVelocity = tires.front.longitudinalVelocity;
   result.front.lateralVelocity = tires.front.lateralVelocity;

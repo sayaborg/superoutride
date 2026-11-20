@@ -97,6 +97,22 @@ export interface PowertrainShiftObservation {
   toRpm: number;
 }
 
+/**
+ * The engine's afterfires: a charge that leaves its cylinder unburned and burns in the exhaust. `count` counts them from
+ * 0, so each is read once by its count; `word` is the 32-bit xorshift state of their draws, never 0.
+ */
+export interface PowertrainAfterfireObservation {
+  count: number;
+  word: number;
+}
+
+/**
+ * When an engine afterfires, provisional values (K, 2026-11-21): while the effective opening is below `openingBelow`,
+ * the engine turns faster than `idleRatio` times idle and fuel is not cut, at random `perSecond` times a second on
+ * average. The game decides it; the engine sound only sounds it.
+ */
+export const AFTERFIRE = Object.freeze({ openingBelow: 0.02, idleRatio: 1.3, perSecond: 1 });
+
 export interface AutomaticPowertrainState {
   /** Selected gear, fuel-cut and clutch-lock latches and engine speed are the only dynamic powertrain memory. */
   gear: number;
@@ -109,13 +125,19 @@ export interface AutomaticPowertrainState {
    */
   effectiveOpening: number;
   shift: PowertrainShiftObservation;
+  /** Observation, never read by the drive solve. */
+  afterfire: PowertrainAfterfireObservation;
 }
 
-/** Starts locked at the wheel-derived RPM when a slipping clutch at idle would lock, else slips at idle. */
+/**
+ * Starts locked at the wheel-derived RPM when a slipping clutch at idle would lock, else slips at idle. `seed` is the
+ * 32-bit word its afterfires are drawn from.
+ */
 export function createAutomaticPowertrainState(
   definition: CompiledAutomaticPowertrainDefinition,
   constants: PowertrainConstants,
   drivenWheelOmega = 0,
+  seed = 1,
 ): AutomaticPowertrainState {
   assertWheelOmega(drivenWheelOmega);
   const wheelOmega = Math.abs(drivenWheelOmega);
@@ -131,6 +153,7 @@ export function createAutomaticPowertrainState(
     clutchLocked: locked,
     effectiveOpening: 0,
     shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 },
+    afterfire: { count: 0, word: seed >>> 0 || 1 },
   };
 }
 
@@ -332,6 +355,30 @@ export function completeAutomaticPowertrain(
   state.effectiveOpening = opening;
   // The signed requested wheel-side torque before protection and distribution, never a direct body force.
   return clutchTorque * step.wheelPerEngineTorque;
+}
+
+/**
+ * After a step of `dt` seconds is complete: an afterfire, with chance `AFTERFIRE.perSecond * dt`, while the engine is in
+ * `AFTERFIRE`'s condition. Each step in the condition draws once from the state's word, so the same seed and steps
+ * give the same afterfires.
+ */
+export function advanceAfterfire(
+  state: AutomaticPowertrainState,
+  definition: Pick<AutomaticPowertrainDefinition, 'idleRpm'>,
+  dt: number,
+): void {
+  if (
+    state.fuelCut ||
+    state.effectiveOpening >= AFTERFIRE.openingBelow ||
+    state.engineRpm <= definition.idleRpm * AFTERFIRE.idleRatio
+  )
+    return;
+  let word = state.afterfire.word;
+  word ^= word << 13;
+  word ^= word >>> 17;
+  word ^= word << 5;
+  state.afterfire.word = word >>> 0;
+  if (state.afterfire.word / 2 ** 32 < AFTERFIRE.perSecond * dt) state.afterfire.count += 1;
 }
 
 /**

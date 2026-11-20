@@ -255,8 +255,12 @@ function reconstructVehicle(
     (p.mass * VEHICLE_GRAVITY * p.rearAxle) / wheelbase,
     (p.mass * VEHICLE_GRAVITY * p.frontAxle) / wheelbase,
   );
-  // Recovery sets the gear without a shift; the shift record and its sequence carry over.
-  const { shift: _shift, ...powertrain } = createAutomaticPowertrainState(
+  // Recovery sets the gear without a shift; the shift and afterfire records carry over.
+  const {
+    shift: _shift,
+    afterfire: _afterfire,
+    ...powertrain
+  } = createAutomaticPowertrainState(
     p.powertrain,
     model.powertrain,
     drivenWheelOmega(p, vehicle.frontWheelOmega, vehicle.rearWheelOmega),

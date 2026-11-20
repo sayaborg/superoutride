@@ -277,15 +277,18 @@ ENGINE SOUNDS panel changes the lengths and diameters ([Browser](browser.md#soun
 The engine sound has no DEV settings (K, 2026-11-21). Its values are [derived](#derived-values), physical assumptions
 (`GAS`, [Audio](audio.md#derived-values)) or the owner's, chosen by listening and kept by the code:
 
-| Value                                | Meaning                                                       | Value  | Owner         |
-| ------------------------------------ | ------------------------------------------------------------- | ------ | ------------- |
-| `EXHAUST_LISTENING.chargeVariation`  | Each firing's charge varies by up to this share of a full one | 0.03   | K, 2026-11-20 |
-| `EXHAUST_LISTENING.afterfireSeconds` | An afterfire's charge burns over this                         | 1.5 ms | K, 2026-11-20 |
-| `ENGINE_CHAIN.levelSeconds`          | The compressor follows the sound's mean square over this      | 50 ms  | K, 2026-11-21 |
-| `ENGINE_CHAIN.ratio`                 | The compressor's ratio, threshold at the bottom               | 2:1    | K, 2026-11-21 |
-| `ENGINE_CHAIN.ceiling`               | The soft clip's ceiling over the level the gain brings        | 2      | K, 2026-11-21 |
-| `DOWNSHIFT_BLIP.opening`             | A locked downshift's blip opening peak                        | 1      | K (EX-10)     |
-| `DOWNSHIFT_BLIP.decaySeconds`        | Its exponential decay time                                    | 0.25 s | K (EX-10)     |
+| Value                                | Meaning                                                       | Value  | Owner                       |
+| ------------------------------------ | ------------------------------------------------------------- | ------ | --------------------------- |
+| `EXHAUST_LISTENING.chargeVariation`  | Each firing's charge varies by up to this share of a full one | 0.03   | K, 2026-11-20               |
+| `EXHAUST_LISTENING.afterfireSeconds` | An afterfire's charge burns over this                         | 1.5 ms | K, 2026-11-20               |
+| `ENGINE_CHAIN.levelSeconds`          | The compressor follows the sound's mean square over this      | 50 ms  | K, 2026-11-21               |
+| `ENGINE_CHAIN.ratio`                 | The compressor's ratio, threshold at the bottom               | 2:1    | K, 2026-11-21               |
+| `ENGINE_CHAIN.ceiling`               | The soft clip's ceiling over the level the gain brings        | 2      | K, 2026-11-21               |
+| `DOWNSHIFT_BLIP.opening`             | A locked downshift's blip opening peak                        | 1      | K (EX-10)                   |
+| `DOWNSHIFT_BLIP.decaySeconds`        | Its exponential decay time                                    | 0.25 s | K (EX-10)                   |
+| `AFTERFIRE.openingBelow`             | An afterfire needs the effective opening below this           | 0.02   | provisional (K, 2026-11-21) |
+| `AFTERFIRE.idleRatio`                | and engine RPM above this times idle, fuel not cut            | 1.3    | provisional (K, 2026-11-21) |
+| `AFTERFIRE.perSecond`                | Afterfires a second on average while so                       | 1      | provisional (K, 2026-11-21) |
 
 The rate the kernels run at is the player's ENGINE SOUND QUALITY, MID by default (K, 2026-11-21;
 [Audio](audio.md#engine-synthesis)).

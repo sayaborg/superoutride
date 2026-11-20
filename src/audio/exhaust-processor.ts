@@ -41,7 +41,8 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     if (initial) this.configure(initial);
     this.port.onmessage = ({ data }) => {
       if (this.meter.receive(data) || this.rest.receive(data)) return;
-      if (data === 'stop') {
+      if (data === 'afterfire') this.engine?.renderer.afterfire();
+      else if (data === 'stop') {
         this.running = false;
         this.engine = null;
       } else if (data === null) this.engine = null;

@@ -43,6 +43,7 @@ import {
 import { SIM_DT } from './fixed-step.js';
 import { countSafetyNet, createSafetyNet, placeSafetyNet } from './safety-net.js';
 import { createBarrierContacts } from './barrier-contacts.js';
+import { AFTERFIRE_SALT, vehicleWord } from './seed-mix.js';
 import { createRoadsideObjects, type KnockedObjectObservation } from './object-contacts.js';
 import type { createRouteRuntime } from './route-runtime.js';
 import { gridRouteS, routeSectionS } from '../course/course-route.js';
@@ -209,7 +210,10 @@ export function createCourseRace(options: {
   // or, appearing ahead, where and as fast as it appears.
   const spawn = (entry: RunEntry, at: { s: number; l: number; initialSpeed: number }): VehicleActor => {
     const model = modelOf(entry.vehicle);
-    const vehicle = createVehicle(model, runtime.readers, at);
+    const vehicle = createVehicle(model, runtime.readers, {
+      ...at,
+      seed: vehicleWord(options.setup.seed, AFTERFIRE_SALT, entry.id),
+    });
     return {
       vehicle,
       model,

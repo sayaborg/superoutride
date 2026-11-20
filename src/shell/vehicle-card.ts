@@ -170,7 +170,11 @@ function freeRevs(vehicle: CompiledVehicleDefinition, driving: CompiledDrivingDe
     let throttle = 0;
     for (const entry of FREE_REV.throttle) if (entry.step <= step % FREE_REV.steps) throttle = entry.throttle;
     updateHeldVehicle(engine, model, { steering: 0, throttle, brake: 0 });
-    return Object.freeze({ control: { ...engine.control }, powertrain: { ...engine.powertrain } });
+    const { powertrain } = engine;
+    return Object.freeze({
+      control: { ...engine.control },
+      powertrain: { ...powertrain, afterfire: { ...powertrain.afterfire } },
+    });
   });
 }
 /** The free revving's step `steps` after its start: the second turn repeats. */

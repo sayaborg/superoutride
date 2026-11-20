@@ -41,6 +41,8 @@ export interface CompetitorObservation extends VehicleMotionRead, VehicleRenderR
     readonly effectiveOpening: number;
     readonly fuelCut: boolean;
     readonly shift: Readonly<PowertrainShiftObservation>;
+    /** The engine's afterfires so far, counted from 0. */
+    readonly afterfire: number;
     /** The race's simulation seconds at the latest shift; null before the first. */
     readonly shiftSeconds: number | null;
   };
@@ -59,6 +61,7 @@ type CompetitorObservationSlot = Mutable<Omit<CompetitorObservation, 'course' | 
     effectiveOpening: number;
     fuelCut: boolean;
     shift: PowertrainShiftObservation;
+    afterfire: number;
     shiftSeconds: number | null;
   };
   tires: { front: MutableTire; rear: MutableTire };
@@ -108,6 +111,7 @@ export function createCompetitorObservation(
       effectiveOpening: 0,
       fuelCut: false,
       shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 },
+      afterfire: 0,
       shiftSeconds: null,
     },
     tires: { front: tire(), rear: tire() },
@@ -177,4 +181,5 @@ export function writeCompetitorPowertrain(
   out.powertrain.fuelCut = powertrain.fuelCut;
   if (powertrain.shift.sequence !== out.powertrain.shift.sequence) out.powertrain.shiftSeconds = simulationSeconds;
   Object.assign(out.powertrain.shift, powertrain.shift);
+  out.powertrain.afterfire = powertrain.afterfire.count;
 }

@@ -26,6 +26,8 @@ export interface VehicleAudioObservation {
   /** No fuel is injected: the cylinders let out the air they drew, unburned. */
   readonly fuelCut: boolean;
   readonly shift: ShiftAudioObservation;
+  /** The powertrain's afterfires, counted from 0: a count the voice has not yet heard marks new afterfires. */
+  readonly afterfire: number;
   readonly front: TireAudioObservation;
   readonly rear: TireAudioObservation;
 }
@@ -53,6 +55,7 @@ export function createVehicleAudioObservation(): MutableVehicleAudioObservation 
     effectiveOpening: 0,
     fuelCut: false,
     shift: { sequence: 0, direction: 'NONE', fromRpm: 0, toRpm: 0 },
+    afterfire: 0,
     front: tire(),
     rear: tire(),
   };
