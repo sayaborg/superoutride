@@ -469,7 +469,7 @@ US mass and length, and the power and torque anchors.
 | Engine                | 13B, two rotors, 2 × 654 cc; 8.5:1 (9.4 without turbo); 4 intake ports (6); idle 750 ± 25 rpm (pp. 1, 4B-3, 4B-45) | 1,308 cc, `cycle` 2 (below), 8.5, idle 750                                               | source (T)              |
 | Power, torque         | 182 hp SAE net at 6,500 rpm; 183 lb-ft at 3,500 rpm (K's anchors)                                                  | Point 2: 248.114684 N m at 3,500; point 3: 199.385493 N m at 6,500 (135.7 kW)            | K, calculated           |
 | Curve's other points  | —                                                                                                                  | 110 N m at 750, 180 at 2,000, 180 at 7,000 (power stays greatest at 6,500)               | estimate                |
-| Redline               | —                                                                                                                  | **7,000 rpm**, the tachometer's red (the auditor's)                                      | game design             |
+| Redline               | —                                                                                                                  | **7,000 rpm**, the tachometer's red (K, 2026-11-20)                                      | game design             |
 | Transmission          | 3.483, 2.015, 1.391, 1.000, 0.762; final 4.100, clutch-type LSD (two sources)                                      | As the source; the LSD is not represented                                                | source                  |
 | Tires                 | 205/55VR16 on 16 × 7J, 632 mm outside diameter                                                                     | Radii 0.316 m; inertias `25r²` / `27r²` = 2.496 / 2.696 kg m²; the default tire          | source, calculated      |
 | Drag                  | Cd 0.31 at launch (press); 0.29 is the aero package's and is not adopted                                           | `q = 0.5 × 1.225 × 0.31 × 1.79 m²` = **0.34 kg/m**; the frontal area is an estimate      | source, estimate        |
@@ -482,6 +482,7 @@ US mass and length, and the power and torque anchors.
 
 ### Representation within the current model
 
+- K adopted this representation, the redline and the eight paints (K, 2026-11-20): no engine kind is added.
 - An engine's `cycle` is 2 or 4, and friction is FMEP × displacement over 2π × the cycle's revolutions
   ([Vehicle physics](vehicle-physics.md)). The 13B's two rotors burn twice in each output-shaft revolution and together
   discharge 1,308 cc in it, the same as a 1,308 cc two-stroke, so it is written as `cycle` 2; no third cycle is added.
@@ -495,6 +496,10 @@ US mass and length, and the power and torque anchors.
 - The twin-scroll turbine's switch (only the primary passage below 2,700 rpm, both above; p. 4B-17), the wastegate
   built into the turbocharger and the air-cooled intercooler under the hood scoop (pp. 4B-18, 4B-45) are not
   represented; the torque curve's point at 2,000 rpm (180 N m) stays an estimate.
+- Its engine sound's `metadata.note` predates the training material's reading: it says "one pipe through the catalyst"
+  and that the port timing was not read here. The pipes and values match the material's order
+  ([Calibration](calibration.md#exhaust-topologies)); the note is mended with the next change to the sound, which
+  measures its loudness again.
 - Its pictures are baked from K's model in eight 1987 paints ([Model solids](image-assets.md#model-solids)); the
   model's wheelbase is 2,393 mm against the 2,430 mm its driving uses, a difference K allowed.
 

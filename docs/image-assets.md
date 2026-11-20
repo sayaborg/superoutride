@@ -1069,8 +1069,9 @@ front and (±0.72, 0.316, −1.1964) m rear, radius 0.316, width 0.205 (205/55 V
 0.2275. The model was scaled along each axis to the car's length, width and height, so its wheelbase is 2,393 mm
 against the car's 2,430 mm, which its driving uses (K allowed the difference, 2026-11-19).
 
-Its eight liveries are Mazda's paints for the 1987 model year (the stage auditor's choice and provisional base colors,
-awaiting K); whether all eight were offered on the Turbo II is not checked:
+Its eight liveries are Mazda's paints for the 1987 model year (K, 2026-11-20); the glass, the greys and the lamp are
+every livery's. The first, the model's own and the default, is Sunrise Red; the eight base colors are K's
+(2026-11-20). Whether all eight were offered on the Turbo II is not checked:
 
 | Palette           | Name                    | Code | Base color    |
 | ----------------- | ----------------------- | ---- | ------------- |

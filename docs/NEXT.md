@@ -20,12 +20,12 @@ Each line is one area as it stands, with the document that owns it.
   still requires prior confirmation. The Honda XR600R of 1985, beside them in the same ledger, is K's ENDURO RACER
   machine ([Stage XR](#stage-xr--the-xr600r-of-1985-and-enduro-racers-machine)).
 - The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the
-  catalog to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984, 38 with the
-  XR600R of 1985 and 39 with the RX-7 Turbo II of 1987, K's TOP SPEED car, in the same ledger
-  ([Stage FC3S](#stage-fc3s--the-rx-7-turbo-ii-of-1987)). Among the fourteen, the 928 S4 of 1987 is K's CHASE H.Q.
-  car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)). The 1986 Porsche 930 and 1984
-  Corvette C4 coexist with their existing 1989 versions; the unidentified box truck remains deferred. The ledger owns
-  specification limits and validation.
+  catalog to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984, 38 with the XR600R of 1985 and
+  39 with the RX-7 Turbo II of 1987, K's TOP SPEED car, in the same ledger ([its
+  section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored)). Among the fourteen, the 928 S4
+  of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)). The 1986
+  Porsche 930 and 1984 Corvette C4 coexist with their existing 1989 versions; the unidentified box truck remains
+  deferred. The ledger owns specification limits and validation.
 - **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
   PRODUCTION 750, GTI CUP and 911 CUP classes; the [product specification](product.md) is Stage 16's target
   ([Product courses](content-and-gameplay.md#product-courses),
@@ -131,35 +131,6 @@ own engine sound, a single through its twin head pipes into one silencer
   values and the rivals' liveries, the light (L2, as the NSR500 of 1984), the description, the sound's values (its
   exhaust's lengths and diameters and the valve's lift are estimates), and the 1985 front tire's designation and
   caster.
-
-## Stage FC3S — The RX-7 Turbo II of 1987
-
-K's decisions of 2026-11-19: TOP SPEED's car is taken for the Mazda RX-7 Turbo II of 1987, US specification, added as a
-vehicle of its own as faithful to the real car as can be, 1,695 mm wide with the US mass and length; its pictures are
-baked from K's model by the car baking of Stage F110's F110-1, the model's own wheelbase (2,393 mm) left as K allowed,
-its driving on the real 2,430 mm ([Arcade car selections](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored)).
-FC3S-1 adds the vehicle, its sound and its listing; FC3S-2 bakes its pictures, `rx-7-turbo-ii-1987`, from K's model by
-the Testarossa's recipe in eight 1987 paints, the default `sunrise-red` ([Model solids](image-assets.md#model-solids)).
-
-- To look at in DEV: the pictures near and far in the eight paints, the brake lamp's upper row, the wheels and the
-  hood scoop; choosing RX-7 TURBO II in FREE PLAY and its ENGINE shown as `R2T`; its sound (two firings a
-  revolution, the interval of a four, so likely near one; the pipes move on DEV's ENGINE SOUNDS); acceleration, top
-  speed and fifth's pull. On the flat it is quicker than the real car's tests (0–60 mph in 6.13 s against 6.7 and 7.2 s,
-  the quarter mile in 14.80 s against 15.2 to 15.3 s) and tops out at 246 km/h against the claimed 230 km/h.
-- The stage auditor's proposals, awaiting K: the rotary's writing (`cycle` 2, `valve.open` 0.95, the engine shown as
-  `R2T`), the redline of 7,000 rpm, and the eight paints; the paints' base colors are provisional. The rotary's
-  writing is the decision [Stage DT](#stage-dt--drift-tuned-trial-vehicles)'s DT-3 waits on too (there proposed as
-  ROTARY on screen); one decision serves both.
-- Estimates: the CG height, the frontal area, the torque curve's points at 750, 2,000 and 7,000 rpm, and the exhaust's
-  lengths and diameters.
-- Mazda's Turbo II training material (K's copy, read by the stage auditor, 2026-11-19) gives the greatest boost as
-  340 mmHg (about 6.6 psi), not used, and gives neither the rev limit nor the redline: 7,000 rpm stays the auditor's
-  proposal, awaiting K. The other cited sources were not reachable from FC3S-1's environment; their values are the
-  auditor's reading.
-- The engine sound's `metadata.note` still says "one pipe through the catalyst" and that the port timing was not
-  read; it is mended with the next change to the sound, which measures its loudness again.
-- Not decided: how TOP SPEED's series uses it (the player's car, rivals, nitro), its own tire values and its steering
-  picture.
 
 ## Stage F110 — The TESTAROSSA of 1984
 
@@ -864,7 +835,7 @@ only drifting uses (S13's and AE86's DRIFT TUNED and their tires, DT-3's plan), 
 has.
 
 Stage DT lets K try on devices whether a DRIFT SERIES ("いかす走り屋チーム天国") can work: S13 and AE86 DRIFT TUNED
-are driven in FREE PLAY; FC3S follows once K decides its open points. A series, scoring and series rules for the camera
+are driven in FREE PLAY; FC3S DRIFT TUNED (DT-3) waits with the stage. A series, scoring and series rules for the camera
 or steering are not made in this stage (the Steering row of [Pending product decisions](#pending-product-decisions)).
 
 K decided it runs in parallel with the road data stages, in its own sessions and branches. DT touches vehicles and
@@ -917,10 +888,10 @@ borrow:
   PENDING. AE86's fourth color awaits K: the early GT-APEX may have had only the three two-tones.
 - Engine sounds: S13 DELTA HF INTEGRALE's (inline four, turbocharged), AE86 GOLF GTI 16V's (inline four, 16 valves)
   ([exhausts](calibration.md#exhaust-topologies)).
-- DT-3, after K decides: FC3S DRIFT TUNED. K decides how 13B is represented (the listing's engine kind `rotary`, as
-  RX-7 TURBO II's, ROTARY on screen; the 2-stroke volume rule in physics, one exhaust per rotor per revolution in the
-  engine sound) and whether its pictures
-  are shared with OUTRUNNERS' RX-7 (FC3S), whose 1989 candidate would be the late model; its colors are decided then.
+- DT-3: FC3S DRIFT TUNED. Its 13B is written as RX-7 TURBO II's (K, 2026-11-20): `cycle` 2 (the 2-stroke volume
+  rule), one exhaust per rotor per revolution in the engine sound and ENGINE shown as `R2T`; no engine kind is added and
+  no ROTARY label is made. K decides whether its pictures are shared with OUTRUNNERS' RX-7 (FC3S), whose 1989 candidate
+  would be the late model; its colors are decided then.
 
 ## Card UI
 
@@ -1093,7 +1064,10 @@ Left by the stages that raised them, beside what follows:
   the same driver. Its ARCADE TRIBUTE series runs its originals for now (K, 2026-11-10): the TESTAROSSA's reference
   runs recover 9 to 16 times a road, and outrun-a's ends off the pavement past its GOAL, so its class has no clock
   until the driver is mended; then its product courses, its vehicles and the original's traffic.
-- TOP SPEED: its ARCADE TRIBUTE series, of the classes [the product](product.md#arcade-tribute) names, is not made. Not
+- TOP SPEED: its ARCADE TRIBUTE series, of the classes [the product](product.md#arcade-tribute) names, is not made. How
+  it uses the RX-7 Turbo II of 1987, K's TOP SPEED car (the player's alone or rivals too, and nitro), is not decided,
+  nor the car's own tire values and steering picture
+  ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored)). Not
   drawn as the original draws them: its cloud banks' rows and size by their distance (each is a band across the road
   of one height and one size; the original lays it on the screen by its own curve, behind the ground), which needs a
   picture laid on the screen by its distance to a station ([Its cloud banks](top-speed-road-data.md#its-things)); the
