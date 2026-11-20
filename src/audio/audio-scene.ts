@@ -4,7 +4,13 @@ import type { ControlSettings } from './audio-control-policy.js';
 import { follow } from './audio-parameter.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import { createEngineVoice } from './engine-voice.js';
-import { engineDriveGain, type ExhaustSettings } from './exhaust-acoustics.js';
+import { engineGain } from './engine-chain.js';
+import {
+  DEFAULT_ENGINE_SOUND_QUALITY,
+  EXHAUST_RATE_DIVISORS,
+  engineRateDivisors,
+  type ExhaustRateDivisor,
+} from './exhaust-rate.js';
 import { createSoundGraph, isLiveBus, type MixSettings, type SoundBus } from './sound-graph.js';
 import type { TireComponents } from './tire-sound-components.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
@@ -140,21 +146,27 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
   let rival = DEFAULT_AUDIO_SETTINGS.rival;
   let control = DEFAULT_AUDIO_SETTINGS.control;
   let engineDriveLufs = DEFAULT_AUDIO_SETTINGS.mix.engineDriveLufs;
+  // The default ENGINE SOUND QUALITY's divisors.
+  const divisors = engineRateDivisors(DEFAULT_ENGINE_SOUND_QUALITY);
+  /** An engine's gain at `divisor` from its loudness at each divisor (`EXHAUST_RATE_DIVISORS`' order). */
+  const gainAt = (lufs: readonly number[] | null, divisor: ExhaustRateDivisor) =>
+    engineGain(engineDriveLufs, lufs && lufs[EXHAUST_RATE_DIVISORS.indexOf(divisor)]!);
   let assignedId: string | null = null;
   let switchAt = 0;
   let disposed = false;
   return {
     /**
-     * The player's and the nearest vehicle's voices. `engineOf` names each
-     * vehicle's engine sound and its measured loudness (null when not measured), which sets its drive into the soft clip.
+     * The player's and the nearest vehicle's voices, each at its divisor of the default ENGINE SOUND QUALITY. `engineOf` names
+     * each vehicle's engine sound and its measured loudness at each divisor (null when not measured), which sets its
+     * gain.
      */
     update(
       player: VehicleAudioEmitter,
       rivals: readonly VehicleAudioEmitter[],
-      engineOf: (vehicleId: string) => { readonly sound: VehicleEngineSound; readonly lufs: number | null },
+      engineOf: (vehicleId: string) => { readonly sound: VehicleEngineSound; readonly lufs: readonly number[] | null },
     ): void {
       const playerSound = engineOf(player.vehicleId);
-      playerEngine.update(player, playerSound.sound, engineDriveGain(engineDriveLufs, playerSound.lufs));
+      playerEngine.update(player, playerSound.sound, divisors.player, gainAt(playerSound.lufs, divisors.player));
       tires.update(player);
       const nearest = nearestAudibleRival(player, rivals, rival.audibleMeters);
       const nearestId = nearest?.id ?? null;
@@ -170,7 +182,7 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
       }
       const { gain, pan } = rivalSpatialization(player, nearest, rival);
       const rivalSound = engineOf(nearest.vehicleId);
-      rivalEngine.update(nearest, rivalSound.sound, engineDriveGain(engineDriveLufs, rivalSound.lufs), gain);
+      rivalEngine.update(nearest, rivalSound.sound, divisors.rival, gainAt(rivalSound.lufs, divisors.rival), gain);
       follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, control.panSeconds);
     },
     /**
@@ -184,10 +196,6 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
       const silent = graph.setLive(value);
       const restAt = value ? null : silent;
       for (const { voice, bus } of voices) if (isLiveBus(bus)) voice.rest(restAt);
-    },
-    setExhaustSettings(value: ExhaustSettings): void {
-      playerEngine.setSettings(value);
-      rivalEngine.setSettings(value);
     },
     setTireSettings(value: UnifiedSettings): void {
       tires.setSettings(value);

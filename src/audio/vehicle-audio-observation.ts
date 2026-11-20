@@ -21,9 +21,9 @@ export interface ShiftAudioObservation {
 export interface VehicleAudioObservation {
   /** Engine speed exactly as simulated; it never falls below idle. */
   readonly rpm: number;
-  /** The engine's effective opening in [0,1]: an acoustic excitation proxy, not cylinder load. */
+  /** The engine's effective opening in [0,1]: the share of a full charge above the closed one the cylinders draw. */
   readonly effectiveOpening: number;
-  /** No fuel is injected; excitation becomes pumping rather than combustion. */
+  /** No fuel is injected: the cylinders let out the air they drew, unburned. */
   readonly fuelCut: boolean;
   readonly shift: ShiftAudioObservation;
   readonly front: TireAudioObservation;

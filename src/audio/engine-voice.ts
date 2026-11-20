@@ -2,40 +2,29 @@ import { clamp } from '../core/math.js';
 import { fadeToSilence, follow } from './audio-parameter.js';
 import { sameControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
-import { EXHAUST_SETTING_RANGES } from './exhaust-acoustics.js';
-import type { ExhaustSettings } from './exhaust-acoustics.js';
+import type { ExhaustConfiguration } from './exhaust-processor.js';
+import type { ExhaustRateDivisor } from './exhaust-rate.js';
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 import type { ProcessingReport } from './processing-meter.js';
 import { watchProcessor } from './processor-failure.js';
 
-function sameExhaustSettings(left: ExhaustSettings | undefined, right: ExhaustSettings): boolean {
-  if (!left) return false;
-  for (const key in EXHAUST_SETTING_RANGES) {
-    const name = key as keyof ExhaustSettings;
-    if (left[name] !== right[name]) return false;
-  }
-  return true;
-}
+/**
+ * A locked downshift's rev-matching blip, the owner's values (no derivation; chosen by listening): an opening peak and
+ * its exponential decay time, combined with the effective opening by `max`. The physical shift is instantaneous.
+ */
+export const DOWNSHIFT_BLIP = Object.freeze({ opening: 1, decaySeconds: 0.25 });
 
 /**
- * One reusable exhaust worklet. Engine sound, drive, exhaust settings and kernel control changes share the same fade.
- * Settings are admitted ones, used as given; `drive` is the gain into the soft clip (`engineDriveGain`).
+ * One reusable exhaust worklet. A change of engine sound, kernel divisor, gain or kernel control installs a new kernel
+ * after the same fade. Settings are admitted ones, used as given; `gain` is the engine's for its divisor
+ * (`engineGain`).
  */
 export function createEngineVoice(
   context: BaseAudioContext,
   destination: AudioNode,
-  {
-    sound: initialSound,
-    settings: initialSettings = DEFAULT_AUDIO_SETTINGS.exhaust,
-    control: initialControl = DEFAULT_AUDIO_SETTINGS.control,
-  }: {
-    sound?: VehicleEngineSound;
-    settings?: ExhaustSettings;
-    control?: ControlSettings;
-  } = {},
+  { control: initialControl = DEFAULT_AUDIO_SETTINGS.control }: { control?: ControlSettings } = {},
 ) {
-  let settings = initialSettings;
   let control = initialControl;
   const output = context.createGain();
   output.gain.value = 0;
@@ -44,35 +33,39 @@ export function createEngineVoice(
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],
-    processorOptions: initialSound ? { sound: initialSound, settings, control, drive: 1 } : undefined,
   });
   exhaust.connect(output);
   const requireProcessor = watchProcessor(exhaust, 'engine sound');
-  type Installed = { sound: VehicleEngineSound; drive: number; settings: ExhaustSettings; control: ControlSettings };
-  let active: Installed | null = initialSound ? { sound: initialSound, drive: 1, settings, control } : null;
-  let pending: (Installed & { at: number }) | null = null;
-  const same = (entry: Installed | null, sound: VehicleEngineSound, drive: number): boolean =>
+  let active: ExhaustConfiguration | null = null;
+  let pending: (ExhaustConfiguration & { at: number }) | null = null;
+  const same = (entry: ExhaustConfiguration | null, sound: VehicleEngineSound, divisor: number, gain: number) =>
     entry?.sound === sound &&
-    entry.drive === drive &&
-    sameExhaustSettings(entry.settings, settings) &&
+    entry.divisor === divisor &&
+    entry.gain === gain &&
     sameControlSettings(entry.control, control);
   // The last shift sequence heard; null until the first update after construction or silence.
   let heardShift: number | null = null;
   return {
-    update(state: VehicleAudioObservation, sound: VehicleEngineSound, drive: number, gain = 1): void {
+    update(
+      state: VehicleAudioObservation,
+      sound: VehicleEngineSound,
+      divisor: ExhaustRateDivisor,
+      gain: number,
+      distanceGain = 1,
+    ): void {
       requireProcessor();
       const now = context.currentTime;
-      const changed = !same(active, sound, drive);
+      const changed = !same(active, sound, divisor, gain);
       if (active && changed) {
-        if (!same(pending, sound, drive)) {
-          pending = { sound, drive, settings, control, at: fadeToSilence(output.gain, now, control.fadeSeconds) };
+        if (!same(pending, sound, divisor, gain)) {
+          pending = { sound, divisor, gain, control, at: fadeToSilence(output.gain, now, control.fadeSeconds) };
         }
         if (pending && now < pending.at) return;
       }
       pending = null;
       if (changed) {
-        exhaust.port.postMessage({ sound, settings, control, drive });
-        active = { sound, drive, settings, control };
+        active = { sound, divisor, gain, control };
+        exhaust.port.postMessage(active);
       }
       const { shift } = state;
       if (
@@ -83,18 +76,15 @@ export function createEngineVoice(
       ) {
         const blip = exhaust.parameters.get('blip')!;
         blip.cancelScheduledValues(now);
-        blip.setValueAtTime(settings.blipOpening, now);
-        blip.setTargetAtTime(0, now, settings.blipDecaySeconds);
+        blip.setValueAtTime(DOWNSHIFT_BLIP.opening, now);
+        blip.setTargetAtTime(0, now, DOWNSHIFT_BLIP.decaySeconds);
       }
       heardShift = shift.sequence;
       // The kernel is the only smoothing authority for its observations.
       exhaust.parameters.get('rpm')!.value = state.rpm;
       exhaust.parameters.get('load')!.value = clamp(state.effectiveOpening, 0, 1);
       exhaust.parameters.get('fuelCut')!.value = state.fuelCut ? 1 : 0;
-      follow(output.gain, clamp(gain, 0, 1), now, control.gainSeconds);
-    },
-    setSettings(value: ExhaustSettings): void {
-      if (!sameExhaustSettings(settings, value)) settings = value;
+      follow(output.gain, clamp(distanceGain, 0, 1), now, control.gainSeconds);
     },
     setControl(value: ControlSettings): void {
       if (!sameControlSettings(control, value)) control = value;

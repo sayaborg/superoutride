@@ -1,4 +1,3 @@
-import { mountEngineSoundSettings } from './engine-sound-settings-controls.js';
 import { mountRollingSoundSettings, mountTireSoundSettings } from './tire-sound-settings-controls.js';
 import {
   mountImpactSoundSettings,
@@ -30,7 +29,7 @@ const MIX_BUSES = Object.freeze({ engine: 'ENG', tire: 'TIRE' }) satisfies Parti
 type MixBus = keyof typeof MIX_BUSES;
 
 /**
- * What the DEV sound controls currently hold: the seven settings records, the surface sounds by ID (the same
+ * What the DEV sound controls currently hold: the six settings records, the surface sounds by ID (the same
  * objects until a value changes), the engine sounds by ID (likewise), the mix volumes and R/Q components.
  */
 export interface SoundControlValues {
@@ -43,7 +42,7 @@ export interface SoundControlValues {
 
 /**
  * The DEV sound controls found by their ids in `root`: the sound toggle, MASTER volume stepper, ENG/TIRE volumes,
- * R/Q buttons, the seven settings panels, the surface and engine sound panels and the three exports. The settings
+ * R/Q buttons, the six settings panels, the surface and engine sound panels and the three exports. The settings
  * panels start from, and reset to, `initial`, and the sound panels the delivered `sounds`; each export saves its panels'
  * current values in its document (the engine sound export, the chosen engine sound's). The stepper shows the MASTER volume, starting at `initialVolume` percent, and
  * passes each press to `onVolume`; the player record keeps the volume. A missing host leaves its control out and its
@@ -86,10 +85,6 @@ export function mountSoundControls(
     return { key, label, description, button, toggle };
   });
   const busVolumes: Record<MixBus, number> = { engine: 1, tire: 1 };
-  const engineSoundContainer = root.getElementById('engine-sound-settings');
-  const engineSoundSettings = engineSoundContainer
-    ? mountEngineSoundSettings(engineSoundContainer, initial.exhaust, callbacks.onChange)
-    : null;
   const volumeControl = volumeContainer
     ? createNumberStepper({
         label: 'Volume',
@@ -140,7 +135,6 @@ export function mountSoundControls(
   const engineRecords = mountHost('engine-sound-records', sounds.engines, mountEngineSoundRecords);
   // The current values of every panel; a missing panel keeps the document's record.
   const currentSettings = (): AudioSettings => ({
-    exhaust: engineSoundSettings?.read() ?? initial.exhaust,
     unified: tireSoundSettings?.read() ?? initial.unified,
     rolling: rollingSettings?.read() ?? initial.rolling,
     mix: mixSettings?.read() ?? initial.mix,
@@ -234,7 +228,6 @@ export function mountSoundControls(
       componentHost?.replaceChildren();
       volumeControl?.dispose();
       volumeContainer?.replaceChildren();
-      engineSoundSettings?.dispose();
       tireSoundSettings?.dispose();
       mixSettings?.dispose();
       timingSettings?.dispose();

@@ -8,7 +8,6 @@ import {
 } from '../core/admission.js';
 import { resolveControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { resolveRivalSettings, type RivalSettings } from './audio-scene.js';
-import { resolveExhaustSettings, type ExhaustSettings } from './exhaust-acoustics.js';
 import { resolveMixSettings, type MixSettings } from './sound-graph.js';
 import { resolveRollingSettings, type RollingSettings } from './tire-rolling-acoustics.js';
 import { resolveUnifiedSettings, type UnifiedSettings } from './tire-unified-acoustics.js';
@@ -17,7 +16,6 @@ import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 
 /** The game-wide sound settings: every DEV sound panel's record. */
 export interface AudioSettings {
-  readonly exhaust: ExhaustSettings;
   readonly unified: UnifiedSettings;
   readonly rolling: RollingSettings;
   readonly mix: MixSettings;
@@ -31,14 +29,13 @@ export interface CompiledAudioSettings extends AudioSettings {
 }
 
 export const AUDIO_DOCUMENT_FORMAT = 'superoutride.audio';
-export const AUDIO_DOCUMENT_VERSION = 8;
+export const AUDIO_DOCUMENT_VERSION = 9;
 
 /**
  * Each record's resolver: the one value check, applied where settings are admitted (this document and the DEV
  * panels). Voices, worklets and kernels use admitted records as given.
  */
 const RESOLVERS = {
-  exhaust: resolveExhaustSettings,
   unified: resolveUnifiedSettings,
   rolling: resolveRollingSettings,
   mix: resolveMixSettings,
@@ -68,9 +65,9 @@ export function audioSettingsDocument(settings: AudioSettings) {
 }
 
 /**
- * Admit the `superoutride.audio` version 1 document. The reader checks format, version and each record's exact
+ * Admit the `superoutride.audio` version 9 document. The reader checks format, version and each record's exact
  * numeric fields; each record's resolver alone validates its values. A resolver's `RangeError` becomes an
- * `invalid_value` diagnostic at the named field (`/exhaust/pulseRiseMs`), or at the record for a cross-field rule.
+ * `invalid_value` diagnostic at the named field (`/mix/engineDriveLufs`), or at the record for a cross-field rule.
  */
 export function compileAudioDocument(
   value: unknown,
@@ -96,7 +93,6 @@ export function compileAudioDocument(
       }
     };
     return Object.freeze({
-      exhaust: read('exhaust'),
       unified: read('unified'),
       rolling: read('rolling'),
       mix: read('mix'),

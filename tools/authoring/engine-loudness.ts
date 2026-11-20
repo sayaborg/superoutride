@@ -1,20 +1,23 @@
 import type { ControlSettings } from '../../src/audio/audio-control-policy.js';
-import type { ExhaustSettings } from '../../src/audio/exhaust-acoustics.js';
-import { ExhaustWaveguide } from '../../src/audio/exhaust-waveguide.js';
+import { compressed } from '../../src/audio/engine-chain.js';
+import { EXHAUST_RATE_DIVISORS, ExhaustRenderer } from '../../src/audio/exhaust-rate.js';
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
 import { ENGINE_LOUDNESS_ID } from '../../src/content/engine-loudness.js';
 import { procedureSha256 } from '../course/procedure.js';
 
 /**
- * The engine loudness procedure: one drive through the game's exhaust kernel at 48 kHz, metered by ITU-R BS.1770-4
- * integrated loudness of the exhaust's pressure before the soft clip. Each drive segment is its seconds, the engine
- * speed it runs from and to (`idle` and `redline` are the vehicle's, linearly between) and the opening; fuel is never
- * cut. Any code change that changes its results raises its version.
+ * The engine loudness procedure: one drive through the game's exhaust kernel at each of the `divisors` of the 48 kHz
+ * output, brought up to it, metered by ITU-R BS.1770-4 integrated loudness of the engine's compressed sound, before its
+ * gain and soft clip. Each drive segment is its seconds, the engine speed it runs from and to (`idle` and `redline` are
+ * the vehicle's, linearly between) and the opening; fuel is never cut. Any code change that changes its results raises
+ * its version.
  */
 export const ENGINE_LOUDNESS_PROCEDURE = Object.freeze({
   name: 'superoutride.engine-loudness',
-  version: 2,
+  version: 3,
   sampleRate: 48000,
+  divisors: EXHAUST_RATE_DIVISORS,
+  measured: 'compressed',
   drive: Object.freeze([
     Object.freeze({ seconds: 1, from: 'idle', to: 'idle', opening: 0 }),
     Object.freeze({ seconds: 3, from: 'idle', to: 'redline', opening: 1 }),
@@ -32,16 +35,24 @@ function engineSpeed(speed: number | 'idle' | 'redline', vehicle: CompiledVehicl
 }
 
 /**
- * A vehicle's engine loudness: the integrated loudness (LUFS) of its exhaust kernel's output, before the soft clip, on
- * the procedure's drive with the given ENGINE and TIMING settings.
+ * A vehicle's engine loudness at each of the procedure's divisors: the integrated loudness (LUFS) of its engine's
+ * compressed sound on the procedure's drive with the given TIMING settings.
  */
-export function measureEngineLoudness(
+export function measureEngineLoudness(vehicle: CompiledVehicleDefinition, control: ControlSettings): number[] {
+  return ENGINE_LOUDNESS_PROCEDURE.divisors.map((divisor) => {
+    const { sampleRate } = ENGINE_LOUDNESS_PROCEDURE;
+    return integratedLoudness(compressed(driveSound(vehicle, divisor, control), sampleRate));
+  });
+}
+
+/** The procedure's drive through a vehicle's kernel at `divisor`, at the output's rate. */
+function driveSound(
   vehicle: CompiledVehicleDefinition,
-  exhaust: ExhaustSettings,
+  divisor: (typeof EXHAUST_RATE_DIVISORS)[number],
   control: ControlSettings,
-): number {
+): Float64Array {
   const { sampleRate, drive } = ENGINE_LOUDNESS_PROCEDURE;
-  const kernel = new ExhaustWaveguide(vehicle.sound, sampleRate, exhaust, control);
+  const kernel = new ExhaustRenderer(vehicle.sound, sampleRate, divisor, control);
   const lengths = drive.map(({ seconds }) => Math.round(seconds * sampleRate));
   const signal = new Float64Array(lengths.reduce((sum, samples) => sum + samples, 0));
   let offset = 0;
@@ -50,10 +61,10 @@ export function measureEngineLoudness(
       end = engineSpeed(to, vehicle);
     const samples = lengths[segment]!;
     const rpm = Float64Array.from({ length: samples }, (_, n) => start + ((end - start) * n) / samples);
-    kernel.render(signal, offset, samples, rpm, new Float64Array(samples).fill(opening), false);
+    kernel.render(signal, offset, samples, rpm, new Float64Array(samples).fill(opening), true);
     offset += samples;
   });
-  return integratedLoudness(signal);
+  return signal;
 }
 
 /** BS.1770-4's K-weighting at 48 kHz: the head's high shelf, then the revised low-frequency B high-pass. */

@@ -1,7 +1,6 @@
 import type { ControlSettings } from './audio-control-policy.js';
 import type { RivalSettings } from './audio-scene.js';
 import type { AudioSettings } from './audio-document.js';
-import type { ExhaustSettings } from './exhaust-acoustics.js';
 import type { MixSettings } from './sound-graph.js';
 import type { RollingSettings } from './tire-rolling-acoustics.js';
 import type { UnifiedSettings } from './tire-unified-acoustics.js';
@@ -10,24 +9,9 @@ import type { ImpactSettings } from './impact-acoustics.js';
 /**
  * The implementer's default sound settings: the one authority for each resolver's omitted values, and the
  * settings of an assembly built without the delivered audio document. The game reads the document.
- * The ENGINE values are the owner's, chosen by listening; the others are neither measured nor chosen by listening.
+ * They are neither measured nor chosen by listening.
  */
 export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
-  exhaust: Object.freeze<ExhaustSettings>({
-    closedExcitation: 0.3, // No derivation; chosen by listening. Weak combustion at closed throttle.
-    // No derivation; chosen by listening. Full-excitation rise in absolute time: the wavefront is set by the
-    // pressure ratio when the valve opens, not by RPM. The kernel splits it into two equal stages so the pulse
-    // onset is C1 (a slope discontinuity at firing is heard as a click) with the same mean delay.
-    pulseRiseMs: 0.3,
-    pulseVariation: 0.3, // No derivation; chosen by listening. Absolute fraction of full excitation.
-    // No derivation; chosen by listening. Firing strength during fuel cut: blowdown without combustion.
-    pumpingExcitation: 0.2,
-    // No derivation; chosen by listening. A downshift's rev-matching opening peak and its decay time; the
-    // physical shift is instantaneous.
-    blipOpening: 1,
-    blipDecaySeconds: 0.25,
-    clipCeiling: 1, // No derivation; chosen by listening. Soft-clip asymptotic bound and small-signal gain.
-  }),
   unified: Object.freeze<UnifiedSettings>({
     feedbackMaximumPerSecond: 8500,
     noiseForcePerSecond: 7450,
@@ -65,8 +49,7 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = Object.freeze({
     ratio: 12,
     attackSeconds: 0.003,
     releaseSeconds: 0.12,
-    // Chosen with the owner's ENGINE values: low enough that the strongest full-throttle peaks lose about 3 dB to
-    // the soft clip (docs/calibration.md).
+    // The loudness the engines' gains bring their compressed sound to (docs/calibration.md).
     engineDriveLufs: -24,
   }),
   control: Object.freeze<ControlSettings>({

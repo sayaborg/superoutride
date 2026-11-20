@@ -1,5 +1,5 @@
-import { ExhaustWaveguide } from './exhaust-waveguide.js';
-import { softClip, type ExhaustSettings } from './exhaust-acoustics.js';
+import { ExhaustRenderer, type ExhaustRateDivisor } from './exhaust-rate.js';
+import { EngineChain } from './engine-chain.js';
 import type { ControlSettings } from './audio-control-policy.js';
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 import { ProcessingMeter } from './processing-meter.js';
@@ -8,14 +8,20 @@ declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 
+/** What the voice installs: an admitted sound and control, its kernel's divisor and the gain for that divisor. */
+export interface ExhaustConfiguration {
+  readonly sound: VehicleEngineSound;
+  readonly control: ControlSettings;
+  readonly divisor: ExhaustRateDivisor;
+  readonly gain: number;
+}
+
 class ExhaustProcessor extends AudioWorkletProcessor {
-  private engine: ExhaustWaveguide | null = null;
-  private drive = 1;
-  private ceiling = 1;
+  private engine: { readonly renderer: ExhaustRenderer; readonly chain: EngineChain } | null = null;
   private running = true;
   private readonly meter = new ProcessingMeter(this.port, sampleRate);
   private readonly rest = new WorkletRest();
-  // One render quantum's targets and pressure, sized at the first quantum.
+  // One render quantum's targets and sound, sized at the first quantum.
   private rpm = new Float64Array(0);
   private load = new Float64Array(0);
   private pressure = new Float64Array(0);
@@ -29,17 +35,10 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       { name: 'blip', defaultValue: 0, minValue: 0, maxValue: 1, automationRate: 'k-rate' },
     ];
   }
-  constructor(options?: {
-    processorOptions?: {
-      sound: VehicleEngineSound;
-      settings: ExhaustSettings;
-      control: ControlSettings;
-      drive: number;
-    };
-  }) {
+  constructor(options?: { processorOptions?: ExhaustConfiguration }) {
     super();
     const initial = options?.processorOptions;
-    if (initial) this.configure(initial.sound, initial.settings, initial.control, initial.drive);
+    if (initial) this.configure(initial);
     this.port.onmessage = ({ data }) => {
       if (this.meter.receive(data) || this.rest.receive(data)) return;
       if (data === 'stop') {
@@ -48,23 +47,19 @@ class ExhaustProcessor extends AudioWorkletProcessor {
       } else if (data === null) this.engine = null;
       else {
         try {
-          this.configure(data.sound, data.settings, data.control, data.drive);
+          this.configure(data);
         } catch {
           this.engine = null;
         }
       }
     };
   }
-  /** The voice sends an admitted sound, admitted settings and the drive into the soft clip, used as given. */
-  private configure(
-    sound: VehicleEngineSound,
-    settings: ExhaustSettings,
-    control: ControlSettings,
-    drive: number,
-  ): void {
-    this.engine = new ExhaustWaveguide(sound, sampleRate, settings, control);
-    this.drive = drive;
-    this.ceiling = settings.clipCeiling;
+  /** The voice sends an admitted configuration, used as given; the kernel and the chain start from silence. */
+  private configure({ sound, control, divisor, gain }: ExhaustConfiguration): void {
+    this.engine = {
+      renderer: new ExhaustRenderer(sound, sampleRate, divisor, control),
+      chain: new EngineChain(sampleRate, gain),
+    };
   }
   process(_inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>): boolean {
     if (!this.running) return false;
@@ -82,7 +77,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     }
     const rpm = parameters.rpm![0]!,
       load = Math.max(parameters.load![0]!, parameters.blip![0]!);
-    const fuelCut = parameters.fuelCut![0]! >= 0.5;
+    const burns = parameters.fuelCut![0]! < 0.5;
     if (this.pressure.length !== output.length) {
       this.rpm = new Float64Array(output.length);
       this.load = new Float64Array(output.length);
@@ -90,9 +85,10 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     }
     this.rpm.fill(rpm);
     this.load.fill(load);
-    // The exhaust's pressure, then the listening stage: the drive to the mix's engine loudness and the soft clip.
-    this.engine.render(this.pressure, 0, output.length, this.rpm, this.load, fuelCut);
-    for (let i = 0; i < output.length; i++) output[i] = softClip(this.drive * this.pressure[i]!, this.ceiling);
+    // The exhaust's sound at the output's rate, then the engine's chain: compressor, gain, soft clip.
+    const { renderer, chain } = this.engine;
+    renderer.render(this.pressure, 0, output.length, this.rpm, this.load, burns);
+    for (let i = 0; i < output.length; i++) output[i] = chain.process(this.pressure[i]!);
     this.meter.end(started, output.length);
     return true;
   }

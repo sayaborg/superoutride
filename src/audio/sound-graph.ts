@@ -21,8 +21,8 @@ export const SOUND_BUSES = Object.freeze(Object.keys(BUS_DECLARATIONS) as SoundB
 export const isLiveBus = (bus: SoundBus): boolean => BUS_DECLARATIONS[bus].live;
 
 /**
- * The mix: the master compressor, output protection for the summed mix, and the loudness every engine enters its soft
- * clip at. Not vehicle or pipe properties; no derivation; listening settings on the DEV MIX panel.
+ * The mix: the master compressor, output protection for the summed mix, and the loudness every engine's gain brings its
+ * compressed sound to. Not vehicle or pipe properties; no derivation; listening settings on the DEV MIX panel.
  */
 export interface MixSettings {
   readonly thresholdDb: number;
@@ -30,7 +30,7 @@ export interface MixSettings {
   readonly ratio: number;
   readonly attackSeconds: number;
   readonly releaseSeconds: number;
-  /** The integrated loudness (LUFS) each engine's measured exhaust is brought to before its soft clip. */
+  /** The integrated loudness (LUFS) each engine's gain brings its measured compressed sound to, before its soft clip. */
   readonly engineDriveLufs: number;
 }
 

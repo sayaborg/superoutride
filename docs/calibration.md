@@ -223,7 +223,7 @@ occurs when the driven wheels, rolling without slip at that speed, would turn th
 when the next lower ratio would place the engine at or below D's RPM at the same speed. Wheel spin moves no shift: the
 engine follows the spinning wheels to the fuel cut. Shift RPM thresholds are not vehicle values.
 Displacement is in cc and cycle is 2 or 4 strokes. Gear ratios and final drive are dimensionless. The compression
-ratio is the geometric ratio from references; physics does not read it, and the engine sound's blowdown does
+ratio is the geometric ratio from references; physics does not read it, and the engine sound's cylinders do
 ([Audio](audio.md#derived-values)):
 
 | Vehicle            | Compression ratio |
@@ -274,28 +274,20 @@ ENGINE SOUNDS panel changes the lengths and diameters ([Browser](browser.md#soun
 
 ## Engine sound settings
 
-Audio values are either [derived](#derived-values) or DEV listening settings. The ENGINE defaults are the owner's,
-chosen by listening on DEV ENGINE (EX-10); the defaults are
-[`DEFAULT_AUDIO_SETTINGS`](../src/audio/audio-defaults.ts) and the game reads the
-[audio document](../content/audio/default.json), which holds the same values. [Exhaust acoustics](../src/audio/exhaust-acoustics.ts)
-supplies the ENGINE group (`ExhaustSettings`) domains. Pulse rise is absolute time; the pulse decay, the output low-pass and
-the DC removal are [derived](#derived-values).
+The engine sound has no DEV settings (K, 2026-11-21). Its values are [derived](#derived-values), physical assumptions
+(`GAS`, [Audio](audio.md#derived-values)) or the owner's, chosen by listening and kept by the code:
 
-| Key                 | Meaning                               | Default | Accepted / step    |
-| ------------------- | ------------------------------------- | ------- | ------------------ |
-| `closedExcitation`  | Closed-throttle excitation            | 0.30    | 0.01–1 / 0.01      |
-| `pulseVariation`    | Absolute event-strength variation     | 0.30    | 0–0.40 / 0.01      |
-| `pumpingExcitation` | Firing strength during fuel cut       | 0.20    | 0.01–0.50 / 0.01   |
-| `pulseRiseMs`       | Full-excitation pulse rise time       | 0.3 ms  | 0.05–2 ms / 0.01   |
-| `blipOpening`       | Downshift blip opening peak           | 1       | 0–1 / 0.01         |
-| `blipDecaySeconds`  | Downshift blip decay time             | 0.25 s  | 0.02–0.30 s / 0.01 |
-| `clipCeiling`       | Soft-clip bound and small-signal gain | 1       | 0.2–1 / 0.01       |
+| Value                                | Meaning                                                       | Value  | Owner         |
+| ------------------------------------ | ------------------------------------------------------------- | ------ | ------------- |
+| `EXHAUST_LISTENING.chargeVariation`  | Each firing's charge varies by up to this share of a full one | 0.03   | K, 2026-11-20 |
+| `EXHAUST_LISTENING.afterfireSeconds` | An afterfire's charge burns over this                         | 1.5 ms | K, 2026-11-20 |
+| `ENGINE_CHAIN.levelSeconds`          | The compressor follows the sound's mean square over this      | 50 ms  | K, 2026-11-21 |
+| `ENGINE_CHAIN.ratio`                 | The compressor's ratio, threshold at the bottom               | 2:1    | K, 2026-11-21 |
+| `ENGINE_CHAIN.ceiling`               | The soft clip's ceiling over the level the gain brings        | 2      | K, 2026-11-21 |
+| `DOWNSHIFT_BLIP.opening`             | A locked downshift's blip opening peak                        | 1      | K (EX-10)     |
+| `DOWNSHIFT_BLIP.decaySeconds`        | Its exponential decay time                                    | 0.25 s | K (EX-10)     |
 
-These ranges are the accepted domains: an audio document or DEV value outside them is refused. The excitations'
-least value is one step, 0.01, since excitation divides the pulse rise time.
-
-`clipCeiling` is 1, the owner's decision: it scales the soft clip's output without changing how much it cuts, and from
-0.65 it gives back 3.7 dB of the level that MIX's lower [`engineDriveLufs`](#mix-settings) takes away.
+The kernels run at ENGINE SOUND QUALITY MID's rates (K, 2026-11-21; [Audio](audio.md#engine-synthesis)).
 
 ## UNIFIED tire settings
 
@@ -472,34 +464,19 @@ under the tire. Both are document values with no DEV control.
 
 ## MIX settings
 
-[Sound graph](../src/audio/sound-graph.ts) supplies the master compressor settings and the engines' loudness into the
-soft clip (`MixSettings`). `engineDriveLufs`'s default, −24 LUFS, is the owner's (EX-10), chosen so that the engines
-seldom reach the soft clip. `x/(1+|x|)` has no corner, so no level escapes it entirely; the table gives the soft clip's
-loss on the ENGINE defaults over the nine vehicles, driven at full throttle from idle to redline and then held at
-redline:
+[Sound graph](../src/audio/sound-graph.ts) supplies the master compressor settings and the loudness the engines' gains
+bring their compressed sound to (`MixSettings`). `engineDriveLufs`'s default, −24 LUFS, is the owner's (EX-10); each
+vehicle's gain at its divisor brings its [measured](audio.md#engine-loudness) compressed sound there, before the soft
+clip of ceiling 2. An engine's sound exceeds 1, up to 2; the mix after it is K's to decide separately (2026-11-21).
 
-| `engineDriveLufs` | Peak loss, largest / mean | Loss of the top 0.1 %, largest |
-| ----------------- | ------------------------- | ------------------------------ |
-| −11.9 (before)    | 10.6 / 8.3 dB             | 9.0 dB                         |
-| −20               | 5.7 / 4.3 dB              | 4.7 dB                         |
-| **−24**           | **4.0 / 2.9 dB**          | **3.3 dB**                     |
-| −28               | about 2.7 / 2.0 dB        | 2.3 dB                         |
-
-CORVETTE C4 loses most: its peaks stand 19 dB above its loudness, the others' 14–17 dB. Lowering the target from −11.9
-lowers the engines' output by about 9 dB, and `clipCeiling` at 1 instead of 0.65 gives back 3.7 dB: on the
-[engine loudness](audio.md#engine-loudness) procedure's drive, after the soft clip, the engines stand at about
-−25 LUFS with peaks of −9 to −12 dBFS (before: about −20 LUFS, peaks −7 to −9 dBFS), at or below the foot of the master
-compressor's knee (threshold −6 dB, knee 6 dB: −9 dB). The compressor seldom acts, and the music seldom pumps with the
-engines.
-
-| Key               | Meaning                            | Default  | Range / step      |
-| ----------------- | ---------------------------------- | -------- | ----------------- |
-| `thresholdDb`     | Compressor threshold               | -6 dB    | -40–0 dB / 1      |
-| `kneeDb`          | Compressor knee                    | 6 dB     | 0–40 dB / 1       |
-| `ratio`           | Compressor ratio                   | 12       | 1–20 / 0.5        |
-| `attackSeconds`   | Compressor attack                  | 0.003 s  | 0.001–0.1 / 0.001 |
-| `releaseSeconds`  | Compressor release                 | 0.12 s   | 0.02–1 / 0.01     |
-| `engineDriveLufs` | Engine loudness into the soft clip | -24 LUFS | -40–0 LUFS / 0.1  |
+| Key               | Meaning                     | Default  | Range / step      |
+| ----------------- | --------------------------- | -------- | ----------------- |
+| `thresholdDb`     | Compressor threshold        | -6 dB    | -40–0 dB / 1      |
+| `kneeDb`          | Compressor knee             | 6 dB     | 0–40 dB / 1       |
+| `ratio`           | Compressor ratio            | 12       | 1–20 / 0.5        |
+| `attackSeconds`   | Compressor attack           | 0.003 s  | 0.001–0.1 / 0.001 |
+| `releaseSeconds`  | Compressor release          | 0.12 s   | 0.02–1 / 0.01     |
+| `engineDriveLufs` | Engine loudness, compressed | -24 LUFS | -40–0 LUFS / 0.1  |
 
 ## TIMING settings
 
@@ -535,19 +512,17 @@ inverse-distance law `referenceMeters/max(referenceMeters, distance)`; the audib
 These values follow from physics under the stated [assumptions](audio.md#derived-values); DEV controls never
 change them.
 
-| Value                  | Derivation                                        | Value        |
-| ---------------------- | ------------------------------------------------- | ------------ |
-| `ACOUSTICS.waveSpeed`  | `sqrt(gamma*R*T)` at 573.15 K, rounded            | 480 m/s      |
-| `OUTLET_REFLECTION`    | Unflanged open-end low-frequency limit            | -1           |
-| Open-end return cutoff | `c/(2*pi*a)` at the outlet pipe's radius `a`      | per tube     |
-| Valve-end reflection   | `(A_p-A_v)/(A_p+A_v)` over the valve's opening    | per cylinder |
-| Wall loss              | Kirchhoff `alpha(f)`, four shelves at 20·8^k Hz   | per tube     |
-| Output low-pass        | `1.841*c/(pi*D)`, `D` the widest outlet pipe      | 4.9–15.6 kHz |
-| DC removal             | `idleRpm/60 * cylinders/cycleRevolutions / 2`     | 7.1–50 Hz    |
-| Pulse decay            | `V_cyl/(A_eff*c_cyl*psi*)`                        | 0.84–2.37 ms |
-| `BLOWDOWN_REFERENCE`   | Cylinder gas at exhaust opening; valve `C_d`      | 1100 K; 0.65 |
-| Rival gain             | Inverse distance, unity within `referenceMeters`  | —            |
-| Rival pan              | Lateral displacement / `max(panMinimumMeters, d)` | —            |
+| Value                 | Derivation                                        | Value                 |
+| --------------------- | ------------------------------------------------- | --------------------- |
+| `ACOUSTICS.waveSpeed` | `sqrt(gamma*R*T)` at 573.15 K, rounded            | 480 m/s               |
+| Mouth corner          | `c/(2*pi*a)` at the open pipe's radius `a`        | per tube              |
+| Wall loss             | Kirchhoff `alpha(f)`, four shelves at 20·8^k Hz   | per tube              |
+| Steepening            | `(gamma+1)/2`                                     | 1.2                   |
+| Swept volume          | displacement / cylinders                          | per vehicle           |
+| `BLOWDOWN_REFERENCE`  | Burned charge at exhaust opening; valve `C_d`     | 1100 K; 0.65          |
+| `GAS`                 | Intake charge; choked flow; closed charge         | 293.15 K; 0.5787; 0.3 |
+| Rival gain            | Inverse distance, unity within `referenceMeters`  | —                     |
+| Rival pan             | Lateral displacement / `max(panMinimumMeters, d)` | —                     |
 
 ## Mix levels
 

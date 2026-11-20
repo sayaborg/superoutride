@@ -301,17 +301,6 @@ body {
 .selector-group-sound-settings {
   grid-column: 1 / -1;
 }
-#engine-sound-settings {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
-  gap: 6px 16px;
-}
-.sound-setting-row {
-  display: grid;
-  gap: 3px;
-  color: #9eb8c5;
-  font-size: 10px;
-}
 .number-stepper {
   grid-template-columns: 44px minmax(0, 1fr) 44px;
 }
@@ -331,9 +320,6 @@ body {
   color: #d7f3ff;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
-}
-.sound-settings-reset {
-  justify-self: start;
 }
 
 /* Overlay never consumes game layout; only the DEV body scrolls. */
@@ -393,8 +379,7 @@ body {
 #dev-panel .calibration-control {
   grid-template-columns: 44px minmax(0, 1fr) 44px;
 }
-#dev-panel .selector-label,
-#dev-panel .sound-setting-row {
+#dev-panel .selector-label {
   font-size: 12px;
 }
 #dev-panel fieldset {

@@ -493,7 +493,7 @@ Admission requires exactly five points with finite, strictly increasing RPM and 
 Compilation derives peak-power RPM once as the maximum of `rpm * torque` over the piecewise-linear curve, including
 an interior maximum within a segment; since D is below E, peak power lies below redline. `powertrain.displacementCc` is finite and positive; `powertrain.cycle` is exactly 2 or 4
 strokes; `powertrain.compressionRatio` is finite and above 1. Physics does not read the compression ratio: it describes
-the engine, and its engine sound's blowdown reads it ([Audio](audio.md#derived-values)).
+the engine, and its engine sound's cylinders read it ([Audio](audio.md#derived-values)).
 
 [Calibration](calibration.md#vehicle-values) owns per-vehicle value authority, value meanings and
 running-body assumptions; admission owns structural and domain validation.

@@ -1161,11 +1161,9 @@ DEV sound settings come in groups, each with its own reset to the delivered docu
 or for SURFACES and ENGINE SOUNDS the surface-sound and engine-sound documents'); a page reload restores those values and new
 runs preserve them:
 
-- **ENGINE** (`engine-sound-settings`): seven minus/plus controls for the exhaust settings; buttons stop at limits. A
-  line above them (`engine-loudness-state`) says whether the measured engine loudness describes the current ENGINE,
-  TIMING and ENGINE SOUNDS values, is stale for them (measured for the delivered values; adopt them and run
-  `npm run measure -- generate`), or is not measured in this build.
-- **MIX** (`mix-sound-settings`): the master compressor and `engineDriveLufs`, the engines' loudness into the soft clip.
+- **MIX** (`mix-sound-settings`): the master compressor and `engineDriveLufs`, the loudness the engines' gains bring
+  their compressed sound to.
+
 - **TIMING** (`timing-sound-settings`): the control time constants.
 - **RIVAL** (`rival-sound-settings`): rival audible distance, reference distance, pan floor and reassignment time.
 - **UNIFIED** (`tire-sound-settings`): the friction-model settings.
@@ -1173,7 +1171,12 @@ runs preserve them:
 - **ROLLING** (`rolling-sound-settings`): the rolling-model settings.
 - **SURFACES** (`surface-sound-settings`): a chosen material's surface sound, its rolling palette and friction input.
 - **ENGINE SOUNDS** (`engine-sound-records`): a chosen engine sound's valve diameter and open share, and its primary and
-  pipe lengths and diameters.
+  pipe lengths and diameters. A line above them (`engine-loudness-state`) says whether the measured engine loudness
+  describes the current TIMING and ENGINE SOUNDS values, is stale for them (measured for the delivered values; adopt
+  them and run `npm run measure -- generate`), or is not measured in this build.
+
+DEV has no ENGINE group (K, 2026-11-21): the engine's values are physical assumptions or the owner's, kept by the code
+([Audio](audio.md#derived-values)).
 
 MIX, TIMING, RIVAL, UNIFIED, IMPACT and ROLLING use sliders with the acoustic ranges. SURFACES and ENGINE SOUNDS use
 number fields: each value is the record's one value check's ([Tire audio](tire-audio.md#surface-sounds),

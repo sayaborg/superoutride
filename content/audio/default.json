@@ -1,15 +1,6 @@
 {
   "format": "superoutride.audio",
-  "version": 8,
-  "exhaust": {
-    "closedExcitation": 0.3,
-    "pulseRiseMs": 0.3,
-    "pulseVariation": 0.3,
-    "pumpingExcitation": 0.2,
-    "blipOpening": 1,
-    "blipDecaySeconds": 0.25,
-    "clipCeiling": 1
-  },
+  "version": 9,
   "unified": {
     "feedbackMaximumPerSecond": 8500,
     "noiseForcePerSecond": 7450,

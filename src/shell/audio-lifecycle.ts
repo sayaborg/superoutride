@@ -38,9 +38,10 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 
 /** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
 /**
- * Each competitor's engine sounds its own vehicle's engine sound, from the vehicle catalog, driven into the soft clip by
- * its measured `engineLoudness`; a sound the DEV ENGINE SOUNDS panel changed is sounded as each vehicle using it sounds
- * it (`compileVehicleEngineSound`), still at the loudness measured for the delivered values. The DEV sound controls
+ * Each competitor's engine sounds its own vehicle's engine sound, from the vehicle catalog, at the gain of its measured
+ * `engineLoudness` for the divisor it runs at; a sound the DEV ENGINE SOUNDS
+ * panel changed is sounded as each vehicle using it sounds it (`compileVehicleEngineSound`), still at the loudness
+ * measured for the delivered values. The DEV sound controls
  * start from the delivered audio document's `settings` and the delivered surface and engine `sounds`, whose records the
  * scene numbers once (surfaces in the material catalog's order). The player record is the one owner of the MASTER, MUSIC and
  * EFFECTS volumes: `setVolume` changes them, the DEV stepper shows MASTER, and every sync sets the master gain and the
@@ -53,8 +54,8 @@ export function createAudioLifecycle(
     readonly materialIds: readonly string[];
     readonly surfaces: CompiledSurfaceSounds;
     readonly engines: EngineSoundCatalog;
-    /** Each vehicle's measured engine loudness, or null for a delivery without it. */
-    readonly engineLoudness: ReadonlyMap<string, number> | null;
+    /** Each vehicle's measured engine loudness at each divisor, or null for a delivery without it. */
+    readonly engineLoudness: ReadonlyMap<string, readonly number[]> | null;
   },
   settings: AudioSettings,
   player: PlayerRecord,
@@ -84,7 +85,9 @@ export function createAudioLifecycle(
       },
     ]),
   );
-  const engineOf = (vehicleId: string): { readonly sound: VehicleEngineSound; readonly lufs: number | null } => {
+  const engineOf = (
+    vehicleId: string,
+  ): { readonly sound: VehicleEngineSound; readonly lufs: readonly number[] | null } => {
     const entry = voiced.get(vehicleId);
     if (!entry) throw new Error(`No engine sound for vehicle ${vehicleId}`);
     const source = engineSounds[entry.vehicle.sound.id]!;
@@ -188,12 +191,11 @@ export function createAudioLifecycle(
       (Object.keys(left) as (keyof T)[]).every((key) => left[key] === right[key]);
     controls.showEngineLoudness(
       !sounds.engineLoudness
-        ? 'Engine loudness is not measured in this build: engines enter the soft clip unlevelled.'
-        : same(current.exhaust, settings.exhaust) &&
-            same(current.control, settings.control) &&
+        ? 'Engine loudness is not measured in this build: engines are not levelled.'
+        : same(current.control, settings.control) &&
             Object.keys(engines).every((id) => engines[id] === sounds.engines[id])
-          ? 'Engine loudness is measured for these ENGINE, TIMING and ENGINE SOUNDS values.'
-          : 'Engine loudness is stale: measured for the delivered ENGINE, TIMING and ENGINE SOUNDS values, not these. Adopt them and run npm run measure -- generate.',
+          ? 'Engine loudness is measured for these TIMING and ENGINE SOUNDS values.'
+          : 'Engine loudness is stale: measured for the delivered TIMING and ENGINE SOUNDS values, not these. Adopt them and run npm run measure -- generate.',
     );
   }
   function sync(): void {
@@ -207,7 +209,6 @@ export function createAudioLifecycle(
       scene.setControlSettings(current.control);
       scene.setMixSettings(current.mix);
       scene.setRivalSettings(current.rival);
-      scene.setExhaustSettings(current.exhaust);
       scene.setTireSettings(current.unified);
       scene.setRollingSettings(current.rolling);
       scene.setSurfaceSounds(surfaceRecords(surfaces));

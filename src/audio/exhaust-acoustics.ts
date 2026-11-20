@@ -1,4 +1,3 @@
-import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 // Physical assumptions of the derived values, not measured vehicle data. References and limits: docs/audio.md.
 export const REFLECTION_REFERENCE = Object.freeze({
   temperatureK: 573.15, // assumed 300 C air surrogate, not exhaust composition
@@ -10,6 +9,25 @@ export const BLOWDOWN_REFERENCE = Object.freeze({
   dischargeCoefficient: 0.65, // exhaust valve flow coefficient; measured exhaust valves 0.6-0.7 at working lift
 });
 const AIR = Object.freeze({ gamma: 1.4, gasConstant: 287, prandtl: 0.71 });
+
+/**
+ * The exhaust kernel's gas: physical assumptions, none chosen by listening. The tubes' gas is `REFLECTION_REFERENCE`'s
+ * (it sets the waves' speed and is the unit of density), the burned charge's and the valve's `BLOWDOWN_REFERENCE`'s.
+ */
+export const GAS = Object.freeze({
+  gamma: AIR.gamma,
+  /** A wave's speed grows by this times its value, (gamma + 1) / 2. */
+  steepening: (AIR.gamma + 1) / 2,
+  /** A choked throat's flow, (2 / (gamma + 1))^((gamma + 1) / (2 (gamma - 1))) to four places. */
+  choked: 0.5787,
+  pipeKelvin: REFLECTION_REFERENCE.temperatureK,
+  /** The charge a cylinder draws, and lets out unburned. */
+  intakeKelvin: 293.15,
+  burnedKelvin: BLOWDOWN_REFERENCE.temperatureK,
+  discharge: BLOWDOWN_REFERENCE.dischargeCoefficient,
+  /** The share of a full charge a cylinder draws with the throttle shut: what the closed intake keeps of its pressure. */
+  closedCharge: 0.3,
+});
 const waveSpeed = Math.round(Math.sqrt(AIR.gamma * AIR.gasConstant * REFLECTION_REFERENCE.temperatureK));
 // Sutherland air viscosity (Pa s), then ideal-gas density. No running gas simulation.
 const viscosity =
@@ -20,37 +38,12 @@ const density = REFLECTION_REFERENCE.pressurePa / (AIR.gasConstant * REFLECTION_
 const WALL_LOSS =
   (Math.sqrt((Math.PI * viscosity) / density) / waveSpeed) * (1 + (AIR.gamma - 1) / Math.sqrt(AIR.prandtl));
 
-/** Unflanged open-end low-frequency pressure-reflection limit. A derived value: DEV controls never change it. */
-export const OUTLET_REFLECTION = -1;
-
 /**
  * The cutoff of the one-pole low-pass on an open end's return, `c/(2*pi*radius)` for a tube of `diameter`: its magnitude
  * matches |R| ~ 1 - (ka)^2/2 at low frequency, NOT the end correction's phase.
  */
 export function openEndCutoffHz(diameter: number): number {
   return waveSpeed / (Math.PI * diameter);
-}
-
-/**
- * The cutoff of a tube of `diameter`'s first transverse mode, `1.841*c/(pi*D)`: above it the one-dimensional pipe
- * model no longer holds.
- */
-export function transverseCutoffHz(diameter: number): number {
-  return (1.841 * waveSpeed) / (Math.PI * diameter);
-}
-
-// Choked-flow coefficient psi* = sqrt(gamma)*(2/(gamma+1))^((gamma+1)/(2*(gamma-1))), and the cylinder gas's sound speed.
-const CHOKED_FLOW = Math.sqrt(AIR.gamma) * (2 / (AIR.gamma + 1)) ** ((AIR.gamma + 1) / (2 * (AIR.gamma - 1)));
-const blowdownSoundSpeed = Math.sqrt(AIR.gamma * AIR.gasConstant * BLOWDOWN_REFERENCE.temperatureK);
-
-/**
- * The blowdown time constant `V/(A*c*psi*)` of a cylinder of `volume` (m^3) emptying through the narrower of its valve's
- * effective area (`dischargeCoefficient` times the area of `valveDiameter`) and its primary of `primaryDiameter`.
- */
-export function blowdownSeconds(volume: number, valveDiameter: number, primaryDiameter: number): number {
-  const valveArea = (BLOWDOWN_REFERENCE.dischargeCoefficient * Math.PI * valveDiameter ** 2) / 4;
-  const primaryArea = (Math.PI * primaryDiameter ** 2) / 4;
-  return volume / (Math.min(valveArea, primaryArea) * blowdownSoundSpeed * CHOKED_FLOW);
 }
 
 /** One traversal's Kirchhoff wall loss `alpha(f)*length` in nepers at `hz`, for a tube of `length` and `diameter`. */
@@ -89,19 +82,26 @@ export function wallLossSections(length: number, diameter: number, rate: number)
   return out;
 }
 
-/** The wall loss's poles `a1_k` at `rate`: one per shelf, shared by every tube. */
+/**
+ * Whether `rate` carries a shelf of pole `a1`: a shelf whose corner lies at or above half the rate has its pole off the
+ * unit circle and is left out of the wall loss.
+ */
+const carried = (a1: number) => Math.abs(a1) < 1;
+
+/** The wall loss's poles `a1_k` at `rate`: one per shelf, shared by every tube; 0 for a shelf the rate leaves out. */
 export function wallLossPoles(rate: number): Float64Array {
   const K = 2 * rate;
   return Float64Array.from(WALL_LOSS_SHELVES.cornersHz, (fp) => {
     const wp = K * Math.tan((Math.PI * fp) / rate);
-    return (wp - K) / (K + wp);
+    const a1 = (wp - K) / (K + wp);
+    return carried(a1) ? a1 : 0;
   });
 }
 
 /**
- * A tube's wall-loss weights `[C, R_0, R_1, R_2, R_3]` at `rate`: its shelves in series, `prod (b0_k + b1_k w)/(1 +
- * a1_k w)` with `w = z^-1`, as partial fractions `C + sum R_k/(1 + a1_k w)` over `wallLossPoles`. `C = prod b1_k/a1_k`;
- * `R_k` is the residue at `w = -1/a1_k`.
+ * A tube's wall-loss weights `[C, R_0, R_1, R_2, R_3]` at `rate`: its carried shelves in series, `prod (b0_k + b1_k w)/(1
+ * + a1_k w)` with `w = z^-1`, as partial fractions `C + sum R_k/(1 + a1_k w)` over `wallLossPoles`. `C = prod
+ * b1_k/a1_k`; `R_k` is the residue at `w = -1/a1_k`, and 0 for a shelf the rate leaves out.
  */
 export function wallLossWeights(length: number, diameter: number, rate: number): Float64Array {
   const s = wallLossSections(length, diameter, rate);
@@ -111,74 +111,16 @@ export function wallLossWeights(length: number, diameter: number, rate: number):
     a = (k: number) => s[3 * k + 2]!;
   const out = new Float64Array(shelves + 1);
   let direct = 1;
-  for (let k = 0; k < shelves; k++) direct *= b1(k) / a(k);
+  for (let k = 0; k < shelves; k++) if (carried(a(k))) direct *= b1(k) / a(k);
   out[0] = direct;
   for (let k = 0; k < shelves; k++) {
+    if (!carried(a(k))) continue;
     const w = -1 / a(k);
     let residue = b0(k) + b1(k) * w;
-    for (let j = 0; j < shelves; j++) if (j !== k) residue *= (b0(j) + b1(j) * w) / (1 + a(j) * w);
+    for (let j = 0; j < shelves; j++) if (j !== k && carried(a(j))) residue *= (b0(j) + b1(j) * w) / (1 + a(j) * w);
     out[k + 1] = residue;
   }
   return out;
-}
-
-/**
- * Every exhaust value that is not derived: listening settings on the DEV ENGINE panel. Defaults, in
- * `DEFAULT_AUDIO_SETTINGS`, are the owner's, chosen by listening.
- */
-export interface ExhaustSettings {
-  readonly closedExcitation: number;
-  readonly pulseVariation: number;
-  readonly pumpingExcitation: number;
-  readonly pulseRiseMs: number;
-  readonly blipOpening: number;
-  readonly blipDecaySeconds: number;
-  readonly clipCeiling: number;
-}
-
-interface SettingRange {
-  readonly min: number;
-  readonly max: number;
-  readonly step: number;
-}
-// One numeric authority: each range is both the accepted domain and the DEV control's.
-export const EXHAUST_SETTING_RANGES: Readonly<Record<keyof ExhaustSettings, SettingRange>> = Object.freeze({
-  // Excitation divides the rise time, so its least value is one control step, never zero.
-  closedExcitation: Object.freeze({ min: 0.01, max: 1, step: 0.01 }),
-  pulseVariation: Object.freeze({ min: 0, max: 0.4, step: 0.01 }),
-  pumpingExcitation: Object.freeze({ min: 0.01, max: 0.5, step: 0.01 }),
-  pulseRiseMs: Object.freeze({ min: 0.05, max: 2, step: 0.01 }),
-  blipOpening: Object.freeze({ min: 0, max: 1, step: 0.01 }),
-  blipDecaySeconds: Object.freeze({ min: 0.02, max: 0.3, step: 0.01 }),
-  clipCeiling: Object.freeze({ min: 0.2, max: 1, step: 0.01 }),
-});
-
-/**
- * The listening stage's smooth, bounded saturation `ceiling*x/(1+|x|)`: small-signal gain and asymptotic bound
- * `ceiling`, with no table clipping or unconstrained feedback gain.
- */
-export function softClip(x: number, ceiling: number): number {
-  return (ceiling * x) / (1 + Math.abs(x));
-}
-
-/**
- * The listening stage's drive into the soft clip: the gain `10^((targetLufs - lufs)/20)` that brings an engine of
- * measured loudness `lufs` to `targetLufs`, or 1 for an engine not measured (a delivery without measured products).
- */
-export function engineDriveGain(targetLufs: number, lufs: number | null): number {
-  return lufs === null ? 1 : 10 ** ((targetLufs - lufs) / 20);
-}
-
-export function resolveExhaustSettings(overrides: Partial<ExhaustSettings> = {}): ExhaustSettings {
-  const settings = { ...DEFAULT_AUDIO_SETTINGS.exhaust };
-  for (const key of Object.keys(EXHAUST_SETTING_RANGES) as (keyof ExhaustSettings)[]) {
-    const value = overrides[key] === undefined ? settings[key] : overrides[key];
-    const range = EXHAUST_SETTING_RANGES[key];
-    if (!Number.isFinite(value) || value < range.min || value > range.max)
-      throw new RangeError(`invalid exhaust settings: ${key}`);
-    settings[key] = value;
-  }
-  return Object.freeze(settings);
 }
 
 // Derived from REFLECTION_REFERENCE: c = sqrt(gamma R T), rounded to 1 m/s.
