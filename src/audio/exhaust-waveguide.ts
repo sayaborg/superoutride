@@ -1,5 +1,5 @@
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
-import { ACOUSTICS, GAS, openEndCutoffHz, wallLossPoles, wallLossWeights } from './exhaust-acoustics.js';
+import { ACOUSTICS, GAS, openEndCutoffHz, wallLossPoles, wallLossWeights, woolShelf } from './exhaust-acoustics.js';
 
 /**
  * The kernel's two values chosen by listening (K, 2026-11-20), not DEV settings: each firing's charge varies by up to
@@ -79,6 +79,10 @@ export class ExhaustWaveguide {
   private readonly poles: Float64Array;
   private readonly loss: Float64Array;
   private readonly filter: Float64Array;
+  // Wool: whether each line has a shelf, its [b0, b1, a1] and its state [x, y] of the sample before.
+  private readonly woolOn: Uint8Array;
+  private readonly wool: Float64Array;
+  private readonly woolState: Float64Array;
   private n = 0;
   // Junctions' ends, junction by junction: junction j's are endFirst[j] .. endFirst[j + 1] - 1.
   private readonly endFirst: Int32Array;
@@ -148,6 +152,17 @@ export class ExhaustWaveguide {
     this.lineLast = new Float64Array(lines).fill(-1);
     this.filter = new Float64Array(4 * lines);
     this.loss = new Float64Array(5 * lines);
+    this.woolOn = new Uint8Array(lines);
+    this.wool = new Float64Array(3 * lines);
+    this.woolState = new Float64Array(2 * lines);
+    // A pipe's two lines, never a primary's, carry its wool's shelf where the rate carries it.
+    [...pipes, ...pipes].forEach(({ length, diameter, wool }, p) => {
+      const shelf = wool ? woolShelf(length, diameter, wool, rate) : null;
+      if (!shelf) return;
+      const l = 2 * cylinders + p;
+      this.woolOn[l] = 1;
+      this.wool.set(shelf, 3 * l);
+    });
     let cells = 0;
     tubes.forEach(({ length, diameter }, l) => {
       const N = Math.max(1, Math.round((length * rate) / ACOUSTICS.waveSpeed));
@@ -271,7 +286,10 @@ export class ExhaustWaveguide {
     return value;
   }
 
-  /** Sends a value into a line: through the wall loss, then onto the envelope's end; lines it leaves no room for go. */
+  /**
+   * Sends a value into a line: through the wall loss and a pipe's wool, then onto the envelope's end; lines it leaves no
+   * room for go.
+   */
   private write(l: number, x: number): void {
     const { w, sum, at, from, filter, loss, poles } = this;
     const mask = this.lineMask[l]!;
@@ -283,6 +301,14 @@ export class ExhaustWaveguide {
     for (let s = 0; s < 4; s++) {
       filter[f + s] = x - poles[s]! * filter[f + s]!;
       y += loss[c + s + 1]! * filter[f + s]!;
+    }
+    if (this.woolOn[l]) {
+      const { wool, woolState } = this;
+      const shelved =
+        wool[3 * l]! * y + wool[3 * l + 1]! * woolState[2 * l]! - wool[3 * l + 2]! * woolState[2 * l + 1]!;
+      woolState[2 * l] = y;
+      woolState[2 * l + 1] = shelved;
+      y = shelved;
     }
     const n = this.n;
     const i = base + (n & mask);

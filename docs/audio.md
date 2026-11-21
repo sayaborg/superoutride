@@ -30,7 +30,8 @@ rival sound uses the rival's observed powertrain values and its own vehicle's en
 
 An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per cycle, ordered firing phases and
 the exhaust from the valves to the tail: one cylinder's exhaust valve (`valve`), each cylinder's primary and the pipes,
-every tube with its length and internal diameter in metres. Each firing phase is that cylinder's exhaust-opening instant
+every tube with its length and internal diameter in metres, and a pipe may add the thickness of the wool lining it
+(`wool`, in metres; [derived values](#derived-values)). Each firing phase is that cylinder's exhaust-opening instant
 (start of blowdown); the offset from combustion top dead centre is common to all cylinders and is not represented. Phase
 count determines cylinder count, and the primaries follow the firing phases' order: cylinder i's primary runs from its
 valve, the head's exhaust port included, to junction `to`. Each pipe runs from junction `from` to junction `to`, or to
@@ -39,7 +40,8 @@ an open end (`to: null`), as far as the tailpipes; a turbine is a short, narrow 
 `count × min(π·d·lift, π·d²/4)`, for a two-stroke the port window's area), and `open` is how long it is open, seat to
 seat, as a share of the cycle from the firing phase. The resource limits are author values bounding the kernel's work
 and storage, not claims about real engines: 1 to 16 firing phases and 1 to 32 pipes (32 so that a silencer can later be
-written as a wide pipe), every tube longer than 0 and at most 4 m, and wider than 0 and at most 0.5 m.
+written as a wide pipe), every tube longer than 0 and at most 4 m, and wider than 0 and at most 0.5 m. A pipe's `wool`
+is absent, 0 (compiled as absent), or more than 0 and less than half its diameter, refused at `/exhaust/pipes/<n>/wool`.
 `compileEngineSound` validates an `EngineSoundDefinition` into an `EngineSound`: positive valve diameter, `open` within
 (0, 1), one primary per firing phase, tubes within the limits and the junctions' topology. Firing rows identify events
 and collector groups.
@@ -48,8 +50,9 @@ Engine sound definitions are content: `content/engine-sounds/<id>.json` stores o
 `superoutride.engine-sound` version 2 document per sound ID, its file name without `.json`, which is also its
 manifest ID; the documents carry none. The fields are `format`, `version`, `cycleRevolutions`, `firingPhases`,
 `exhaust` (`valve` of `{diameter, open}`, `primaries` of `{length, diameter, to}` and `pipes` of
-`{length, diameter, from, to}` with `to: null` for an open end) and `metadata` (authoring notes, such as each value's
-references; not read, and kept as written only for the DEV export). The audio layer compiles a document:
+`{length, diameter, from, to}` with `to: null` for an open end and an optional `wool`, which a primary does not take)
+and `metadata` (authoring notes, such as each value's references; not read, and kept as written only for the DEV
+export). The audio layer compiles a document:
 [`compileEngineSoundDocument`](../src/audio/engine-sound-document.ts) checks format, version and field shapes
 with the admission toolkit and leaves value validation to `compileEngineSound`, whose failure is an `invalid_value`
 diagnostic at the field the rule reads (`/exhaust/primaries/0/length`, `/exhaust/pipes/1/diameter`,
@@ -89,7 +92,7 @@ space -> tube:  p_end - P = -m²/2 * (1 + (1/a - 1)² - sigma²) / q
 above its space's has the flow `m + K m|m|/2 = d` of its head `K`. A valve's flow is not faster than sound in its throat:
 `m` is at most `choked × a` out of the tube, and that times the cylinder gas's sound speed over the tube's into it.
 
-**Lines.** Each primary and pipe is two lines, one each way. A line carries its tube's wall loss
+**Lines.** Each primary and pipe is two lines, one each way. A line carries its tube's wall loss and a pipe's wool
 ([derived values](#derived-values)), then `N = round(length × rate / waveSpeed)` samples (at least 1) in which a value
 `w` travels at `c (1 + steepening w)`: a strong wave runs faster, later values overtake earlier ones, and where they do
 they form a shock that keeps the wave's area. The value arriving now is the one sent at the `t` that makes
@@ -212,6 +215,22 @@ its pole is 0 and its weight 0, and the other shelves are applied as they are. A
 `u_k = x - a1_k*u_k` for k = 0..3 and writes `y = C*x + R_0*u_0 + R_1*u_1 + R_2*u_2 + R_3*u_3`, summed left to right.
 For every delivered tube at 44.1 and 48 kHz the loss is 0.89–1.10 times Kirchhoff's from 50 Hz to 8 kHz, the DC gain is
 1 within 1e-12 and the parallel form matches the series within 1e-12.
+
+A pipe's `wool`, glass wool lining it `t` thick (K, 2026-11-22), makes its wall a yielding one: the wool's flow
+resistance `R = sigma*t` stands before the spring of the gas within the wool's thickness, `gamma*p0/t`, so a slow wave
+cannot enter the wall and loses nothing, and a fast one loses what the resistance takes. With `rho*c = gamma*p0/c`, they
+balance at `f0 = gamma*p0/(2*pi*R*t)`, and one traversal loses `A*f²/(f0²+f²)` nepers, at most
+`A = (2*L/(D-2t))*(rho*c/R)`, where `D-2t` is the bore the gas runs straight through; a pipe twice as thick in wool
+starts losing at a quarter of the frequency and, the narrower bore aside, half as deep. `sigma` (`WOOL.resistivity`) is
+30,000 Pa s/m², an estimate, not a measurement: light building glass wool measures 3,000–6,000 (Tarnow 2002), a
+silencer's packing is denser, and hot exhaust is more viscous; `p0` is `REFLECTION_REFERENCE`'s 101,325 Pa. Each of the
+pipe's two lines, never a primary's, carries one more first-order shelf after its wall loss (`woolShelf`): its pole
+`f_p = f0*sqrt((1-exp(-2A))/(2A))`, where its loss far below matches `A*f²/f0²`, and its zero
+`f_z = min(f_p*exp(A), 0.49*rate)`, where its loss far above is `A`, through the bilinear transform as the wall loss's
+shelves; a rate below `f_p/0.49` does not carry it. The shelf's gain is at most 1. The wool changes the loss alone:
+the pipe's junction area and delay stay those of its `diameter` and `length`, because the wool is mostly gas, through
+which a slow wave fills the whole body. Not represented: a loss that grows with the wave's height, and the volume within
+the wool.
 
 A vehicle's mechanics give its engine sound two values ([vehicle engine sound](../src/audio/vehicle-engine-sound.ts)):
 one cylinder's swept volume, the displacement over the cylinders, and the geometric compression ratio.

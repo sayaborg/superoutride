@@ -63,12 +63,14 @@ export function compileEngineSoundDocument(
       };
     });
     const pipes = readArray(exhaust.pipes, '/exhaust/pipes', (item, at): ExhaustPipe => {
-      const pipe = readRecord(item, at, ['length', 'diameter', 'from', 'to']);
+      const wool = typeof item === 'object' && item !== null && Object.hasOwn(item, 'wool');
+      const pipe = readRecord(item, at, ['length', 'diameter', 'from', 'to', ...(wool ? ['wool'] : [])]);
       return {
         length: readNumber(pipe.length, `${at}/length`),
         diameter: readNumber(pipe.diameter, `${at}/diameter`),
         from: readNumber(pipe.from, `${at}/from`),
         to: pipe.to === null ? null : readNumber(pipe.to, `${at}/to`),
+        ...(wool ? { wool: readNumber(pipe.wool, `${at}/wool`) } : {}),
       };
     });
     const definition = {

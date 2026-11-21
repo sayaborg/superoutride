@@ -123,5 +123,44 @@ export function wallLossWeights(length: number, diameter: number, rate: number):
   return out;
 }
 
+/**
+ * Glass wool lining a pipe (K, 2026-11-22): a yielding wall, the wool's flow resistance before the gas within its
+ * thickness, which is a spring. `resistivity` is an estimate, not a measurement: light building glass wool measures
+ * 3,000 to 6,000 Pa s/m^2 (Tarnow 2002); a silencer's packing is denser, and hot exhaust is more viscous, so a value of
+ * a plausible order is taken. The wool's pressure is the outside's.
+ */
+export const WOOL = Object.freeze({ resistivity: 3e4, pressure: REFLECTION_REFERENCE.pressurePa });
+
+/**
+ * One traversal's loss of a pipe of `length` and `diameter` lined with `wool` (m), as a first-order shelf's bilinear
+ * coefficients `[b0, b1, a1]` of `y[n] = b0 x[n] + b1 x[n-1] - a1 y[n-1]` at `rate`, or null where the rate does not
+ * carry the shelf's pole. The wall's resistance `R = resistivity * wool` stands before the spring of the gas in the
+ * wool, `gamma * pressure / wool`: they balance at `f0 = gamma * pressure / (2 pi R wool)`, below which the wall barely
+ * yields, and the loss is `A f^2 / (f0^2 + f^2)` nepers, `A = (2 length / (diameter - 2 wool)) (rho c / R)` with
+ * `rho c = gamma * pressure / c`. The pole is placed so the shelf's loss far below matches `A f^2 / f0^2`, the zero so
+ * its loss far above is `A`, capped as the wall loss's at 0.49 of the rate.
+ */
+export function woolShelf(
+  length: number,
+  diameter: number,
+  wool: number,
+  rate: number,
+): readonly [number, number, number] | null {
+  const R = WOOL.resistivity * wool,
+    stiffness = GAS.gamma * WOOL.pressure;
+  const f0 = stiffness / (2 * Math.PI * R * wool);
+  const A = ((2 * length) / (diameter - 2 * wool)) * (stiffness / waveSpeed / R);
+  const fp = f0 * Math.sqrt((1 - Math.exp(-2 * A)) / (2 * A));
+  const { zeroCap } = WALL_LOSS_SHELVES;
+  if (fp >= zeroCap * rate) return null;
+  const fz = Math.min(fp * Math.exp(A), zeroCap * rate);
+  const K = 2 * rate,
+    wp = K * Math.tan((Math.PI * fp) / rate),
+    wz = K * Math.tan((Math.PI * fz) / rate);
+  const g = wp / wz,
+    a0 = K + wp;
+  return [(g * (K + wz)) / a0, (g * (wz - K)) / a0, (wp - K) / a0];
+}
+
 // Derived from REFLECTION_REFERENCE: c = sqrt(gamma R T), rounded to 1 m/s.
 export const ACOUSTICS = Object.freeze({ waveSpeed });

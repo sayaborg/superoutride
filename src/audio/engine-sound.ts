@@ -40,9 +40,15 @@ export interface ExhaustPrimary {
 
 export interface ExhaustPipe {
   readonly length: number;
+  /** The pipe's internal diameter, a silencer's body's when the pipe is one: wool lining it leaves it as written. */
   readonly diameter: number;
   readonly from: number;
   readonly to: number | null;
+  /**
+   * The thickness of the glass wool lining the pipe, in metres: it changes the pipe's loss alone. Absent (or 0, which
+   * compiles to absent), the pipe has none.
+   */
+  readonly wool?: number;
 }
 
 /** Validated acoustic values, as `compileEngineSound` returns them. */
@@ -77,6 +83,14 @@ function checkTube(tube: { readonly length: number; readonly diameter: number } 
     throw new DefinitionDomainError(`${path}/length`, `A length lies within (0, ${tubeLengthMeters}] m`);
   if (!Number.isFinite(tube.diameter) || tube.diameter <= 0 || tube.diameter > tubeDiameterMeters)
     throw new DefinitionDomainError(`${path}/diameter`, `A diameter lies within (0, ${tubeDiameterMeters}] m`);
+}
+
+/** A pipe's wool: absent, 0, or a thickness of which two leave room within its diameter, refused at `<path>/wool`. */
+function checkWool(pipe: ExhaustPipe, path: string): void {
+  const { wool } = pipe;
+  if (wool === undefined || wool === 0) return;
+  if (!Number.isFinite(wool) || wool < 0 || 2 * wool >= pipe.diameter)
+    throw new DefinitionDomainError(`${path}/wool`, 'A wool thickness lies within (0, diameter / 2) m');
 }
 
 /**
@@ -120,7 +134,7 @@ function checkJunctions(primaries: readonly ExhaustPrimary[], pipes: readonly Ex
 
 /**
  * The one value check of an engine sound. Each rule refuses at the field it reads (`firingPhases/2`,
- * `exhaust/primaries/0/length`, `exhaust/pipes/1/diameter`, `exhaust/valve/open`); the pipes' count and topology,
+ * `exhaust/primaries/0/length`, `exhaust/pipes/1/diameter`, `exhaust/pipes/1/wool`, `exhaust/valve/open`); the pipes' count and topology,
  * rules over them together, at `exhaust/pipes`.
  */
 export function compileEngineSound(definition: EngineSoundDefinition): EngineSound {
@@ -145,7 +159,10 @@ export function compileEngineSound(definition: EngineSoundDefinition): EngineSou
   primaries.forEach((primary, i) => checkTube(primary, `exhaust/primaries/${i}`));
   if (pipes.length < 1 || pipes.length > EXHAUST_LIMITS.pipes)
     throw new DefinitionDomainError('exhaust/pipes', `Expected 1 to ${EXHAUST_LIMITS.pipes} pipes`);
-  pipes.forEach((pipe, i) => checkTube(pipe, `exhaust/pipes/${i}`));
+  pipes.forEach((pipe, i) => {
+    checkTube(pipe, `exhaust/pipes/${i}`);
+    checkWool(pipe, `exhaust/pipes/${i}`);
+  });
   checkJunctions(primaries, pipes);
   return Object.freeze({
     cycleRevolutions,
@@ -154,7 +171,9 @@ export function compileEngineSound(definition: EngineSoundDefinition): EngineSou
       valve: Object.freeze({ diameter: valve.diameter, open: valve.open }),
       primaries: Object.freeze(primaries.map(({ length, diameter, to }) => Object.freeze({ length, diameter, to }))),
       pipes: Object.freeze(
-        pipes.map(({ length, diameter, from, to }) => Object.freeze({ length, diameter, from, to })),
+        pipes.map(({ length, diameter, from, to, wool }) =>
+          Object.freeze({ length, diameter, from, to, ...(wool ? { wool } : {}) }),
+        ),
       ),
     }),
   });

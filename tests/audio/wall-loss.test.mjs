@@ -2,7 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { wallLossNepers, wallLossPoles, wallLossSections, wallLossWeights } from '../../src/audio/exhaust-acoustics.js';
+import {
+  wallLossNepers,
+  wallLossPoles,
+  wallLossSections,
+  wallLossWeights,
+  woolShelf,
+} from '../../src/audio/exhaust-acoustics.js';
 
 const sounds = await loadEngineSounds(await readDeliveredContent());
 const tubes = Object.entries(sounds).flatMap(([id, { exhaust }]) =>
@@ -54,3 +60,32 @@ for (const rate of [44100, 48000])
       }
     }
   });
+
+/** A shelf's gain `|b0 + b1 w| / |1 + a1 w|` at `hz`. */
+function shelfGain([b0, b1, a1], rate, hz) {
+  const omega = (2 * Math.PI * hz) / rate;
+  const w = [Math.cos(omega), -Math.sin(omega)];
+  return Math.hypot(b0 + b1 * w[0], b1 * w[1]) / Math.hypot(1 + a1 * w[0], a1 * w[1]);
+}
+
+test("a pipe's wool takes only loss, and some at every rate that carries it", () => {
+  for (const [length, diameter] of [
+    [0.26, 0.311],
+    [0.7, 0.209],
+    [0.46, 0.27],
+    [0.52, 0.165],
+    [0.38, 0.132],
+    [0.56, 0.186],
+    [0.28, 0.062],
+  ])
+    for (const rate of [12000, 24000, 44100, 48000]) {
+      const at = `${length} x ${diameter} at ${rate} Hz`;
+      const shelf = woolShelf(length, diameter, 0.02, rate);
+      assert.ok(shelf, `${at} carries its shelf`);
+      for (let n = 0; n <= 400; n++) {
+        const gain = shelfGain(shelf, rate, ((rate / 2) * n) / 400);
+        assert.ok(gain <= 1 + 1e-12, `${at}: gain ${gain}`);
+      }
+      assert.ok(shelfGain(shelf, rate, rate / 2) < 0.5, `${at}: takes little at the top`);
+    }
+});
