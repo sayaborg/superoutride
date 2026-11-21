@@ -8,7 +8,7 @@ Each line is one area as it stands, with the document that owns it.
   TIME ATTACK and FREE PLAY's classes. Without DEV, FREE PLAY offers the courses a series runs (TSUKUBA, and for now the
   originals of the ARCADE TRIBUTE series delivered); the other originals' courses, in no series, are DEV's
   ([Architecture](architecture.md), [Run setup](content-and-gameplay.md#run-setup)).
-- The [seven racing vehicles](racing-vehicles.md) are catalog vehicles for FREE PLAY with provisional pictures and sound.
+- The [six racing vehicles](racing-vehicles.md) are catalog vehicles for FREE PLAY with provisional pictures and sound.
   The NSR500 of 1984 is K's SUPER HANG-ON machine ([Stage NSR](#stage-nsr--the-nsr500-of-1984-and-super-hang-ons-one-make)).
   Lotus 79 SPECIAL and McLaren M23 PP SPEC have two actual forward ratios and opt into contact explosion/recovery; the
   M23's are two of its six, named `L` and `H`, and its pictures, baked from K's model, are in eight colors
@@ -19,12 +19,12 @@ Each line is one area as it stands, with the document that owns it.
   specifications from estimates. Existing traffic policy and series eligibility remain unchanged; new physics
   still requires prior confirmation. The Honda XR600R of 1985, beside them in the same ledger, is K's ENDURO RACER
   machine ([Stage XR](#stage-xr--the-xr600r-of-1985-and-enduro-racers-machine)).
-- The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the
-  catalog to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984, 38 with the XR600R of 1985 and
-  39 with the RX-7 Turbo II of 1987, K's TOP SPEED car, in the same ledger ([its
-  section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored)). Among the fourteen, the 928 S4
-  of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)). The 1986
-  Porsche 930 and 1984 Corvette C4 coexist with their existing 1989 versions; the unidentified box truck remains
+- The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the catalog
+  to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984, 38 with the XR600R of 1985 and 39 with
+  the RX-7 Turbo II of 1987, K's TOP SPEED car, and 38 again without the NSR500 of 1987 (Stage MF), in the same ledger
+  ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored)). Among the fourteen, the
+  928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)). The
+  1986 Porsche 930 and 1984 Corvette C4 coexist with their existing 1989 versions; the unidentified box truck remains
   deferred. The ledger owns specification limits and validation.
 - **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
   PRODUCTION 750, GTI CUP and 911 CUP classes; the [product specification](product.md) is Stage 16's target
@@ -304,7 +304,7 @@ open, for K:
 - The other vehicles keep the earlier rules: DELTA HF INTEGRALE, 911 TURBO 3.3, the GTO, TURBO ESPRIT and MP4/4 keep
   the throat alone, and the other vehicles have no bodies written yet; until theirs are, their engines are loud and
   rough (K, 2026-11-20).
-- MF-3c removes the NSR500 of 1987, its sound and its pictures (K: the 1987 machine is to go, two being confusing).
+- MF-3c has removed the NSR500 of 1987, its sound and its pictures (K: two NSR500s were confusing).
 
 ## Stage AT — The attract demo remade
 

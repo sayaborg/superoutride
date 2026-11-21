@@ -28,11 +28,11 @@ test('a listing’s engine kind is its own, and agrees with its mechanics’ cyc
   assert.ok(delivered.ok);
   const kind = (id) => delivered.value.vehicles.find((v) => v.compiledVehicle.id === id).listing.metadata.engineKind;
   // The rotary and the two-strokes share the cycle 2, not the kind.
-  assert.deepEqual(['RX_7_TURBO_II_1987', 'NSR500_1987', 'TESTAROSSA'].map(kind), ['rotary', '2-stroke', '4-stroke']);
+  assert.deepEqual(['RX_7_TURBO_II_1987', 'NSR500_1984', 'TESTAROSSA'].map(kind), ['rotary', '2-stroke', '4-stroke']);
   for (const [id, engineKind, path] of [
     ['TESTAROSSA', 'rotary', '/metadata/engineKind'],
     ['RX_7_TURBO_II_1987', '4-stroke', '/metadata/engineKind'],
-    ['NSR500_1987', 'two-stroke', '/metadata/engineKind'],
+    ['NSR500_1984', 'two-stroke', '/metadata/engineKind'],
   ]) {
     const rejected = catalog(id, engineKind);
     assert.equal(rejected.ok, false, `${id} ${engineKind}`);

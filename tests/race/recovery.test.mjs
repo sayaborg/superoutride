@@ -474,7 +474,7 @@ test('a vehicle at rest without throttle, braked, or sliding fast enough does no
 });
 
 test('an engine rising from idle, or too little throttle to rise, delivers no drive and counts no step', async (t) => {
-  const NSR500 = definitions.vehicles.find((v) => v.compiledVehicle.id === 'NSR500_1987');
+  const NSR500 = definitions.vehicles.find((v) => v.compiledVehicle.id === 'NSR500_1984');
   // Sector 3 follows Sector 2's end; the Route loads it once a station there is resident.
   const sector3 = (scene, offset) => {
     const end = scene.runtime.route.occurrences.find((o) => o.section.id === 'sector-2').end;

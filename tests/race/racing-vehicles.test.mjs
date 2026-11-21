@@ -31,7 +31,6 @@ const course = await loadDeliveredCourse(content, 'tsukuba', materials);
 const courseName = (await loadCourseIndex(content)).find((entry) => entry.id === 'tsukuba').name;
 const tiles = await loadTextTiles(content);
 const identities = [
-  ['NSR500_1987', 6, 4, 1, 156 * 0.73549875],
   ['YZR500_0W98', 6, 4, 1, 150 * 0.73549875],
   ['MCLAREN_MP4_4', 6, 6, 2, 685 * 0.73549875],
   ['FERRARI_640', 7, 12, 2, 441],

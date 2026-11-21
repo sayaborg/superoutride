@@ -5,7 +5,6 @@ import { createProceduralVehicleSolid, type Point3, type SurfaceColor } from './
 
 /** Original provisional geometry; every shape fraction is an author estimate, documented in racing-vehicles.md. */
 export const RACING_PICTURES = {
-  NSR500_1987: 'nsr500-1987',
   YZR500_0W98: 'yzr500-0w98',
   MCLAREN_MP4_4: 'mclaren-mp4-4',
   FERRARI_640: 'ferrari-640',
@@ -141,27 +140,24 @@ function car(id: RacingVehicleId, m: VehicleMechanicsDocument) {
   if (lotus) s.box([0, 0.95 * h, -0.81 * z], [0.7 * x, 0.004, 0.012], gold);
   return [s.finish()];
 }
-function bike(id: RacingVehicleId, m: VehicleMechanicsDocument) {
+function bike(m: VehicleMechanicsDocument) {
   const s = createProceduralVehicleSolid(),
-    yamaha = id === 'YZR500_0W98',
-    main = yamaha ? red : blue;
+    main = red;
   const front = m.frontAxle,
     rear = -m.rearAxle,
     h = m.overallHeight,
     w = m.overallWidth;
-  const number = yamaha ? '3' : '2';
+  const number = '3';
   const fairing: SurfaceColor = (p, n) => {
     const plate = Math.abs(n[0]) > 0.5 && p[2] > 0.12 && p[2] < 0.53 && p[1] > 0.39 && p[1] < 0.7;
     if (plate) return numberAt(number, p[0] > 0 ? p[2] - 0.25 : 0.47 - p[2], 0.66 - p[1], 0.22, 0.24) ? black : yellow;
     if (n[2] > 0.55 && p[1] > 0.56 && p[1] < 0.83)
       return numberAt(number, 0.1 - p[0], 0.8 - p[1], 0.2, 0.22) ? black : yellow;
     if (p[1] < 0.31 || p[1] > 0.68) return white;
-    if (!yamaha && Math.abs(p[1] - 0.43) < 0.018) return gold;
-    if (!yamaha && Math.abs(p[1] - 0.46) < 0.018) return red;
     return main;
   };
-  s.wheel([0, m.frontWheelRadius, front], m.frontWheelRadius, 0.12, yamaha ? red : white, 3);
-  s.wheel([0, m.rearWheelRadius, rear], m.rearWheelRadius, 0.18, yamaha ? red : white, 3);
+  s.wheel([0, m.frontWheelRadius, front], m.frontWheelRadius, 0.12, red, 3);
+  s.wheel([0, m.rearWheelRadius, rear], m.rearWheelRadius, 0.18, red, 3);
   s.ellipsoid([0, 0.49, 0.28], [w * 0.4, 0.31, 0.57], fairing);
   s.ellipsoid([0, 0.69, -0.03], [w * 0.29, 0.18, 0.31], white);
   s.ellipsoid([0, 0.7, rear + 0.03], [w * 0.26, 0.14, 0.26], (p, n) =>
@@ -175,62 +171,37 @@ function bike(id: RacingVehicleId, m: VehicleMechanicsDocument) {
     // Yamaha's RIGHT arm arches above the front-pair exhaust, unlike its nearly straight left arm.
     const a: Point3 = [side * 0.13, 0.38, -0.24],
       b: Point3 = [side * 0.13, m.rearWheelRadius, rear];
-    if (yamaha && side === 1) {
+    if (side === 1) {
       const arch: Point3 = [0.13, 0.52, -0.46];
       s.cylinder(a, arch, 0.025, metal);
       s.cylinder(arch, b, 0.025, metal);
     } else s.cylinder(a, b, 0.025, metal);
   }
   // Each real side is authored. Yamaha lower pipes cross beneath the engine and both exit on the RIGHT.
-  const routes: readonly (readonly Point3[])[] = yamaha
-    ? [
-        [
-          [-0.12, 0.29, 0.35],
-          [0.12, 0.17, 0.03],
-          [0.24, 0.22, -0.34],
-          [0.23, 0.36, -0.75],
-        ],
-        [
-          [0.12, 0.32, 0.35],
-          [-0.08, 0.15, 0.08],
-          [0.18, 0.16, -0.32],
-          [0.2, 0.28, -0.77],
-        ],
-        [
-          [-0.1, 0.53, -0.08],
-          [-0.21, 0.54, -0.39],
-          [-0.19, 0.64, -0.87],
-        ],
-        [
-          [0.1, 0.53, -0.08],
-          [0.21, 0.55, -0.38],
-          [0.18, 0.67, -0.87],
-        ],
-      ]
-    : [
-        [
-          [0.1, 0.32, 0.31],
-          [0.22, 0.17, 0.02],
-          [0.22, 0.22, -0.42],
-          [0.2, 0.39, -0.83],
-        ],
-        [
-          [-0.1, 0.32, 0.3],
-          [-0.18, 0.18, 0.0],
-          [-0.18, 0.23, -0.45],
-          [-0.18, 0.37, -0.81],
-        ],
-        [
-          [0.1, 0.53, -0.06],
-          [0.21, 0.56, -0.34],
-          [0.2, 0.66, -0.85],
-        ],
-        [
-          [-0.1, 0.53, -0.06],
-          [-0.21, 0.53, -0.36],
-          [-0.2, 0.65, -0.85],
-        ],
-      ];
+  const routes: readonly (readonly Point3[])[] = [
+    [
+      [-0.12, 0.29, 0.35],
+      [0.12, 0.17, 0.03],
+      [0.24, 0.22, -0.34],
+      [0.23, 0.36, -0.75],
+    ],
+    [
+      [0.12, 0.32, 0.35],
+      [-0.08, 0.15, 0.08],
+      [0.18, 0.16, -0.32],
+      [0.2, 0.28, -0.77],
+    ],
+    [
+      [-0.1, 0.53, -0.08],
+      [-0.21, 0.54, -0.39],
+      [-0.19, 0.64, -0.87],
+    ],
+    [
+      [0.1, 0.53, -0.08],
+      [0.21, 0.55, -0.38],
+      [0.18, 0.67, -0.87],
+    ],
+  ];
   const clearance = (p: Point3): Point3 => [p[0], Math.abs(p[0]) > 0.15 ? Math.max(0.36, p[1]) : p[1], p[2]];
   for (const route of routes)
     for (let i = 1; i < route.length; i++)
@@ -245,10 +216,10 @@ function bike(id: RacingVehicleId, m: VehicleMechanicsDocument) {
     s.ellipsoid([side * 0.2, 0.32, -0.36], [0.065, 0.06, 0.12], black);
   }
   s.ellipsoid([0, h - 0.13, 0.23], [0.14, 0.13, 0.16], (p, n) =>
-    n[2] > 0.45 && p[1] > h - 0.16 && p[1] < h - 0.08 ? black : p[1] > h - 0.07 ? (yamaha ? red : white) : main,
+    n[2] > 0.45 && p[1] > h - 0.16 && p[1] < h - 0.08 ? black : p[1] > h - 0.07 ? red : main,
   );
   return [-60, -40, -20, 0, 20, 40, 60].map((degrees) => s.finish((degrees * Math.PI) / 180));
 }
 export function racingVehicleSolids(id: RacingVehicleId, mechanics: VehicleMechanicsDocument) {
-  return id === 'NSR500_1987' || id === 'YZR500_0W98' ? bike(id, mechanics) : car(id, mechanics);
+  return id === 'YZR500_0W98' ? bike(mechanics) : car(id, mechanics);
 }

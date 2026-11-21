@@ -1350,8 +1350,8 @@ cannot start never reaches main; a push to main checks the deployed site again.
 `npm run racing-pictures -- <vehicle ID|all> [replace]` bakes the original procedural provisional shapes in
 `tools/graphics/racing-vehicle-shapes.ts` through the shared vehicle picture camera. It refuses to overwrite a saved
 set without `replace`, and writes six complete direction/bank check sheets to `dist/racing-pictures/`.
-The procedural shapes are those of five of the seven racing vehicles; the McLaren M23 PP SPEC's pictures are baked from
-a model, as are the NSR500 of 1984's. The seven IDs, historic evidence and visual
+The procedural shapes are those of four of the six racing vehicles; the McLaren M23 PP SPEC's pictures are baked from
+a model, as are the NSR500 of 1984's. The six IDs, historic evidence and visual
 limitations are in the [racing vehicle ledger](racing-vehicles.md).
 
 `npm run racing-validation` compiles the authored catalog and measures all seven through the ordinary solver on a flat

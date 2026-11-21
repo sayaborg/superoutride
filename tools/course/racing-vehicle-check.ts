@@ -15,7 +15,6 @@ import { SIM_DT } from '../../src/race/fixed-step.js';
  * procedural pictures, the M23 PP SPEC, whose pictures are baked from a model, and the NSR500 of 1984.
  */
 export const RACING_VEHICLE_IDS = Object.freeze([
-  'NSR500_1987',
   'YZR500_0W98',
   'MCLAREN_MP4_4',
   'FERRARI_640',

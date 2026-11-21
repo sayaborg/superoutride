@@ -238,7 +238,7 @@ for (const id of ['LOTUS_79_SPECIAL', 'MCLAREN_M23_PP_SPEC'])
     assert.equal(actor.recovery.lastReason, 'explosion');
     assert.equal(race.player.crossingSeconds.length, gates);
     assert.equal((await run(true, 0, vehicle)).actor.contactResponse.sequence, 0);
-    for (const id of ['NSR500_1987', 'YZR500_0W98', 'MCLAREN_MP4_4', 'FERRARI_640']) {
+    for (const id of ['NSR500_1984', 'YZR500_0W98', 'MCLAREN_MP4_4', 'FERRARI_640']) {
       const entry = definitions.vehicles.find((v) => v.compiledVehicle.id === id);
       assert.equal(entry.listing.contactResponse, undefined);
       const normal = await run(false, 0, entry);
