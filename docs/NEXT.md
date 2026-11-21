@@ -104,9 +104,8 @@ the default tire with its CG 0.30 of its wheelbase high, its pictures baked from
   outlets, the black knees), the spun wheels, the eight liveries near and far and BLACK/RED and WHITE/GREEN from the
   side, and cornering on the default tire.
 - Not decided: the tire's real values, the eight liveries' values, the description text (195 characters, over the
-  190 limit, with no field to hold it), its own sound (the NSR500 of 1987's is borrowed), a source for the six ratios,
-  the 1984 machine's wheelbase and front tire, and AFRICA's second stage, where the reference run runs wide into the
-  course limit twice.
+  190 limit, with no field to hold it), a source for the six ratios, the 1984 machine's wheelbase and front tire, and
+  AFRICA's second stage, where the reference run runs wide into the course limit twice.
 - Two-wheelers' center of gravity. They carry their mass 0.30 of the wheelbase high for now (K, 2026-11-18). An
   estimate for the NSR500 of 1984 with its rider gives 0.66 m (0.48 of the wheelbase), but at that height a lifted
   wheel is held at 15 degrees and the bike brakes and launches at about half the planned rate; to be handled for all
@@ -271,49 +270,41 @@ from K's model by the car baking of Stage F110 in one color, ROSSO CORSA (F120-3
 
 ## Stage MF — Silencers and turbines in the engine sounds
 
-K's decisions of 2026-11-21, taken by listening on SELECT VEHICLE's ENGINE page: a silencer or a catalyst is written
-into an engine sound as the real car's body, a wide pipe among its `pipes`, with no new field or equation; the bodies
-are chosen one vehicle at a time, their lengths near the real car's (estimates where no source gives them) and their
-diameters by ear; pipes of one length and diameter that leave one joint and run on alike to the open air are written as
-one of their combined area; primaries, turbine throats and pipe diameters are the sources' where there are any
-([Calibration](calibration.md#exhaust-topologies)). MF-1 has written TESTAROSSA's (the 1984 European car's four
-silencers, two in series per bank, the banks apart to the end), the RX-7 Turbo II of 1987's (the main converter and the
-Y's two alike sides as one) and the 928 S4 of 1987's (each bank's catalyst and centre silencer, the rear silencer, the
-two tails as one) ([Arcade car selections](chase-turbo-vehicles.md)). The stage's name, `MF`, is the auditor's; K has
-not decided it. What stays open, for K:
+K's decisions of 2026-11-21 and 2026-11-22, taken by listening on SELECT VEHICLE's ENGINE page. A pipe may carry the
+glass wool lining it (`wool`, MF-3a; [Audio](audio.md#derived-values)). Seven sounds follow K's exhaust rules of
+2026-11-22 ([Calibration](calibration.md#exhaust-topologies)): the real car's valves, joins and tube lengths, the tubes
+one size wider (× 1.14), expansion chambers set by ear with 20 mm of wool in the one nearest the engine, every turbine
+as its throat and one room of 0.12 m × 150 mm, two-strokes as the machine is. They are TESTAROSSA, the RX-7 Turbo II
+of 1987, the 928 S4 of 1987, the 959 of 1987, the F40 of 1988, the XR600R of 1985 and the NSR500 of 1984, whose own
+sound `NSR500_1984` replaces the NSR500 of 1987's ([Arcade car selections](chase-turbo-vehicles.md),
+[Racing vehicles](racing-vehicles.md)). The stage's name, `MF`, is the auditor's; K has not decided it. What stays
+open, for K:
 
-- MF-1's three are settled for now: K heard them on the ENGINE page and decides them again after driving them in the
-  game.
-- No vehicle's silencer or catalyst has a source for its dimensions: the lengths are estimates and the diameters were
-  chosen by ear. When a real car's dimensions are found, its lengths are matched and its diameters chosen again.
-- The 928 S4's centre silencers are absorptive (straight-through) in the real car; the model has no absorption.
-- The RX-7's turbine throat is written with both passages open; below 2,700 rpm the real car closes one. MF-2 added
-  only the turbine's room to it, its bodies are MF-1's, and its highs are lower than the other turbocharged cars' (K:
-  "this is fine").
-
-MF-2 (K's decisions of 2026-11-21, by listening on the same page) writes every turbine in one form, two pipes: a throat
-of the real turbine's diameter, 0.08 m long, and right after it a room 0.11 m long and 150 mm wide, where the throat's
-stream loses its head as it does to the wheel; a twin-turbo engine has one pair for each turbine, with no new field or
-equation ([Calibration](calibration.md#exhaust-topologies)). The 959, the F40 and the RX-7 Turbo II take it; the 959
-and the F40 lose the pipe between their banks, have unequal primaries and a silencer of two rooms, and their two tails
-written as one. MF-2 also writes the XR600R of 1985's silencer and an expansion chamber after its head pipes, and the
-NSR500 of 1987's four paths each with a stinger, a silencer and an outlet, firing at even 90-degree intervals instead
-of the earlier 0, 112, 180 and 292 degrees, which were wrong ([Racing vehicles](racing-vehicles.md)); the NSR500 of
-1984 borrows that sound. What stays open, for K:
-
-- All five are settled for now: K heard them on the ENGINE page and decides them again after driving them in the game.
-- The room's 0.11 m × 150 mm is one value chosen by ear (0.10 m first; K took 0.11 m so that the wall loss stays
-  within its contract, [Audio](audio.md)), larger than a real turbine wheel's housing (about 0.3 L by
-  estimate); the wheel itself is not in the model.
-- The 959's cross tube and the F40's pipe between the manifolds are in the real cars and not written (K: with the
-  959's, the sound was noise).
-- The XR600R's expansion chamber after the head pipes is not on the motorcycle; its outlet is as wide as the joined
-  pipe, unnarrowed, because the 1985 baffle's diameter was not found.
-- No source says which of the NSR500's banks fires first. At 12 kHz and 6 kHz (a rival's) its highs fall away much
-  more than the others' (not yet checked by ear).
-- The other turbocharged vehicles (DELTA HF INTEGRALE, 911 TURBO 3.3, the GTO, TURBO ESPRIT and MP4/4) keep the throat
-  alone, and the other vehicles have no bodies written yet; until theirs are, their engines are loud and rough (K,
-  2026-11-20).
+- All seven are settled for now: K heard them on the ENGINE page and decides them again after driving them in the game,
+  built at MID (24 kHz) and checked at HIGH (48 kHz).
+- Every real length and diameter is an estimate from parts diagrams and photographs (about ±20 %); each sound's note
+  names its sources. Where measured dimensions are found, they replace them.
+- The wool's resistivity, 30,000 Pa s/m², is an estimate, not a measurement. The wool's loss does not grow with the
+  wave's height, and the volume within it is not represented (both tried, and refused by ear). Where a shelf's zero
+  meets 0.49 of the rate, its top loss differs a little between rates.
+- The turbines' room (0.12 m × 150 mm, by ear; 0.12 m for the steps of 0.02 m) is larger than a real turbine wheel's
+  housing (about 0.3 L by estimate); the wheel itself is not in the model. The 959's cross tube and the F40's pipe
+  between the manifolds are in the real cars and not written (K: with the 959's, the sound was noise).
+- Not known: how the gas runs within the 959's silencer (written as its 0.70 m body run through), and which of the 928
+  S4's banks has the longer downpipe (the left is taken).
+- TESTAROSSA's twelve primaries are taken alike (0.20 m), and its real pipe from the central to the side silencer
+  (about 0.26–0.43 m) is the 0.08 m between chambers, so its tails are longer than the car's (about 0.26 m).
+- The RX-7's run is estimated from photographs of an aftermarket system; its throat is written with both passages open,
+  where below 2,700 rpm the real car closes one.
+- The XR600R's two chambers are K's: the motorcycle has none. The NSR500 of 1984's stingers differ by 0.04 m between
+  its banks (K wanted them a little apart; the 0.04 m is the auditor's), its port is the NSR500 of 1987's estimate, and
+  no source says which bank fires first.
+- The 928 S4's centre silencers are absorptive (straight-through) in the real car; the chambers stand for them.
+- The length rules (steps of 0.02 m, no simple whole-number ratios) are written rules; no check reads them.
+- The other vehicles keep the earlier rules: DELTA HF INTEGRALE, 911 TURBO 3.3, the GTO, TURBO ESPRIT and MP4/4 keep
+  the throat alone, and the other vehicles have no bodies written yet; until theirs are, their engines are loud and
+  rough (K, 2026-11-20).
+- MF-3c removes the NSR500 of 1987, its sound and its pictures (K: the 1987 machine is to go, two being confusing).
 
 ## Stage AT — The attract demo remade
 

@@ -6,27 +6,31 @@
   "exhaust": {
     "valve": { "diameter": 0.0467, "open": 0.36 },
     "primaries": [
-      { "length": 0.47, "diameter": 0.038, "to": 0 },
-      { "length": 0.23, "diameter": 0.038, "to": 1 },
-      { "length": 0.35, "diameter": 0.038, "to": 0 },
-      { "length": 0.47, "diameter": 0.038, "to": 1 },
-      { "length": 0.23, "diameter": 0.038, "to": 0 },
-      { "length": 0.35, "diameter": 0.038, "to": 1 }
+      { "length": 0.1, "diameter": 0.043, "to": 0 },
+      { "length": 0.1, "diameter": 0.043, "to": 5 },
+      { "length": 0.1, "diameter": 0.043, "to": 2 },
+      { "length": 0.1, "diameter": 0.043, "to": 1 },
+      { "length": 0.1, "diameter": 0.043, "to": 4 },
+      { "length": 0.1, "diameter": 0.043, "to": 3 }
     ],
     "pipes": [
-      { "length": 0.08, "diameter": 0.0276, "from": 0, "to": 8 },
-      { "length": 0.11, "diameter": 0.15, "from": 8, "to": 2 },
-      { "length": 0.08, "diameter": 0.0276, "from": 1, "to": 9 },
-      { "length": 0.11, "diameter": 0.15, "from": 9, "to": 3 },
-      { "length": 0.52, "diameter": 0.056, "from": 2, "to": 4 },
-      { "length": 0.62, "diameter": 0.056, "from": 3, "to": 4 },
-      { "length": 0.46, "diameter": 0.25, "from": 4, "to": 5 },
-      { "length": 0.35, "diameter": 0.07, "from": 5, "to": 6 },
-      { "length": 0.28, "diameter": 0.21, "from": 6, "to": 7 },
-      { "length": 0.3, "diameter": 0.079, "from": 7, "to": null }
+      { "length": 0.12, "diameter": 0.055, "from": 0, "to": 2 },
+      { "length": 0.12, "diameter": 0.055, "from": 2, "to": 4 },
+      { "length": 0.12, "diameter": 0.055, "from": 4, "to": 6 },
+      { "length": 0.08, "diameter": 0.0276, "from": 6, "to": 8 },
+      { "length": 0.12, "diameter": 0.15, "from": 8, "to": 10 },
+      { "length": 0.26, "diameter": 0.064, "from": 10, "to": 12 },
+      { "length": 0.12, "diameter": 0.055, "from": 1, "to": 3 },
+      { "length": 0.12, "diameter": 0.055, "from": 3, "to": 5 },
+      { "length": 0.12, "diameter": 0.055, "from": 5, "to": 7 },
+      { "length": 0.08, "diameter": 0.0276, "from": 7, "to": 9 },
+      { "length": 0.12, "diameter": 0.15, "from": 9, "to": 11 },
+      { "length": 0.36, "diameter": 0.064, "from": 11, "to": 12 },
+      { "length": 0.7, "diameter": 0.209, "from": 12, "to": 13, "wool": 0.02 },
+      { "length": 0.26, "diameter": 0.09, "from": 13, "to": null }
     ]
   },
   "metadata": {
-    "note": "Two 3-into-1 manifolds, one per bank (cylinders 1-3 left, 4-6 right; firing 1-6-2-4-3-5 alternates the banks), their primaries unequal (0.47, 0.35 and 0.23 m are estimates). The car's cross tube, which takes the right bank's exhaust to the left turbine, is not written: with it the sound was noise (K, 2026-11-21, by ear), so each bank feeds its own turbine. The left and right KKK K26 turbines (housing size 6, 6 cm2: 27.6 mm) are written in the one form of every turbine here: the throat, 0.08 m long, and a room 0.11 m long and 150 mm wide after it, where the throat's stream loses its head as it does to the wheel. A 56 mm pipe from each turbine (0.52 and 0.62 m, estimates) into the one silencer, written as two rooms joined by a 70 mm pipe (the division is this model's; no dimension of the silencer was found); its two outlets (56 mm, not confirmed) are written as one of their combined area. No catalyst. Lengths are estimates; the silencer's widths were set by ear. Layout from Porsche's 959 parts catalogue, 1987-88, as read by the stage auditor, not read here. Valve: two exhaust valves per cylinder, 33 mm each (an estimate from the 928 four-valve head whose valve seat the 959 shares), written as one valve of their combined area, 46.7 mm; open about 260 deg (an estimate)."
+    "note": "1987 European, without catalyst. Each bank's three short branches (about 0.10 m, x 43 mm) enter one wide log 118 mm apart, not an equal-length collector: the log is three pipes of 0.12 m x 55 mm, the cylinders entering one by one in turn (cylinders 1-3 left, 4-6 right; firing 1-6-2-4-3-5 alternates the banks). At the log's end each bank's KKK K26 (housing size 6, 6 cm2): its throat 0.08 m x 27.6 mm and a room 0.12 m x 150 mm after it, the one form of every turbine here; the cross tube and the wastegate are not written. From the turbines pipes of about 0.26 and 0.36 m (x 64 mm) to the one transverse oval silencer (about 0.70 m), entering near its ends and leaving from them; how the gas runs within it is not known, and it is written as its body's 0.70 m run through (x 209 mm, 24.0 L, 8.4 times the displacement), with the wool, the one expansion chamber; its two tails as one of their combined area (0.26 m x 90 mm). Lengths and diameters are estimates from eurospares' parts diagrams 202-000, -002 and -005 (about +-20 %). The pipes' diameters are the real car's inner diameters times 1.14, the primaries' included; the expansion chambers' (silencers' bodies') sizes and places, the 1.14 and the 20 mm of wool were set by ear (K, 2026-11-22). Lengths are in steps of 0.02 m. Valve: two exhaust valves per cylinder, 33 mm each (an estimate from the 928 four-valve head whose valve seat the 959 shares), written as one valve of their combined area, 46.7 mm; open about 260 deg (an estimate)."
   }
 }

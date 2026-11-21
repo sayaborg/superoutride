@@ -9,35 +9,35 @@
   "exhaust": {
     "valve": { "diameter": 0.0396, "open": 0.3889 },
     "primaries": [
-      { "length": 0.5, "diameter": 0.0355, "to": 0 },
-      { "length": 0.5, "diameter": 0.0355, "to": 1 },
-      { "length": 0.5, "diameter": 0.0355, "to": 2 },
-      { "length": 0.5, "diameter": 0.0355, "to": 3 },
-      { "length": 0.5, "diameter": 0.0355, "to": 0 },
-      { "length": 0.5, "diameter": 0.0355, "to": 1 },
-      { "length": 0.5, "diameter": 0.0355, "to": 2 },
-      { "length": 0.5, "diameter": 0.0355, "to": 3 },
-      { "length": 0.5, "diameter": 0.0355, "to": 0 },
-      { "length": 0.5, "diameter": 0.0355, "to": 1 },
-      { "length": 0.5, "diameter": 0.0355, "to": 2 },
-      { "length": 0.5, "diameter": 0.0355, "to": 3 }
+      { "length": 0.2, "diameter": 0.04, "to": 0 },
+      { "length": 0.2, "diameter": 0.04, "to": 1 },
+      { "length": 0.2, "diameter": 0.04, "to": 2 },
+      { "length": 0.2, "diameter": 0.04, "to": 3 },
+      { "length": 0.2, "diameter": 0.04, "to": 0 },
+      { "length": 0.2, "diameter": 0.04, "to": 1 },
+      { "length": 0.2, "diameter": 0.04, "to": 2 },
+      { "length": 0.2, "diameter": 0.04, "to": 3 },
+      { "length": 0.2, "diameter": 0.04, "to": 0 },
+      { "length": 0.2, "diameter": 0.04, "to": 1 },
+      { "length": 0.2, "diameter": 0.04, "to": 2 },
+      { "length": 0.2, "diameter": 0.04, "to": 3 }
     ],
     "pipes": [
-      { "length": 0.5, "diameter": 0.047, "from": 0, "to": 4 },
-      { "length": 0.22, "diameter": 0.047, "from": 2, "to": 4 },
-      { "length": 0.5, "diameter": 0.047, "from": 1, "to": 5 },
-      { "length": 0.22, "diameter": 0.047, "from": 3, "to": 5 },
-      { "length": 0.55, "diameter": 0.185, "from": 4, "to": 6 },
-      { "length": 0.55, "diameter": 0.185, "from": 5, "to": 7 },
-      { "length": 0.3, "diameter": 0.057, "from": 6, "to": 8 },
-      { "length": 0.3, "diameter": 0.057, "from": 7, "to": 9 },
-      { "length": 0.5, "diameter": 0.19, "from": 8, "to": 10 },
-      { "length": 0.5, "diameter": 0.19, "from": 9, "to": 11 },
-      { "length": 0.15, "diameter": 0.074, "from": 10, "to": null },
-      { "length": 0.15, "diameter": 0.074, "from": 11, "to": null }
+      { "length": 0.86, "diameter": 0.054, "from": 0, "to": 4 },
+      { "length": 0.74, "diameter": 0.054, "from": 2, "to": 4 },
+      { "length": 0.86, "diameter": 0.054, "from": 1, "to": 5 },
+      { "length": 0.74, "diameter": 0.054, "from": 3, "to": 5 },
+      { "length": 0.56, "diameter": 0.186, "from": 4, "to": 6, "wool": 0.02 },
+      { "length": 0.08, "diameter": 0.074, "from": 6, "to": 8 },
+      { "length": 0.48, "diameter": 0.19, "from": 8, "to": 10 },
+      { "length": 0.52, "diameter": 0.084, "from": 10, "to": null },
+      { "length": 0.56, "diameter": 0.186, "from": 5, "to": 7, "wool": 0.02 },
+      { "length": 0.08, "diameter": 0.074, "from": 7, "to": 9 },
+      { "length": 0.48, "diameter": 0.19, "from": 9, "to": 11 },
+      { "length": 0.52, "diameter": 0.084, "from": 11, "to": null }
     ]
   },
   "metadata": {
-    "note": "1984 European, without catalyst. Four 3-into-1 manifolds (cylinders 1-3, 4-6, 7-9, 10-12) with equal primaries (equal length from an owners' forum; 0.50 m and 35.5 mm are estimates). Each bank's two manifold pipes (47 mm, from the 51 mm sealing rings; their lengths are estimates) enter its central silencer; a 57 mm pipe (the 61 mm sealing ring; 0.30 m an estimate) joins it to its side silencer; the banks do not meet. The parts catalogue lists an upper and a lower central silencer and a right and a left side silencer; no dimension of a silencer was found. Silencers are written as wide pipes: their lengths are estimates and their widths were set by ear (K, 2026-11-21). A side's two tailpipes (52 mm, an estimate) are written as one of their combined area. Valve: two exhaust valves of 28 mm and 9.5 mm lift (estimates); about 280 deg seat to seat, from 54 BBDC / 10 ATDC at 0.5 mm (shop manual via owners' forum)."
+    "note": "1984 European, without catalyst. Short primaries (about 0.20 m, all twelve taken alike, x 40 mm from 35.5 mm) join three by three (cylinders 1-3, 4-6, 7-9, 10-12), and the pipes after them are long (about 0.86 and 0.74 m, x 54 mm from 47 mm). Each side's two enter its central silencer and run through its side silencer to its tail; the sides do not meet. Each side: a chamber with the wool (0.56 m x 186 mm, 15.2 L), 0.08 m x 74 mm, a chamber (0.48 m x 190 mm, 13.6 L), its tail (0.52 m x 84 mm); the chambers 57.7 L in all, 11.7 times the displacement. The real pipe from the central to the side silencer (about 0.26 to 0.43 m) is written as the 0.08 m between chambers, so the tail is longer than the car's (about 0.26 m). Lengths are estimates from eurospares' parts diagram 019 (about +-20 %). The pipes' diameters are the real car's inner diameters times 1.14, the primaries' included; the expansion chambers' (silencers' bodies') sizes and places, the 1.14 and the 20 mm of wool were set by ear (K, 2026-11-22). Lengths are in steps of 0.02 m. Valve: two exhaust valves of 28 mm and 9.5 mm lift (estimates); about 280 deg seat to seat, from 54 BBDC / 10 ATDC at 0.5 mm (shop manual via owners' forum)."
   }
 }

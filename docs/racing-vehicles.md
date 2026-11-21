@@ -200,8 +200,10 @@ and rolling resistance, so the machine tops out in sixth below its redline, at 2
 machine's 47 %. The values no source gives follow the 1987 machine: ride frequencies, damping, travel, the front
 wheel's inertia and brake and the drag `q=0.18 kg/m`; yaw and pitch inertias scale with its mass and the square of
 its wheelbase (92 / 111 kg m²), the rear wheel's inertia with the square of its radius (0.58 kg m²) and the rear
-brake with its radius (253 N m). Compression 11 is the 1987 machine's estimate. Its sound is the 1987 machine's,
-borrowed ([Calibration](calibration.md#exhaust-topologies)); its pictures are baked from K's model in eight liveries
+brake with its radius (253 N m). Compression 11 is the 1987 machine's estimate. Its sound is its own
+(`NSR500_1984`, K's rules of 2026-11-22; [Calibration](calibration.md#exhaust-topologies)): four separate paths, each a
+header, a chamber running where a tank would be, a stinger, a silencer with the wool and an outlet, the one bank's
+stingers 0.04 m longer than the other's, lengths estimated from photographs; its pictures are baked from K's model in eight liveries
 ([Model solids](image-assets.md#model-solids)).
 
 The NSR500 of 1984 runs on the default tire and carries its mass 0.30 of its wheelbase high, both for now

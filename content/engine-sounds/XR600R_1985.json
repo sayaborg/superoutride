@@ -5,15 +5,16 @@
   "firingPhases": [0],
   "exhaust": {
     "valve": { "diameter": 0.0438, "open": 0.3681 },
-    "primaries": [{ "length": 0.42, "diameter": 0.0365, "to": 0 }],
+    "primaries": [{ "length": 0.32, "diameter": 0.042, "to": 0 }],
     "pipes": [
-      { "length": 0.18, "diameter": 0.152, "from": 0, "to": 1 },
-      { "length": 0.16, "diameter": 0.04, "from": 1, "to": 2 },
-      { "length": 0.44, "diameter": 0.131, "from": 2, "to": 3 },
-      { "length": 0.12, "diameter": 0.04, "from": 3, "to": null }
+      { "length": 0.22, "diameter": 0.046, "from": 0, "to": 1 },
+      { "length": 0.38, "diameter": 0.132, "from": 1, "to": 2, "wool": 0.02 },
+      { "length": 0.08, "diameter": 0.046, "from": 2, "to": 3 },
+      { "length": 0.18, "diameter": 0.11, "from": 3, "to": 4 },
+      { "length": 0.12, "diameter": 0.046, "from": 4, "to": null }
     ]
   },
   "metadata": {
-    "note": "The radial four-valve head's two exhaust ports and their two head pipes, round the front of the engine to their join, written as one tube of their combined area: two of about 26 mm inside (1 1/8 in outside and a little under 1/16 in of wall, an owner's measurement of the XR650L's stock header, which an owners' forum says shares the XR600R's small primaries; whether it holds for the 1985 header, part 18320-MK2-670, is not confirmed). The joined pipe is 40 mm inside (1 11/16 in outside, the same measurement). Between the head pipes and the joined pipe stands an expansion chamber the motorcycle does not have (K, 2026-11-21, by ear). The silencer on the right is a wide pipe, and its outlet is as wide as the joined pipe: a narrower outlet sharpened the report and raised the closed-throttle drone. The whole run, 1.32 m, is an estimate from the wheelbase and the engine's place. All lengths are estimates; the chamber's and the silencer's widths were set by ear. Valve: two exhaust valves of 31 mm (replacement parts) and 8.0 mm lift (estimate), so the curtain is the head's area; about 265 deg seat to seat from 45 BBDC / 5 ATDC at 1 mm (Honda manual as quoted), widened as VFR750R's. Two 28 mm carburetors (1985) feed the intake, which is not modelled."
+    "note": "The radial four-valve head's two exhaust ports and their two head pipes (about 0.32 m) as one tube of their combined area (x 42 mm), then one pipe (0.22 m x 46 mm, from 40 mm), the silencer and a short tail (0.12 m). The motorcycle has no expansion chamber: the two written here (0.38 m x 132 mm with the wool, 5.2 L; 0.08 m; 0.18 m x 110 mm, 1.7 L; 6.9 L in all, 11.7 times the displacement) are K's, by ear. The run after the join, 0.98 m, and from the ports to the outlet, 1.30 m, are the motorcycle's. Lengths are estimates from partzilla's 1985 MUFFLER parts diagram (about +-20 %). The pipes' diameters are the real car's inner diameters times 1.14, the primaries' included; the expansion chambers' (silencers' bodies') sizes and places, the 1.14 and the 20 mm of wool were set by ear (K, 2026-11-22). Lengths are in steps of 0.02 m. Valve: two exhaust valves of 31 mm (replacement parts) and 8.0 mm lift (estimate), so the curtain is the head's area; about 265 deg seat to seat from 45 BBDC / 5 ATDC at 1 mm (Honda manual as quoted), widened as VFR750R's. Two 28 mm carburetors (1985) feed the intake, which is not modelled."
   }
 }

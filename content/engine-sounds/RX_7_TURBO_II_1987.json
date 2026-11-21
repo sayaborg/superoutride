@@ -6,21 +6,20 @@
   "exhaust": {
     "valve": { "diameter": 0.033, "open": 0.95 },
     "primaries": [
-      { "length": 0.13, "diameter": 0.048, "to": 0 },
-      { "length": 0.31, "diameter": 0.048, "to": 0 }
+      { "length": 0.14, "diameter": 0.055, "to": 0 },
+      { "length": 0.32, "diameter": 0.055, "to": 0 }
     ],
     "pipes": [
-      { "length": 0.08, "diameter": 0.044, "from": 0, "to": 7 },
-      { "length": 0.11, "diameter": 0.15, "from": 7, "to": 1 },
-      { "length": 0.9, "diameter": 0.054, "from": 1, "to": 2 },
-      { "length": 0.35, "diameter": 0.13, "from": 2, "to": 3 },
-      { "length": 0.75, "diameter": 0.054, "from": 3, "to": 4 },
-      { "length": 0.55, "diameter": 0.068, "from": 4, "to": 5 },
-      { "length": 0.45, "diameter": 0.27, "from": 5, "to": 6 },
-      { "length": 0.2, "diameter": 0.068, "from": 6, "to": null }
+      { "length": 0.08, "diameter": 0.044, "from": 0, "to": 1 },
+      { "length": 0.12, "diameter": 0.15, "from": 1, "to": 2 },
+      { "length": 1.22, "diameter": 0.062, "from": 2, "to": 3 },
+      { "length": 0.3, "diameter": 0.068, "from": 3, "to": 4 },
+      { "length": 0.9, "diameter": 0.078, "from": 4, "to": 5 },
+      { "length": 0.46, "diameter": 0.27, "from": 5, "to": 6, "wool": 0.02 },
+      { "length": 0.18, "diameter": 0.078, "from": 6, "to": null }
     ]
   },
   "metadata": {
-    "note": "1987 United States. The 13B's two rotors fire twice per output-shaft revolution, written as two equal firing phases in one revolution; a rotor's three chambers are not represented. Each rotor's port and its runner in the cast manifold to the turbine (48 mm, the engine's exhaust outlet, from an owners' forum; 0.13 and 0.31 m are estimates from the layout: the turbine's inlet stands nearer one rotor). The port is open 75 BBDC to 48 ATDC, 393 of 360 output-shaft degrees, written as 0.95, the format's limit being below 1 (stage auditor's figures from Mazda's Turbo II training material, not read here). The turbine's throat: the twin-scroll housing's two passages, 6.00 and 9.48 cm2 (Yamaguchi, quoted on forums), written as one of their combined area, 44 mm, both open; 0.08 m is an estimate. After the throat stands a room 0.11 m long and 150 mm wide, where the throat's stream loses its head as it does to the wheel: the one form of every turbine here (K, 2026-11-21). One 54 mm pipe (the 2.25 in converters, an owners' forum) to the Y, with the main converter written as a wide pipe in it. The Y's two 48 mm pipes, their two silencers and two tails are alike, and are written as one of their combined area. The silencer and the converter are wide pipes: their lengths are estimates and their widths were set by ear (K, 2026-11-21). All lengths are estimates."
+    "note": "1987 United States. The 13B's two rotors fire twice per output-shaft revolution, written as two equal firing phases in one revolution; a rotor's three chambers are not represented. The port is open 75 BBDC to 48 ATDC, 393 of 360 output-shaft degrees, written as 0.95, the format's limit being below 1 (stage auditor's figures from Mazda's Turbo II training material, not read here). Each rotor's runner to the twin-scroll turbine (0.14 and 0.32 m x 55 mm, from 48 mm). The turbine: its throat, the two passages' combined area (6.00 and 9.48 cm2, Yamaguchi as quoted on forums; 44 mm, both open), 0.08 m, and a room 0.12 m x 150 mm after it, the one form of every turbine here. One pipe (1.22 m x 62 mm; the stock converters are 2.25 in), a stretch of 0.30 m x 68 mm (left loose, K), and the Y's two legs of about 2 in as one of their combined area (0.90 m x 78 mm; the Y's pipe is 2.5 in outside) to the one expansion chamber at the rear silencers' place (0.46 m x 270 mm, 26.3 L, 10.1 times the displacement) with the wool, and the tail (0.18 m x 78 mm). The converters' bodies are not written. The run's lengths are estimates from photographs of an aftermarket system's layout. The pipes' diameters are the real car's inner diameters times 1.14, the primaries' included; the expansion chambers' (silencers' bodies') sizes and places, the 1.14 and the 20 mm of wool were set by ear (K, 2026-11-22). Lengths are in steps of 0.02 m."
   }
 }

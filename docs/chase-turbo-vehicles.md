@@ -256,17 +256,15 @@ count. Point 1 was 235 N m at 2,000 rpm and point 2 500 N m at 5,000 rpm, both e
 - The torque curve is the steady full-throttle envelope of five points, as every car's. The second turbocharger's
   onset, boost and its lag, PSK's varying split (the front share stays a fixed 0.4) and the ride-height control are
   not represented (K).
-- The engine sound follows the catalogue's layout, but for the right bank's cross tube to the left turbine, which is not
-  written: with it the sound was noise (K, 2026-11-21, by ear), so each bank's three cylinders (primaries of 0.47, 0.35
-  and 0.23 m) feed its own turbine. Each turbine is written in the one form of every turbine
-  ([Calibration](calibration.md#exhaust-topologies)): its throat (6 cm², 27.6 mm, 0.08 m) and a room of 0.11 m × 150
-  mm after it. A 56 mm pipe from each (inlet clamps 60 mm; 0.52 and 0.62 m) enters the one silencer, written as two
-  rooms (0.46 m × 250 mm and 0.28 m × 210 mm) joined by a 70 mm pipe (0.35 m), the division this model's; its two outlets
-  (the number not confirmed) are one of their combined area, 79 mm (0.30 m). No catalyst; the wastegate and its
-  silencer are not written. The two exhaust valves of each cylinder are one of their combined area: two of 33 mm (the 928 four-valve
-  head's, whose seat the 959 shares; the 959's own valve not confirmed) give 46.7 mm. The valve's opening (0.36 of the
-  cycle, about 260 degrees), every length, the primaries' diameter and the silencer's widths (set by ear) are
-  estimates.
+- The engine sound follows K's rules of 2026-11-22 ([Calibration](calibration.md#exhaust-topologies)), its lengths
+  estimated from eurospares' parts diagrams 202-000, -002 and -005: each bank's three short branches (0.10 m) enter one
+  log 118 mm apart, written as three pipes of 0.12 m, the cylinders joining one by one; at the log's end the bank's K26,
+  its throat (6 cm², 27.6 mm) and the turbines' one room; from the turbines pipes of 0.26 and 0.36 m into the one
+  silencer, written as its 0.70 m body run through with the wool, the one expansion chamber (how the gas runs within it
+  is not known); its two tails as one. The cross tube, the wastegate and its silencer are not written; no catalyst. The
+  two exhaust valves of each cylinder are one of their combined area: two of 33 mm (the 928 four-valve head's, whose
+  seat the 959 shares; the 959's own valve not confirmed) give 46.7 mm. The valve's opening (0.36 of the cycle, about
+  260 degrees), every length and diameter, estimated from parts diagrams, are estimates.
 - Its pictures are baked from K's model in four 1987 colors, GRAND PRIX WHITE the default
   ([Model solids](image-assets.md#model-solids)); the model's wheelbase is 2,301 mm against the 2,272 mm its driving
   uses, and its wheels are the tyres' nominal size, while its driving keeps this ledger's radii (K, 2026-11-20).
@@ -324,14 +322,14 @@ the pipes' lengths.
 
 ### The 928 S4 in the current model
 
-- The sound writes the two valves of a cylinder as one of their combined area, and each bank's 52 mm run, 2.70 m in all,
-  as its downpipe (0.60 m), its catalyst as a wide pipe (0.35 m × 120 mm), a link (0.35 m), its centre silencer as a
-  wide pipe (0.50 m × 150 mm) and a pipe to the rear silencer's node (0.90 m), where the two banks join; the rear
-  silencer is a wide pipe (0.60 m × 240 mm), and its two tailpipes of 55 mm inside (an owners' measurement) are one of
-  their combined area, 78 mm (0.25 m). The lengths are estimates and the wide pipes' diameters were chosen by ear (K,
-  2026-11-21; [Calibration](calibration.md#exhaust-topologies)). The front two cylinders of each bank are taken as those
-  with the long primaries, an estimate. Some posts give one oval outlet on other years and markets; the 1987 US car is
-  written with two.
+- The sound writes the two valves of a cylinder as one of their combined area and follows K's rules of 2026-11-22
+  ([Calibration](calibration.md#exhaust-topologies)), its lengths estimated from eurospares' parts diagrams 202-000,
+  -005 and -010: each bank's downpipe (0.20 m right, 0.50 m left; which bank's is the longer the diagrams do not settle,
+  and the left is taken), two expansion chambers 0.08 m apart, the first with the wool, and 1.40 m to the rear chamber
+  where the banks first meet; its two tailpipes of 55 mm inside (an owners' measurement) as one of their combined area.
+  The pipes are the measured 52 mm times 1.14; the chambers stand for the catalysts and the centre and rear silencers,
+  their sizes and places by ear (K). The front two cylinders of each bank are taken as those with the long primaries, an
+  estimate. Some posts give one oval outlet on other years and markets; the 1987 US car is written with two.
 - The wheel radii stay at the ledger's 0.305 and 0.306 m, about 3% under the tires' nominal 0.3157 and 0.3135 m.
 - The 50:50 axle split, the CG height and the frontal area remain unverified estimates; the torque curve's points at
   675, 1,875 and 6,600 rpm remain estimates.
@@ -402,26 +400,24 @@ estimates.
 
 ### F40 exhaust and sound
 
-The engine sound is written from Ferrari's part list 021 (exhaust, cars without catalyst), as the auditor read its text:
-one cast manifold per bank, the pipe between the manifolds (part 122561), an IHI turbocharger per bank, a pipe from each
-turbocharger into the one silencer, and three outlets, the outer two the exhaust's and the centre one the wastegate's.
-The part list's drawing is not read here, so where the crossover leaves each manifold and the silencer's inlets and
-outlets are not checked against it.
+The engine sound follows K's rules of 2026-11-22 ([Calibration](calibration.md#exhaust-topologies)) on Ferrari's part
+list 021 (exhaust, cars without catalyst), as the auditor read its text, and lengths estimated from eurospares' parts
+diagrams, a photograph of silencer 136399 and Tubi Style's replacement's dimensions (about ±20 %).
 
-| Part                          | Written                                                                            | Class                                 |
-| ----------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------- |
-| Exhaust valves                | Two of 26 mm a cylinder (FIA form): equal-area 36.8 mm; lift taken ≥ 6.5 mm        | source (auditor), calculated          |
-| Valve timing                  | 54° BBDC / 10° ATDC at 0.5 mm, read as the Testarossa's: about 280°, `open` 0.3889 | source (auditor), calculated          |
-| Firing order                  | 1-5-3-7-4-8-2-6, the banks alternating: phases and primaries unchanged             | source (auditor)                      |
-| Eight primaries               | 0.47, 0.29, 0.20 and 0.38 × 35 mm in each bank's firing order, turbine behind      | estimate                              |
-| Pipe between the manifolds    | Not written, as the 959's cross tube (K, 2026-11-21)                               | connection: source (auditor)          |
-| Turbines                      | Throat 0.08 × 27.6 mm (the 959's) and a room 0.11 × 150 mm, each                   | throat: estimate; room: game design   |
-| Turbochargers to the silencer | 2 × 0.42 × 54 mm                                                                   | size: a replacement maker's main pipe |
-| Silencer                      | Rooms 0.50 × 220 and 0.26 × 210 mm joined by 0.34 × 70 mm                          | lengths: estimate; widths: by ear (K) |
-| Outer outlets                 | One of the two's combined area, 0.32 × 76 mm; the 70 mm tips are not written       | size: as above, calculated            |
+| Part                          | Written                                                                                                   | Class                               |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Exhaust valves                | Two of 26 mm a cylinder (FIA form): equal-area 36.8 mm; lift taken ≥ 6.5 mm                               | source (auditor), calculated        |
+| Valve timing                  | 54° BBDC / 10° ATDC at 0.5 mm, read as the Testarossa's: about 280°, `open` 0.3889                        | source (auditor), calculated        |
+| Firing order                  | 1-5-3-7-4-8-2-6, the banks alternating: phases unchanged                                                  | source (auditor)                    |
+| Eight primaries               | Steel, unequal: 0.70, 0.46, 0.36 and 0.58 × 40 mm in each bank's firing order                             | estimate; 35 mm × 1.14              |
+| Risers                        | 2 × 0.14 × 51 mm, a bank's four primaries into one to its turbine                                         | estimate                            |
+| Pipe between the manifolds    | Not written, as the 959's cross tube (K, 2026-11-21)                                                      | connection: source (auditor)        |
+| Turbines                      | Throat 0.08 × 27.6 mm (the 959's) and the turbines' one room, 0.12 × 150 mm                               | throat: estimate; room: game design |
+| Turbochargers to the silencer | 0.22 and 0.32 × 62 mm, about 0.10 m apart                                                                 | estimate; 54 mm × 1.14              |
+| Silencer                      | About 0.52 × 220 mm, the pipes entering at its middle: its two halves as one, 0.26 × 311 mm with the wool | lengths: estimate; size: by ear (K) |
+| Outer outlets                 | The two (about 0.48 m) as one of their combined area, 0.48 × 102 mm                                       | estimate, calculated                |
 
-- The wastegate is not represented, nor its centre outlet, as for the RX-7. No dimension of the silencer was found;
-  its two rooms are this model's division, about ten times the displacement in all.
+- The wastegate is not represented, nor its centre outlet, as for the RX-7.
 - The 54 mm is a replacement maker's main pipe for the catalyst car, outside or inside not stated; Ferrari's own pipe is
   not checked.
 
@@ -502,12 +498,12 @@ US mass and length, and the power and torque anchors.
 - The twin-scroll turbine's switch (only the primary passage below 2,700 rpm, both above; p. 4B-17), the wastegate
   built into the turbocharger and the air-cooled intercooler under the hood scoop (pp. 4B-18, 4B-45) are not
   represented; the torque curve's point at 2,000 rpm (180 N m) stays an estimate.
-- Its engine sound writes each rotor's runner in the cast manifold (48 mm, 0.13 and 0.31 m), the twin-scroll turbine's
-  throat as one of its two passages' combined area, 44 mm, both open, one 54 mm pipe to the Y with the main converter as
-  a wide pipe in it, and the Y's two alike sides, each a 48 mm pipe, a silencer and a tail, as one of their combined
-  area; the converter and the silencer are wide pipes whose lengths are estimates and whose diameters were chosen by ear
-  (K, 2026-11-21; [Calibration](calibration.md#exhaust-topologies)). The front converter is not written. Its note keeps
-  the port timing's sentence as it was, which still says the training material was not read here.
+- Its engine sound follows K's rules of 2026-11-22 ([Calibration](calibration.md#exhaust-topologies)): each rotor's
+  runner (0.14 and 0.32 m) to the twin-scroll turbine, whose throat is its two passages' combined area, both open, and
+  the turbines' one room; one pipe sized from the 2.25 in converters, the Y's two legs of about 2 in as one of their
+  combined area, and one expansion chamber with the wool at the rear silencers' place. The converters' bodies are not
+  written, and the run's lengths are estimates from photographs of an aftermarket system's layout. Its note keeps the
+  port timing's sentence as it was, which still says the training material was not read here.
 - Its pictures are baked from K's model in eight 1987 paints ([Model solids](image-assets.md#model-solids)); the
   model's wheelbase is 2,393 mm against the 2,430 mm its driving uses, a difference K allowed.
 
