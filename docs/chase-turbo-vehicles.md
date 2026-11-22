@@ -44,7 +44,10 @@ substitutes a production-volume choice for an arcade appearance that may be 1986
 asserted by these runtime definitions. The 9C1 manual gearbox is explicitly a game conversion: the supplied police
 specification called for an automatic in the real car.
 
-Except the 959's and the 928 S4's, the four palettes are game colors, without verified period paint codes. Blue GTO
+K takes CHASE H.Q.'s rival for the Lotus Turbo Esprit of 1984, United Kingdom, Type 82 (K, 2026-11-22);
+nothing here claims the original says so.
+
+Except the 959's, the 928 S4's and the Turbo Esprit's, the four palettes are game colors, without verified period paint codes. Blue GTO
 and the police livery are especially not claims of factory delivery colors. The stock-named palette key means the
 default game palette.
 
@@ -234,6 +237,18 @@ A source-verified secondary value means that page was read, not that it has prim
     tube manifolds and one silencer ([supercars.net](https://www.supercars.net/blog/ferrari-288-gto/)) and the F40's
     cam timing ([thread](https://www.ferrarichat.com/forum/threads/288-and-f40-cam-specs.473123/)).
 
+15. **Turbo Esprit's colors** (E82-1, 2026-11-23), the stage auditor's reading; neither list was reachable from
+    E82-1's environment. Lotus's paint codes, the A series being the two-pack paints from about 1977
+    ([SELOC wiki](https://wiki.seloc.org/a/Paint_codes)): A02 Black, A21 Monaco White (earlier L25), A23 Calypso Red
+    (earlier L42), A42 British Racing Green, a metallic. A paint seller's list by year
+    ([chipfixx](https://www.chipfixx.ca/pages/lotus-paint-codes)): Black, Calypso Red and Monaco White 1980–1989, A42
+    as "Racing Green" 1984–1987. Both lists are Lotus's for every model, not the colors offered on the Turbo Esprit.
+    Cars of 1984 described for sale: two Calypso Red Turbos, and a Turbo bought new from the works in British Racing
+    Green in December 1984. Other colors of about 1984 in the same lists, not taken: Silver Diamond (A03), Silver Frost
+    (A45), Essex Blue (A34), Bermuda Blue (A06), Lotus Yellow (A22) and Jupiter Red (A30). The 1984 UK catalogue's
+    color table, the primary source, was not read. The base colors are provisional, not measured from paint samples
+    ([Model solids](image-assets.md#model-solids)).
+
 Conflicting secondary Countach pages mix incompatible bore, gearbox, power-unit and performance figures;
 they are not blanket authorities for this data. An Esprit page labelled simply “Turbo” actually describes
 the 1987 Stevens body and is not the 1984 geometry source. Unread F40 racing tables and a later owner's manual
@@ -241,12 +256,13 @@ are not evidence for the selected 1988 non-catalyst road specification.
 
 ## Pictures and sound
 
-[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for ten of
+[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for nine of
 the cars; the 959's pictures are baked from K's model instead, in its four period colors, the 928 S4's in eight
-Porsche colors and the F40's in one, ROSSO CORSA ([Model solids](image-assets.md#model-solids)), and the 911 TURBO
+Porsche colors, the F40's in one, ROSSO CORSA, and the Turbo Esprit's in four Lotus colors, MONACO WHITE the default
+([Model solids](image-assets.md#model-solids)), and the 911 TURBO
 3.3 of 1986's are generated from four views in silver, black, red and white (MF-6b;
 [Vehicle picture generator](image-assets.md#vehicle-picture-generator)). Those samples go through the existing shared
-camera, palette, shadows, sprite and six-LOD baker. Each of the ten has 64 yaw pictures, one bank, four palettes and the
+camera, palette, shadows, sprite and six-LOD baker. Each of the nine has 64 yaw pictures, one bank, four palettes and the
 existing brake-lamp slot. No source photograph, ROM image or downloaded manual image is redistributed. Facet
 locations, window proportions, lights, rims, paint and details are visual estimates; this is not a dimensioned CAD
 reconstruction. Dimensions include a provisional visual envelope, so tiny mirrors, lamps or the spare can extend

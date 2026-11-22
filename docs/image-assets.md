@@ -617,7 +617,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `911-turbo-3-3-1986`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `ferrari-f40-1988`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `ferrari-f40-1988`, `turbo-esprit-1984`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`nova-250-1977`): drawn by
@@ -1171,6 +1171,44 @@ on the other dark parts, and its occlusion, made as the Testarossa model's. Its 
 Its one livery is `rosso-corsa`, ROSSO CORSA, (231, 10, 14), the model's own; the four game colors of its earlier,
 drawn set are gone (K, 2026-11-19). The model is K's `ferrari-f40-1988.glb` (SHA-256 `1d15daa6…`), kept on K's
 branch `codex/f40-1988-glb-source`, never on main; it has no wheel nodes, and its front hub is (0, 0.314, 1.2393).
+
+**The Turbo Esprit of 1984.** Its set, `turbo-esprit-1984`, is baked from K's model by the RX-7's recipe (K,
+2026-11-23): the same steps (seven paint steps, three glass steps and four greys), light, reflections, glare, spacing,
+64 directions and brake lamp colors, none moved for this car. What differs is the model's: the body's red (231, 10, 14)
+is its one paint, within 8, the mirrors and the bumpers among it; the glass is (10, 10, 12), within 4 and of roughness
+below 0.5, five panes (the windscreen, the doors' and the rear quarters'; the rear window is hidden under the louvre);
+the magenta (255, 0, 255) is the brake lamp, one section of each tail lamp, which K painted, the other sections (red,
+amber and white) as the model came. The engine cover's louvre (26, 26, 28) and the window pillars and frames and the
+flanks' lettering (22, 22, 24) are dark greys, as are the tyres, the underside, the black band and the gaps; the louvre
+is glossy, the one grey of roughness 0.10 (K: a second body color), and as the baker lights every sample by its
+roughness whatever its group, it shines without a second paint, in every color the same dark grey. The rear bumper's
+face is flat, in the body's color; the small louvre at the bonnet's rear end is the body's too. The model holds its
+roughness, 0.10 on the red, the glass, the brake lamp and the louvre and 0.90 on the other dark parts, and its
+occlusion, made as the 928 S4 model's is. Its four wheels are spun as the model's `extras` give them: centres
+(±0.76, 0.3075, 1.219) m front and (±0.775, 0.3315, −1.219) m rear, radii 0.3075 and 0.3315, widths 0.195 and 0.235
+(195/60 VR 15 and 235/60 VR 15); the rims are 0.208, the 15-inch rim's radius with the 928 S4's 0.0175 of edge (the
+stage auditor's). The model is 4,191 × 1,860 × 1,115 mm (1,990 mm across the mirrors) on the car's 2,438 mm wheelbase,
+its full width at the rear fenders, the front fenders 20 mm narrower, and the tracks and tires the car's; its height is
+0.919 of its plan shape's scale (K), so the rear tyres' tops sit 5 mm inside the arches' edge. The wheels drawn are the
+tires' nominal size, not the 0.285 and 0.309 m its driving uses. Its one exhaust outlet is at the right rear. The
+flanks' "turbo" reads; the "esprit" under it is broken as the model came, and K keeps it; the real car's LOTUS
+lettering on the rear bumper is not in the model.
+
+Its four liveries are Lotus's colors by their real names (K, 2026-11-22: red, white, black and green; the keys, codes
+and base colors are the stage auditor's, provisional); British Racing Green is a metallic, here a flat color without
+flake, and whether all four were offered on the 1984 UK car is not checked
+([sources](chase-turbo-vehicles.md#evidence-actually-consulted)):
+
+| Palette                | Name                 | Code | Base color    |
+| ---------------------- | -------------------- | ---- | ------------- |
+| `calypso-red`          | CALYPSO RED          | A23  | 231, 10, 14   |
+| `monaco-white`         | MONACO WHITE         | A21  | 238, 238, 232 |
+| `black`                | BLACK                | A02  | 18, 18, 20    |
+| `british-racing-green` | BRITISH RACING GREEN | A42  | 14, 48, 34    |
+
+The listing's default is `monaco-white` (K, for now, 2026-11-22). The model is K's `turbo-esprit-1984.glb` (SHA-256
+`e2a7254d…`), kept on K's branch `codex/turbo-esprit-1984-glb-source`, never on main; it has no wheel nodes, and its
+front hub is (0, 0.3075, 1.219).
 
 ## HUD picture generator
 
