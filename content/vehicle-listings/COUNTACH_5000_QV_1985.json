@@ -13,12 +13,12 @@
   "metadata": {
     "manufacturer": "Lamborghini",
     "model": "Countach 5000 QV",
-    "period": "1988",
+    "period": "1985",
     "mobileLabel": "5000 QV",
     "engine": "V12",
     "engineKind": "4-stroke",
     "identifier": { "officialLabel": "5000 QV", "shortLabel": "5000 QV" },
     "selectedSpecification": ["Europe carburettors", "rear wing", "5MT"],
-    "physicsAnchor": { "modelYear": "1988", "market": "Europe" }
+    "physicsAnchor": { "modelYear": "1985", "market": "Europe" }
   }
 }

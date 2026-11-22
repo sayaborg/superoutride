@@ -23,7 +23,7 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 | --------------------- | ---------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | PORSCHE_928_S4_1987   | 1987 MY US 928 S4                                    | M28.41, 4957 cc DOHC 32-valve V8; G28.13 5MT                    | Black, later bumpers, large rear lamps and raised spoiler               |
 | TURBO_ESPRIT_1984     | 1984 UK Turbo Esprit, Type 82                        | 910 low-compression 2174 cc carburetted turbo four; Citroen 5MT | White Giugiaro wedge, rear louvers; not the Stevens X180                |
-| COUNTACH_5000_QV_1985 | 1988 MY European carburetted 5000 Quattrovalvole     | 5167 cc DOHC 48-valve V12; 5MT                                  | Yellow, rear wing and wide rear tires; not the 25th Anniversary body    |
+| COUNTACH_5000_QV_1985 | 1985 European carburetted 5000 Quattrovalvole        | 5167 cc DOHC 48-valve V12; 5MT                                  | Yellow, rear wing and wide rear tires; not the 25th Anniversary body    |
 | 911_TURBO_3_3_1986    | 1986 MY US 911 Turbo 3.3 Coupe                       | 3299 cc air-cooled turbo flat six; 4MT                          | Silver, round headlights, wide rear fenders and tea-tray spoiler        |
 | FERRARI_GTO_1985      | 1985 European GTO, Tipo F114                         | F114B, 2855.08 cc twin-turbo flat-plane V8; 5MT                 | Blue arcade recolor, rear-fender slots, paired round rear lamps         |
 | PORSCHE_928_S_1984    | 1984 MY US 928 S                                     | M28.19, 4664 cc SOHC 16-valve V8; 5MT                           | Red early body, rubber bumper trim and small spoiler                    |
@@ -37,7 +37,8 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 | NOVA_9C1_1977         | 1977 MY US Nova four-door COPO 9C1 basis             | LG3 5001 cc OHV V8; game 3MT conversion                         | Black/white police recolor and static roof lights                       |
 
 The supplied report's year choices are selections, not new identifications of the arcade sprites. In particular,
-Countach/GTO production-year maxima remain estimates; YJ 1995 postdates the games. The F40 is K's 1988 choice. The 1984
+The Countach's 1985 is K's choice (2026-11-22), not a claim about the arcade original; the GTO's production-year
+maxima remain estimates; YJ 1995 postdates the games. The F40 is K's 1988 choice. The 1984
 C4 intentionally substitutes a production-volume choice for an arcade appearance that may be 1986 or later.
 No annual production count is asserted by these runtime definitions. The 9C1 manual gearbox is explicitly a
 game conversion: the supplied police specification called for an automatic in the real car.
@@ -94,8 +95,8 @@ converted to station torque by its rolling radius and rounded to 25 Nm. Actual b
 unchanged tire, load and protection rules. This is not a reconstruction of period hydraulic brake pressure,
 ABS, spring rates, bump travel, tire temperature, handling limits or stopping-distance tests.
 
-The 928 S, Countach, 930, Mini, Toyota and Novas still lack a read, exact-year primary gearbox ratio table (the
-Esprit's ratios are Autocar's road-test tables, below). Their provisional ratios are explicit engineering estimates, not borrowed verified facts from
+The 928 S, 930, Mini, Toyota and Novas still lack a read, exact-year primary gearbox ratio table (the Esprit's ratios
+are Autocar's road-test tables, and the Countach's the period catalogue's, below). Their provisional ratios are explicit engineering estimates, not borrowed verified facts from
 another year. The F40 uses gear pairs 2.769/1.722/1.227/0.963/0.767 and the European effective final reduction
 `(30/11)*(28/21)`; the transfer reduction is folded into the existing single final-drive field. The GTO manual's
 published ratios already include its transfer gears and therefore must not receive that factor a second time.
@@ -185,6 +186,23 @@ A source-verified secondary value means that page was read, not that it has prim
     the pipe bore of a 1985 US car ([thread](https://www.lotustalk.com/threads/exhaust-diameter.378097)), the turbine's
     A/R ([thread](https://www.lotustalk.com/threads/turbo-mods-upgrades.108579/)) and a replacement system's photograph
     ([image](https://www41.easy-myshop.jp/emsrsc/nilaikanai/itemimg/2131/item.2131.1.jpg)).
+
+12. **Countach 5000 QV of 1985** (MF-5, 2026-11-22). K's note of the period catalogue gives the gears
+    2.232/1.625/1.088/0.858/0.707 and final 4.091 (45/11); two specification pages agree
+    ([tripod](https://lamborghinicars.tripod.com/countachlp500qv.html),
+    [supercars.net](https://www.supercars.net/blog/1985%E2%86%921988-lamborghini-countach-lp5000-qv/)). Dimensions,
+    overhangs and weight split ([lambocars](https://www.lambocars.com/countach-lp500-quattrovalvole-specs-performance/)):
+    the catalogue and several sources give a 2,500 mm wheelbase, but their overhangs (933 and 757 mm) and length
+    (4,140 mm) give 2,450 mm, which stays. No redline source was found (an ignition box's 7,800 rpm limit on a forum and
+    the catalogue's top speed in fifth at 7,300 rpm); 7,500 rpm stays. The sound's sources: eurospares' 1985 5000 QV
+    exhaust diagram 028
+    ([diagram](https://www.eurospares.co.uk/lamborghini/countach/countach-5000-qv-1985/part-diagrams/028/exhaust-pipes)),
+    a replacement manifold's photograph
+    ([image](https://www.stainless-exhaust.com/wp-content/gallery/exhausts/lamborghini-countach-manifolds.jpg)), the
+    valve sizes ([supercarnostalgia](https://supercarnostalgia.com/blog/lamborghini-countach-quattrovalvole)), the cam's
+    lift and duration ([Web Cam](https://www.webcamshafts.com/pages_vehicles/automobile/lamborghini/2663.html)) and the
+    cam timing and clearance on a forum
+    ([thread](https://www.lamborghinichat.com/forum/threads/countach-technical-thread-questions.402160/page-13)).
 
 Conflicting secondary Countach pages mix incompatible bore, gearbox, power-unit and performance figures;
 they are not blanket authorities for this data. An Esprit page labelled simply “Turbo” actually describes

@@ -7,29 +7,37 @@
     0.6666666666666666, 0.75, 0.8333333333333334, 0.9166666666666666
   ],
   "exhaust": {
-    "valve": { "diameter": 0.032, "open": 0.4 },
+    "valve": { "diameter": 0.045, "open": 0.36 },
     "primaries": [
-      { "length": 0.35, "diameter": 0.04, "to": 0 },
-      { "length": 0.35, "diameter": 0.04, "to": 1 },
-      { "length": 0.35, "diameter": 0.04, "to": 0 },
-      { "length": 0.35, "diameter": 0.04, "to": 1 },
-      { "length": 0.35, "diameter": 0.04, "to": 0 },
-      { "length": 0.35, "diameter": 0.04, "to": 1 },
-      { "length": 0.35, "diameter": 0.04, "to": 0 },
-      { "length": 0.35, "diameter": 0.04, "to": 1 },
-      { "length": 0.35, "diameter": 0.04, "to": 0 },
-      { "length": 0.35, "diameter": 0.04, "to": 1 },
-      { "length": 0.35, "diameter": 0.04, "to": 0 },
-      { "length": 0.35, "diameter": 0.04, "to": 1 }
+      { "length": 0.4, "diameter": 0.043, "to": 0 },
+      { "length": 0.4, "diameter": 0.043, "to": 2 },
+      { "length": 0.46, "diameter": 0.043, "to": 1 },
+      { "length": 0.46, "diameter": 0.043, "to": 3 },
+      { "length": 0.34, "diameter": 0.043, "to": 0 },
+      { "length": 0.34, "diameter": 0.043, "to": 2 },
+      { "length": 0.32, "diameter": 0.043, "to": 1 },
+      { "length": 0.32, "diameter": 0.043, "to": 3 },
+      { "length": 0.36, "diameter": 0.043, "to": 0 },
+      { "length": 0.36, "diameter": 0.043, "to": 2 },
+      { "length": 0.36, "diameter": 0.043, "to": 1 },
+      { "length": 0.36, "diameter": 0.043, "to": 3 }
     ],
     "pipes": [
-      { "length": 1.159, "diameter": 0.055, "from": 0, "to": 2 },
-      { "length": 0.65, "diameter": 0.055, "from": 2, "to": null },
-      { "length": 1.159, "diameter": 0.055, "from": 1, "to": 3 },
-      { "length": 0.65, "diameter": 0.055, "from": 3, "to": null }
+      { "length": 0.78, "diameter": 0.057, "from": 0, "to": 4 },
+      { "length": 0.5, "diameter": 0.057, "from": 1, "to": 4 },
+      { "length": 0.44, "diameter": 0.18, "from": 4, "to": 5, "wool": 0.02 },
+      { "length": 0.08, "diameter": 0.081, "from": 5, "to": 6 },
+      { "length": 0.38, "diameter": 0.171, "from": 6, "to": 7 },
+      { "length": 0.2, "diameter": 0.097, "from": 7, "to": null },
+      { "length": 0.78, "diameter": 0.057, "from": 2, "to": 8 },
+      { "length": 0.5, "diameter": 0.057, "from": 3, "to": 8 },
+      { "length": 0.44, "diameter": 0.18, "from": 8, "to": 9, "wool": 0.02 },
+      { "length": 0.08, "diameter": 0.081, "from": 9, "to": 10 },
+      { "length": 0.38, "diameter": 0.171, "from": 10, "to": 11 },
+      { "length": 0.2, "diameter": 0.097, "from": 11, "to": null }
     ]
   },
   "metadata": {
-    "note": "Provisional acoustic graph, not a measured exhaust or recording. Equal firing intervals; alternating banks; valve opening, diameters and all lengths are engineering estimates. Existing pipe solver only; silencer and turbo losses are not separately modelled."
+    "note": "1985 European carburetted 5000 Quattrovalvole. Firing order 1-7-4-10-2-8-6-12-3-9-5-11 (1-6 one bank, 7-12 the other); each three-cylinder group fires every 240 deg. Valve: two exhaust valves of 32 mm a cylinder (intake 36 mm; supercarnostalgia), 7.92 mm (0.312 in) lift and 259 deg (Web Cam's figures for restoring the 48-valve engine's original specification), written as one circle of their open area by count x min(pi d lift, pi d^2/4): the lift falls just short of a quarter of the diameter, so 45.0 mm, not 45.3; open 259 / 720 = 0.36. An owners' forum gives 75 BBDC / 45 ATDC (300 deg) at very small lift without the QV's 0.50 mm exhaust clearance; not used. Each bank has two 3-into-1 manifolds, four in all (eurospares' 1985 5000 QV diagram 028 EXHAUST PIPES); the groups farther from the silencer are cylinders 1-3 and 7-9 (junctions 0 and 2), the nearer 4-6 and 10-12 (junctions 1 and 3). The primaries, measured on a near-overhead photograph of a stainless replacement manifold following the original against a QV head (the ports 95 mm apart as the scale): the farther group about 0.40, 0.34 and 0.36 m, the nearer about 0.46, 0.36 and 0.32 m. The two collectors stand about 0.28 m apart, and their pipes reach the silencer at about 0.78 and 0.50 m (photograph and diagram). The silencer is one transverse rectangular box at the rear (about 0.77 x 0.20 x 0.15 m, about 23 L), each bank's two pipes entering its front face near that bank's end, with four tails (two a side, about 0.20 m); its inner path is not known, and the banks are written apart to the outlets, the box halved. Each side: a chamber with the wool (0.44 m x 180 mm, 11.2 L; 0.44 m, not 0.46, to avoid 1:1 with a primary), 0.08 m x 81 mm (57 mm x sqrt 2), a chamber (0.38 m x 171 mm, 8.7 L) and the two tails as one of their combined area (0.20 m x 97 mm); the chambers 39.8 L, 7.7 times the displacement, so the run from the collectors (1.88 and 1.60 m) is longer than the car's (about 1.2 and 0.9 m). No inner diameter was found: 38 mm primaries, 50 mm pipes and 60 mm tails are taken, times 1.14 (43, 57 and 97 mm). Lengths are estimates from the photograph and the diagram (about +-20 %). The expansion chambers' size and number, the 1.14 and the 20 mm of wool were set by ear (K, 2026-11-22); the car has one box. Lengths are in steps of 0.02 m."
   }
 }

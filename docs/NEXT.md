@@ -271,16 +271,16 @@ from K's model by the car baking of Stage F110 in one color, ROSSO CORSA (F120-3
 ## Stage MF — Silencers and turbines in the engine sounds
 
 K's decisions of 2026-11-21 and 2026-11-22, taken by listening on SELECT VEHICLE's ENGINE page. A pipe may carry the
-glass wool lining it (`wool`, MF-3a; [Audio](audio.md#derived-values)). Eight sounds follow K's exhaust rules of
+glass wool lining it (`wool`, MF-3a; [Audio](audio.md#derived-values)). Nine sounds follow K's exhaust rules of
 2026-11-22 ([Calibration](calibration.md#exhaust-topologies)): the real car's valves, joins and tube lengths, the tubes
 one size wider (× 1.14), expansion chambers set by ear with 20 mm of wool in the one nearest the engine, every turbine
 as its throat and one room of 0.12 m × 150 mm, two-strokes as the machine is. They are TESTAROSSA, the RX-7 Turbo II of
-1987, the 928 S4 of 1987, the 959 of 1987, the F40 of 1988, the TURBO ESPRIT of 1984, the XR600R of 1985 and the NSR500
-of 1984, whose own sound `NSR500_1984` replaced the NSR500 of 1987's ([Arcade car selections](chase-turbo-vehicles.md),
-[Racing vehicles](racing-vehicles.md)). The stage's name, `MF`, is the auditor's; K has not decided it. What stays open,
-for K:
+1987, the 928 S4 of 1987, the 959 of 1987, the F40 of 1988, the TURBO ESPRIT of 1984, the Countach 5000 QV of 1985, the
+XR600R of 1985 and the NSR500 of 1984, whose own sound `NSR500_1984` replaced the NSR500 of 1987's ([Arcade car
+selections](chase-turbo-vehicles.md), [Racing vehicles](racing-vehicles.md)). The stage's name, `MF`, is the auditor's;
+K has not decided it. What stays open, for K:
 
-- All eight are settled for now: K heard them on the ENGINE page and decides them again after driving them in the game,
+- All nine are settled for now: K heard them on the ENGINE page and decides them again after driving them in the game,
   built at MID (24 kHz) and checked at HIGH (48 kHz).
 - Every real length and diameter is an estimate from parts diagrams and photographs (about ±20 %); each sound's note
   names its sources. Where measured dimensions are found, they replace them.
@@ -312,6 +312,12 @@ for K:
   silencer; the pipe after the turbine is a 1985 US car's measured bore, and the run's photograph is of a replacement
   system. The curve's 950 and 7,000 rpm points are estimates, and at 2,000 rpm it gives about 157 N m against the
   reported 136.
+- MF-5 takes the Countach for the 1985 European carburetted car (`COUNTACH_5000_QV_1985`; K's choice), writes its
+  exhaust by the same rules, true to the car (K: "not drawn towards TESTAROSSA's"), and corrects its gears to the period
+  catalogue's. Not known: the path within the silencer box (the banks are written apart to the outlets), the pipes' inner
+  diameters (taken), the tails' length (the diagram's), the primaries' and pipes' lengths (a replacement's photograph),
+  the valve's lift and duration (a cam regrinder's), the wheelbase (2,500 mm in some sources; 2,450 mm stays) and the
+  redline (no source; 7,500 rpm stays).
 
 ## Stage AT — The attract demo remade
 
