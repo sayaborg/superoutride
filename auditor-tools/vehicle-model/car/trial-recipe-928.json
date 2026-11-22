@@ -1,0 +1,243 @@
+{
+  "format": "superoutride.vehicle-model-recipe",
+  "version": 1,
+  "vehicle": "PORSCHE_928_S4_1987",
+  "yawVariants": 64,
+  "model": {
+    "sha256": "c43ba50118018550779e23a08cbad6f09e65f1b49275231c9b38026d5d72ab35",
+    "right": "-x",
+    "up": "+y",
+    "forward": "+z",
+    "frontHub": [
+      0,
+      0.3157,
+      1.25
+    ]
+  },
+  "spacing": 0.008,
+  "paints": {
+    "colors": [
+      [
+        231,
+        10,
+        14
+      ]
+    ],
+    "within": 8,
+    "lamp": [
+      255,
+      0,
+      255
+    ]
+  },
+  "glass": {
+    "color": [
+      10,
+      10,
+      12
+    ],
+    "within": 4,
+    "rough": 0.5
+  },
+  "ramps": {
+    "paints": [
+      7
+    ],
+    "glass": 3,
+    "grey": 4,
+    "sampleYaws": 16
+  },
+  "light": {
+    "main": [
+      -0.25,
+      0.85,
+      0.46
+    ],
+    "fill": [
+      0.6,
+      0.2,
+      0.5
+    ],
+    "ambient": 0.08,
+    "sky": 0.14,
+    "mainWeight": 0.92,
+    "fillWeight": 0.06,
+    "greyGain": 1.5
+  },
+  "reflection": {
+    "paint": {
+      "f0": 0.1,
+      "horizon": [
+        205,
+        218,
+        238
+      ],
+      "zenith": [
+        120,
+        160,
+        230
+      ],
+      "haze": [
+        70,
+        66,
+        68
+      ],
+      "ground": [
+        20,
+        18,
+        20
+      ],
+      "fall": 0.1,
+      "power": 0.6
+    },
+    "glass": {
+      "f0": 0.8,
+      "horizon": [
+        232,
+        240,
+        248
+      ],
+      "zenith": [
+        58,
+        120,
+        222
+      ],
+      "haze": [
+        205,
+        214,
+        224
+      ],
+      "ground": [
+        86,
+        88,
+        92
+      ],
+      "fall": 0.35,
+      "power": 0.6
+    }
+  },
+  "glare": [
+    {
+      "power": 30,
+      "strength": 2.0,
+      "glass": 1.0
+    },
+    {
+      "power": 220,
+      "strength": 4.0,
+      "glass": 1.5
+    }
+  ],
+  "wheels": [
+    {
+      "center": [
+        0.7745,
+        0.3157,
+        1.25
+      ],
+      "radius": 0.3157,
+      "rim": 0.2207,
+      "width": 0.225
+    },
+    {
+      "center": [
+        -0.7745,
+        0.3157,
+        1.25
+      ],
+      "radius": 0.3157,
+      "rim": 0.2207,
+      "width": 0.225
+    },
+    {
+      "center": [
+        0.773,
+        0.3135,
+        -1.25
+      ],
+      "radius": 0.3135,
+      "rim": 0.2207,
+      "width": 0.245
+    },
+    {
+      "center": [
+        -0.773,
+        0.3135,
+        -1.25
+      ],
+      "radius": 0.3135,
+      "rim": 0.2207,
+      "width": 0.245
+    }
+  ],
+  "liveries": {
+    "guards-red": [
+      [
+        231,
+        10,
+        14
+      ]
+    ],
+    "black": [
+      [
+        18,
+        18,
+        20
+      ]
+    ],
+    "grand-prix-white": [
+      [
+        238,
+        238,
+        232
+      ]
+    ],
+    "silver": [
+      [
+        190,
+        194,
+        198
+      ]
+    ],
+    "dark-blue": [
+      [
+        22,
+        30,
+        70
+      ]
+    ],
+    "summer-yellow": [
+      [
+        240,
+        205,
+        40
+      ]
+    ],
+    "venetian-blue": [
+      [
+        40,
+        70,
+        120
+      ]
+    ],
+    "cassis-red": [
+      [
+        110,
+        24,
+        44
+      ]
+    ]
+  },
+  "brakeLamp": {
+    "off": [
+      125,
+      12,
+      18
+    ],
+    "on": [
+      255,
+      70,
+      40
+    ]
+  }
+}
