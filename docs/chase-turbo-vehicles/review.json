@@ -39,45 +39,6 @@
     ]
   },
   {
-    "id": "COUNTACH_5000_QV_1985",
-    "sprite": "countach-5000-qv-1985",
-    "sha256": "3f0d68e313ab867bf722eba7c56ca486e0a7e14248cc29ad6922c34f062238fd",
-    "yawVariants": 64,
-    "bankVariants": 1,
-    "lods": [
-      {
-        "lod": 0,
-        "transparent": 0,
-        "lampPictures": 38
-      },
-      {
-        "lod": 1,
-        "transparent": 0,
-        "lampPictures": 48
-      },
-      {
-        "lod": 2,
-        "transparent": 0,
-        "lampPictures": 46
-      },
-      {
-        "lod": 3,
-        "transparent": 0,
-        "lampPictures": 39
-      },
-      {
-        "lod": 4,
-        "transparent": 0,
-        "lampPictures": 29
-      },
-      {
-        "lod": 5,
-        "transparent": 0,
-        "lampPictures": 0
-      }
-    ]
-  },
-  {
     "id": "FERRARI_GTO_1984",
     "sprite": "ferrari-gto-1984",
     "sha256": "59dc8f9d5888bd6c22f2fa90e6dc4e8f988d3c1836470b14233c638ce6d7e3e5",

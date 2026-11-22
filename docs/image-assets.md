@@ -617,7 +617,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `911-turbo-3-3-1986`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `ferrari-f40-1988`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `ferrari-f40-1988`, `countach-5000-qv-1985`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`nova-250-1977`): drawn by
@@ -1171,6 +1171,44 @@ on the other dark parts, and its occlusion, made as the Testarossa model's. Its 
 Its one livery is `rosso-corsa`, ROSSO CORSA, (231, 10, 14), the model's own; the four game colors of its earlier,
 drawn set are gone (K, 2026-11-19). The model is K's `ferrari-f40-1988.glb` (SHA-256 `1d15daa6…`), kept on K's
 branch `codex/f40-1988-glb-source`, never on main; it has no wheel nodes, and its front hub is (0, 0.314, 1.2393).
+
+**The Countach 5000 QV of 1985.** Its set, `countach-5000-qv-1985`, is baked from K's model of the European car by the
+RX-7's recipe (K, 2026-11-23): the same steps (seven paint steps, three glass steps and four greys), light,
+reflections, glare, spacing, 64 directions and brake lamp colors, none moved for this car. What differs is the model's:
+the body's red (231, 10, 14) is its one paint, within 8, on the body, the over-fenders, the front spoiler, the rear wing
+and its legs, the airbox and its top, the engine cover and the panel between the tail lamps; the glass is (10, 10, 12),
+within 4 and of roughness below 0.5, nine panes (the windscreen, each door's upper and lower, the two front quarter
+lights and the two rear quarters); the magenta (255, 0, 255) is the brake lamp, one section of each tail lamp, which K
+painted, the other sections (red, amber and white) as the model came. Every black part is matt, (22, 22, 24) of
+roughness 0.90, which K painted: the window frames and pillars, the mirrors, the rear deck's louvres, the airbox's
+mouths, the depths of the side NACA ducts, the front grille, the rear panel round the number plate and the silencers,
+and the running gear seen low at the rear; it is a grey, never glass, and there is no glossy black. The rear badge's
+white letters keep the model's color, the panel round them the body's. The model holds its roughness, 0.10 on the red,
+the glass and the brake lamp and 0.90 on the other dark parts, and its occlusion, made as the 928 S4 model's is. Its
+four wheels are spun as the model's `extras` give them: centres (±0.768, 0.303, 1.225) m front and
+(±0.803, 0.31125, −1.225) m rear, radii 0.303 and 0.31125, widths 0.225 and 0.345 (225/50 VR 15 and 345/35 VR 15);
+the rims are 0.208, the 15-inch rim's radius and the 928 S4's 0.0175 of edge (the stage auditor's). The model is fitted
+to the car's definition: 4,140 mm long to the body's tail under the wing (4,244 mm with the wing, which overhangs it by
+104 mm), 2,000 mm wide at the rear fenders (2,027 mm across the mirrors; 1,856 mm at the doors and 1,892 mm at the
+front fenders, as K's model is) and 1,070 mm high to the roof (1,160 mm to the wing's top), on its 2,450 mm wheelbase
+and 1,536 / 1,606 mm tracks; its plan is scaled to the body's length, its width by 1.049 and its height by 0.962 of
+that. The wheels drawn are the tires' nominal size, not the 0.288 and 0.305 m its driving uses. K removed a thin
+diagonal bar outside each rear quarter window, which the car does not have; where it met the roof's corner and before
+the airbox, each side keeps a small seam of about 5 cm.
+
+Its four liveries are its real colors by their full names (K, 2026-11-23; the keys and base colors are the stage
+auditor's, provisional, not measured from paint samples), the model's red first:
+
+| Palette            | Name             | Code          | Base color    |
+| ------------------ | ---------------- | ------------- | ------------- |
+| `rosso-siviglia`   | ROSSO SIVIGLIA   | PPG 2.464.022 | 231, 10, 14   |
+| `giallo-fly`       | GIALLO FLY       |               | 255, 226, 56  |
+| `bianco-polo-park` | BIANCO POLO PARK | PPG 2.461.025 | 238, 238, 232 |
+| `nero-tenebre`     | NERO TENEBRE     | PPG 2.467.026 | 18, 18, 20    |
+
+The listing's default is `giallo-fly`, a bright yellow (K, 2026-11-23); its four game colors are gone. The model is K's
+`countach-5000-qv-1985.glb` (SHA-256 `a21ffd16…`), kept on K's branch `codex/countach-5000-qv-1985-glb-source`, never
+on main; it has no wheel nodes, and its front hub is (0, 0.303, 1.225).
 
 ## HUD picture generator
 
