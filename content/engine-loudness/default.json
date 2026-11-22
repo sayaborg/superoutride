@@ -150,9 +150,9 @@
     },
     {
       "vehicleId": "TURBO_ESPRIT_1984",
-      "vehicleSha256": "1d736059bf9c69d37476a591963d91b66a92c3fab993ddc028b5c821acaf5d07",
-      "soundSha256": "caad9e86aede846b85b7919e1f8610ae3e30349e68e0fbc3b6c616de7b50ba28",
-      "lufs": [-38.94674948155936, -40.50694834117334, -43.59940827857392, -50.18570384481909]
+      "vehicleSha256": "fef79b7b39f8a5642e6ab1945bde5ad29b2e502cee0fca0539bfd4cae6f648ea",
+      "soundSha256": "28c6cb2b785714d0e4a58582d5de7fa26afcbc05d23e1243cefa4d7f02f7a6b7",
+      "lufs": [-46.95867286676434, -47.73863939946722, -49.494125364718386, -53.125511007416016]
     },
     {
       "vehicleId": "COUNTACH_5000_QV_1988",

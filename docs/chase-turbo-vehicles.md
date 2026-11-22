@@ -94,8 +94,8 @@ converted to station torque by its rolling radius and rounded to 25 Nm. Actual b
 unchanged tire, load and protection rules. This is not a reconstruction of period hydraulic brake pressure,
 ABS, spring rates, bump travel, tire temperature, handling limits or stopping-distance tests.
 
-The Esprit, 928 S, Countach, 930, Mini, Toyota and Novas still lack a read, exact-year primary gearbox
-ratio table. Their provisional ratios are explicit engineering estimates, not borrowed verified facts from
+The 928 S, Countach, 930, Mini, Toyota and Novas still lack a read, exact-year primary gearbox ratio table (the
+Esprit's ratios are Autocar's road-test tables, below). Their provisional ratios are explicit engineering estimates, not borrowed verified facts from
 another year. The F40 uses gear pairs 2.769/1.722/1.227/0.963/0.767 and the European effective final reduction
 `(30/11)*(28/21)`; the transfer reduction is folded into the existing single final-drive field. The GTO manual's
 published ratios already include its transfer gears and therefore must not receive that factor a second time.
@@ -166,6 +166,25 @@ A source-verified secondary value means that page was read, not that it has prim
     195 lb-ft/1600 or 305 V8 145 hp/3800, 245 lb-ft/2400 engine curves, mass, track or gearbox ratios.
     Those are provisional engineering inputs pending an exact engine/market factory sheet. The police
     conversion does not claim an original 9C1 manual option.
+
+11. **Turbo Esprit, UK, road tests and parts** (MF-4, 2026-11-22). Autocar's December 1984 road test of the UK
+    Turbo Esprit ([text](https://www.lotusespritturbo.com/Lotus_Turbo_Esprit_Road_Test_1984.htm)): 210 bhp at 6,250,
+    200 lb-ft at 4,500, 7.5:1, 8 psi, 22.7 mph per 1,000 rpm in fifth. Autocar's Turbo HC table
+    ([text](https://www.lotusespritturbo.com/Lotus_Turbo_Esprit_HC_Road_Test.htm)): 2.92/1.94/1.32/0.97/0.76, final
+    4.38, the same box (fifth's 22.7 mph agrees); the digits from the same box's 1983 listing
+    ([motormatchup](https://www.motormatchup.com/catalog/Lotus/Esprit-Turbo/1983/2DR-Coupe)). Motor Sport, September
+    1981 ([text](https://www.motorsportmagazine.com/archive/article/september-1981/48/lotus-esprit-turbo/)): over
+    140 lb-ft at 2,500 rpm and a two-branch manifold straight to the turbo; about 100 lb-ft at 2,000 and the 4 into 2
+    ([projectm71](https://www.projectm71.com/TurboEsprit.html)). UK mass and dimensions
+    ([ultimatespecs](https://www.ultimatespecs.com/car-specs/Lotus/132269/Lotus-Esprit-Turbo-22i.html)). The sound's
+    sources: the exhaust valves ([datasheet](https://lotusmarques.com/parts/datasheets/841-lotus-esprit-turbo-exhaust-valves)),
+    the cam ([table](https://users.ox.ac.uk/~ohare/engine.htm)), the manifold's pairing
+    ([stainless manifold](http://www.lotusespritworld.com/EGuides/EModifications/StainlessManifold.html)), the 1980–87
+    manifold and turbo diagram
+    ([image](https://lotusmarques.com/images/lm/Esprit-exhaust-manifold-and-turbo-80-87/esprit-turbo-man-80-87-wm.jpg)),
+    the pipe bore of a 1985 US car ([thread](https://www.lotustalk.com/threads/exhaust-diameter.378097)), the turbine's
+    A/R ([thread](https://www.lotustalk.com/threads/turbo-mods-upgrades.108579/)) and a replacement system's photograph
+    ([image](https://www41.easy-myshop.jp/emsrsc/nilaikanai/itemimg/2131/item.2131.1.jpg)).
 
 Conflicting secondary Countach pages mix incompatible bore, gearbox, power-unit and performance figures;
 they are not blanket authorities for this data. An Esprit page labelled simply “Turbo” actually describes

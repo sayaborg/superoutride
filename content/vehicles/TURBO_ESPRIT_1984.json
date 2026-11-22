@@ -33,11 +33,11 @@
     "idleRpm": 950,
     "redlineRpm": 7000,
     "finalDriveRatio": 4.375,
-    "gearRatios": [3.17, 1.83, 1.26, 0.97, 0.76],
+    "gearRatios": [2.923, 1.941, 1.321, 0.97, 0.757],
     "torqueCurve": [
       { "rpm": 950, "torqueNewtonMeters": 86.4 },
-      { "rpm": 2000, "torqueNewtonMeters": 126.9 },
-      { "rpm": 4500, "torqueNewtonMeters": 270 },
+      { "rpm": 2500, "torqueNewtonMeters": 190 },
+      { "rpm": 4500, "torqueNewtonMeters": 271.16359 },
       { "rpm": 6250, "torqueNewtonMeters": 239.262592 },
       { "rpm": 7000, "torqueNewtonMeters": 196.195325 }
     ]
