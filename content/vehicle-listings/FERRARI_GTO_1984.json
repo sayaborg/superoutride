@@ -4,12 +4,12 @@
   "form": "car",
   "selectionOrder": 36,
   "visuals": {
-    "spriteSet": "ferrari-gto-1985",
+    "spriteSet": "ferrari-gto-1984",
     "palette": "stock",
     "steeringPicture": "montecarlo",
     "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
   },
-  "sound": "FERRARI_GTO_1985",
+  "sound": "FERRARI_GTO_1984",
   "metadata": {
     "manufacturer": "Ferrari",
     "model": "GTO",

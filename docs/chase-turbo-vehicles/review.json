@@ -78,8 +78,8 @@
     ]
   },
   {
-    "id": "FERRARI_GTO_1985",
-    "sprite": "ferrari-gto-1985",
+    "id": "FERRARI_GTO_1984",
+    "sprite": "ferrari-gto-1984",
     "sha256": "59dc8f9d5888bd6c22f2fa90e6dc4e8f988d3c1836470b14233c638ce6d7e3e5",
     "yawVariants": 64,
     "bankVariants": 1,
