@@ -616,11 +616,11 @@ domain owns the admitted sets at run time: for a vehicle's color and lamp state 
 once and draws every picture with it, and it selects yaw/bank pictures. The image domain supplies only the generic
 sprite reader.
 
-`911-turbo-3-3`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
+`911-turbo-3-3-1986`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
 and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `ferrari-f40-1988`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
-sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`911-turbo-3-3`): drawn by
+sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`nova-250-1977`): drawn by
 code, original, for an earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
 octave `k` of a full-size picture whose anchor sits at the vehicle's base point (where a camera 1.75 m up and 6 m
 behind its ground line sees half the vehicle's width behind it), each reduced texel taking the set slot nearest its
@@ -654,7 +654,7 @@ authority for the vehicle's dimensions, and each view is fitted to it.
 view, stations and heights are metres in vehicle coordinates (origin at the base point, z forward, y up):
 
 ```text
-{format, version, vehicle: "911_TURBO_3_3", yawVariants: 64, background: "white" | "alpha",
+{format, version, vehicle: "911_TURBO_3_3_1986", yawVariants: 64, background: "white" | "alpha",
  side:  {road, roof, frontEnd, rearEnd, frontWheel, rearWheel, frontOverhangShare},
  top:   {centre, width, frontEnd, rearEnd, ties: [[sideColumn, topColumn], ...]},
  front: {centre, width, road, roof},
@@ -746,8 +746,8 @@ white), so a shaded amber stays amber and a dark texel stays a dark neutral. Eve
 the set names the same slots, so a color variant replaces the body colors and keeps the rest. By the contract's lamp
 rule, sizes 1 to 4 turn each lamp's fullest texel into a lamp texel when no texel of that lamp reached half.
 
-911 TURBO 3.3's saved set is the command's
-output for its recipe: silver, black, red and white. Its surface gives the hood between the front
+911 TURBO 3.3's saved set, `911-turbo-3-3-1986`, is the command's
+output for its recipe, drawn on the 1986 car's mechanics (MF-6b): silver, black, red and white. Its surface gives the hood between the front
 wings, the wings' round tops, the crowned roof and tapering tail, the rear shoulders and the tray of the rear wing;
 its marks give the windows, the headlamps and the brake lamps (the outer red lamps and the reflector square beside
 each). GOLF GTI 16V's saved set is the command's output for its recipe: red, white, black and silver. Its front and rear views are fitted to the side view's lamps and bumpers rather than to their roofs, which those views show from a little above; its marks give the rear window, the mirrors, the headlamps, foglamps and indicators, the tail lamps' amber and white sections, their lower red sections as brake lamps, and the number plates as paint; its surface is empty. Its red's two lightest steps are redder than the other sets', its middle neutral lighter, so that its silver wheels read as silver, and its red accent darker, so that a texel mixing paint with black trim stays dark in every color. VFR750R's saved set is a prototype accepted as it stands, rendered from a 3D model of the machine with its rider rather than by this generator: the model reduced to 200,000 triangles with its two wheels and its rider as separate parts, scaled uniformly so that its hubs stand at the mechanics document's axles, and drawn by each size's contract camera at 64 yaw by 7 bank images (`bankDegrees` 60), turned about the line where its tyres meet the road, under a sky above a darker road and a sun high, ahead and to the right, its wheels blurred over a turn. Its 14 colors are five greys (slots 1–5) and three paint ramps of three steps from light to dark (slots 6–8, 9–11 and 12–14), which take the model's red, white and navy paint, the rider's leathers and helmet included, lit as one flat paint; everything else takes the nearest grey, and the tail lamps' lenses the brake lamp. Its palettes replace the three ramps: tricolor is the real tricolour (red, white, navy), red is red with white and black, blue is blue with yellow and white, and black is black with orange and grey. The model, its classification and the bake lie outside the command and are not saved here. The reference photographs and screenshots used to judge a set are not saved here.

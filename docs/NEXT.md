@@ -325,6 +325,9 @@ as its throat and one room of 0.12 m × 150 mm, two-strokes as the machine is. T
   after the turbine (about 0.15–0.25 m) and the path in the silencer, the branches' entry into the body, the inner
   diameters (taken), which cylinders are at the front, the curve's 950, 3,000 and 6,800 rpm points (and a source's
   412 N m, taken for the earlier 930/60), the redline and the tallies' accuracy.
+  Its pictures are the four-view set drawn on the 1986 car (silver, black, GUARDS RED, GP WHITE; MF-6b), whether the
+  photographed car matches the 1986 European one in its details not checked; OUT RUN's and TURBO OUTRUN's traffic shows
+  them in place of the procedural shape.
 
 ## Stage AT — The attract demo remade
 

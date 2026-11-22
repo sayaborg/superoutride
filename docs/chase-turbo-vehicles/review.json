@@ -78,45 +78,6 @@
     ]
   },
   {
-    "id": "911_TURBO_3_3_1986",
-    "sprite": "911-turbo-3-3-1986",
-    "sha256": "343ece36d335335adaee6bcd23793fe1a5ae5bd95325cfb0da94782f2b6308a7",
-    "yawVariants": 64,
-    "bankVariants": 1,
-    "lods": [
-      {
-        "lod": 0,
-        "transparent": 0,
-        "lampPictures": 61
-      },
-      {
-        "lod": 1,
-        "transparent": 0,
-        "lampPictures": 59
-      },
-      {
-        "lod": 2,
-        "transparent": 0,
-        "lampPictures": 59
-      },
-      {
-        "lod": 3,
-        "transparent": 0,
-        "lampPictures": 49
-      },
-      {
-        "lod": 4,
-        "transparent": 0,
-        "lampPictures": 41
-      },
-      {
-        "lod": 5,
-        "transparent": 0,
-        "lampPictures": 0
-      }
-    ]
-  },
-  {
     "id": "FERRARI_GTO_1985",
     "sprite": "ferrari-gto-1985",
     "sha256": "59dc8f9d5888bd6c22f2fa90e6dc4e8f988d3c1836470b14233c638ce6d7e3e5",

@@ -10,7 +10,6 @@ import { createProceduralVehicleSolid, type Point3, type SurfaceColor } from './
 export const CHASE_TURBO_PICTURES = {
   TURBO_ESPRIT_1984: 'turbo-esprit-1984',
   COUNTACH_5000_QV_1985: 'countach-5000-qv-1985',
-  '911_TURBO_3_3_1986': '911-turbo-3-3-1986',
   FERRARI_GTO_1985: 'ferrari-gto-1985',
   PORSCHE_928_S_1984: 'porsche-928-s-1984',
   TOYOTA_PICKUP_1980: 'toyota-pickup-1980',
@@ -33,7 +32,6 @@ const black: Rgb = [18, 20, 23],
 const bodies: Record<ChaseTurboId, Rgb> = {
   TURBO_ESPRIT_1984: white,
   COUNTACH_5000_QV_1985: [245, 215, 35],
-  '911_TURBO_3_3_1986': silver,
   FERRARI_GTO_1985: blue,
   PORSCHE_928_S_1984: red,
   TOYOTA_PICKUP_1980: [190, 115, 55],
@@ -88,7 +86,6 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     z = m.overallLength / 2,
     h = m.overallHeight;
   const p928 = id === 'PORSCHE_928_S_1984',
-    p930 = id === '911_TURBO_3_3_1986',
     esprit = id === 'TURBO_ESPRIT_1984',
     countach = id === 'COUNTACH_5000_QV_1985',
     gto = id === 'FERRARI_GTO_1985',
@@ -177,58 +174,49 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
         [0.85, 0.83, 0.36, 0.43],
         [1, 0.62, 0.29, 0.32],
       ]
-    : p930
+    : mini
       ? [
-          [-1, 0.76, 0.4, 0.48],
-          [-0.7, 1, 0.5, 0.57],
-          [-0.1, 0.88, 0.55, 0.6],
-          [0.5, 0.89, 0.47, 0.5],
-          [0.85, 0.85, 0.41, 0.43],
-          [1, 0.68, 0.3, 0.32],
+          [-1, 0.88, 0.57, 0.59],
+          [-0.8, 1, 0.62, 0.64],
+          [0.72, 1, 0.62, 0.64],
+          [1, 0.88, 0.53, 0.55],
         ]
-      : mini
+      : nova
         ? [
-            [-1, 0.88, 0.57, 0.59],
-            [-0.8, 1, 0.62, 0.64],
-            [0.72, 1, 0.62, 0.64],
-            [1, 0.88, 0.53, 0.55],
+            [-1, 0.91, 0.5, 0.53],
+            [-0.8, 1, 0.55, 0.57],
+            [0.6, 1, 0.54, 0.57],
+            [1, 0.92, 0.49, 0.51],
           ]
-        : nova
+        : pickup
           ? [
-              [-1, 0.91, 0.5, 0.53],
-              [-0.8, 1, 0.55, 0.57],
-              [0.6, 1, 0.54, 0.57],
-              [1, 0.92, 0.49, 0.51],
+              [-1, 0.94, 0.55, 0.55],
+              [0.3, 0.94, 0.55, 0.55],
+              [0.55, 0.92, 0.54, 0.55],
+              [1, 0.88, 0.48, 0.5],
             ]
-          : pickup
+          : jeep
             ? [
-                [-1, 0.94, 0.55, 0.55],
-                [0.3, 0.94, 0.55, 0.55],
-                [0.55, 0.92, 0.54, 0.55],
-                [1, 0.88, 0.48, 0.5],
+                [-0.9, 0.88, 0.48, 0.5],
+                [0.15, 0.88, 0.5, 0.53],
+                [0.45, 0.65, 0.57, 0.59],
+                [0.9, 0.65, 0.57, 0.59],
               ]
-            : jeep
+            : c4
               ? [
-                  [-0.9, 0.88, 0.48, 0.5],
-                  [0.15, 0.88, 0.5, 0.53],
-                  [0.45, 0.65, 0.57, 0.59],
-                  [0.9, 0.65, 0.57, 0.59],
+                  [-1, 0.88, 0.45, 0.49],
+                  [-0.7, 1, 0.55, 0.58],
+                  [0.05, 0.94, 0.54, 0.59],
+                  [0.65, 0.97, 0.49, 0.55],
+                  [1, 0.78, 0.32, 0.36],
                 ]
-              : c4
-                ? [
-                    [-1, 0.88, 0.45, 0.49],
-                    [-0.7, 1, 0.55, 0.58],
-                    [0.05, 0.94, 0.54, 0.59],
-                    [0.65, 0.97, 0.49, 0.55],
-                    [1, 0.78, 0.32, 0.36],
-                  ]
-                : [
-                    [-1, 0.88, 0.49, 0.52],
-                    [-0.65, 1, 0.56, 0.58],
-                    [0.15, 0.92, 0.49, 0.55],
-                    [0.65, 0.94, 0.34, 0.4],
-                    [1, 0.78, 0.24, 0.28],
-                  ];
+              : [
+                  [-1, 0.88, 0.49, 0.52],
+                  [-0.65, 1, 0.56, 0.58],
+                  [0.15, 0.92, 0.49, 0.55],
+                  [0.65, 0.94, 0.34, 0.4],
+                  [1, 0.78, 0.24, 0.28],
+                ];
   const bottom = jeep ? 0.25 * h : pickup ? 0.18 * h : 0.13 * h;
   for (let i = 1; i < stations.length; i++) {
     const a = stations[i - 1]!,
@@ -263,10 +251,8 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
   if (pickup) slab([0, 0.29 * h, -0.36 * z], [0.8 * x, 0.025, 0.62 * z], dark, 'plain');
   // A separate cabin with framed front, rear and side glazing. Positive z faces the road ahead.
   const floor = (mini ? 0.63 : jeep ? 0.54 : pickup ? 0.56 : nova ? 0.56 : 0.56) * h;
-  const roofFront =
-    (mini ? 0.52 : jeep ? 0.21 : pickup ? 0.35 : nova ? 0.03 : p930 ? 0.08 : p928 || c4 ? -0.03 : 0.13) * z;
-  const roofRear =
-    (mini ? -0.62 : jeep ? -0.75 : pickup ? -0.02 : nova ? -0.42 : p930 ? -0.4 : p928 || c4 ? -0.4 : -0.24) * z;
+  const roofFront = (mini ? 0.52 : jeep ? 0.21 : pickup ? 0.35 : nova ? 0.03 : p928 || c4 ? -0.03 : 0.13) * z;
+  const roofRear = (mini ? -0.62 : jeep ? -0.75 : pickup ? -0.02 : nova ? -0.42 : p928 || c4 ? -0.4 : -0.24) * z;
   const baseFront = roofFront + (jeep ? 0.07 : pickup ? 0.16 : mini ? 0.13 : 0.3) * z,
     baseRear = roofRear - (jeep ? 0.06 : pickup ? 0.04 : mini ? 0.13 : nova ? 0.18 : 0.34) * z;
   const roofY = (police ? 0.92 : 1) * h,
@@ -373,7 +359,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
         red,
         'lamp',
       );
-    if (p930 || mini || nova) roundLamp(side * 0.68 * x, (mini ? 0.57 : nova ? 0.44 : 0.5) * h, noseZ, 0.09);
+    if (mini || nova) roundLamp(side * 0.68 * x, (mini ? 0.57 : nova ? 0.44 : 0.5) * h, noseZ, 0.09);
     else if (p928) s.ellipsoid([side * 0.65 * x, 0.45 * h, 0.78 * z], [0.13, 0.025, 0.16], white);
     else
       slab(
@@ -419,19 +405,14 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     s.cylinder([0, 0.53 * h, -0.91 * z], [0, 0.53 * h, -1.01 * z], 0.32, black);
     s.cylinder([0, 0.53 * h, -1.012 * z], [0, 0.53 * h, -1.016 * z], 0.18, metal);
   }
-  if (p928 || p930 || countach || gto) {
-    const wingY = (p928 ? 0.52 : p930 ? 0.59 : countach ? 0.88 : 0.56) * h,
+  if (p928 || countach || gto) {
+    const wingY = (p928 ? 0.52 : countach ? 0.88 : 0.56) * h,
       wingZ = (p928 ? -0.82 : countach ? -0.83 : -0.87) * z,
       wingWidth = (countach ? 0.9 : 0.79) * x;
     if (countach)
       for (const side of [-1, 1])
         slab([side * 0.6 * x, (wingY + 0.48 * h) / 2, wingZ], [0.025, (wingY - 0.48 * h) / 2, 0.08 * z]);
-    slab(
-      [0, wingY, wingZ],
-      [wingWidth, 0.035, (p930 ? 0.16 : 0.09) * z],
-      p930 || p928 ? black : paint,
-      p930 || p928 ? 'plain' : 'paint',
-    );
+    slab([0, wingY, wingZ], [wingWidth, 0.035, 0.09 * z], p928 ? black : paint, p928 ? 'plain' : 'paint');
   }
   if (esprit || countach || gto) {
     for (let i = 0; i < 7; i++)

@@ -5,9 +5,9 @@
   "selectionOrder": 35,
   "visuals": {
     "spriteSet": "911-turbo-3-3-1986",
-    "palette": "stock",
-    "steeringPicture": "montecarlo",
-    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+    "palette": "silver",
+    "steeringPicture": "prototipo",
+    "colorNames": { "silver": "SILVER", "black": "BLACK", "red": "GUARDS RED", "white": "GP WHITE" }
   },
   "sound": "911_TURBO_3_3_1986",
   "metadata": {
@@ -15,7 +15,7 @@
     "model": "911 Turbo 3.3",
     "period": "1986",
     "mobileLabel": "930",
-    "engine": "F6",
+    "engine": "F6T",
     "engineKind": "4-stroke",
     "identifier": { "officialLabel": "930", "shortLabel": "930" },
     "selectedSpecification": ["4MT"],
