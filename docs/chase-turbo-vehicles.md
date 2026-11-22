@@ -24,7 +24,7 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 | PORSCHE_928_S4_1987   | 1987 MY US 928 S4                                    | M28.41, 4957 cc DOHC 32-valve V8; G28.13 5MT                    | Black, later bumpers, large rear lamps and raised spoiler               |
 | TURBO_ESPRIT_1984     | 1984 UK Turbo Esprit, Type 82                        | 910 low-compression 2174 cc carburetted turbo four; Citroen 5MT | White Giugiaro wedge, rear louvers; not the Stevens X180                |
 | COUNTACH_5000_QV_1985 | 1985 European carburetted 5000 Quattrovalvole        | 5167 cc DOHC 48-valve V12; 5MT                                  | Yellow, rear wing and wide rear tires; not the 25th Anniversary body    |
-| 911_TURBO_3_3_1986    | 1986 MY US 911 Turbo 3.3 Coupe                       | 3299 cc air-cooled turbo flat six; 4MT                          | Silver, round headlights, wide rear fenders and tea-tray spoiler        |
+| 911_TURBO_3_3_1986    | 1986 MY European 911 Turbo 3.3 Coupe                 | 3299 cc air-cooled turbo flat six (930/66, 300 PS); 4MT         | Silver, round headlights, wide rear fenders and tea-tray spoiler        |
 | FERRARI_GTO_1985      | 1985 European GTO, Tipo F114                         | F114B, 2855.08 cc twin-turbo flat-plane V8; 5MT                 | Blue arcade recolor, rear-fender slots, paired round rear lamps         |
 | PORSCHE_928_S_1984    | 1984 MY US 928 S                                     | M28.19, 4664 cc SOHC 16-valve V8; 5MT                           | Red early body, rubber bumper trim and small spoiler                    |
 | TOYOTA_PICKUP_1980    | 1980 MY US 49-state RN42, regular cab, long bed, 2WD | 2189 cc 20R SOHC four; 4MT                                      | Open long bed, separate upright cab, rectangular lamps                  |
@@ -95,7 +95,7 @@ converted to station torque by its rolling radius and rounded to 25 Nm. Actual b
 unchanged tire, load and protection rules. This is not a reconstruction of period hydraulic brake pressure,
 ABS, spring rates, bump travel, tire temperature, handling limits or stopping-distance tests.
 
-The 928 S, 930, Mini, Toyota and Novas still lack a read, exact-year primary gearbox ratio table (the Esprit's ratios
+The 928 S, Mini, Toyota and Novas still lack a read, exact-year primary gearbox ratio table (the Esprit's ratios
 are Autocar's road-test tables, and the Countach's the period catalogue's, below). Their provisional ratios are explicit engineering estimates, not borrowed verified facts from
 another year. The F40 uses gear pairs 2.769/1.722/1.227/0.963/0.767 and the European effective final reduction
 `(30/11)*(28/21)`; the transfer reduction is folded into the existing single final-drive field. The GTO manual's
@@ -155,8 +155,7 @@ A source-verified secondary value means that page was read, not that it has prim
 8. **Secondary model histories**, [Esprit](https://en.wikipedia.org/wiki/Lotus_Esprit),
    [Countach](https://en.wikipedia.org/wiki/Lamborghini_Countach), [930](https://en.wikipedia.org/wiki/Porsche_930),
    [959](https://en.wikipedia.org/wiki/Porsche_959). These support engine families and headline anchors, with
-   exact-year application still provisional where noted in the CSV. The 930 US anchor is 282 mechanical hp
-   at 5500 and 377 Nm at 4000, not the European 300 PS value. The QV's carburetted 455 PS is distinct from
+   exact-year application still provisional where noted in the CSV. The 930's anchor is the European 930/66's 300 PS at 5500 and 430 Nm at 4000 (MF-6a), no longer the US 282 hp. The QV's carburetted 455 PS is distinct from
    the US injected 420 hp. The 959's mass is K's 1,600 kg ([below](#porsche-959-of-1987-sources-versus-authored)), no longer the 1450 kg Komfort curb mass first adopted.
 9. **Mini secondary specifications**, [Mini 850](https://www.uniquecarsandparts.com/mini_850_technical_specifications.htm).
    Mixed-market page supports the 848 cc OHV family and approximate envelope, but is not an exact early-1964
@@ -203,6 +202,21 @@ A source-verified secondary value means that page was read, not that it has prim
     lift and duration ([Web Cam](https://www.webcamshafts.com/pages_vehicles/automobile/lamborghini/2663.html)) and the
     cam timing and clearance on a forum
     ([thread](https://www.lamborghinichat.com/forum/threads/countach-technical-thread-questions.402160/page-13)).
+
+13. **911 Turbo 3.3 of 1986, European** (MF-6, 2026-11-22). The year and the market are K's choices (the most
+    numerous European and other-market coupé year, by chassis-number tallies at
+    [turbosition](https://www.turbosition.com/en/porsche-930/chassis-numbers), not the maker's figures), not a claim
+    about the arcade car. European figures, 300 PS at 5,500, 430 Nm at 4,000, 1,335 kg, 4,291 mm, 2,272 mm, 930/66
+    ([auto-data](https://www.auto-data.net/en/porsche-911-coupe-type-930-3.3-turbo-300hp-manual-5-speed-6654),
+    [ultimatespecs](<https://www.ultimatespecs.com/de/car-specs/Porsche/239048/Porsche-911-Coupe-(911-series)-33-Turbo-4-speed.html>));
+    a 1986 European car with the M930/66 engine and the 930/36 box
+    ([classic driver](https://www.classicdriver.com/de/car/porsche/911-turbo/1986/1085571)). The torque curve's 950,
+    3,000 and 6,800 rpm points are estimates (owners' boost figures by speed; no curve was found). The sound's
+    sources: Porsche's diagrams for the 930.66/68 engine, the heat exchangers
+    ([202-10](https://www.design911.com/uploads/images/diagrams/diagrams/911_1989_2_02_202-10.jpg)), the turbine's pipes,
+    wastegate and silencer ([202-15](https://www.design911.com/uploads/images/diagrams/diagrams/911_1989_2_02_202-15.jpg))
+    and the crossing pipe
+    ([202-05](https://www.design911.com/uploads/images/diagrams/diagrams/911_1989_2_02_202-05.jpg)).
 
 Conflicting secondary Countach pages mix incompatible bore, gearbox, power-unit and performance figures;
 they are not blanket authorities for this data. An Esprit page labelled simply “Turbo” actually describes

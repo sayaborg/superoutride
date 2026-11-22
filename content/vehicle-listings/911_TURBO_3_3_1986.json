@@ -19,6 +19,6 @@
     "engineKind": "4-stroke",
     "identifier": { "officialLabel": "930", "shortLabel": "930" },
     "selectedSpecification": ["4MT"],
-    "physicsAnchor": { "modelYear": "1986", "market": "US" }
+    "physicsAnchor": { "modelYear": "1986", "market": "Europe" }
   }
 }

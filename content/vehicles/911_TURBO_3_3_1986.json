@@ -35,11 +35,11 @@
     "finalDriveRatio": 4.222,
     "gearRatios": [2.25, 1.304, 0.893, 0.625],
     "torqueCurve": [
-      { "rpm": 950, "torqueNewtonMeters": 120.64 },
-      { "rpm": 2000, "torqueNewtonMeters": 177.19 },
-      { "rpm": 4000, "torqueNewtonMeters": 377 },
-      { "rpm": 5500, "torqueNewtonMeters": 365.1085 },
-      { "rpm": 6800, "torqueNewtonMeters": 271.507957 }
+      { "rpm": 950, "torqueNewtonMeters": 137.6 },
+      { "rpm": 3000, "torqueNewtonMeters": 342 },
+      { "rpm": 4000, "torqueNewtonMeters": 430 },
+      { "rpm": 5500, "torqueNewtonMeters": 383.099766 },
+      { "rpm": 6800, "torqueNewtonMeters": 284.886916 }
     ]
   }
 }
