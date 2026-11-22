@@ -4,12 +4,12 @@
   "form": "car",
   "selectionOrder": 34,
   "visuals": {
-    "spriteSet": "countach-5000-qv-1988",
+    "spriteSet": "countach-5000-qv-1985",
     "palette": "stock",
     "steeringPicture": "montecarlo",
     "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
   },
-  "sound": "COUNTACH_5000_QV_1988",
+  "sound": "COUNTACH_5000_QV_1985",
   "metadata": {
     "manufacturer": "Lamborghini",
     "model": "Countach 5000 QV",

@@ -39,8 +39,8 @@
     ]
   },
   {
-    "id": "COUNTACH_5000_QV_1988",
-    "sprite": "countach-5000-qv-1988",
+    "id": "COUNTACH_5000_QV_1985",
+    "sprite": "countach-5000-qv-1985",
     "sha256": "3f0d68e313ab867bf722eba7c56ca486e0a7e14248cc29ad6922c34f062238fd",
     "yawVariants": 64,
     "bankVariants": 1,

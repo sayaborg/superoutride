@@ -9,7 +9,7 @@ import { createProceduralVehicleSolid, type Point3, type SurfaceColor } from './
  */
 export const CHASE_TURBO_PICTURES = {
   TURBO_ESPRIT_1984: 'turbo-esprit-1984',
-  COUNTACH_5000_QV_1988: 'countach-5000-qv-1988',
+  COUNTACH_5000_QV_1985: 'countach-5000-qv-1985',
   '911_TURBO_3_3_1986': '911-turbo-3-3-1986',
   FERRARI_GTO_1985: 'ferrari-gto-1985',
   PORSCHE_928_S_1984: 'porsche-928-s-1984',
@@ -32,7 +32,7 @@ const black: Rgb = [18, 20, 23],
   paint: Rgb = [180, 180, 180];
 const bodies: Record<ChaseTurboId, Rgb> = {
   TURBO_ESPRIT_1984: white,
-  COUNTACH_5000_QV_1988: [245, 215, 35],
+  COUNTACH_5000_QV_1985: [245, 215, 35],
   '911_TURBO_3_3_1986': silver,
   FERRARI_GTO_1985: blue,
   PORSCHE_928_S_1984: red,
@@ -90,7 +90,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
   const p928 = id === 'PORSCHE_928_S_1984',
     p930 = id === '911_TURBO_3_3_1986',
     esprit = id === 'TURBO_ESPRIT_1984',
-    countach = id === 'COUNTACH_5000_QV_1988',
+    countach = id === 'COUNTACH_5000_QV_1985',
     gto = id === 'FERRARI_GTO_1985',
     c4 = id === 'CORVETTE_C4_1984',
     mini = id === 'AUSTIN_MINI_850_1964',

@@ -6,7 +6,7 @@ scenarioTests({
   tsukuba: [
     'PORSCHE_928_S4_1987',
     'TURBO_ESPRIT_1984',
-    'COUNTACH_5000_QV_1988',
+    'COUNTACH_5000_QV_1985',
     '911_TURBO_3_3_1986',
     'FERRARI_GTO_1985',
     'PORSCHE_928_S_1984',
