@@ -10,16 +10,16 @@ import {
 } from '../core/admission.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
-import { EXHAUST_RATE_DIVISORS } from '../audio/exhaust-rate.js';
+import { EXHAUST_RENDERINGS } from '../audio/exhaust-rate.js';
 import type { ContentDelivery } from './content-delivery.js';
 import { admitProduct } from './delivered-product.js';
 
 /**
  * The engine loudness: each vehicle's measured integrated loudness (LUFS) of its engine's compressed sound, before its
- * gain and soft clip, at each kernel divisor, with the identities it was measured from. Saved under `content/` by the
+ * gain and soft clip, at each rendering, with the identities it was measured from. Saved under `content/` by the
  * measurement tool and delivered as saved.
  */
-export const ENGINE_LOUDNESS_FORMAT = Object.freeze({ format: 'superoutride.engine-loudness', version: 2 } as const);
+export const ENGINE_LOUDNESS_FORMAT = Object.freeze({ format: 'superoutride.engine-loudness', version: 3 } as const);
 /** The one engine loudness document's identifier: its file name and manifest ID. */
 export const ENGINE_LOUDNESS_ID = 'default';
 
@@ -29,7 +29,7 @@ export interface EngineLoudnessEntry {
   readonly vehicleSha256: string;
   /** Its engine sound document's SHA-256. */
   readonly soundSha256: string;
-  /** One loudness for each of `EXHAUST_RATE_DIVISORS`, in its order. */
+  /** One loudness for each of `EXHAUST_RENDERINGS`, in its order. */
   readonly lufs: readonly number[];
 }
 
@@ -78,7 +78,7 @@ const invalid: Mismatch = (path, reason) => {
 /**
  * Admit an engine loudness document for `sources`: the audio document's identity, and every catalog vehicle once in
  * catalog order with its own identities; `procedureSha256`, when given, is the measurement's. Each mismatch is refused
- * through `mismatch`. Returns each vehicle's loudness at each divisor by vehicle ID.
+ * through `mismatch`. Returns each vehicle's loudness at each rendering by vehicle ID.
  */
 export function readEngineLoudness(
   input: unknown,
@@ -115,11 +115,11 @@ export function readEngineLoudness(
       if (readString(entry.soundSha256, `${at}/soundSha256`, SHA256_TEXT) !== soundSha256)
         mismatch(`${at}/soundSha256`, "The vehicle's engine sound changed since its engine loudness was measured");
       const lufs = readArray(entry.lufs, `${at}/lufs`, (value, pointer) => readNumber(value, pointer));
-      if (lufs.length !== EXHAUST_RATE_DIVISORS.length)
+      if (lufs.length !== EXHAUST_RENDERINGS.length)
         throw new AdmissionError(
           'invalid_value',
           `${at}/lufs`,
-          `Expected one loudness for each divisor, ${EXHAUST_RATE_DIVISORS.join(', ')}`,
+          `Expected one loudness for each rendering, ${EXHAUST_RENDERINGS.map(({ kernel, divisor }) => `${kernel} at ${divisor}`).join(', ')}`,
         );
       loudness.set(vehicleId, Object.freeze(lufs));
     });

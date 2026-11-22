@@ -61,7 +61,7 @@ numbered from 0, one open end reached from every junction), rules over the pipes
 adds the sound ID and the delivered bytes' SHA-256. Firing phases are used exactly as written. The content layer
 ([engine-sound catalog](../src/content/engine-sound-catalog.ts)) admits every document, delivers it as kind
 `engine-sound` and passes the catalog to the vehicle catalog, whose listings resolve their `sound` in it; the
-same sample-free engine kernel plays every sound. DEV's ENGINE SOUNDS panel ([Browser](browser.md#sound-controls))
+same sample-free engine kernels play every sound. DEV's ENGINE SOUNDS panel ([Browser](browser.md#sound-controls))
 changes a sound's valve and its primary and pipe lengths and diameters, each change through `compileEngineSound`; every voice whose
 competitor's vehicle uses that sound fades to silence and installs it, as for any change of sound.
 
@@ -137,25 +137,30 @@ afterfires burning, latest first), is the same however the calls divide the samp
 two at or above `4N + 8` values, so a sound of at most 2 × (16 + 32) lines stores at most 96 rings of 8192 values (at
 4 m and 192 kHz) in each of its four arrays.
 
-**Its rate.** The kernel runs at the output's rate over a divisor of 1, 2, 4 or 8
-([`ExhaustRenderer`](../src/audio/exhaust-rate.ts)), and its sound is brought up to the output's rate by doubling once
+**Its rate.** An engine's rendering ([`ExhaustRenderer`](../src/audio/exhaust-rate.ts); `EXHAUST_RENDERINGS`) is its
+kernel, run at the output's rate over a divisor of 1, 2, 4 or 8, and its sound is brought up to the output's rate by doubling once
 for each halving: each sample between two is the cubic through the four around it, `(-a + 9b + 9c - d)/16`. The kernel
 takes the observations of the first output sample of each of its own. It is the same model at every rate, only the rate
 it is given differs; tube lengths are rounded to the samples of that rate (K, by listening). The player's ENGINE SOUND
-QUALITY (K, 2026-11-21; [Browser](browser.md#player-record)) sets the player's divisor, and a rival runs at half the
-player's rate:
+QUALITY (K, 2026-11-21 and 2026-11-22; [Browser](browser.md#player-record)) sets both voices' renderings. HIGH, MID and
+LOW are the one game kernel at different rates: the player's divisor, and a rival at half the player's rate. LIGHT is
+the other kernel, the [light kernel](#the-light-kernel), for both at the output's rate, which no doubling passes; it has
+no slower rate:
 
-| ENGINE SOUND QUALITY | Player            | Rival      |
-| -------------------- | ----------------- | ---------- |
-| HIGH                 | 1 (48 kHz output) | 2 (24 kHz) |
-| MID (default)        | 2 (24 kHz)        | 4 (12 kHz) |
-| LOW                  | 4 (12 kHz)        | 8 (6 kHz)  |
+| ENGINE SOUND QUALITY | Kernel | Player            | Rival      |
+| -------------------- | ------ | ----------------- | ---------- |
+| HIGH                 | game   | 1 (48 kHz output) | 2 (24 kHz) |
+| MID (default)        | game   | 2 (24 kHz)        | 4 (12 kHz) |
+| LOW                  | game   | 4 (12 kHz)        | 8 (6 kHz)  |
+| LIGHT                | light  | 1 (48 kHz output) | 1 (48 kHz) |
 
 A wall-loss shelf whose corner the rate does not carry is left out ([derived values](#derived-values)). A change of
-quality is a change of the voices' kernels: each voice fades to silence and installs its new one, as for any change of
+quality is a change of the voices' renderings: each voice fades to silence and installs its new one, as for any change of
 sound.
 
-**The light kernel.** A second kernel, [`ExhaustLight`](../src/audio/exhaust-light.ts) (K, 2026-11-22), is the game
+### The light kernel
+
+A second kernel, [`ExhaustLight`](../src/audio/exhaust-light.ts) (K, 2026-11-22), is the game
 kernel with linear tubes: the same cylinders, gas (`GAS`), valve law, wall loss, mouths, afterfire, start (no flow
 before a valve first opens) and listened values (`EXHAUST_LISTENING`), heard the same way, the mouths' pressure times
 their diameter. A wave does not steepen, and a junction or a mouth is no jet:
@@ -186,7 +191,7 @@ takes it through three stages, in this order:
 
 1. **Compressor.** The sound's mean square over 50 ms (`level += f (x² - level)`, `f = 1 - exp(-1/(0.05 × rate))`)
    sets `x × level^(-1/4)`: a ratio of 2:1 with its threshold at the bottom, so all of the sound is compressed.
-2. **Gain.** The vehicle's gain for the divisor its kernel runs at, `10^((engineDriveLufs - lufs)/20)`, brings its
+2. **Gain.** The vehicle's gain for the rendering its engine plays at, `10^((engineDriveLufs - lufs)/20)`, brings its
    [measured](#engine-loudness) compressed sound to MIX's `engineDriveLufs`.
 3. **Soft clip.** `y/(1 + |y|/2)`: below the ceiling of 2 and of unit small-signal gain (`softClip(y/2, 2)` of the
    former form).
@@ -268,9 +273,9 @@ ENGINE group (K, 2026-11-21).
 
 Vehicles' exhausts differ in level, as physics makes them; the game levels them by measurement, while each engine's own
 changes of level as it is driven (idle against full throttle) stay its physics' and its compressor's. Each vehicle's
-engine loudness is measured once at each divisor, outside the build, and saved with the identities of what it was
-measured from. The measurement ([engine loudness](../tools/authoring/engine-loudness.ts)) runs the game's kernel at each
-of the output's rate over 1, 2, 4 and 8, brought up to the 48 kHz output, with the audio document's TIMING settings on
+engine loudness is measured once at each rendering, outside the build, and saved with the identities of what it was
+measured from. The measurement ([engine loudness](../tools/authoring/engine-loudness.ts)) runs each rendering: the game's kernel at
+the output's rate over 1, 2, 4 and 8, brought up to the 48 kHz output, and the light kernel at it, with the audio document's TIMING settings on
 one drive, the same for every vehicle at its own idle and redline:
 
 | Seconds | Engine speed        | Opening |
@@ -285,23 +290,24 @@ one drive, the same for every vehicle at its own idle and redline:
 Engine speed changes linearly within a segment; fuel is never cut and nothing afterfires. The engine's compressed sound,
 after the chain's compressor from silence and before its gain and soft clip, is metered by ITU-R BS.1770-4 integrated
 loudness: K-weighting, the mean square of 400 ms blocks every 100 ms, the absolute gate at −70 LUFS and the relative
-gate 10 LU below the gated mean. The procedure's record (`ENGINE_LOUDNESS_PROCEDURE`, version 4) holds the drive, the
-rate, the divisors and what it meters; the SHA-256 of its JSON is its identity, and a change to its results raises its
+gate 10 LU below the gated mean. The procedure's record (`ENGINE_LOUDNESS_PROCEDURE`, version 5) holds the drive, the
+rate, the renderings and what it meters; the SHA-256 of its JSON is its identity, and a change to its results raises its
 version.
 
-`content/engine-loudness/default.json` is the one `superoutride.engine-loudness` version 2 document, with exactly
+`content/engine-loudness/default.json` is the one `superoutride.engine-loudness` version 3 document, with exactly
 `format`, `version`, `procedureSha256`, `audioSha256` (the audio document's SHA-256) and `vehicles`: every catalog
 vehicle once, in catalog order, with `vehicleId`, `vehicleSha256` (its mechanics document's SHA-256), `soundSha256`
-(its engine sound document's) and `lufs`, its four loudnesses at the divisors 1, 2, 4 and 8, in that order. The
+(its engine sound document's) and `lufs`, its five loudnesses at the renderings in `EXHAUST_RENDERINGS`' order: the game kernel at the divisors 1, 2, 4
+and 8, then the light kernel. The
 measurement tool writes it ([Development](development.md#measured-products)),
 measuring every vehicle again when any identity differs; a build admits it as a
 [measured product](content-and-gameplay.md#measured-products), refusing it as stale when any identity differs, and
 delivers it as saved (kind `engine-loudness`, ID `default`). [`readEngineLoudness`](../src/content/engine-loudness.ts)
-is its one reader; a vehicle without exactly four loudnesses is an `invalid_value` at its `lufs`.
+is its one reader; a vehicle without exactly five loudnesses is an `invalid_value` at its `lufs`.
 
 The game loads it once with the catalog (`loadEngineLoudness`), refusing a delivered one whose identities are not the
 delivered documents'. Each engine voice, the rival's included, takes the gain `engineGain` of its vehicle's loudness at
-the divisor it runs at; the rival's inverse-distance gain follows the chain. A delivery without the engine loudness (the
+the rendering it plays at; the rival's inverse-distance gain follows the chain. A delivery without the engine loudness (the
 workbench's build while measurements are stale) gives every engine the gain 1, unlevelled. A changed gain (a DEV MIX
 change, another rival vehicle, another quality) fades and replaces the kernel as any change does. DEV's ENGINE SOUNDS
 panel changes the engines at once, but the loudness stays the one measured for the delivered values: the DEV panel says
@@ -466,7 +472,7 @@ rivals and traffic vehicles the race observes on the resident Route. That cutoff
 inverse-distance law `referenceMeters/max(referenceMeters, distance)` over the 3D physical world distance, and the
 pan is lateral displacement in the player's yaw frame divided by `max(panMinimumMeters, distance)`. A change of rival ID silences the slot and waits the reassignment time before the new rival sounds. Each engine
 voice sounds the engine sound of its competitor's vehicle (the observation's vehicle ID, resolved through the
-vehicle catalog) at its divisor and gain; when a voice's sound, divisor or gain changes, it fades to silence and the new
+vehicle catalog) at its rendering and gain; when a voice's sound, rendering or gain changes, it fades to silence and the new
 kernel starts once it is silent. ENG, TIRE and MASTER independently multiply their
 outputs. A new sound kind adds one bus and connects its voices to it. Component output switches leave synthesis
 state running.
@@ -481,7 +487,7 @@ reaches it at a known time; every discontinuity (a kernel replaced, a source sto
 that time, in silence. `transitionSeconds` is the time woken kernels follow the observations before the live gate
 opens. The main thread reads these values when it schedules each change; the kernel
 values (`observationSeconds`, `componentSeconds`) travel with the worklet's settings message, so a TIMING change
-replaces the kernels like a settings change. Engine sound, divisor, gain and control
+replaces the kernels like a settings change. Engine sound, rendering, gain and control
 replacement fades to silence before installing a new kernel. New settings supersede pending values;
 returning to active values cancels pending replacement. Tire replacement is specified in
 [Tire audio](tire-audio.md#settings-replacement).

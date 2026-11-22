@@ -1,4 +1,5 @@
 import type { ControlSettings } from './audio-control-policy.js';
+import { ExhaustLight } from './exhaust-light.js';
 import { ExhaustWaveguide } from './exhaust-waveguide.js';
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 
@@ -6,19 +7,50 @@ import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 export const EXHAUST_RATE_DIVISORS = Object.freeze([1, 2, 4, 8] as const);
 export type ExhaustRateDivisor = (typeof EXHAUST_RATE_DIVISORS)[number];
 
-/** The player's ENGINE SOUND QUALITY settings (K, 2026-11-21), MID until the player chooses. */
-export const ENGINE_SOUND_QUALITIES = Object.freeze(['HIGH', 'MID', 'LOW'] as const);
+/** The exhaust kernels: the game kernel (`ExhaustWaveguide`) and the light kernel (`ExhaustLight`). */
+export type ExhaustKernelName = 'WAVEGUIDE' | 'LIGHT';
+
+/** How an engine is rendered: its kernel, run at the output's rate over its divisor. */
+export interface ExhaustRendering {
+  readonly kernel: ExhaustKernelName;
+  readonly divisor: ExhaustRateDivisor;
+}
+
+/**
+ * The renderings an engine is played and measured at, each one record: the game kernel at each divisor, then the light
+ * kernel at the output's rate (K, 2026-11-22: it has no slower rate).
+ */
+export const EXHAUST_RENDERINGS: readonly ExhaustRendering[] = Object.freeze([
+  ...EXHAUST_RATE_DIVISORS.map((divisor) => Object.freeze({ kernel: 'WAVEGUIDE' as const, divisor })),
+  Object.freeze({ kernel: 'LIGHT' as const, divisor: 1 as const }),
+]);
+const rendering = (kernel: ExhaustKernelName, divisor: ExhaustRateDivisor): ExhaustRendering =>
+  EXHAUST_RENDERINGS.find((entry) => entry.kernel === kernel && entry.divisor === divisor)!;
+
+/** The player's ENGINE SOUND QUALITY settings (K, 2026-11-21 and 2026-11-22), MID until the player chooses. */
+export const ENGINE_SOUND_QUALITIES = Object.freeze(['HIGH', 'MID', 'LOW', 'LIGHT'] as const);
 export type EngineSoundQuality = (typeof ENGINE_SOUND_QUALITIES)[number];
 export const DEFAULT_ENGINE_SOUND_QUALITY: EngineSoundQuality = 'MID';
-const PLAYER_DIVISORS: Readonly<Record<EngineSoundQuality, 1 | 2 | 4>> = Object.freeze({ HIGH: 1, MID: 2, LOW: 4 });
 
-/** The divisors a quality runs the engines' kernels at: the player's its own, a rival's half its rate. */
-export function engineRateDivisors(quality: EngineSoundQuality): {
-  readonly player: ExhaustRateDivisor;
-  readonly rival: ExhaustRateDivisor;
+/**
+ * The renderings a quality plays the engines at: HIGH, MID and LOW the game kernel, the player's at its own divisor and
+ * a rival's at half its rate; LIGHT the light kernel for both at the output's rate.
+ */
+const QUALITY_RENDERINGS: Readonly<
+  Record<EngineSoundQuality, { readonly player: ExhaustRendering; readonly rival: ExhaustRendering }>
+> = Object.freeze({
+  HIGH: Object.freeze({ player: rendering('WAVEGUIDE', 1), rival: rendering('WAVEGUIDE', 2) }),
+  MID: Object.freeze({ player: rendering('WAVEGUIDE', 2), rival: rendering('WAVEGUIDE', 4) }),
+  LOW: Object.freeze({ player: rendering('WAVEGUIDE', 4), rival: rendering('WAVEGUIDE', 8) }),
+  LIGHT: Object.freeze({ player: rendering('LIGHT', 1), rival: rendering('LIGHT', 1) }),
+});
+
+/** The renderings, members of `EXHAUST_RENDERINGS`, a quality plays the player's and a rival's engines at. */
+export function engineRenderings(quality: EngineSoundQuality): {
+  readonly player: ExhaustRendering;
+  readonly rival: ExhaustRendering;
 } {
-  const player = PLAYER_DIVISORS[quality];
-  return { player, rival: (2 * player) as ExhaustRateDivisor };
+  return QUALITY_RENDERINGS[quality];
 }
 
 /** Doubles a stream's rate: for each sample in, the sample between the two before it, then the one before it. */
@@ -38,13 +70,18 @@ class Doubler {
   }
 }
 
+/** What the renderer asks of a kernel: `ExhaustWaveguide`'s and `ExhaustLight`'s calls. */
+type ExhaustKernel = Pick<ExhaustWaveguide, 'afterfire' | 'render'>;
+
 /**
- * An exhaust kernel run at the output's `rate` over `divisor`, its sound brought up to the output's rate by doubling
- * once for each halving. The kernel takes the targets of the first output sample of each of its own; with divisor 1
- * it renders every output sample itself. One model at every rate: only the rate the kernel is given differs.
+ * A rendering's kernel run at the output's `rate` over its divisor, its sound brought up to the output's rate by
+ * doubling once for each halving. The kernel takes the targets of the first output sample of each of its own; with
+ * divisor 1 it renders the output's samples itself. Each kernel is one model at every rate: only the rate it is given
+ * differs.
  */
 export class ExhaustRenderer {
-  private readonly kernel: ExhaustWaveguide;
+  private readonly kernel: ExhaustKernel;
+  private readonly divisor: ExhaustRateDivisor;
   private readonly one = new Float64Array(1);
   private readonly speed = new Float64Array(1);
   private readonly open = new Float64Array(1);
@@ -56,16 +93,18 @@ export class ExhaustRenderer {
   constructor(
     sound: VehicleEngineSound,
     rate: number,
-    private readonly divisor: ExhaustRateDivisor,
+    { kernel, divisor }: ExhaustRendering,
     control: Pick<ControlSettings, 'observationSeconds'>,
   ) {
-    this.kernel = new ExhaustWaveguide(sound, rate / divisor, control.observationSeconds);
+    const Kernel = kernel === 'LIGHT' ? ExhaustLight : ExhaustWaveguide;
+    this.kernel = new Kernel(sound, rate / divisor, control.observationSeconds);
+    this.divisor = divisor;
     this.doublers = Array.from({ length: Math.log2(divisor) }, () => new Doubler());
     this.ready = new Float64Array(divisor);
     this.at = divisor;
   }
 
-  /** The kernel's next charge burns in the pipe ({@link ExhaustWaveguide.afterfire}). */
+  /** The kernel's next charge burns in the pipe ({@link ExhaustWaveguide.afterfire}, {@link ExhaustLight.afterfire}). */
   afterfire(): void {
     this.kernel.afterfire();
   }
@@ -93,6 +132,11 @@ export class ExhaustRenderer {
     burns: boolean,
   ): void {
     const { divisor, ready } = this;
+    // At the output's rate the kernel takes every sample's targets, whose calls may divide the samples as they come.
+    if (divisor === 1) {
+      this.kernel.render(out, offset, count, rpm, opening, burns);
+      return;
+    }
     for (let k = 0; k < count; k++) {
       if (this.at === divisor) {
         this.speed[0] = rpm[k]!;

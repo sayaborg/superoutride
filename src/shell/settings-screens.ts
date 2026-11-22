@@ -14,8 +14,8 @@ import { STEERING_REFERENCES, type SteeringRule } from '../vehicle/steering-rule
 /** SETTINGS changes each volume by this many percent. */
 const VOLUME_STEP = 5;
 const VOLUME_LABELS: Readonly<Record<VolumeName, string>> = { master: 'MASTER', music: 'MUSIC', effects: 'EFFECTS' };
-/** ENGINE SOUND QUALITY's choices, lowest first, so UP gives more. */
-const ENGINE_SOUND_QUALITY_STEPS: readonly EngineSoundQuality[] = ['LOW', 'MID', 'HIGH'];
+/** ENGINE SOUND QUALITY's choices, lightest first, so UP gives more. */
+const ENGINE_SOUND_QUALITY_STEPS: readonly EngineSoundQuality[] = ['LIGHT', 'LOW', 'MID', 'HIGH'];
 /** The camera setting of each vehicle form, by its label. */
 const CAMERA_LABELS: Readonly<Record<VehicleForm, string>> = { car: 'CAR CAMERA', bike: 'BIKE CAMERA' };
 /** The steering settings of each vehicle form, by their labels. */

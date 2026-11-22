@@ -69,7 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   friction circle, the game-wide load sensitivity, a vehicle's grip balance between its axles), protection, steering
   and recovery ([Vehicle physics](vehicle-physics.md)); [Stage TR](#stage-tr--the-brush-tire)'s values await K's DEV.
 - **Audio.** The audio scene and sound graph, engine sounds by one model of the exhaust's tubes and spaces (Stage ES:
-  afterfires the powertrain decides, ENGINE SOUND QUALITY's rates, a compressor before each vehicle's measured gain;
+  afterfires the powertrain decides, ENGINE SOUND QUALITY's rates and its LIGHT kernel ([Stage EL](#stage-el--the-light-engine-sound)), a compressor before each vehicle's measured gain;
   silencers in eight so far, [Stage MF](#stage-mf--silencers-and-turbines-in-the-engine-sounds)), tire audio (UNIFIED),
   recordings and music, effects and contact sound; the recordings are placeholders until K's files replace them
   ([Audio](audio.md), [Tire audio](tire-audio.md), [placeholder recordings](#placeholder-recordings)).
@@ -343,11 +343,15 @@ The stage's name, `MF`, is the auditor's; K has not decided it. What stays open,
 ## Stage EL — The light engine sound
 
 K's decision of 2026-11-22: in the game, with the music, the settled eleven's sound is buried but for its cracks and
-(with a turbine) its intake; a fourth ENGINE SOUND QUALITY, LIGHT, plays every engine through the light kernel
-([Audio](audio.md#engine-synthesis)), which has neither, the sound documents unchanged. EL-1 has added the kernel and its
-reading of a sound (`straightened`, its one listened value 75 mm). EL-2 adds `LIGHT` to ENGINE SOUND QUALITY: the
-player's and the rival's engines through the light kernel at the output's rate, its loudness measured beside the four
-divisors', MID staying the default. The stage's name, `EL`, is the auditor's.
+(with a turbine) its intake. ENGINE SOUND QUALITY's fourth value, LIGHT, plays the player's and the rival's engines
+through the light kernel at the output's rate ([Audio](audio.md#the-light-kernel)), which has neither, the sound
+documents unchanged; its loudness is measured beside the four divisors'. The stage's name, `EL`, is the auditor's.
+What stays open, for K:
+
+- The default stays MID until K has heard LIGHT in the game with the music.
+- LIGHT's load on real devices. Off them (the implementer's measurement), both voices load about as LOW's and half as
+  MID's.
+- The light kernel has one listened value, `LIGHT_BOX_DIAMETER` (75 mm); no other is to be added to it.
 
 ## Stage AT — The attract demo remade
 

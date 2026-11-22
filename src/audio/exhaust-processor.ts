@@ -1,4 +1,4 @@
-import { ExhaustRenderer, type ExhaustRateDivisor } from './exhaust-rate.js';
+import { ExhaustRenderer, type ExhaustRendering } from './exhaust-rate.js';
 import { EngineChain } from './engine-chain.js';
 import type { ControlSettings } from './audio-control-policy.js';
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
@@ -8,11 +8,11 @@ declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 
-/** What the voice installs: an admitted sound and control, its kernel's divisor and the gain for that divisor. */
+/** What the voice installs: an admitted sound and control, its rendering and the gain for that rendering. */
 export interface ExhaustConfiguration {
   readonly sound: VehicleEngineSound;
   readonly control: ControlSettings;
-  readonly divisor: ExhaustRateDivisor;
+  readonly rendering: ExhaustRendering;
   readonly gain: number;
 }
 
@@ -56,9 +56,9 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     };
   }
   /** The voice sends an admitted configuration, used as given; the kernel and the chain start from silence. */
-  private configure({ sound, control, divisor, gain }: ExhaustConfiguration): void {
+  private configure({ sound, control, rendering, gain }: ExhaustConfiguration): void {
     this.engine = {
-      renderer: new ExhaustRenderer(sound, sampleRate, divisor, control),
+      renderer: new ExhaustRenderer(sound, sampleRate, rendering, control),
       chain: new EngineChain(sampleRate, gain),
     };
   }

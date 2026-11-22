@@ -39,7 +39,7 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 /** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
 /**
  * Each competitor's engine sounds its own vehicle's engine sound, from the vehicle catalog, at the gain of its measured
- * `engineLoudness` for the divisor the player record's ENGINE SOUND QUALITY runs it at; a sound the DEV ENGINE SOUNDS
+ * `engineLoudness` for the rendering the player record's ENGINE SOUND QUALITY plays it at; a sound the DEV ENGINE SOUNDS
  * panel changed is sounded as each vehicle using it sounds it (`compileVehicleEngineSound`), still at the loudness
  * measured for the delivered values. The DEV sound controls
  * start from the delivered audio document's `settings` and the delivered surface and engine `sounds`, whose records the
@@ -54,7 +54,7 @@ export function createAudioLifecycle(
     readonly materialIds: readonly string[];
     readonly surfaces: CompiledSurfaceSounds;
     readonly engines: EngineSoundCatalog;
-    /** Each vehicle's measured engine loudness at each divisor, or null for a delivery without it. */
+    /** Each vehicle's measured engine loudness at each rendering, or null for a delivery without it. */
     readonly engineLoudness: ReadonlyMap<string, readonly number[]> | null;
   },
   settings: AudioSettings,

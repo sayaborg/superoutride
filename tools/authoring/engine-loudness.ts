@@ -1,22 +1,22 @@
 import type { ControlSettings } from '../../src/audio/audio-control-policy.js';
 import { compressed } from '../../src/audio/engine-chain.js';
-import { EXHAUST_RATE_DIVISORS, ExhaustRenderer } from '../../src/audio/exhaust-rate.js';
+import { EXHAUST_RENDERINGS, ExhaustRenderer, type ExhaustRendering } from '../../src/audio/exhaust-rate.js';
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
 import { ENGINE_LOUDNESS_ID } from '../../src/content/engine-loudness.js';
 import { procedureSha256 } from '../course/procedure.js';
 
 /**
- * The engine loudness procedure: one drive through the game's exhaust kernel at each of the `divisors` of the 48 kHz
- * output, brought up to it, metered by ITU-R BS.1770-4 integrated loudness of the engine's compressed sound, before its
+ * The engine loudness procedure: one drive at each of the `renderings`, the game's exhaust kernel at each divisor of
+ * the 48 kHz output brought up to it and the light kernel at the output's rate, metered by ITU-R BS.1770-4 integrated loudness of the engine's compressed sound, before its
  * gain and soft clip. Each drive segment is its seconds, the engine speed it runs from and to (`idle` and `redline` are
  * the vehicle's, linearly between) and the opening; fuel is never cut. Any code change that changes its results raises
  * its version.
  */
 export const ENGINE_LOUDNESS_PROCEDURE = Object.freeze({
   name: 'superoutride.engine-loudness',
-  version: 4,
+  version: 5,
   sampleRate: 48000,
-  divisors: EXHAUST_RATE_DIVISORS,
+  renderings: EXHAUST_RENDERINGS,
   measured: 'compressed',
   drive: Object.freeze([
     Object.freeze({ seconds: 1, from: 'idle', to: 'idle', opening: 0 }),
@@ -35,24 +35,24 @@ function engineSpeed(speed: number | 'idle' | 'redline', vehicle: CompiledVehicl
 }
 
 /**
- * A vehicle's engine loudness at each of the procedure's divisors: the integrated loudness (LUFS) of its engine's
+ * A vehicle's engine loudness at each of the procedure's renderings: the integrated loudness (LUFS) of its engine's
  * compressed sound on the procedure's drive with the given TIMING settings.
  */
 export function measureEngineLoudness(vehicle: CompiledVehicleDefinition, control: ControlSettings): number[] {
-  return ENGINE_LOUDNESS_PROCEDURE.divisors.map((divisor) => {
+  return ENGINE_LOUDNESS_PROCEDURE.renderings.map((rendering) => {
     const { sampleRate } = ENGINE_LOUDNESS_PROCEDURE;
-    return integratedLoudness(compressed(driveSound(vehicle, divisor, control), sampleRate));
+    return integratedLoudness(compressed(driveSound(vehicle, rendering, control), sampleRate));
   });
 }
 
-/** The procedure's drive through a vehicle's kernel at `divisor`, at the output's rate. */
+/** The procedure's drive through a vehicle's kernel at `rendering`, at the output's rate. */
 function driveSound(
   vehicle: CompiledVehicleDefinition,
-  divisor: (typeof EXHAUST_RATE_DIVISORS)[number],
+  rendering: ExhaustRendering,
   control: ControlSettings,
 ): Float64Array {
   const { sampleRate, drive } = ENGINE_LOUDNESS_PROCEDURE;
-  const kernel = new ExhaustRenderer(vehicle.sound, sampleRate, divisor, control);
+  const kernel = new ExhaustRenderer(vehicle.sound, sampleRate, rendering, control);
   const lengths = drive.map(({ seconds }) => Math.round(seconds * sampleRate));
   const signal = new Float64Array(lengths.reduce((sum, samples) => sum + samples, 0));
   let offset = 0;

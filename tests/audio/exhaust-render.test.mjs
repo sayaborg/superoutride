@@ -30,7 +30,12 @@ const PICKS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
 function drive(vehicle, divisor, quantum) {
   const { idleRpm, redlineRpm } = vehicle.compiledVehicle.powertrain;
   const speeds = { idle: idleRpm, redline: redlineRpm, cut: 1.04 * redlineRpm, middle: (idleRpm + redlineRpm) / 2 };
-  const kernel = new ExhaustRenderer(vehicle.sound, rate, divisor, DEFAULT_AUDIO_SETTINGS.control);
+  const kernel = new ExhaustRenderer(
+    vehicle.sound,
+    rate,
+    { kernel: 'WAVEGUIDE', divisor },
+    DEFAULT_AUDIO_SETTINGS.control,
+  );
   const out = new Float64Array(segments.reduce((sum, { samples }) => sum + samples, 0));
   let offset = 0;
   for (const { samples, from, to, opening, burns, afterfire } of segments) {

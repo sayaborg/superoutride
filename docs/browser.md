@@ -459,8 +459,8 @@ the SETTINGS audition plays while the MUSIC entry is in focus. A run from the ro
 ([Course sounds](content-and-gameplay.md#course-sounds)).
 
 SETTINGS' entries are MASTER, MUSIC and EFFECTS with their volumes, which LEFT and RIGHT change in steps of 5 within
-0–100 (to the adjacent multiple of 5, stopping at the ends), ENGINE SOUND QUALITY (LOW, MID or HIGH; K, 2026-11-21:
-the rate the engines' sound is computed at, [Audio](audio.md#engine-synthesis)), which the sound follows at once, CAR CAMERA and BIKE CAMERA (FACING or MOVING; [camera
+0–100 (to the adjacent multiple of 5, stopping at the ends), ENGINE SOUND QUALITY (LIGHT, LOW, MID or HIGH; K, 2026-11-21
+and 2026-11-22: the kernel and rate the engines' sound is computed at, [Audio](audio.md#engine-synthesis)), which the sound follows at once, CAR CAMERA and BIKE CAMERA (FACING or MOVING; [camera
 yaw](architecture.md#camera-and-fixed-metric)) for runs with a vehicle of that form, CAR STEERING and BIKE STEERING
 (FRONT or CENTER), CAR STEERING USE and BIKE STEERING USE (100%, 95% and 90%; [steering
 rule](vehicle-physics.md#actuators-and-steering)), SLOW DOWN (ON or OFF; [SLOW DOWN](#slow-down)) and CARD DESIGN
@@ -1033,15 +1033,15 @@ localStorage entry `super-outride-player` holding `{ "version": 9, "settings": {
 composition root opens it once at page load; shell controls read the admitted settings and records and change them only
 through the record.
 
-| Setting              | Shape and default                                                                                                                                                                               |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `vehicleColors`      | Selected color by vehicle ID, the player's run color; default `{}`                                                                                                                              |
-| `volumes`            | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100                                                                                                           |
-| `engineSoundQuality` | `HIGH`, `MID` or `LOW`: the player's engine's kernel at the output's rate over 1, 2 or 4, a rival's at half the player's; default `MID` (`DEFAULT_ENGINE_SOUND_QUALITY`)                        |
-| `latestSelections`   | Latest choice by row key (`series`, `class`, `course`, `vehicle`; `music` for the SETTINGS audition); default `{}`                                                                              |
-| `cameras`            | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`)                                                       |
-| `steering`           | `car` and `bike`, each `{ "reference": "front" or "center", "utilization": 1, 0.95 or 0.9 }`: the player's steering rule for that form; default `center` and 0.95 for both (`DEFAULT_STEERING`) |
-| `slowDown`           | Whether the HUD shows SLOW DOWN; default `true` (ON)                                                                                                                                            |
+| Setting              | Shape and default                                                                                                                                                                                                                          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `vehicleColors`      | Selected color by vehicle ID, the player's run color; default `{}`                                                                                                                                                                         |
+| `volumes`            | `master`, `music` and `effects` as integer percentages 0–100; default 35, 100 and 100                                                                                                                                                      |
+| `engineSoundQuality` | `HIGH`, `MID`, `LOW` or `LIGHT`: the player's engine's kernel at the output's rate over 1, 2 or 4, a rival's at half the player's, or `LIGHT`'s light kernel for both at the output's rate; default `MID` (`DEFAULT_ENGINE_SOUND_QUALITY`) |
+| `latestSelections`   | Latest choice by row key (`series`, `class`, `course`, `vehicle`; `music` for the SETTINGS audition); default `{}`                                                                                                                         |
+| `cameras`            | `car` and `bike`, each `FACING` or `MOVING`: what the camera yaw follows for that form; default `FACING` and `MOVING` (`DEFAULT_CAMERAS`)                                                                                                  |
+| `steering`           | `car` and `bike`, each `{ "reference": "front" or "center", "utilization": 1, 0.95 or 0.9 }`: the player's steering rule for that form; default `center` and 0.95 for both (`DEFAULT_STEERING`)                                            |
+| `slowDown`           | Whether the HUD shows SLOW DOWN; default `true` (ON)                                                                                                                                                                                       |
 
 `records` holds `timeAttack`, an object of TIME ATTACK records by key, one table per class. A key is the JSON array
 `[series ID, class ID, goal]`, made in one place, the goal being the FINISH gate the run reached (a circuit has one);

@@ -7,10 +7,10 @@ import { createEngineVoice } from './engine-voice.js';
 import { engineGain } from './engine-chain.js';
 import {
   DEFAULT_ENGINE_SOUND_QUALITY,
-  EXHAUST_RATE_DIVISORS,
-  engineRateDivisors,
+  EXHAUST_RENDERINGS,
+  engineRenderings,
   type EngineSoundQuality,
-  type ExhaustRateDivisor,
+  type ExhaustRendering,
 } from './exhaust-rate.js';
 import { createSoundGraph, isLiveBus, type MixSettings, type SoundBus } from './sound-graph.js';
 import type { TireComponents } from './tire-sound-components.js';
@@ -148,17 +148,17 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
   let control = DEFAULT_AUDIO_SETTINGS.control;
   let engineDriveLufs = DEFAULT_AUDIO_SETTINGS.mix.engineDriveLufs;
   let quality = DEFAULT_ENGINE_SOUND_QUALITY;
-  let divisors = engineRateDivisors(quality);
-  /** An engine's gain at `divisor` from its loudness at each divisor (`EXHAUST_RATE_DIVISORS`' order). */
-  const gainAt = (lufs: readonly number[] | null, divisor: ExhaustRateDivisor) =>
-    engineGain(engineDriveLufs, lufs && lufs[EXHAUST_RATE_DIVISORS.indexOf(divisor)]!);
+  let renderings = engineRenderings(quality);
+  /** An engine's gain at `rendering` from its loudness at each rendering (`EXHAUST_RENDERINGS`' order). */
+  const gainAt = (lufs: readonly number[] | null, rendering: ExhaustRendering) =>
+    engineGain(engineDriveLufs, lufs && lufs[EXHAUST_RENDERINGS.indexOf(rendering)]!);
   let assignedId: string | null = null;
   let switchAt = 0;
   let disposed = false;
   return {
     /**
-     * The player's and the nearest vehicle's voices, each at its divisor of the ENGINE SOUND QUALITY. `engineOf` names
-     * each vehicle's engine sound and its measured loudness at each divisor (null when not measured), which sets its
+     * The player's and the nearest vehicle's voices, each at its rendering of the ENGINE SOUND QUALITY. `engineOf` names
+     * each vehicle's engine sound and its measured loudness at each rendering (null when not measured), which sets its
      * gain.
      */
     update(
@@ -167,7 +167,7 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
       engineOf: (vehicleId: string) => { readonly sound: VehicleEngineSound; readonly lufs: readonly number[] | null },
     ): void {
       const playerSound = engineOf(player.vehicleId);
-      playerEngine.update(player, playerSound.sound, divisors.player, gainAt(playerSound.lufs, divisors.player));
+      playerEngine.update(player, playerSound.sound, renderings.player, gainAt(playerSound.lufs, renderings.player));
       tires.update(player);
       const nearest = nearestAudibleRival(player, rivals, rival.audibleMeters);
       const nearestId = nearest?.id ?? null;
@@ -183,7 +183,7 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
       }
       const { gain, pan } = rivalSpatialization(player, nearest, rival);
       const rivalSound = engineOf(nearest.vehicleId);
-      rivalEngine.update(nearest, rivalSound.sound, divisors.rival, gainAt(rivalSound.lufs, divisors.rival), gain);
+      rivalEngine.update(nearest, rivalSound.sound, renderings.rival, gainAt(rivalSound.lufs, renderings.rival), gain);
       follow(rivalPan.pan, clamp(pan, -1, 1), context.currentTime, control.panSeconds);
     },
     /**
@@ -198,11 +198,11 @@ export async function createAudioScene(context: AudioContext, surfaces: TireSurf
       const restAt = value ? null : silent;
       for (const { voice, bus } of voices) if (isLiveBus(bus)) voice.rest(restAt);
     },
-    /** The player's ENGINE SOUND QUALITY: a voice whose divisor changes installs a new kernel after its fade. */
+    /** The player's ENGINE SOUND QUALITY: a voice whose rendering changes installs a new kernel after its fade. */
     setEngineSoundQuality(value: EngineSoundQuality): void {
       if (value === quality) return;
       quality = value;
-      divisors = engineRateDivisors(value);
+      renderings = engineRenderings(value);
     },
     setTireSettings(value: UnifiedSettings): void {
       tires.setSettings(value);

@@ -325,7 +325,7 @@ The engine sound has no DEV settings (K, 2026-11-21). Its values are [derived](#
 | `AFTERFIRE.idleRatio`                | and engine RPM above this times idle, fuel not cut            | 1.3    | provisional (K, 2026-11-21) |
 | `AFTERFIRE.perSecond`                | Afterfires a second on average while so                       | 1      | provisional (K, 2026-11-21) |
 
-The rate the kernels run at is the player's ENGINE SOUND QUALITY, MID by default (K, 2026-11-21;
+The kernel and rate the engines play at are the player's ENGINE SOUND QUALITY's, MID by default (K, 2026-11-21;
 [Audio](audio.md#engine-synthesis)).
 
 ## UNIFIED tire settings
@@ -505,7 +505,7 @@ under the tire. Both are document values with no DEV control.
 
 [Sound graph](../src/audio/sound-graph.ts) supplies the master compressor settings and the loudness the engines' gains
 bring their compressed sound to (`MixSettings`). `engineDriveLufs`'s default, −24 LUFS, is the owner's (EX-10); each
-vehicle's gain at its divisor brings its [measured](audio.md#engine-loudness) compressed sound there, before the soft
+vehicle's gain at its rendering brings its [measured](audio.md#engine-loudness) compressed sound there, before the soft
 clip of ceiling 2. An engine's sound exceeds 1, up to 2; the mix after it is K's to decide separately (2026-11-21).
 
 | Key               | Meaning                     | Default  | Range / step      |
