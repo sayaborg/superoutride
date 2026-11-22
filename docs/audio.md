@@ -155,6 +155,25 @@ A wall-loss shelf whose corner the rate does not carry is left out ([derived val
 quality is a change of the voices' kernels: each voice fades to silence and installs its new one, as for any change of
 sound.
 
+**The light kernel.** A second kernel, [`ExhaustLight`](../src/audio/exhaust-light.ts) (K, 2026-11-22), is the game
+kernel with linear tubes: the same cylinders, gas (`GAS`), valve law, wall loss, mouths, afterfire, start (no flow
+before a valve first opens) and listened values (`EXHAUST_LISTENING`), heard the same way, the mouths' pressure times
+their diameter. A wave does not steepen, and a junction or a mouth is no jet:
+
+| Part               | Light kernel                                                                                                                                                                                                                        |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tube               | Two delay lines of `N` samples, rounded as the game kernel's; each wave written passes its tube's wall loss.                                                                                                                        |
+| Junction           | One pressure `p = 2 sum(area × arriving) / sum(area)`; each tube's wave leaves as `p - arriving`. An afterfire's swelling enters as a flow: `p` rises by `swelling × 4 rate / (pi c sum(d²))`.                                      |
+| Mouth              | The wave returns turned over and low-passed at `ka = 1` (`openEndCutoffHz`); what is heard is `diameter × (outgoing − its low-pass)`.                                                                                               |
+| Cylinder and valve | The end law into a space of `sigma = 0`, solved once a sample in closed form from the cylinder's pressure as the sample begins; no faster than sound in the throat, and no more than brings the cylinder level with its tube's end. |
+
+It reads a sound through `straightened` (K, 2026-11-22): its wool is not read, and a box is read as a straight way
+through. A box is a pipe that is not an outlet, is wider than `LIGHT_BOX_DIAMETER` (75 mm, K by ear, 2026-11-23: the
+NSR500 of 1984's 62 mm silencer is better not a box) and is wider than every tube it meets at both its ends (primaries
+included); it is read as wide as the widest of those tubes, its length kept. The 150 mm turbine rooms and the
+two-strokes' 86 mm chambers are boxes by the same rule. The value is the light kernel's alone, with no vehicle's
+exception.
+
 ## Engine chain
 
 ```text

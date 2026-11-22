@@ -26,7 +26,7 @@ function endHead(a: number, sigma: number, q: number, outward: boolean): number 
 }
 
 /** The size of the flow of an end of head `K` whose stopped pressure stands `size` from its space's: m + K m^2 / 2. */
-function flowSize(K: number, size: number): number {
+export function flowSize(K: number, size: number): number {
   return K > 1e-9 || K < -1e-9 ? (-1 + Math.sqrt(Math.max(0, 1 + 2 * K * size))) / K : size;
 }
 
@@ -35,7 +35,7 @@ const MOUTH_OUT = endHead(1, 0, 1, true);
 const MOUTH_IN = endHead(1, 0, 1, false);
 
 /** One seeded xorshift32 step. */
-function xorshift(seed: number): number {
+export function xorshift(seed: number): number {
   seed ^= seed << 13;
   seed ^= seed >>> 17;
   seed ^= seed << 5;

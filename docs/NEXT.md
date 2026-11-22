@@ -340,6 +340,15 @@ The stage's name, `MF`, is the auditor's; K has not decided it. What stays open,
   height and inner path, the inner diameters (taken), the valve and throat (the F40's), the curve's 950, 3,000 and
   7,700 rpm points, the three sets of dimensions and the reading of 1,160 kg.
 
+## Stage EL — The light engine sound
+
+K's decision of 2026-11-22: in the game, with the music, the settled eleven's sound is buried but for its cracks and
+(with a turbine) its intake; a fourth ENGINE SOUND QUALITY, LIGHT, plays every engine through the light kernel
+([Audio](audio.md#engine-synthesis)), which has neither, the sound documents unchanged. EL-1 has added the kernel and its
+reading of a sound (`straightened`, its one listened value 75 mm). EL-2 adds `LIGHT` to ENGINE SOUND QUALITY: the
+player's and the rival's engines through the light kernel at the output's rate, its loudness measured beside the four
+divisors', MID staying the default. The stage's name, `EL`, is the auditor's.
+
 ## Stage AT — The attract demo remade
 
 K's requirements of 2026-11-14 are in place (AT-0 to AT-4): the demo is a reel of films with the run only watched;
