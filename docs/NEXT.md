@@ -271,16 +271,16 @@ from K's model by the car baking of Stage F110 in one color, ROSSO CORSA (F120-3
 ## Stage MF — Silencers and turbines in the engine sounds
 
 K's decisions of 2026-11-21 and 2026-11-22, taken by listening on SELECT VEHICLE's ENGINE page. A pipe may carry the
-glass wool lining it (`wool`, MF-3a; [Audio](audio.md#derived-values)). Ten sounds follow K's exhaust rules of
+glass wool lining it (`wool`, MF-3a; [Audio](audio.md#derived-values)). Eleven sounds follow K's exhaust rules of
 2026-11-22 ([Calibration](calibration.md#exhaust-topologies)): the real car's valves, joins and tube lengths, the tubes
 one size wider (× 1.14), expansion chambers set by ear with 20 mm of wool in the one nearest the engine, every turbine
 as its throat and one room of 0.12 m × 150 mm, two-strokes as the machine is. They are TESTAROSSA, the RX-7 Turbo II of
 1987, the 928 S4 of 1987, the 959 of 1987, the F40 of 1988, the TURBO ESPRIT of 1984, the Countach 5000 QV of 1985, the
-911 TURBO 3.3 of 1986, the XR600R of 1985 and the NSR500 of 1984, whose own sound `NSR500_1984` replaced the NSR500 of
-1987's ([Arcade car selections](chase-turbo-vehicles.md), [Racing vehicles](racing-vehicles.md)). The stage's name,
-`MF`, is the auditor's; K has not decided it. What stays open, for K:
+911 TURBO 3.3 of 1986, the GTO of 1984, the XR600R of 1985 and the NSR500 of 1984, whose own sound `NSR500_1984`
+replaced the NSR500 of 1987's ([Arcade car selections](chase-turbo-vehicles.md), [Racing vehicles](racing-vehicles.md)).
+The stage's name, `MF`, is the auditor's; K has not decided it. What stays open, for K:
 
-- All ten are settled for now: K heard them on the ENGINE page and decides them again after driving them in the game,
+- All eleven are settled for now: K heard them on the ENGINE page and decides them again after driving them in the game,
   built at MID (24 kHz) and checked at HIGH (48 kHz).
 - Every real length and diameter is an estimate from parts diagrams and photographs (about ±20 %); each sound's note
   names its sources. Where measured dimensions are found, they replace them.
@@ -331,6 +331,14 @@ as its throat and one room of 0.12 m × 150 mm, two-strokes as the machine is. T
   MF-6c removed the 1989 car; TSUKUBA CLUBMAN's 911 CUP runs the 1986 car, its racing line and reference time on
   TSUKUBA measured again. To check in a run: the 911 CUP's four gears, the rivals' pace and the pictures, and OUT RUN's
   traffic 911.
+- MF-7 takes the GTO for the 1984 European car (`FERRARI_GTO_1984`, its debut year; K's choice), its dimensions the
+  period manual's (4,225 × 1,850 × 1,150 mm, K's choice; the FIA form's and Ferrari's present figures differ), rear
+  tyres 255/50 VR16, idle 950 rpm and a corrected curve, and writes its exhaust by the same rules: a tube manifold 4-2-1
+  a bank, the turbines' one form, the silencer's halves as one chamber. A ring near 2 kHz (up to about 6 dB below the
+  whole sound at 5,000 rpm) is K's to keep. Not known: the pairing inside the heat shield and where the tubes become
+  two, the tubes' lengths (about ±30 %), whether the sides are alike, the run after the turbines, the silencer's
+  height and inner path, the inner diameters (taken), the valve and throat (the F40's), the curve's 950, 3,000 and
+  7,700 rpm points, the three sets of dimensions and the reading of 1,160 kg.
 
 ## Stage AT — The attract demo remade
 

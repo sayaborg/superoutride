@@ -9,7 +9,7 @@ They are game outcomes from provisional vehicle data, not measured performance o
 | TURBO_ESPRIT_1984     |    5.70 |       24.02 |      241.5 |          5 |   36.33 |    2.58 |
 | COUNTACH_5000_QV_1985 |    4.15 |       13.25 |      284.5 |          5 |   35.58 |    2.52 |
 | 911_TURBO_3_3_1986    |    4.70 |       17.13 |      265.0 |          4 |   35.94 |    2.55 |
-| FERRARI_GTO_1984      |    3.60 |       11.83 |      302.2 |          5 |   36.12 |    2.55 |
+| FERRARI_GTO_1984      |    3.57 |       11.77 |      301.2 |          5 |   36.12 |    2.55 |
 | PORSCHE_928_S_1984    |    6.28 |       27.15 |      238.2 |          4 |   35.71 |    2.55 |
 | TOYOTA_PICKUP_1980    |   11.30 | not reached |      157.3 |          4 |   35.86 |    2.57 |
 | FERRARI_F40_1988      |    3.10 |        9.50 |      332.6 |          5 |   36.09 |    2.55 |

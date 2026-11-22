@@ -26,7 +26,7 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 | TURBO_ESPRIT_1984     | 1984 UK Turbo Esprit, Type 82                        | 910 low-compression 2174 cc carburetted turbo four; Citroen 5MT | White Giugiaro wedge, rear louvers; not the Stevens X180                |
 | COUNTACH_5000_QV_1985 | 1985 European carburetted 5000 Quattrovalvole        | 5167 cc DOHC 48-valve V12; 5MT                                  | Yellow, rear wing and wide rear tires; not the 25th Anniversary body    |
 | 911_TURBO_3_3_1986    | 1986 MY European 911 Turbo 3.3 Coupe                 | 3299 cc air-cooled turbo flat six (930/66, 300 PS); 4MT         | Silver, round headlights, wide rear fenders and tea-tray spoiler        |
-| FERRARI_GTO_1984      | 1985 European GTO, Tipo F114                         | F114B, 2855.08 cc twin-turbo flat-plane V8; 5MT                 | Blue arcade recolor, rear-fender slots, paired round rear lamps         |
+| FERRARI_GTO_1984      | 1984 European GTO, Tipo F114                         | F114B, 2855.08 cc twin-turbo flat-plane V8; 5MT                 | Blue arcade recolor, rear-fender slots, paired round rear lamps         |
 | PORSCHE_928_S_1984    | 1984 MY US 928 S                                     | M28.19, 4664 cc SOHC 16-valve V8; 5MT                           | Red early body, rubber bumper trim and small spoiler                    |
 | TOYOTA_PICKUP_1980    | 1980 MY US 49-state RN42, regular cab, long bed, 2WD | 2189 cc 20R SOHC four; 4MT                                      | Open long bed, separate upright cab, rectangular lamps                  |
 | FERRARI_F40_1988      | 1988 European F40, non-catalyst, fixed ride height   | F120-family 2936.25 cc twin-turbo flat-plane V8; 5MT            | Red, high fixed wing, round rear lamps, three exhaust outlets           |
@@ -37,12 +37,12 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 | NOVA_250_1977         | 1977 MY US standard Nova four-door sedan             | L22 4097 cc OHV inline six; 3MT                                 | Light blue four-door body, steel wheels and chrome bumpers              |
 | NOVA_9C1_1977         | 1977 MY US Nova four-door COPO 9C1 basis             | LG3 5001 cc OHV V8; game 3MT conversion                         | Black/white police recolor and static roof lights                       |
 
-The supplied report's year choices are selections, not new identifications of the arcade sprites. In particular,
-The Countach's 1985 is K's choice (2026-11-22), not a claim about the arcade original; the GTO's production-year
-maxima remain estimates; YJ 1995 postdates the games. The F40 is K's 1988 choice. The 1984
-C4 intentionally substitutes a production-volume choice for an arcade appearance that may be 1986 or later.
-No annual production count is asserted by these runtime definitions. The 9C1 manual gearbox is explicitly a
-game conversion: the supplied police specification called for an automatic in the real car.
+The supplied report's year choices are selections, not new identifications of the arcade sprites. In particular, The
+Countach's 1985 is K's choice (2026-11-22), not a claim about the arcade original; the GTO's 1984, its debut year, is
+K's choice (2026-11-22) likewise; YJ 1995 postdates the games. The F40 is K's 1988 choice. The 1984 C4 intentionally
+substitutes a production-volume choice for an arcade appearance that may be 1986 or later. No annual production count is
+asserted by these runtime definitions. The 9C1 manual gearbox is explicitly a game conversion: the supplied police
+specification called for an automatic in the real car.
 
 Except the 959's and the 928 S4's, the four palettes are game colors, without verified period paint codes. Blue GTO
 and the police livery are especially not claims of factory delivery colors. The stock-named palette key means the
@@ -130,8 +130,10 @@ A source-verified secondary value means that page was read, not that it has prim
 3. **Ferrari official model specifications**, [GTO](https://www.ferrari.com/en-EN/auto/gto) and
    [F40](https://www.ferrari.com/en-EN/auto/f40). GTO: 294 kW at 7000, 496 Nm at 3800, 2855.08 cc, 7.6:1,
    1160 kg dry. F40: 351.5 kW at 7000, 577 Nm at 4000, 2936.25 cc, 7.7:1, 1100 kg dry. Both list dimensions,
-   tracks, wheelbase, tires and 120 L tanks. Ferrari's GTO dimensions 4290/1910/1120 mm are adopted explicitly;
-   the older manual's 4225/1880/1150 mm are a conflicting source, not silently averaged.
+   tracks, wheelbase, tires and 120 L tanks. The GTO's dimensions are the period owner's manual's
+   (Cat. 345/85) 4225/1850/1150 mm, K's choice (2026-11-22); the FIA form B-273 gives 4280 mm long and 1850 mm wide,
+   Ferrari's present page 4290/1910/1120 mm. The three are not reconciled. The manual's width was read here earlier as
+   1880 mm; the scan could not be reached again to check it, and K's reading, 1850 mm, agrees with the FIA form.
 4. **Ferrari GTO owner's manual**, [public scan index](https://manualzz.com/doc/html/5370470/ferrari-288-gto-owners-manual),
    actual PDF pp10–14, visually inspected p13. Upper engine speed 7700. Gear ratios including transfer gears
    are 3.692/2.296/1.636/1.284/1.022, final 29/10 = 2.9; printed total reductions approximately
@@ -218,6 +220,19 @@ A source-verified secondary value means that page was read, not that it has prim
     wastegate and silencer ([202-15](https://www.design911.com/uploads/images/diagrams/diagrams/911_1989_2_02_202-15.jpg))
     and the crossing pipe
     ([202-05](https://www.design911.com/uploads/images/diagrams/diagrams/911_1989_2_02_202-05.jpg)).
+
+14. **GTO of 1984** (MF-7, 2026-11-22). The owner's manual (Cat. 345/85, K's note): idle 950 ± 50 rpm warm, rear
+    tyres 255/50 VR16 (Goodyear); a parts list correction of 22 October 1985 adds Pirelli P7 with 265/50 VR16 rear
+    "upon request". The dry 1,160 kg ([SB Race Engineering](https://sbraceengineering.co.uk/ferrari-specialists/ferrari-models-1980-to-1989/ferrari-gto/),
+    [Octane](https://www.octane-magazine.com/articles/features/ferrari-288-gto-driving-and-celebrating-the-legend/),
+    "without fluids") stays the base; the manual's English column calls it curb weight. The torque curve's 950 and
+    3,000 rpm points are estimates (no curve was found; Octane describes a flat low end and a dramatic rise from 4,000
+    rpm). The sound's sources: parts diagram 012
+    ([eurospares](https://www.eurospares.co.uk/ferrari/288/288-gto/part-diagrams/012/exhaust-system)), silencer 123426
+    ([photograph](https://racecarsdirect.com/content/UserImages/127931/713764.jpg)), a manifold under restoration
+    ([photograph](https://www.dkeng.co.uk/restoration_images/1701388800/large_1702465293_288m_december23_8.jpg)), the
+    tube manifolds and one silencer ([supercars.net](https://www.supercars.net/blog/ferrari-288-gto/)) and the F40's
+    cam timing ([thread](https://www.ferrarichat.com/forum/threads/288-and-f40-cam-specs.473123/)).
 
 Conflicting secondary Countach pages mix incompatible bore, gearbox, power-unit and performance figures;
 they are not blanket authorities for this data. An Esprit page labelled simply “Turbo” actually describes

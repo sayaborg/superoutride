@@ -13,12 +13,12 @@
   "metadata": {
     "manufacturer": "Ferrari",
     "model": "GTO",
-    "period": "1985",
+    "period": "1984",
     "mobileLabel": "Tipo F114",
     "engine": "V8",
     "engineKind": "4-stroke",
     "identifier": { "officialLabel": "Tipo F114", "shortLabel": "Tipo F114" },
     "selectedSpecification": ["5MT"],
-    "physicsAnchor": { "modelYear": "1985", "market": "Europe" }
+    "physicsAnchor": { "modelYear": "1984", "market": "Europe" }
   }
 }

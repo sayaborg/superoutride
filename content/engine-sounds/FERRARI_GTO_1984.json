@@ -4,25 +4,33 @@
   "cycleRevolutions": 2,
   "firingPhases": [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875],
   "exhaust": {
-    "valve": { "diameter": 0.026, "open": 0.4 },
+    "valve": { "diameter": 0.0368, "open": 0.3889 },
     "primaries": [
-      { "length": 0.35, "diameter": 0.035, "to": 0 },
-      { "length": 0.35, "diameter": 0.035, "to": 1 },
-      { "length": 0.35, "diameter": 0.035, "to": 0 },
-      { "length": 0.35, "diameter": 0.035, "to": 1 },
-      { "length": 0.35, "diameter": 0.035, "to": 0 },
-      { "length": 0.35, "diameter": 0.035, "to": 1 },
-      { "length": 0.35, "diameter": 0.035, "to": 0 },
-      { "length": 0.35, "diameter": 0.035, "to": 1 }
+      { "length": 0.42, "diameter": 0.04, "to": 0 },
+      { "length": 0.42, "diameter": 0.04, "to": 2 },
+      { "length": 0.26, "diameter": 0.04, "to": 1 },
+      { "length": 0.26, "diameter": 0.04, "to": 3 },
+      { "length": 0.16, "diameter": 0.04, "to": 1 },
+      { "length": 0.16, "diameter": 0.04, "to": 3 },
+      { "length": 0.34, "diameter": 0.04, "to": 0 },
+      { "length": 0.34, "diameter": 0.04, "to": 2 }
     ],
     "pipes": [
-      { "length": 1.201, "diameter": 0.055, "from": 0, "to": 2 },
-      { "length": 0.65, "diameter": 0.055, "from": 2, "to": null },
-      { "length": 1.201, "diameter": 0.055, "from": 1, "to": 3 },
-      { "length": 0.65, "diameter": 0.055, "from": 3, "to": null }
+      { "length": 0.22, "diameter": 0.048, "from": 0, "to": 4 },
+      { "length": 0.22, "diameter": 0.048, "from": 1, "to": 4 },
+      { "length": 0.22, "diameter": 0.048, "from": 2, "to": 5 },
+      { "length": 0.22, "diameter": 0.048, "from": 3, "to": 5 },
+      { "length": 0.08, "diameter": 0.0276, "from": 4, "to": 6 },
+      { "length": 0.12, "diameter": 0.15, "from": 6, "to": 8 },
+      { "length": 0.08, "diameter": 0.0276, "from": 5, "to": 7 },
+      { "length": 0.12, "diameter": 0.15, "from": 7, "to": 9 },
+      { "length": 0.28, "diameter": 0.063, "from": 8, "to": 10 },
+      { "length": 0.28, "diameter": 0.063, "from": 9, "to": 10 },
+      { "length": 0.38, "diameter": 0.253, "from": 10, "to": 11, "wool": 0.02 },
+      { "length": 0.34, "diameter": 0.103, "from": 11, "to": null }
     ]
   },
   "metadata": {
-    "note": "Provisional acoustic graph, not a measured exhaust or recording. Equal firing intervals; alternating banks; valve opening, diameters and all lengths are engineering estimates. Existing pipe solver only; silencer and turbo losses are not separately modelled."
+    "note": "1984 European GTO (F114 B, a 90-degree twin-turbo V8 of 2,855.08 cc, four valves a cylinder, two IHI turbochargers), firing order 1-5-3-7-4-8-2-6, the banks alternating. Valve: no source for the GTO's exhaust valves was found; the F40's are written, two of 26 mm as one of their combined area, 36.8 mm, open 0.3889 (about 280 deg). Each bank's manifold (parts diagram 012, items 8 and 9, and a photograph of a car under restoration) is bent steel tube, not cast: four tubes from the ports run back inside a heat shield, leave it as two side by side and join into one before the turbine (4-2-1). The primaries measure about 0.42, 0.34, 0.26 and 0.16 m from the front cylinder (the spark plugs' 94 mm as the scale), the two tubes about 0.22 m; which cylinders pair inside the shield is not seen, and neighbours are taken (the front two, the rear two; K heard 1-4 and 2-3 as the same). The turbine's throat is the F40's and 959's estimate (27.6 mm), 0.08 m, then the one room of every turbine here, 0.12 m x 150 mm; the pipe between the manifolds (item 22), the wastegates and their pipe (item 24) are not written. From each turbine a like pipe (items 13 and 14, priced alike; about 0.28 m) to the one transverse silencer (item 1, part 123426, from a photograph of a stamped one): a body of about 0.74 m x 200 mm seen from above, its height not seen (an oval of 160 mm taken, about 19 L), three inlets near the middle (two turbines and the wastegate) and two tails from each end, bent back (about 0.34 m); its inner path is not known. As the F40's, entered at the middle and left at both ends, its two halves are written as one, the one expansion chamber with the wool (0.38 m, half of 0.74 moved off 3:1 with the turbine's room, x 253 mm, two 200 x 160 mm ovals; 19.1 L, 6.7 times the displacement), and its four tails as one of their combined area. The sides are written alike: the diagram shows the manifolds mirrored and the pipes after the turbines are priced alike. Lengths are estimates from the diagram and photographs (about +-30 %). Inner diameters were not found: 35 mm primaries (the F40's), 42 mm tubes, 55 mm pipes and 45 mm tails taken, times 1.14 (40, 48, 63 and 103 mm). The expansion chamber's size and number, the 1.14 and the 20 mm of wool were set by ear (K, 2026-11-22). Lengths are in steps of 0.02 m."
   }
 }

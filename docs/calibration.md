@@ -249,8 +249,8 @@ valve sizes, lifts and timings (FIA homologation forms, part data, shop manuals 
 turbine throats and some valve dimensions) are estimates, chosen physically plausible.
 
 The vehicles rewritten under K's rules of 2026-11-22 (TESTAROSSA, NSR500_1984, XR600R_1985, RX_7_TURBO_II_1987,
-PORSCHE_959_1987, PORSCHE_928_S4_1987, FERRARI_F40_1988, TURBO_ESPRIT_1984, COUNTACH_5000_QV_1985 and
-911_TURBO_3_3_1986) follow them:
+PORSCHE_959_1987, PORSCHE_928_S4_1987, FERRARI_F40_1988, TURBO_ESPRIT_1984, COUNTACH_5000_QV_1985, 911_TURBO_3_3_1986
+and FERRARI_GTO_1984) follow them:
 
 - The real car's: the valve's `diameter` and `open`, how the cylinders and the sides join, and every tube's length,
   primaries, pipes and tails alike, from parts diagrams and photographs where no source gives it, in steps of 0.02 m.
@@ -303,6 +303,7 @@ turbochargers' wastegates are not represented. DEV's ENGINE SOUNDS panel changes
 | PORSCHE_959_1987      | 1987 European, no catalyst: per bank three branches into a log, a K26 at its end, one chamber with wool, two tails as one                                                             | 6 × 0.10 × 43        | logs 2 × 3 × 0.12 × 55; turbines 2 × (0.08 × 27.6, 0.12 × 150); 0.26 and 0.36 × 64; chamber 0.70 × 209; tail 0.26 × 90            | 46.7, 0.360       | layout, turbine size; lengths: parts diagrams (estimates)                                                    |
 | 911_TURBO_3_3_1986    | 1986 European (930/66), no catalyst: per bank a heat exchanger's body taking three branches in turn, the right crossing to the left, the K27, one chamber with wool, two tails as one | 6 × 0.10 × 43        | bodies 2 × 3 × 0.12 × 57; 0.60 and 1.18 × 57; turbine 0.08 × 36 and 0.12 × 150; 0.52 × 68; chamber 0.42 × 265; tail 0.30 × 89     | 40.7, 0.389       | valve diameter; layout and lengths: diagrams 202-05, -10, -15 (estimates)                                    |
 | PORSCHE_928_S4_1987   | 1987 US: per bank 4-into-1, downpipe, two chambers; the banks meet in the rear chamber; two tails as one                                                                              | 8 × 0.16–0.20 × 48   | downpipes 0.20 and 0.50 × 59; per bank chambers 0.52 × 165 and 0.42 × 135, 0.08 apart, 1.40 × 59; rear 0.54 × 168; tail 0.30 × 89 | 46.7, 0.333       | valve size and duration, pipe diameters; lengths: parts diagrams (estimates)                                 |
+| FERRARI_GTO_1984      | 1984 European, no catalyst: per bank a tube manifold 4-2-1 to its IHI turbine, one chamber with wool (the silencer's two halves as one), four tails as one                            | 8 × 0.16–0.42 × 40   | 4 × 0.22 × 48; turbines 2 × (0.08 × 27.6, 0.12 × 150); 2 × 0.28 × 63; chamber 0.38 × 253; tail 0.34 × 103                         | 36.8, 0.389       | layout: diagram 012, photographs; valve and throat: the F40's; lengths: estimates                            |
 | FERRARI_F40_1988      | 1988 European without catalyst: per bank four primaries into a riser and a turbine, one chamber (the silencer's two halves as one), two tails as one                                  | 8 × 0.36–0.70 × 40   | risers 2 × 0.14 × 51; turbines 2 × (0.08 × 27.6, 0.12 × 150); 0.22 and 0.32 × 62; chamber 0.26 × 311; tail 0.48 × 102             | 36.8, 0.389       | valve diameter and timing; lengths: parts diagrams, photograph (estimates)                                   |
 
 ## Engine sound settings
