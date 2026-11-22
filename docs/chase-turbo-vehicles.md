@@ -25,7 +25,7 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 | PORSCHE_928_S4_1987   | 1987 MY US 928 S4                                    | M28.41, 4957 cc DOHC 32-valve V8; G28.13 5MT                    | Black, later bumpers, large rear lamps and raised spoiler               |
 | TURBO_ESPRIT_1984     | 1984 UK Turbo Esprit, Type 82                        | 910 low-compression 2174 cc carburetted turbo four; Citroen 5MT | White Giugiaro wedge, rear louvers; not the Stevens X180                |
 | COUNTACH_5000_QV_1985 | 1985 European carburetted 5000 Quattrovalvole        | 5167 cc DOHC 48-valve V12; 5MT                                  | Yellow, rear wing and wide rear tires; not the 25th Anniversary body    |
-| 911_TURBO_3_3_1986    | 1986 MY European 911 Turbo 3.3 Coupe                 | 3299 cc air-cooled turbo flat six (930/66, 300 PS); 4MT         | Silver, round headlights, wide rear fenders and tea-tray spoiler        |
+| 911_TURBO_3_3_1986    | 1986 MY European 911 Turbo 3.3 Coupe                 | 3299 cc air-cooled turbo flat six (930/66, 300 PS); 4MT         | Silver metallic, round headlights, wide rear fenders, black-rimmed tray |
 | FERRARI_GTO_1984      | 1984 European GTO, Tipo F114                         | F114B, 2855.08 cc twin-turbo flat-plane V8; 5MT                 | Blue arcade recolor, rear-fender slots, paired round rear lamps         |
 | PORSCHE_928_S_1984    | 1984 MY US 928 S                                     | M28.19, 4664 cc SOHC 16-valve V8; 5MT                           | Red early body, rubber bumper trim and small spoiler                    |
 | TOYOTA_PICKUP_1980    | 1980 MY US 49-state RN42, regular cab, long bed, 2WD | 2189 cc 20R SOHC four; 4MT                                      | Open long bed, separate upright cab, rectangular lamps                  |
@@ -44,7 +44,7 @@ substitutes a production-volume choice for an arcade appearance that may be 1986
 asserted by these runtime definitions. The 9C1 manual gearbox is explicitly a game conversion: the supplied police
 specification called for an automatic in the real car.
 
-Except the 959's and the 928 S4's, the four palettes are game colors, without verified period paint codes. Blue GTO
+Except the 959's, the 928 S4's and the 911 Turbo 3.3's, the four palettes are game colors, without verified period paint codes. Blue GTO
 and the police livery are especially not claims of factory delivery colors. The stock-named palette key means the
 default game palette.
 
@@ -114,7 +114,8 @@ Accessed 2026-10-23 UTC. Search snippets, blocked URLs and unread manuals are no
 The numeric ledger distinguishes `source verified`, `calculated`, `engineering estimate` and `game design`, and for
 the 959, the 928 S4 and the F40 of 1988 `source (auditor)`: the stage auditor's reading, not read for the PR that
 wrote it ([959](#porsche-959-of-1987-sources-versus-authored), [928 S4](#porsche-928-s4-of-1987-sources-versus-authored),
-[F40](#ferrari-f40-of-1988-sources-versus-authored)).
+[F40](#ferrari-f40-of-1988-sources-versus-authored)); the 911 Turbo 3.3's colors (item 15) are the auditor's reading
+likewise.
 A source-verified secondary value means that page was read, not that it has primary-document authority.
 
 1. **928 S4 factory-table transcription**, [general/engine](https://www.jenniskens.eu/Technical/TechSpecs/TechSpecs1.htm)
@@ -234,6 +235,15 @@ A source-verified secondary value means that page was read, not that it has prim
     tube manifolds and one silencer ([supercars.net](https://www.supercars.net/blog/ferrari-288-gto/)) and the F40's
     cam timing ([thread](https://www.ferrarichat.com/forum/threads/288-and-f40-cam-specs.473123/)).
 
+15. **911 Turbo 3.3 of 1986, colors** (Stage P930, the stage auditor's reading of 2026-11-23; the pages could not
+    be reached from the environment of the PR that wrote this item). Porsche's 1986 paint lists name Guards Red, Black,
+    Silver Metallic and Grand Prix White
+    ([paintscratch](https://paintscratch.com/touch_up_paint/Porsche/1986-Porsche-All-Models.html),
+    [Unique Cars and Parts](https://uniquecarsandparts.com.au/colour_swatch_porsche_1986): Grand Prix White 908 / P5).
+    A 930 color table ([turbosition](https://www.turbosition.com/porsche-930/color-red)) gives 027, Indischrot, as
+    Guards Red, 1976 to 1986; Black is 700 / A1. Silver Metallic's 1986 code differs between sources (L936 and 980) and
+    is not fixed here; its name is the same. No 1986 European color list, the primary source, was read.
+
 Conflicting secondary Countach pages mix incompatible bore, gearbox, power-unit and performance figures;
 they are not blanket authorities for this data. An Esprit page labelled simply “Turbo” actually describes
 the 1987 Stevens body and is not the 1984 geometry source. Unread F40 racing tables and a later owner's manual
@@ -243,9 +253,8 @@ are not evidence for the selected 1988 non-catalyst road specification.
 
 [Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for ten of
 the cars; the 959's pictures are baked from K's model instead, in its four period colors, the 928 S4's in eight
-Porsche colors and the F40's in one, ROSSO CORSA ([Model solids](image-assets.md#model-solids)), and the 911 TURBO
-3.3 of 1986's are generated from four views in silver, black, red and white (MF-6b;
-[Vehicle picture generator](image-assets.md#vehicle-picture-generator)). Those samples go through the existing shared
+Porsche colors, the F40's in one, ROSSO CORSA, and the 911 TURBO 3.3 of 1986's in four Porsche colors
+([Model solids](image-assets.md#model-solids); [below](#porsche-911-turbo-33-of-1986-the-fourth-stages-car)). Those samples go through the existing shared
 camera, palette, shadows, sprite and six-LOD baker. Each of the ten has 64 yaw pictures, one bank, four palettes and the
 existing brake-lamp slot. No source photograph, ROM image or downloaded manual image is redistributed. Facet
 locations, window proportions, lights, rims, paint and details are visual estimates; this is not a dimensioned CAD
@@ -515,6 +524,26 @@ The stage auditor's reading (2026-11-19 and 2026-11-20), not read for these PRs:
 [Ferrari's part list 021, exhaust without catalyst](https://www.allferrariparts.com/tbl12205.html) and
 [a replacement maker's catalogue](https://catalogue.tubistyle.it/ferrari/f40-1987-1992.html); the 1,235 kg is from a
 specification table of the 1988 car (cars-data).
+
+## Porsche 911 Turbo 3.3 of 1986: the fourth stage's car
+
+K takes the car chased in CHASE H.Q.'s fourth stage for the Porsche 911 Turbo 3.3 of 1986, Europe
+(K, 2026-11-23); nothing here claims the original says so. It is the existing `911_TURBO_3_3_1986`, the 1986 European
+car with the 4MT (MF-6, [item 13](#evidence-actually-consulted)), not a vehicle added again; its driving and sound are
+unchanged.
+
+- Its pictures are baked from K's model ([Model solids](image-assets.md#model-solids)), no longer generated from four
+  views. The model was made to this ledger's dimensions (4,291 × 1,775 × 1,310 mm, 2,272 mm wheelbase, 1,432 / 1,501 mm
+  tracks); its overhangs, 936 and 1,084 mm, not fitted, are within 4 mm of auto-data's 932 and 1,087 mm. Its wheels are
+  the tires' nominal size (205/55 VR16 and 245/45 VR16: 0.316 and 0.3135 m), while its driving keeps 0.304 and 0.306 m.
+- Its four colors keep their keys and the silver default; their names are Porsche's: SILVER METALLIC, BLACK, GUARDS
+  RED and GRAND PRIX WHITE ([item 15](#evidence-actually-consulted)). Their base colors are provisional, the 928 S4's of
+  the same names, not measured from paint samples; whether all four were offered on the 1986 European car is not
+  checked against a primary source.
+- The rear track: 1,501 mm is auto-data's four-speed entry; carsales and auto-data's five-speed entry give the 1986 car
+  1,492 mm. The definition keeps 1,501 mm.
+- The rear band is a dark grey where the real car has a red reflector; the turbo script and the band's lettering are
+  rough, as the model has them.
 
 ## Mazda RX-7 Turbo II of 1987: sources versus authored
 

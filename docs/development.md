@@ -1006,7 +1006,7 @@ The pictures command generates one vehicle sprite set by the
 exiting 1):
 
 ```sh
-npm run pictures -- 911-turbo-3-3-1986
+npm run pictures -- golf-gti-16v
 ```
 
 It reads `content/vehicle-picture-sources/<set>.json` and the four views beside it, the mechanics document the recipe

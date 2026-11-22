@@ -23,7 +23,8 @@ Each line is one area as it stands, with the document that owns it.
   to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984, 38 with the XR600R of 1985 and 39 with
   the RX-7 Turbo II of 1987, K's TOP SPEED car, and 38 again without the NSR500 of 1987 (Stage MF), in the same ledger
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored)). Among the fourteen, the
-  928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)). The
+  928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)), and
+  the 911 Turbo 3.3 of 1986 the car chased in its fourth stage ([Stage P930](#stage-p930--the-911-turbo-33-of-1986s-pictures)). The
   1986 Porsche 930 and 1984 Corvette C4 coexist with their existing 1989 versions; the unidentified box truck remains
   deferred. The ledger owns specification limits and validation.
 - **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
@@ -54,9 +55,9 @@ Each line is one area as it stands, with the document that owns it.
   plane; the camera stands 6 m behind and 2 m above the player's base point
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
-- **Pictures.** 911 TURBO 3.3's and GOLF GTI 16V's pictures are generated sets, VFR750R's a 3D prototype,
-  TESTAROSSA's, the RX-7 Turbo II of 1987's, the M23 PP SPEC's, the NSR500 of 1984's and the XR600R of 1985's baked
-  from K's models, the two cars' with a car's glossy finish, the other vehicles' converted provisional pictures
+- **Pictures.** GOLF GTI 16V's pictures are a generated set, VFR750R's a 3D prototype,
+  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the M23 PP SPEC's, the NSR500 of 1984's and
+  the XR600R of 1985's baked from K's models, the three cars' with a car's glossy finish, the other vehicles' converted provisional pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
   admits the measured racing lines, reference times and pace schedules, which `npm run measure` saves under `content/`
@@ -234,6 +235,37 @@ that: the G28/13's ratios, the 675 rpm idle and the 1,549 mm front track, and th
 - Not decided: CHASE H.Q.'s series (the player's car, the criminals' cars, turbo, the beacon), its own tire values and
   its steering picture.
 
+## Stage P930 — The 911 TURBO 3.3 of 1986's pictures
+
+K's decisions of 2026-11-23: the car chased in CHASE H.Q.'s fourth stage is taken for the Porsche 911 Turbo (930), the
+existing `911_TURBO_3_3_1986` (1986, Europe, 4MT; MF-6), not added again; its pictures are baked from K's model by the
+car baking of F110-1 in place of the four-view set; its four colors, keys and silver default stay, named by Porsche's
+names ([Arcade car selections](chase-turbo-vehicles.md#porsche-911-turbo-33-of-1986-the-fourth-stages-car)). Its
+driving and sound are unchanged.
+
+- P930-1 has baked `911-turbo-3-3-1986` from K's model (SHA-256 `a589debd…`, on `codex/911-turbo-3-3-1986-glb-source`,
+  never on main) with the RX-7's recipe, in SILVER METALLIC, BLACK, GUARDS RED and GRAND PRIX WHITE
+  ([Model solids](image-assets.md#model-solids)); the four views are gone, GOLF GTI 16V's four-view set
+  byte-identical.
+- To look at in DEV: SELECT VEHICLE's four colors and their names, silver the default; TSUKUBA CLUBMAN's 911 CUP, its
+  sixteen colors as before and the back of the car ahead; the six windows told from the matt black around them, the
+  doors' windows and the mirrors; the back: the wing's black rim, the grey band, the brake lamps and their lighting, the
+  bumper guards; the wheels' white rims and black centres; OUT RUN's traffic 911 and the four colors told apart far
+  away; the size against the earlier pictures and beside the 928 S4.
+- The stage auditor's choices, awaiting K: the stage's name and one PR, the colors' keys kept, the four base colors
+  (the 928 S4's of the same names), the pictures' rim radius (0.2207 m) and the driving left unchanged.
+- The four base colors are provisional, not measured from paint samples. Whether all four were offered on the 1986
+  European car is not checked against a primary source, and Silver Metallic's code is not fixed (L936 and 980 are
+  both given).
+- The rear track: the definition's 1,501 mm, while some sources give the 1986 car 1,492 mm. Whether to change it is K's.
+- The wheel radii: the definition's 0.304 and 0.306 m, the pictures' the tires' nominal 0.316 and 0.3135 m. Whether to
+  make them one is K's.
+- The rear band is dark grey; the real car's is a red reflector. Drawing it red needs the baking to split the greys'
+  steps, not done in this stage. The turbo script and the band's lettering are rough, as the model has them.
+- The shelf below the rear window stands above the glass in places (painted as glass); the rear window's upper edge is
+  a little jagged. The engine cover's grille, the front bumper's strip and the other small parts are as K painted them.
+- Not decided: CHASE H.Q.'s series (the player's car, the cars chased, turbo, the beacon).
+
 ## Stage F120 — The F40 of 1988
 
 K's decisions of 2026-11-19 and 2026-11-20: TURBO OUTRUN's car is the Ferrari F40 of 1988, European specification, an
@@ -325,9 +357,8 @@ The stage's name, `MF`, is the auditor's; K has not decided it. What stays open,
   after the turbine (about 0.15–0.25 m) and the path in the silencer, the branches' entry into the body, the inner
   diameters (taken), which cylinders are at the front, the curve's 950, 3,000 and 6,800 rpm points (and a source's
   412 N m, taken for the earlier 930/60), the redline and the tallies' accuracy.
-  Its pictures are the four-view set drawn on the 1986 car (silver, black, GUARDS RED, GP WHITE; MF-6b), whether the
-  photographed car matches the 1986 European one in its details not checked; OUT RUN's and TURBO OUTRUN's traffic shows
-  them in place of the procedural shape.
+  Its pictures, first a four-view set (MF-6b), are now baked from K's model
+  ([Stage P930](#stage-p930--the-911-turbo-33-of-1986s-pictures)); OUT RUN's and TURBO OUTRUN's traffic shows them.
   MF-6c removed the 1989 car; TSUKUBA CLUBMAN's 911 CUP runs the 1986 car, its racing line and reference time on
   TSUKUBA measured again. To check in a run: the 911 CUP's four gears, the rivals' pace and the pictures, and OUT RUN's
   traffic 911.
@@ -1132,7 +1163,7 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 | OUTRUN        | TESTAROSSA is the 1984 European coupé (K, 2026-11-19).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | TURBO OUTRUN  | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](turbo-outrun-road-data.md)). F40 and 959 are period road specifications.                                                                                                                                                              |
 | FINAL LAP 2   | The reference game is of 1990; the tribute's cars are of 1989 or before ([Era](product.md#era)). The catalog has `FERRARI_640` (1989) and `MCLAREN_MP4_4` (1988).                                                                                                                                                                                                                                                                                                                                                                       |
-| CHASE H.Q.    | The 928 is the S4 of 1987, US, five-speed manual (K, 2026-11-20). ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition. Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                                                                                                                        |
+| CHASE H.Q.    | The 928 is the S4 of 1987, US, five-speed manual (K, 2026-11-20). ESPRIT TURBO generation is open. The car chased in the fourth stage is the 911 Turbo 3.3 of 1986, Europe, 4MT, the existing definition (K, 2026-11-23). Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                                                           |
 | CISCO HEAT    | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. Ordinary road appearances, without police livery or lights; BROUGHAM TUNED is one explicit finished specification, used unchanged on every course. |
 | BIG RUN       | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                                                                                                                                                                                  |
 
@@ -1397,7 +1428,8 @@ Choices made where Stage FE left them open, each recorded in its PR:
 - Menus: PAUSE, RESULT and LOAD FAILED are carousels; a single item draws no arrows; no screen advances during a
   black transition (READY's countdown starts fully bright).
 - Color display names (24 characters at most, the card drawing a name too long for its COLOR line's normal font in
-  the small print): 911 TURBO 3.3 SILVER, BLACK, GUARDS RED, GP WHITE; TESTAROSSA ROSSO CORSA, GIALLO, BIANCO, NERO,
+  the small print): 911 TURBO 3.3 SILVER METALLIC, BLACK, GUARDS RED, GRAND PRIX WHITE (Porsche's names, Stage P930);
+  TESTAROSSA ROSSO CORSA, GIALLO, BIANCO, NERO,
   ARGENTO METALLIZZATO, BLU SERA METALLIZZATO, AZZURRO METALLIZZATO, VERDE SCURO METALLIZZATO; GOLF GTI 16V TORNADO RED, ALPINE
   WHITE, BLACK, SILVER; DELTA HF INTEGRALE BIANCO, ROSSO MONZA, BLU LANCIA, NERO; CORVETTE C4 BRIGHT RED; FXRT SPORT
   GLIDE VIVID BLACK; every other color its plain name. To confirm or replace.

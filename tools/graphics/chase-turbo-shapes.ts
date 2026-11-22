@@ -5,7 +5,7 @@ import { createProceduralVehicleSolid, type Point3, type SurfaceColor } from './
 
 /**
  * Original, provisional authoring geometry. Dimensions and limitations are recorded in chase-turbo-vehicles.md. The
- * ledger's Porsche 959 and 928 S4 have none: their pictures are baked from K's models.
+ * ledger's Porsche 959, 928 S4, 911 Turbo 3.3 and F40 have none: their pictures are baked from K's models.
  */
 export const CHASE_TURBO_PICTURES = {
   TURBO_ESPRIT_1984: 'turbo-esprit-1984',

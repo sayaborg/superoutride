@@ -28,7 +28,7 @@ Acceleration differs from period road tests because mass, curve shape, tires and
 
 ## Picture review
 
-The [complete overview](overview.png), [CHASE H.Q. selections](chase-hq.png) and [Turbo OutRun additions](turbo-outrun.png) show eight sampled directions at native sprite scale. Each row is labelled with its runtime ID. The Porsche 959 of 1987, the 928 S4 of 1987 and the F40 of 1988 are not among them: their pictures are baked from K's models ([Model solids](../image-assets.md#model-solids)); nor is the 911 TURBO 3.3 of 1986, whose pictures are generated from four views ([Vehicle picture generator](../image-assets.md#vehicle-picture-generator)).
+The [complete overview](overview.png), [CHASE H.Q. selections](chase-hq.png) and [Turbo OutRun additions](turbo-outrun.png) show eight sampled directions at native sprite scale. Each row is labelled with its runtime ID. The Porsche 959 of 1987, the 928 S4 of 1987, the F40 of 1988 and the 911 TURBO 3.3 of 1986 are not among them: their pictures are baked from K's models ([Model solids](../image-assets.md#model-solids)).
 
 | Vehicle               | Eight directions                 | Colors and brake lamps                              | All 64 directions by LOD                                                                                                                                                                                                          |
 | --------------------- | -------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
