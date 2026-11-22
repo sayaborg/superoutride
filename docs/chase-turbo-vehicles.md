@@ -6,7 +6,8 @@ The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-s
 It records the chosen real-car specification, the limits of the evidence, the provisional authoring inputs and
 validation. Shared physics, images, sound and selection behavior retain their existing owners.
 
-The existing 1989 Porsche 930 and 1989 Corvette C4 remain separate, byte-for-byte unchanged vehicles.
+The existing 1989 Corvette C4 remains a separate, byte-for-byte unchanged vehicle; the 1989 Porsche 930 has been
+removed, the 1986 car taking its place (MF-6c, K 2026-11-22).
 The unidentified box truck is deferred. These fourteen additions bring the selectable catalog from 21 to 35.
 They enter existing FREE PLAY car/all pools through catalog membership; no course, series, traffic policy,
 pursuit behavior, HUD, gear label or physics mechanism is added. They use ordinary contact and recovery.

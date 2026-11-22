@@ -2,7 +2,7 @@
   "format": "superoutride.vehicle-listing",
   "version": 6,
   "form": "car",
-  "selectionOrder": 35,
+  "selectionOrder": 2,
   "visuals": {
     "spriteSet": "911-turbo-3-3-1986",
     "palette": "silver",

@@ -328,6 +328,9 @@ as its throat and one room of 0.12 m × 150 mm, two-strokes as the machine is. T
   Its pictures are the four-view set drawn on the 1986 car (silver, black, GUARDS RED, GP WHITE; MF-6b), whether the
   photographed car matches the 1986 European one in its details not checked; OUT RUN's and TURBO OUTRUN's traffic shows
   them in place of the procedural shape.
+  MF-6c removed the 1989 car; TSUKUBA CLUBMAN's 911 CUP runs the 1986 car, its racing line and reference time on
+  TSUKUBA measured again. To check in a run: the 911 CUP's four gears, the rivals' pace and the pictures, and OUT RUN's
+  traffic 911.
 
 ## Stage AT — The attract demo remade
 

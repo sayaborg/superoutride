@@ -15,10 +15,10 @@
       "title": "TSUKUBA",
       "course": "tsukuba",
       "laps": 1,
-      "vehicles": ["911_TURBO_3_3"],
+      "vehicles": ["911_TURBO_3_3_1986"],
       "entries": [
         {
-          "vehicle": "911_TURBO_3_3",
+          "vehicle": "911_TURBO_3_3_1986",
           "color": "silver",
           "stages": null,
           "slot": 0,
@@ -51,10 +51,10 @@
       "title": "TRAFFIC",
       "course": "tsukuba",
       "laps": 1,
-      "vehicles": ["911_TURBO_3_3"],
+      "vehicles": ["911_TURBO_3_3_1986"],
       "entries": [
         {
-          "vehicle": "911_TURBO_3_3",
+          "vehicle": "911_TURBO_3_3_1986",
           "color": "silver",
           "stages": null,
           "slot": 14,

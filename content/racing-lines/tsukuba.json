@@ -7,10 +7,10 @@
   "lengthWeight": 0.000316,
   "vehicles": [
     {
-      "vehicleId": "911_TURBO_3_3",
-      "vehicleSha256": "a96e06904a617e762b738d3665c7a84dcfe64ef187dc540cbdb4f76cd18d6086",
-      "seconds": 53.927,
-      "minimumCurvatureSeconds": 54.768
+      "vehicleId": "911_TURBO_3_3_1986",
+      "vehicleSha256": "d31f237a7f865188c494cffef6e6f43f7a09261950f2b3031eadf738a9d72b85",
+      "seconds": 54.104,
+      "minimumCurvatureSeconds": 54.923
     },
     {
       "vehicleId": "GOLF_GTI_16V",
