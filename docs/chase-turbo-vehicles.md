@@ -44,7 +44,10 @@ substitutes a production-volume choice for an arcade appearance that may be 1986
 asserted by these runtime definitions. The 9C1 manual gearbox is explicitly a game conversion: the supplied police
 specification called for an automatic in the real car.
 
-Except the 959's, the 928 S4's and the 911 Turbo 3.3's, the four palettes are game colors, without verified period paint codes. Blue GTO
+K takes CHASE H.Q.'s rival for the Lotus Turbo Esprit of 1984, United Kingdom, Type 82 (K, 2026-11-22);
+nothing here claims the original says so.
+
+Except the 959's, the 928 S4's, the Turbo Esprit's and the 911 Turbo 3.3's, the four palettes are game colors, without verified period paint codes. Blue GTO
 and the police livery are especially not claims of factory delivery colors. The stock-named palette key means the
 default game palette.
 
@@ -114,7 +117,7 @@ Accessed 2026-10-23 UTC. Search snippets, blocked URLs and unread manuals are no
 The numeric ledger distinguishes `source verified`, `calculated`, `engineering estimate` and `game design`, and for
 the 959, the 928 S4 and the F40 of 1988 `source (auditor)`: the stage auditor's reading, not read for the PR that
 wrote it ([959](#porsche-959-of-1987-sources-versus-authored), [928 S4](#porsche-928-s4-of-1987-sources-versus-authored),
-[F40](#ferrari-f40-of-1988-sources-versus-authored)); the 911 Turbo 3.3's colors (item 15) are the auditor's reading
+[F40](#ferrari-f40-of-1988-sources-versus-authored)); the 911 Turbo 3.3's colors (item 16) are the auditor's reading
 likewise.
 A source-verified secondary value means that page was read, not that it has primary-document authority.
 
@@ -235,7 +238,19 @@ A source-verified secondary value means that page was read, not that it has prim
     tube manifolds and one silencer ([supercars.net](https://www.supercars.net/blog/ferrari-288-gto/)) and the F40's
     cam timing ([thread](https://www.ferrarichat.com/forum/threads/288-and-f40-cam-specs.473123/)).
 
-15. **911 Turbo 3.3 of 1986, colors** (Stage P930, the stage auditor's reading of 2026-11-23; the pages could not
+15. **Turbo Esprit's colors** (E82-1, 2026-11-23), the stage auditor's reading; neither list was reachable from
+    E82-1's environment. Lotus's paint codes, the A series being the two-pack paints from about 1977
+    ([SELOC wiki](https://wiki.seloc.org/a/Paint_codes)): A02 Black, A21 Monaco White (earlier L25), A23 Calypso Red
+    (earlier L42), A42 British Racing Green, a metallic. A paint seller's list by year
+    ([chipfixx](https://www.chipfixx.ca/pages/lotus-paint-codes)): Black, Calypso Red and Monaco White 1980–1989, A42
+    as "Racing Green" 1984–1987. Both lists are Lotus's for every model, not the colors offered on the Turbo Esprit.
+    Cars of 1984 described for sale: two Calypso Red Turbos, and a Turbo bought new from the works in British Racing
+    Green in December 1984. Other colors of about 1984 in the same lists, not taken: Silver Diamond (A03), Silver Frost
+    (A45), Essex Blue (A34), Bermuda Blue (A06), Lotus Yellow (A22) and Jupiter Red (A30). The 1984 UK catalogue's
+    color table, the primary source, was not read. The base colors are provisional, not measured from paint samples
+    ([Model solids](image-assets.md#model-solids)).
+
+16. **911 Turbo 3.3 of 1986, colors** (Stage P930, the stage auditor's reading of 2026-11-23; the pages could not
     be reached from the environment of the PR that wrote this item). Porsche's 1986 paint lists name Guards Red, Black,
     Silver Metallic and Grand Prix White
     ([paintscratch](https://paintscratch.com/touch_up_paint/Porsche/1986-Porsche-All-Models.html),
@@ -251,11 +266,12 @@ are not evidence for the selected 1988 non-catalyst road specification.
 
 ## Pictures and sound
 
-[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for ten of
+[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for nine of
 the cars; the 959's pictures are baked from K's model instead, in its four period colors, the 928 S4's in eight
-Porsche colors, the F40's in one, ROSSO CORSA, and the 911 TURBO 3.3 of 1986's in four Porsche colors
-([Model solids](image-assets.md#model-solids); [below](#porsche-911-turbo-33-of-1986-the-fourth-stages-car)). Those samples go through the existing shared
-camera, palette, shadows, sprite and six-LOD baker. Each of the ten has 64 yaw pictures, one bank, four palettes and the
+Porsche colors, the F40's in one, ROSSO CORSA, the Turbo Esprit's in four Lotus colors, MONACO WHITE the default, and
+the 911 TURBO 3.3 of 1986's in four Porsche colors ([Model solids](image-assets.md#model-solids);
+[below](#porsche-911-turbo-33-of-1986-the-fourth-stages-car)). Those samples go through the existing shared
+camera, palette, shadows, sprite and six-LOD baker. Each of the nine has 64 yaw pictures, one bank, four palettes and the
 existing brake-lamp slot. No source photograph, ROM image or downloaded manual image is redistributed. Facet
 locations, window proportions, lights, rims, paint and details are visual estimates; this is not a dimensioned CAD
 reconstruction. Dimensions include a provisional visual envelope, so tiny mirrors, lamps or the spare can extend
@@ -537,7 +553,7 @@ unchanged.
   tracks); its overhangs, 936 and 1,084 mm, not fitted, are within 4 mm of auto-data's 932 and 1,087 mm. Its wheels are
   the tires' nominal size (205/55 VR16 and 245/45 VR16: 0.316 and 0.3135 m), while its driving keeps 0.304 and 0.306 m.
 - Its four colors keep their keys and the silver default; their names are Porsche's: SILVER METALLIC, BLACK, GUARDS
-  RED and GRAND PRIX WHITE ([item 15](#evidence-actually-consulted)). Their base colors are provisional, the 928 S4's of
+  RED and GRAND PRIX WHITE ([item 16](#evidence-actually-consulted)). Their base colors are provisional, the 928 S4's of
   the same names, not measured from paint samples; whether all four were offered on the 1986 European car is not
   checked against a primary source.
 - The rear track: 1,501 mm is auto-data's four-speed entry; carsales and auto-data's five-speed entry give the 1986 car
