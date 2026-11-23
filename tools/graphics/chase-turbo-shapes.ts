@@ -5,10 +5,9 @@ import { createProceduralVehicleSolid, type Point3, type SurfaceColor } from './
 
 /**
  * Original, provisional authoring geometry. Dimensions and limitations are recorded in chase-turbo-vehicles.md. The
- * ledger's Porsche 959, 928 S4, F40 and Countach have none: their pictures are baked from K's models.
+ * ledger's Porsche 959, 928 S4, F40, Turbo Esprit and Countach have none: their pictures are baked from K's models.
  */
 export const CHASE_TURBO_PICTURES = {
-  TURBO_ESPRIT_1984: 'turbo-esprit-1984',
   FERRARI_GTO_1984: 'ferrari-gto-1984',
   PORSCHE_928_S_1984: 'porsche-928-s-1984',
   TOYOTA_PICKUP_1980: 'toyota-pickup-1980',
@@ -29,7 +28,6 @@ const black: Rgb = [18, 20, 23],
   amber: Rgb = [240, 140, 20],
   paint: Rgb = [180, 180, 180];
 const bodies: Record<ChaseTurboId, Rgb> = {
-  TURBO_ESPRIT_1984: white,
   FERRARI_GTO_1984: blue,
   PORSCHE_928_S_1984: red,
   TOYOTA_PICKUP_1980: [190, 115, 55],
@@ -84,7 +82,6 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     z = m.overallLength / 2,
     h = m.overallHeight;
   const p928 = id === 'PORSCHE_928_S_1984',
-    esprit = id === 'TURBO_ESPRIT_1984',
     gto = id === 'FERRARI_GTO_1984',
     c4 = id === 'CORVETTE_C4_1984',
     mini = id === 'AUSTIN_MINI_850_1964',
@@ -394,7 +391,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
       wingWidth = 0.79 * x;
     slab([0, wingY, wingZ], [wingWidth, 0.035, 0.09 * z], p928 ? black : paint, p928 ? 'plain' : 'paint');
   }
-  if (esprit || gto) {
+  if (gto) {
     for (let i = 0; i < 7; i++)
       slab([0, 0.59 * h, -(0.45 + i * 0.055) * z], [0.5 * x, 0.01, 0.014 * z], black, 'plain');
     for (const side of [-1, 1]) {

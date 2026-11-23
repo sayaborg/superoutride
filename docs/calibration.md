@@ -315,7 +315,8 @@ The engine sound has no DEV settings (K, 2026-11-21). Its values are [derived](#
 | ------------------------------------ | ------------------------------------------------------------- | ------ | --------------------------- |
 | `EXHAUST_LISTENING.chargeVariation`  | Each firing's charge varies by up to this share of a full one | 0.03   | K, 2026-11-20               |
 | `EXHAUST_LISTENING.afterfireSeconds` | An afterfire's charge burns over this                         | 1.5 ms | K, 2026-11-20               |
-| `LIGHT_BOX_DIAMETER`                 | The light kernel reads no pipe this wide or narrower as a box | 75 mm  | K, 2026-11-23               |
+| `LISTENED.chargeVariation`           | The light kernel's: each charge varies by up to this share    | 0.03   | K, 2026-11-20 and 11-23     |
+| `LISTENED.afterfireSeconds`          | The light kernel's: an afterfire burns at its valve over this | 1.5 ms | K, 2026-11-20 and 11-23     |
 | `ENGINE_CHAIN.levelSeconds`          | The compressor follows the sound's mean square over this      | 50 ms  | K, 2026-11-21               |
 | `ENGINE_CHAIN.ratio`                 | The compressor's ratio, threshold at the bottom               | 2:1    | K, 2026-11-21               |
 | `ENGINE_CHAIN.ceiling`               | The soft clip's ceiling over the level the gain brings        | 2      | K, 2026-11-21               |

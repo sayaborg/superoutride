@@ -528,11 +528,12 @@ test('the XR600R of 1985’s saved set: paint ramps of three, two and three, six
   assert.deepEqual([...used].sort(), [...'0123456789abcdef']);
 });
 
-for (const [vehicle, name, liveries] of [
-  ['the TESTAROSSA of 1984', 'testarossa', 8],
-  ['the RX-7 Turbo II of 1987', 'rx-7-turbo-ii-1987', 8],
-  ['the 928 S4 of 1987', 'porsche-928-s4-1987', 8],
-  ['the Countach 5000 QV of 1985', 'countach-5000-qv-1985', 4],
+for (const [vehicle, name, liveries, count] of [
+  ['the TESTAROSSA of 1984', 'testarossa', 'eight', 8],
+  ['the RX-7 Turbo II of 1987', 'rx-7-turbo-ii-1987', 'eight', 8],
+  ['the 928 S4 of 1987', 'porsche-928-s4-1987', 'eight', 8],
+  ['the Turbo Esprit of 1984', 'turbo-esprit-1984', 'four', 4],
+  ['the Countach 5000 QV of 1985', 'countach-5000-qv-1985', 'four', 4],
 ])
   test(`${vehicle}’s saved set: seven paint steps, three glass steps, four greys, ${liveries} liveries`, async () => {
     const value = JSON.parse(await readFile(new URL(`../../content/sprites/${name}.json`, import.meta.url), 'utf8'));
@@ -540,10 +541,10 @@ for (const [vehicle, name, liveries] of [
     assert.equal(set.yawVariants, 64);
     assert.equal(set.bankVariants, 1);
     const palettes = Object.values(value.palettes);
-    assert.equal(palettes.length, liveries);
+    assert.equal(palettes.length, count);
     // The glass (slots 8–10), the greys (11–14) and the lamp are every livery's; the paint (1–7) is each livery's own.
     for (const palette of palettes) assert.deepEqual(palette.slice(7), palettes[0].slice(7));
-    assert.equal(new Set(palettes.map((p) => p.slice(0, 7).join())).size, liveries, 'the paint');
+    assert.equal(new Set(palettes.map((p) => p.slice(0, 7).join())).size, count, 'the paint');
     // No palette color, nor the lamp's, is the model's magenta.
     const magenta = 0x7c1f;
     for (const color of [...palettes.flat(), value.brakeLamp.off, value.brakeLamp.on]) assert.notEqual(color, magenta);

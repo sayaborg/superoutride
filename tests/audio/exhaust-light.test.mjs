@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { ExhaustLight, straightened } from '../../src/audio/exhaust-light.js';
+import { ExhaustLight, lightExhaust } from '../../src/audio/exhaust-light.js';
 
 const content = await readDeliveredContent();
 const { vehicles } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
@@ -16,88 +16,103 @@ const rate = 48000;
  * level, and fully closed, its level (dB).
  */
 const AUDITED = {
-  FERRARI_F40_1988: [-63.66, 8.89, -59.69],
-  PORSCHE_959_1987: [-59.98, 7.58, -61.2],
-  RX_7_TURBO_II_1987: [-67.75, 6.63, -68.27],
-  PORSCHE_928_S4_1987: [-67.29, 12.31, -72.29],
-  XR600R_1985: [-66.37, 6.52, -71.53],
-  TESTAROSSA: [-61.99, 8.37, -75.25],
-  NSR500_1984: [-65.84, 6.83, -75.81],
-  TURBO_ESPRIT_1984: [-72.1, 9.29, -69.94],
-  COUNTACH_5000_QV_1985: [-56.82, 11.07, -58.53],
-  '911_TURBO_3_3_1986': [-68.41, 9.7, -71.4],
-  FERRARI_GTO_1984: [-69.63, 7.73, -62.25],
+  FERRARI_F40_1988: [-72.9, 9.36, -68.48],
+  PORSCHE_959_1987: [-67.51, 7.87, -83.84],
+  RX_7_TURBO_II_1987: [-73.19, 7.84, -72.87],
+  PORSCHE_928_S4_1987: [-75.56, 10.04, -82.64],
+  XR600R_1985: [-67.85, 7.62, -72.52],
+  TESTAROSSA: [-74.24, 6.84, -88.27],
+  NSR500_1984: [-69.22, 8.2, -73.34],
+  TURBO_ESPRIT_1984: [-60.0, 5.22, -64.51],
+  COUNTACH_5000_QV_1985: [-65.19, 10.6, -70.5],
+  '911_TURBO_3_3_1986': [-77.02, 8.9, -82.13],
+  FERRARI_GTO_1984: [-70.08, 8.57, -63.18],
 };
 
-/** The pipes each settled sound reads as straight ways through: length (m), diameter and diameter read (mm). */
-const BOXES = {
+/**
+ * The auditor's reading of the eleven settled sounds (2026-11-23): the diameter (mm), then each tube as
+ * `from>to length`, `v` a valve and `m` a mouth, its length in centimetres.
+ */
+const valves = (to, lengths) => lengths.map((length) => `v>${to.shift()} ${length}`);
+const READ = {
   FERRARI_F40_1988: [
-    [0.12, 150, 62],
-    [0.12, 150, 62],
-    [0.26, 311, 102],
+    40,
+    ...valves([0, 1, 0, 1, 0, 1, 0, 1], [70, 70, 46, 46, 36, 36, 58, 58]),
+    '0>2 56',
+    '1>2 66',
+    '2>m 74',
   ],
   PORSCHE_959_1987: [
-    [0.12, 150, 64],
-    [0.12, 150, 64],
-    [0.7, 209, 90],
+    43,
+    ...valves([0, 3, 0, 1, 2, 1], [22, 10, 10, 22, 10, 10]),
+    '0>2 12',
+    '2>4 58',
+    '1>3 12',
+    '3>4 68',
+    '4>m 96',
   ],
-  RX_7_TURBO_II_1987: [
-    [0.12, 150, 62],
-    [0.46, 270, 78],
-  ],
+  RX_7_TURBO_II_1987: [55, 'v>0 14', 'v>0 32', '0>m 326'],
   PORSCHE_928_S4_1987: [
-    [0.52, 165, 59],
-    [0.42, 135, 59],
-    [0.52, 165, 59],
-    [0.42, 135, 59],
-    [0.54, 168, 89],
+    48,
+    ...valves([0, 0, 1, 0, 1, 1, 0, 1], [20, 16, 16, 20, 20, 20, 16, 16]),
+    '0>2 262',
+    '1>2 292',
+    '2>m 84',
   ],
-  XR600R_1985: [
-    [0.38, 132, 46],
-    [0.18, 110, 46],
-  ],
+  XR600R_1985: [42, 'v>m 130'],
   TESTAROSSA: [
-    [0.56, 186, 74],
-    [0.48, 190, 84],
-    [0.56, 186, 74],
-    [0.48, 190, 84],
+    40,
+    ...valves([0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3], Array(12).fill(20)),
+    '0>4 86',
+    '2>4 74',
+    '1>5 86',
+    '3>5 74',
+    '4>m 164',
+    '5>m 164',
   ],
-  NSR500_1984: [
-    [0.46, 86, 38],
-    [0.46, 86, 38],
-    [0.46, 86, 38],
-    [0.46, 86, 38],
-  ],
-  TURBO_ESPRIT_1984: [
-    [0.12, 150, 58],
-    [0.8, 150, 73],
-  ],
+  NSR500_1984: [38, 'v>m 118', 'v>m 122', 'v>m 118', 'v>m 122'],
+  TURBO_ESPRIT_1984: [43, ...valves([0, 1, 0, 1], [44, 26, 16, 36]), '0>2 34', '1>2 34', '2>m 214'],
   COUNTACH_5000_QV_1985: [
-    [0.44, 180, 81],
-    [0.38, 171, 97],
-    [0.44, 180, 81],
-    [0.38, 171, 97],
+    43,
+    ...valves([0, 2, 1, 3, 0, 2, 1, 3, 0, 2, 1, 3], [40, 40, 46, 46, 34, 34, 32, 32, 36, 36, 36, 36]),
+    '0>4 78',
+    '1>4 50',
+    '4>m 110',
+    '2>5 78',
+    '3>5 50',
+    '5>m 110',
   ],
   '911_TURBO_3_3_1986': [
-    [0.12, 150, 68],
-    [0.42, 265, 89],
+    43,
+    ...valves([0, 3, 0, 1, 2, 1], [22, 10, 10, 22, 10, 10]),
+    '0>2 12',
+    '2>4 72',
+    '1>3 12',
+    '3>4 130',
+    '4>m 144',
   ],
   FERRARI_GTO_1984: [
-    [0.12, 150, 63],
-    [0.12, 150, 63],
-    [0.38, 253, 103],
+    40,
+    ...valves([0, 2, 1, 3, 1, 3, 0, 2], [42, 42, 26, 26, 16, 16, 34, 34]),
+    '0>4 22',
+    '1>4 22',
+    '2>5 22',
+    '3>5 22',
+    '4>6 48',
+    '5>6 48',
+    '6>m 72',
   ],
 };
 
-/** `seconds` of a sound at a steady `rpm` and `opening`, burning, `quantum` samples a call; `afterfire` asks one a call. */
-function steady(sound, seconds, rpm, opening, { quantum = 480, afterfire = false } = {}) {
+/** `seconds` of a sound at a steady `rpm` and `opening`, `quantum` samples a call; `afterfire` asks one a call. */
+function steady(sound, seconds, rpm, opening, { quantum = 480, afterfire = false, burns = true } = {}) {
   const kernel = new ExhaustLight(sound, rate, 0.025);
   const out = new Float64Array(Math.round(seconds * rate));
   const speeds = new Float64Array(quantum).fill(rpm);
   const openings = new Float64Array(quantum).fill(opening);
   for (let n = 0; n < out.length; n += quantum) {
     if (afterfire) kernel.afterfire();
-    kernel.render(out, n, Math.min(quantum, out.length - n), speeds, openings, true);
+    kernel.render(out, n, Math.min(quantum, out.length - n), speeds, openings, burns);
   }
   return out;
 }
@@ -126,39 +141,57 @@ test("the light kernel's sound of the settled eleven is the auditor's within 0.1
   }
 });
 
-test('the light kernel reads the settled sounds without their boxes, keeping every length', () => {
-  for (const [id, boxes] of Object.entries(BOXES)) {
-    const { sound } = vehicle(id);
-    const read = straightened(sound).exhaust.pipes;
-    assert.equal(read.length, sound.exhaust.pipes.length, id);
-    const changed = sound.exhaust.pipes.flatMap((pipe, j) => {
-      assert.equal(read[j].length, pipe.length, `${id} pipe ${j}'s length`);
-      assert.equal(read[j].wool, undefined, `${id} pipe ${j}'s wool`);
-      const mm = (diameter) => Math.round(diameter * 1000);
-      return read[j].diameter === pipe.diameter ? [] : [[pipe.length, mm(pipe.diameter), mm(read[j].diameter)]];
-    });
-    assert.deepEqual(changed, boxes, id);
+test('the light kernel reads the settled sounds as tubes of one diameter, two tubes meeting alone as one', () => {
+  for (const [id, [diameter, ...tubes]] of Object.entries(READ)) {
+    const read = lightExhaust(vehicle(id).sound);
+    assert.equal(Math.round(read.diameter * 1000), diameter, id);
+    const end = (junction, valveOrMouth) => (junction === null ? valveOrMouth : junction);
+    assert.deepEqual(
+      read.tubes.map(({ from, to, length }) => `${end(from, 'v')}>${end(to, 'm')} ${Math.round(length * 100)}`),
+      tubes,
+      id,
+    );
+    const ends = read.tubes.flatMap(({ from, to }) => [from, to]).filter((junction) => junction !== null);
+    assert.equal(read.junctions, new Set(ends).size, id);
   }
 });
 
-test('the light kernel starts silent and renders finite sound, the same one at a time as 128 at a time', () => {
+test('the light kernel reads neither a pipe’s diameter nor its wool', () => {
+  for (const { sound, compiledVehicle } of vehicles) {
+    const pipes = sound.exhaust.pipes.map(({ from, to, length, diameter }) => ({
+      from,
+      to,
+      length,
+      diameter: 2 * diameter,
+    }));
+    const other = { ...sound, exhaust: { ...sound.exhaust, pipes } };
+    const rpm = 0.9 * compiledVehicle.powertrain.redlineRpm;
+    assert.deepEqual(steady(sound, 0.25, rpm, 1), steady(other, 0.25, rpm, 1), compiledVehicle.id);
+  }
+});
+
+test('the light kernel starts silent and renders finite sound, open, closed and with the fuel cut', () => {
   for (const { sound, compiledVehicle } of vehicles) {
     const id = compiledVehicle.id;
     const { idleRpm, redlineRpm } = compiledVehicle.powertrain;
     const rpm = (idleRpm + redlineRpm) / 2;
-    const single = steady(sound, 0.25, rpm, 1, { quantum: 1 });
-    assert.equal(single[0], 0, `${id} does not start silent`);
-    assert.ok(
-      single.every((x) => Number.isFinite(x)),
-      `${id} is not finite`,
-    );
-    assert.ok(
-      single.some((x) => x !== 0),
-      `${id} is silent`,
-    );
-    const quanta = steady(sound, 0.25, rpm, 1, { quantum: 128 });
-    const differs = single.findIndex((x, n) => x !== quanta[n]);
-    assert.equal(differs, -1, `${id} differs at sample ${differs}`);
+    for (const [opening, burns] of [
+      [1, true],
+      [0, true],
+      [0, false],
+    ]) {
+      const sounded = steady(sound, 0.25, rpm, opening, { quantum: 128, burns });
+      const at = `${id} at ${opening} ${burns ? 'burning' : 'cut'}`;
+      assert.equal(sounded[0], 0, `${at} does not start silent`);
+      assert.ok(
+        sounded.every((x) => Number.isFinite(x)),
+        `${at} is not finite`,
+      );
+      assert.ok(
+        sounded.some((x) => x !== 0),
+        `${at} is silent`,
+      );
+    }
   }
 });
 
@@ -173,14 +206,7 @@ test('an afterfire sounds in the light kernel', () => {
   }
 });
 
-test('the light kernel does not read wool', () => {
-  for (const { sound, compiledVehicle } of vehicles) {
-    if (!sound.exhaust.pipes.some(({ wool }) => wool !== undefined)) continue;
-    const pipes = sound.exhaust.pipes.map(({ from, to, length, diameter }) => ({ from, to, length, diameter }));
-    const bare = { ...sound, exhaust: { ...sound.exhaust, pipes } };
-    const rpm = 0.9 * compiledVehicle.powertrain.redlineRpm;
-    const lined = steady(sound, 0.25, rpm, 1);
-    const unlined = steady(bare, 0.25, rpm, 1);
-    assert.deepEqual(lined, unlined, compiledVehicle.id);
-  }
+test('the light kernel refuses a rate not above twice its highest shelf', () => {
+  const { sound } = vehicles[0];
+  assert.throws(() => new ExhaustLight(sound, 20480, 0.025), RangeError);
 });

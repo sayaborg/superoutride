@@ -1,197 +1,268 @@
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
-import { ACOUSTICS, GAS, openEndCutoffHz, wallLossPoles, wallLossWeights } from './exhaust-acoustics.js';
-import { EXHAUST_LISTENING, flowSize, xorshift } from './exhaust-waveguide.js';
-
-/** The light kernel's one value chosen by listening (K, 2026-11-23): a pipe no wider than this is never a box. */
-export const LIGHT_BOX_DIAMETER = 0.075;
 
 /**
- * The light kernel's reading of an engine sound's exhaust (K, 2026-11-22): its tubes without their boxes and their
- * wool. A box is a pipe that is not an outlet, is wider than `LIGHT_BOX_DIAMETER` and is wider than every tube it
- * meets at both its ends; it is read as wide as the widest of those tubes, a straight way through of the same length.
- * Wool is not read.
+ * The light kernel's gas: burned gas everywhere, a perfect gas. Assumptions, none chosen by listening; the speed of
+ * the tubes' waves makes a centimetre of tube a sample at 48 kHz, and stands for gas at about 330 C.
  */
-export function straightened(sound: VehicleEngineSound): VehicleEngineSound {
-  const { primaries, pipes } = sound.exhaust;
-  const met = (junction: number, but: number): number[] => [
-    ...primaries.filter(({ to }) => to === junction).map(({ diameter }) => diameter),
-    ...pipes
-      .filter(({ from, to }, j) => j !== but && (from === junction || to === junction))
-      .map(({ diameter }) => diameter),
+const GAS = Object.freeze({
+  /** The ratio of specific heats. */
+  gamma: 4 / 3,
+  /** J/(kg K). */
+  gasConstant: 287,
+  prandtl: 0.71,
+  /** The outside's pressure, Pa. */
+  pressure: 101325,
+  /** The speed of the tubes' waves, m/s. */
+  waveSpeed: 480,
+  /** The charge a cylinder draws, and lets out unburned. */
+  intakeKelvin: 293.15,
+  /** The cylinder's gas as its exhaust valve opens; petrol engines typically 1000 to 1300 K. */
+  burnedKelvin: 1100,
+});
+/** The temperature of the gas in the tubes, from the speed of their waves. */
+const TUBE_KELVIN = GAS.waveSpeed ** 2 / (GAS.gamma * GAS.gasConstant);
+/** The flow of a throat at the speed of sound, over its still gas's density times its speed of sound. */
+const CHOKED = (2 / (GAS.gamma + 1)) ** ((GAS.gamma + 1) / (2 * (GAS.gamma - 1)));
+
+/** The engine, as far as its exhaust hears it: assumptions too. */
+const ENGINE = Object.freeze({
+  /** A valve's flow coefficient; measured exhaust valves 0.6 to 0.7 at working lift. */
+  discharge: 0.65,
+  /** The share of a full charge a cylinder draws with the throttle shut. */
+  closedCharge: 0.3,
+});
+
+/** The two values chosen by listening (K, 2026-11-20 and 11-23). */
+const LISTENED = Object.freeze({
+  /** How far a charge varies from one to the next, of a full charge. */
+  chargeVariation: 0.03,
+  /** How long an afterfire burns, s. */
+  afterfireSeconds: 0.0015,
+});
+
+/**
+ * A tube's wall (Kirchhoff): the boundary layer of a still gas takes kappa sqrt(f) nepers of a wave passing a tube,
+ * kappa = WALL length / radius, with the gas's viscosity Sutherland's at the tubes' temperature.
+ */
+const WALL = (() => {
+  const viscosity = (1.716e-5 * (TUBE_KELVIN / 273) ** 1.5 * (273 + 111)) / (TUBE_KELVIN + 111);
+  const density = GAS.pressure / (GAS.gasConstant * TUBE_KELVIN);
+  return (Math.sqrt((Math.PI * viscosity) / density) / GAS.waveSpeed) * (1 + (GAS.gamma - 1) / Math.sqrt(GAS.prandtl));
+})();
+/**
+ * The root of the frequency is followed by a stair of first-order shelves, their corners `ratio` apart: the shelf at
+ * corner f is kappa sqrt(f) sqrt(2) ln(ratio) / pi nepers deep, and the lowest also carries the shelves below it.
+ * The kernel's rate is above twice the highest corner.
+ */
+const SHELVES = Object.freeze({ cornersHz: Object.freeze([20, 160, 1280, 10240]), ratio: 8 });
+/** The slowest rate the light kernel runs at: above twice its highest shelf's corner. */
+const SLOWEST_RATE = 2 * SHELVES.cornersHz[SHELVES.cornersHz.length - 1]!;
+/** A shelf's corner at `rate`, as the tangent its filter is written in. */
+const corner = (hz: number, rate: number): number => Math.tan((Math.PI * hz) / rate);
+/** Each shelf's `[b0, b1]` for one pass of a tube: y = b0 x + s, then s = b1 x - a1 y, with `shelfPoles`' a1. */
+function shelves(length: number, diameter: number, rate: number): number[] {
+  const kappa = (WALL * length) / (diameter / 2);
+  const { cornersHz, ratio } = SHELVES;
+  return cornersHz.flatMap((hz, k) => {
+    const depth =
+      kappa *
+      Math.sqrt(hz) *
+      ((Math.SQRT2 * Math.log(ratio)) / Math.PI) *
+      (k === 0 ? Math.sqrt(ratio) / (Math.sqrt(ratio) - 1) : 1);
+    // The shelf falls from 1 to exp(-depth): its pole at the corner, its zero the depth above it.
+    const pole = corner(hz, rate),
+      zero = pole * Math.exp(depth);
+    return [(pole * (1 + zero)) / (zero * (1 + pole)), (pole * (zero - 1)) / (zero * (1 + pole))];
+  });
+}
+const shelfPoles = (rate: number): number[] =>
+  SHELVES.cornersHz.map((hz) => (corner(hz, rate) - 1) / (corner(hz, rate) + 1));
+
+/** What the light kernel reads of an engine sound's exhaust: one diameter, and tubes that have only a length. */
+export interface LightExhaust {
+  /** Every tube's diameter: the primaries'. */
+  readonly diameter: number;
+  /**
+   * The tubes. A tube begins at a valve (`from` null) or a junction and ends at a junction or a mouth (`to` null);
+   * cylinder i's is tube i.
+   */
+  readonly tubes: readonly { readonly from: number | null; readonly to: number | null; readonly length: number }[];
+  readonly junctions: number;
+}
+
+/**
+ * The light kernel's reading of a sound: only lengths. Every tube is as wide as a primary, so a wave passes whole from
+ * one tube into the next, and two tubes meeting alone are one tube of their lengths together. Boxes, wool and every
+ * pipe's own diameter are not read.
+ */
+export function lightExhaust(sound: VehicleEngineSound): LightExhaust {
+  const tubes: { from: number | null; to: number | null; length: number }[] = [
+    ...sound.exhaust.primaries.map(({ to, length }) => ({ from: null, to, length })),
+    ...sound.exhaust.pipes.map(({ from, to, length }) => ({ from, to, length })),
   ];
+  for (;;) {
+    const at = tubes.findIndex(
+      ({ to }) =>
+        to !== null &&
+        tubes.filter((tube) => tube.from === to || tube.to === to).length === 2 &&
+        tubes.some((tube) => tube.from === to),
+    );
+    if (at < 0) break;
+    const next = tubes.findIndex(({ from }) => from === tubes[at]!.to);
+    tubes[at] = { from: tubes[at]!.from, to: tubes[next]!.to, length: tubes[at]!.length + tubes[next]!.length };
+    tubes.splice(next, 1);
+  }
+  // The junctions left, numbered from 0 in their old order.
+  const kept = [...new Set(tubes.flatMap(({ from, to }) => [from, to]).filter((end) => end !== null))].sort(
+    (a, b) => a - b,
+  );
+  const number = (end: number | null): number | null => (end === null ? null : kept.indexOf(end));
   return {
-    ...sound,
-    exhaust: {
-      ...sound.exhaust,
-      pipes: pipes.map(({ from, to, length, diameter }, j) => {
-        if (to === null) return { from, to, length, diameter };
-        const others = [...met(from, j), ...met(to, j)];
-        const box = diameter > LIGHT_BOX_DIAMETER && others.length > 0 && others.every((other) => other < diameter);
-        return { from, to, length, diameter: box ? Math.max(...others) : diameter };
-      }),
-    },
+    diameter: sound.exhaust.primaries[0]!.diameter,
+    tubes: tubes.map(({ from, to, length }) => ({ from: number(from), to: number(to), length })),
+    junctions: kept.length,
   };
 }
 
 /**
- * The light exhaust kernel (K, 2026-11-22): the game's kernel (`ExhaustWaveguide`) with linear tubes. It has the same
- * cylinders, the same gas (`GAS`), the same valve law, the same wall loss and mouths, the same afterfire and the same
- * two listened values (`EXHAUST_LISTENING`), and hears the same thing, the mouths' pressure times their diameter. What
- * differs is the tubes and their junctions: a wave does not steepen, and a junction or a mouth is no jet.
+ * The light exhaust kernel (K, 2026-11-23): one gas, in tubes of one width that have only a length, between valves,
+ * junctions and mouths. A sound fades in three places: along a tube's wall, in a valve's jet, and out of a mouth.
  *
- *   A tube: two delay lines, its length rounded to the samples of `rate`; each wave written passes the wall loss.
- *   A junction: its tubes meet at one pressure, p = 2 sum(area * arriving) / sum(area); a tube's wave leaves as
- *     p - arriving. Gas burning there (an afterfire) enters as its swelling, a flow: p rises by it over the tubes' bores.
- *   A mouth: the wave returns turned over and low-passed at ka = 1; what is heard is what did not return.
- *   A cylinder: it holds its gas (pressure (gas / volume)^gamma), the piston moves its volume, and its valve is the
- *     game kernel's end law into a space with no width (sigma = 0), solved once a sample from the cylinder's pressure
- *     as the sample begins: with d = 2 arriving - P and m the flow from the tube into the cylinder,
+ * Pressures are over the tubes' rho c^2 and flows are Mach numbers. A tube carries two waves; its pressure is their
+ * sum and its flow their difference.
+ *
+ *   A tube delays its two waves by its length, and its wall takes of them what a still gas's boundary layer does:
+ *     a loss that grows as the root of the frequency (`WALL`).
+ *   A junction is one pressure where its n tubes meet, and keeps no gas: p = (2 / n) sum(arriving), and each tube's
+ *     wave leaves as p - arriving.
+ *   A mouth is a sphere of the bore's area breathing into the open: the wave returns turned over through a low-pass at
+ *     ka = 1, and far away is heard the sphere's pressure, which is what did not return, times its diameter.
+ *   A valve is a throat, a of the bore, between its tube and a cylinder: a still space that holds its gas at
+ *     (gas / volume)^gamma while its piston moves its volume. The gas speeds up into the throat without thinning, and
+ *     its jet's head is lost beyond it. With d the tube's stopped pressure above the cylinder's and m the flow from
+ *     the tube into the cylinder,
  *       m + K m^2 / 2 = |d|,  K = 1 / a^2 - 1 into the cylinder, (1 + (1 / a - 1)^2) density / fill out of it,
- *     no faster than sound in the throat, and no more than brings the cylinder level with its tube's end.
+ *     and no faster than sound in the throat. Shut, the valve is its tube's closed end.
+ *   An afterfire is a charge that left its cylinder unburned: its heat swells the gas at its valve as the valve shuts.
  *
- * It reads a sound through {@link straightened}. Pressures are over rho c^2 and flows are Mach numbers, as the game
- * kernel's. Nothing allocates while rendering but an afterfire's list when it grows.
+ * A cylinder's charge is the engine's swept volume of the outside's air, as far as the throttle opens (`ENGINE`), at the
+ * burned gas's temperature when its valve opens; the valve opens over the middle of the exhaust stroke. Two values
+ * were chosen by listening (`LISTENED`): how far a charge varies, and how long an afterfire burns.
+ *
+ * A sample is a step of time: a length is its whole number of samples, and a valve's flow is solved once a step, with
+ * the cylinder's pressure moving as it flows (g below). Nothing allocates while rendering. The kernel refuses a rate
+ * not above twice its highest shelf's corner (`SHELVES`).
  */
 export class ExhaustLight {
   private readonly sound: VehicleEngineSound;
-  // Lines: every primary's forward and backward, then every pipe's down and up.
-  private readonly buffer: Float32Array;
-  private readonly start: Int32Array;
-  private readonly size: Int32Array;
-  private readonly at: Int32Array;
-  private readonly poles: Float64Array;
-  private readonly weights: Float64Array;
-  private readonly states: Float64Array;
+  private readonly exhaust: LightExhaust;
+  // Each tube's two waves, down and then up: tube t's are lines t and tubes + t. A line's cells are a ring.
+  private readonly cells: Float64Array;
+  private readonly first: Int32Array;
+  private readonly end: Int32Array;
+  private readonly cell: Int32Array;
   private readonly arriving: Float64Array;
   private readonly leaving: Float64Array;
-  // Junctions' ports, junction by junction: junction j's are portStart[j] .. portStart[j + 1] - 1.
+  // The wall's loss: its shelves' poles, the same for every line, and each line's shelves and their states.
+  private readonly poles: Float64Array;
+  private readonly shelves: Float64Array;
+  private readonly states: Float64Array;
+  // Junctions' lines, junction by junction: junction j's are portStart[j] .. portStart[j + 1] - 1.
   private readonly portStart: Int32Array;
   private readonly portLine: Int32Array;
-  private readonly portShare: Float64Array;
   private readonly pressure: Float64Array;
-  /** What a flow of one volume a sample into each junction adds to its pressure. */
-  private readonly swellingScale: Float64Array;
-  private readonly swelling: Float64Array;
-  // Mouths: each pipe's low-passed outgoing wave and its low-pass coefficient.
-  private readonly outlet: Float64Array;
-  private readonly follow: Float64Array;
-  // Cylinders, as the game kernel's.
+  // Mouths: each tube's returned wave, and the low-pass's coefficient.
+  private readonly returned: Float64Array;
+  private readonly follow: number;
+  // Cylinders: the gas each holds (its volume at the outside's pressure) and that gas's density there over the tubes'.
   private readonly gas: Float64Array;
   private readonly density: Float64Array;
-  private readonly throatMost: Float64Array;
-  private readonly perSample: Float64Array;
-  private readonly unburned: Float64Array;
-  private readonly hasOpened: Uint8Array;
-  private burnJunction = new Int32Array(8);
-  private burnVolume = new Float64Array(8);
-  private burnElapsed = new Float64Array(8);
-  private burns = 0;
-  private readonly smoothing: number;
   private readonly clearance: number;
+  /** The crank's angle at the middle of a valve's opening, and its turn over a cycle. */
   private readonly centre: number;
   private readonly turn: number;
-  private readonly cycleSamples: number;
-  private readonly afterfireSpan: number;
+  /** A valve's throat at full lift, of the bore. */
+  private readonly throatMost: number;
+  /** The volume a flow of Mach 1 carries along a tube in a sample. */
+  private readonly perSample: number;
+  // Afterfires: the swelling a cylinder's unburned charge will make, the swelling burning at its valve, and how long.
+  private readonly unburned: Float64Array;
+  private readonly burning: Float64Array;
+  private readonly burnt: Float64Array;
+  private readonly burnSamples: number;
   private afterfiring = false;
+  private readonly smoothing: number;
+  private readonly cycleSamples: number;
   private phase = 0;
   private rpm = 1000;
   private opening = 0;
   private chargeSeed = 123456789;
 
   constructor(sound: VehicleEngineSound, rate: number, observationSeconds: number) {
-    this.sound = sound = straightened(sound);
-    const { primaries, pipes, valve } = sound.exhaust;
-    const cylinders = primaries.length;
-    const tubes = [...primaries, ...primaries, ...pipes, ...pipes];
-    const lines = tubes.length;
-    this.size = Int32Array.from(tubes, ({ length }) => Math.max(1, Math.round((length * rate) / ACOUSTICS.waveSpeed)));
-    this.start = new Int32Array(lines);
+    if (!(rate > SLOWEST_RATE))
+      throw new RangeError(`The light kernel runs above ${SLOWEST_RATE} Hz, twice its wall's highest corner`);
+    this.sound = sound;
+    const { tubes, diameter, junctions } = (this.exhaust = lightExhaust(sound));
+    const lines = 2 * tubes.length;
+    this.first = new Int32Array(lines);
+    this.end = new Int32Array(lines);
     let cells = 0;
     for (let l = 0; l < lines; l++) {
-      this.start[l] = cells;
-      cells += this.size[l]!;
+      this.first[l] = cells;
+      cells += Math.max(1, Math.round((tubes[l % tubes.length]!.length * rate) / GAS.waveSpeed));
+      this.end[l] = cells;
     }
-    this.buffer = new Float32Array(cells);
-    this.at = new Int32Array(lines);
-    this.poles = wallLossPoles(rate);
-    this.weights = new Float64Array(5 * lines);
-    tubes.forEach(({ length, diameter }, l) => this.weights.set(wallLossWeights(length, diameter, rate), 5 * l));
-    this.states = new Float64Array(4 * lines);
+    this.cells = new Float64Array(cells);
+    this.cell = this.first.slice();
     this.arriving = new Float64Array(lines);
     this.leaving = new Float64Array(lines);
-    let junctions = 0;
-    for (const { to } of primaries) junctions = Math.max(junctions, to + 1);
-    for (const { from, to } of pipes) junctions = Math.max(junctions, from + 1, (to ?? 0) + 1);
-    const bores = new Float64Array(junctions);
-    const ports: { junction: number; line: number; bore: number }[] = [];
-    primaries.forEach(({ to, diameter }, i) => ports.push({ junction: to, line: i, bore: diameter * diameter }));
-    pipes.forEach(({ from, to, diameter }, j) => {
-      // A pipe's wave arrives at its `from` on its up line and at its `to` on its down line.
-      ports.push({ junction: from, line: 2 * cylinders + pipes.length + j, bore: diameter * diameter });
-      if (to !== null) ports.push({ junction: to, line: 2 * cylinders + j, bore: diameter * diameter });
-    });
-    for (const { junction, bore } of ports) bores[junction]! += bore;
-    ports.sort((a, b) => a.junction - b.junction);
+    this.poles = Float64Array.from(shelfPoles(rate));
+    this.shelves = Float64Array.from(tubes.concat(tubes).flatMap(({ length }) => shelves(length, diameter, rate)));
+    this.states = new Float64Array(4 * lines);
+    // A tube's wave arrives at its `to` on its down line and at its `from` on its up line.
+    const ports = tubes
+      .flatMap(({ from, to }, t) => [
+        { junction: to, line: t },
+        { junction: from, line: tubes.length + t },
+      ])
+      .filter((port): port is { junction: number; line: number } => port.junction !== null)
+      .sort((a, b) => a.junction - b.junction);
     this.portStart = new Int32Array(junctions + 1);
     for (const { junction } of ports) this.portStart[junction + 1]!++;
     for (let j = 0; j < junctions; j++) this.portStart[j + 1]! += this.portStart[j]!;
     this.portLine = Int32Array.from(ports, ({ line }) => line);
-    this.portShare = Float64Array.from(ports, ({ junction, bore }) => bore / bores[junction]!);
     this.pressure = new Float64Array(junctions);
-    this.swelling = new Float64Array(junctions);
-    this.swellingScale = Float64Array.from(bores, (sum) => (4 * rate) / (Math.PI * ACOUSTICS.waveSpeed * sum));
-    this.outlet = new Float64Array(pipes.length);
-    this.follow = Float64Array.from(
-      pipes,
-      ({ diameter }) => 1 - Math.exp((-2 * Math.PI * openEndCutoffHz(diameter)) / rate),
-    );
-    this.gas = new Float64Array(cylinders);
-    this.density = new Float64Array(cylinders);
-    this.throatMost = Float64Array.from(primaries, ({ diameter }) => GAS.discharge * (valve.diameter / diameter) ** 2);
-    this.perSample = Float64Array.from(
-      primaries,
-      ({ diameter }) => (Math.PI * ACOUSTICS.waveSpeed * diameter * diameter) / (4 * rate),
-    );
-    this.unburned = new Float64Array(cylinders);
-    this.hasOpened = new Uint8Array(cylinders);
-    this.smoothing = 1 - Math.exp(-1 / (observationSeconds * rate));
+    this.returned = new Float64Array(tubes.length);
+    // ka = 1: the angular frequency c / radius.
+    this.follow = 1 - Math.exp((-2 * GAS.waveSpeed) / (diameter * rate));
     this.clearance = sound.sweptVolume / (sound.compressionRatio - 1);
     this.centre = sound.cycleRevolutions === 2 ? 1.5 * Math.PI : Math.PI;
     this.turn = sound.cycleRevolutions * 2 * Math.PI;
+    this.throatMost = ENGINE.discharge * (sound.exhaust.valve.diameter / diameter) ** 2;
+    this.perSample = (Math.PI * GAS.waveSpeed * diameter * diameter) / (4 * rate);
+    // As it begins, every cylinder holds the outside's air.
+    this.gas = Float64Array.from(sound.firingPhases, (opens) => this.volume((1 - opens) % 1));
+    this.density = Float64Array.from(sound.firingPhases, () => TUBE_KELVIN / GAS.intakeKelvin);
+    this.unburned = new Float64Array(sound.firingPhases.length);
+    this.burning = new Float64Array(sound.firingPhases.length);
+    this.burnt = new Float64Array(sound.firingPhases.length);
+    this.burnSamples = LISTENED.afterfireSeconds * rate;
+    this.smoothing = 1 - Math.exp(-1 / (observationSeconds * rate));
     this.cycleSamples = 60 * sound.cycleRevolutions * rate;
-    this.afterfireSpan = EXHAUST_LISTENING.afterfireSeconds * rate;
+  }
+
+  /** A cylinder's volume `since` its valve opened, in cycles. */
+  private volume(since: number): number {
+    return (
+      this.clearance +
+      (this.sound.sweptVolume * (1 - Math.cos(this.centre + (since - this.sound.exhaust.valve.open / 2) * this.turn))) /
+        2
+    );
   }
 
   /** The next charge leaves its cylinder unburned and burns in the pipe. When is the game's to say. */
   afterfire(): void {
     this.afterfiring = true;
-  }
-
-  private burn(): void {
-    const { swelling, burnJunction, burnVolume, burnElapsed, afterfireSpan: span } = this;
-    swelling.fill(0);
-    for (let b = this.burns - 1; b >= 0; b--) {
-      swelling[burnJunction[b]!]! +=
-        (burnVolume[b]! * (1 - Math.cos((2 * Math.PI * (burnElapsed[b]! + 0.5)) / span))) / span;
-      if (++burnElapsed[b]! >= span) {
-        burnJunction.copyWithin(b, b + 1, this.burns);
-        burnVolume.copyWithin(b, b + 1, this.burns);
-        burnElapsed.copyWithin(b, b + 1, this.burns);
-        this.burns--;
-      }
-    }
-  }
-  private beginBurn(junction: number, volume: number): void {
-    if (this.burns === this.burnJunction.length) {
-      const grow = <T extends Int32Array | Float64Array>(old: T, made: T): T => (made.set(old), made);
-      this.burnJunction = grow(this.burnJunction, new Int32Array(2 * this.burns));
-      this.burnVolume = grow(this.burnVolume, new Float64Array(2 * this.burns));
-      this.burnElapsed = grow(this.burnElapsed, new Float64Array(2 * this.burns));
-    }
-    this.burnJunction[this.burns] = junction;
-    this.burnVolume[this.burns] = volume;
-    this.burnElapsed[this.burns] = 0;
-    this.burns++;
   }
 
   /** Renders `count` samples from `offset`: `rpm` and `opening` are each sample's targets; `burns` false cuts the fuel. */
@@ -203,139 +274,126 @@ export class ExhaustLight {
     opening: ArrayLike<number>,
     burns: boolean,
   ): void {
-    const {
-      sound,
-      buffer,
-      start,
-      size,
-      at,
-      arriving,
-      leaving,
-      pressure,
-      portStart,
-      portLine,
-      portShare,
-      weights,
-      states,
-    } = this;
-    const { gas, density, unburned, outlet, follow, clearance, centre, turn } = this;
-    const { primaries, pipes, valve } = sound.exhaust;
-    const { gamma, choked } = GAS;
-    const cylinders = primaries.length;
-    const lines = size.length;
-    const junctions = pressure.length;
-    const a0 = this.poles[0]!,
-      a1 = this.poles[1]!,
-      a2 = this.poles[2]!,
-      a3 = this.poles[3]!;
+    const { sound, cells, first, end, cell, arriving, leaving, poles, shelves, states } = this;
+    const { pressure, portStart, portLine, returned, follow } = this;
+    const { gas, density, throatMost, perSample, unburned, burning, burnt, burnSamples } = this;
+    const { tubes, diameter } = this.exhaust;
+    const { valve } = sound.exhaust;
+    const cylinders = sound.firingPhases.length;
+    const up = tubes.length;
+    const p0 = poles[0]!,
+      p1 = poles[1]!,
+      p2 = poles[2]!,
+      p3 = poles[3]!;
     for (let k = 0; k < count; k++) {
       this.rpm += this.smoothing * (rpm[k]! - this.rpm);
       this.opening += this.smoothing * (opening[k]! - this.opening);
       const previous = this.phase;
       const phase = (previous + this.rpm / this.cycleSamples) % 1;
       this.phase = phase;
-      const charge = GAS.closedCharge + (1 - GAS.closedCharge) * this.opening;
-      for (let l = 0; l < lines; l++) arriving[l] = buffer[start[l]! + at[l]!]!;
+      // A line's cell holds the wave that left its length ago.
+      for (let l = 0; l < 2 * up; l++) arriving[l] = cells[cell[l]!]!;
 
-      // 1. Junctions.
-      for (let j = 0; j < junctions; j++) {
+      // Junctions.
+      for (let j = 0; j < pressure.length; j++) {
         let sum = 0;
-        for (let port = portStart[j]!; port < portStart[j + 1]!; port++)
-          sum += portShare[port]! * arriving[portLine[port]!]!;
-        pressure[j] = 2 * sum;
-      }
-      if (this.burns > 0) {
-        this.burn();
-        for (let j = 0; j < junctions; j++) pressure[j]! += this.swellingScale[j]! * this.swelling[j]!;
+        for (let port = portStart[j]!; port < portStart[j + 1]!; port++) sum += arriving[portLine[port]!]!;
+        pressure[j] = (2 * sum) / (portStart[j + 1]! - portStart[j]!);
       }
 
-      // 2. Pipes and their mouths.
-      let heard = 0;
-      for (let j = 0; j < pipes.length; j++) {
-        const pipe = pipes[j]!;
-        const down = 2 * cylinders + j,
-          up = down + pipes.length;
-        leaving[down] = pressure[pipe.from]! - arriving[up]!;
-        if (pipe.to !== null) {
-          leaving[up] = pressure[pipe.to]! - arriving[down]!;
-          continue;
-        }
-        const outgoing = arriving[down]!;
-        outlet[j]! += follow[j]! * (outgoing - outlet[j]!);
-        leaving[up] = -outlet[j]!;
-        heard += pipe.diameter * (outgoing - outlet[j]!);
-      }
-
-      // 3. Cylinders.
+      // Valves.
       for (let i = 0; i < cylinders; i++) {
         const opens = sound.firingPhases[i]!;
-        const crossed = phase >= previous ? opens > previous && opens <= phase : opens > previous || opens <= phase;
         let since = phase - opens + 1;
         if (since >= 1) since -= 1;
-        const back = arriving[cylinders + i]!;
-        leaving[cylinders + i] = pressure[primaries[i]!.to]! - arriving[i]!;
-        const volume =
-          crossed || since < valve.open
-            ? clearance + (sound.sweptVolume * (1 - Math.cos(centre + (since - valve.open / 2) * turn))) / 2
-            : 0;
-        if (crossed) {
-          this.hasOpened[i] = 1;
-          this.chargeSeed = xorshift(this.chargeSeed);
-          const varied = Math.max(1e-3, charge + EXHAUST_LISTENING.chargeVariation * (this.chargeSeed / 2147483648));
-          const inPipe = burns && this.afterfiring;
-          this.afterfiring = false;
-          if (inPipe)
-            unburned[i] =
-              (varied *
-                sound.sweptVolume *
-                (GAS.burnedKelvin - GAS.intakeKelvin) *
-                (volume / clearance) ** (gamma - 1)) /
-              (gamma * GAS.intakeKelvin);
-          const kelvin = burns && !inPipe ? GAS.burnedKelvin : GAS.intakeKelvin;
-          const opened = (varied * (kelvin / GAS.intakeKelvin) * sound.sweptVolume) / volume;
-          gas[i] = volume * opened ** (1 / gamma);
-          density[i] = (GAS.pipeKelvin / kelvin) * opened ** ((gamma - 1) / gamma);
-        }
+        const back = arriving[up + i]!;
+        // The flow from the tube's end into the valve.
         let flow = 0;
-        if (since < valve.open && this.hasOpened[i]) {
+        if (since < valve.open) {
+          const volume = this.volume(since);
+          if (phase >= previous ? opens > previous && opens <= phase : opens > previous || opens <= phase) {
+            // The valve opens on a new charge.
+            this.chargeSeed ^= this.chargeSeed << 13;
+            this.chargeSeed ^= this.chargeSeed >>> 17;
+            this.chargeSeed ^= this.chargeSeed << 5;
+            const charge =
+              ENGINE.closedCharge +
+              (1 - ENGINE.closedCharge) * this.opening +
+              LISTENED.chargeVariation * (this.chargeSeed / 2147483648);
+            const inPipe = burns && this.afterfiring;
+            this.afterfiring = false;
+            // The heat it did not get in the cylinder, as the swelling it makes at the outside's pressure.
+            if (inPipe)
+              unburned[i] =
+                (charge *
+                  sound.sweptVolume *
+                  (GAS.burnedKelvin - GAS.intakeKelvin) *
+                  (volume / this.clearance) ** (GAS.gamma - 1)) /
+                (GAS.gamma * GAS.intakeKelvin);
+            const kelvin = burns && !inPipe ? GAS.burnedKelvin : GAS.intakeKelvin;
+            const opened = (charge * (kelvin / GAS.intakeKelvin) * sound.sweptVolume) / volume;
+            gas[i] = volume * opened ** (1 / GAS.gamma);
+            density[i] = (TUBE_KELVIN / kelvin) * opened ** ((GAS.gamma - 1) / GAS.gamma);
+          }
           const position = since / valve.open;
-          const lift = position * (1 - position);
-          const throat = Math.min(1, this.throatMost[i]! * 16 * lift * lift);
+          const lift = 4 * position * (1 - position);
+          const throat = Math.min(1, throatMost * lift * lift);
           if (throat > 0) {
             const fill = gas[i]! / volume;
-            const full = fill ** gamma;
-            const d = 2 * back - (full - 1) / gamma;
-            const sized = d >= 0 ? d : -d;
-            const into = d >= 0;
-            const K = into ? 1 / (throat * throat) - 1 : ((1 + (1 / throat - 1) ** 2) * density[i]!) / fill;
-            const most = into ? choked * throat : choked * throat * Math.sqrt((fill * full) / density[i]!);
-            // What brings the cylinder level with its tube's end, by its fill's slope.
-            const level = (volume * (fill / full) * sized) / this.perSample[i]!;
-            const m = Math.min(flowSize(K, sized), most, level);
-            flow = into ? m : -m;
-            gas[i] = Math.max(gas[i]! + this.perSample[i]! * flow, 1e-9 * volume);
+            const full = fill * Math.cbrt(fill);
+            const d = 2 * back - (full - 1) / GAS.gamma;
+            const size = Math.abs(d);
+            const K = d > 0 ? 1 / (throat * throat) - 1 : ((1 + (1 / throat - 1) ** 2) * density[i]!) / fill;
+            const g = 1 + (perSample * full) / (fill * volume);
+            const most = d > 0 ? CHOKED * throat : CHOKED * throat * Math.sqrt((fill * full) / density[i]!);
+            const m = Math.min((2 * size) / (g + Math.sqrt(g * g + 2 * K * size)), most);
+            flow = d > 0 ? m : -m;
+            gas[i]! += perSample * flow;
           }
         } else if (unburned[i]! > 0) {
-          this.beginBurn(primaries[i]!.to, unburned[i]!);
+          burning[i] = unburned[i]!;
+          burnt[i] = 0;
           unburned[i] = 0;
+        }
+        if (burning[i]! > 0) {
+          flow -=
+            (burning[i]! * (1 - Math.cos((2 * Math.PI * (burnt[i]! + 0.5)) / burnSamples))) / (burnSamples * perSample);
+          if (++burnt[i]! >= burnSamples) burning[i] = 0;
         }
         leaving[i] = back - flow;
       }
 
-      // 4. Send every wave through its tube's wall loss.
-      for (let l = 0; l < lines; l++) {
-        const x = leaving[l]!;
-        const w = 5 * l,
-          q = 4 * l;
-        const u0 = (states[q] = x - a0 * states[q]!);
-        const u1 = (states[q + 1] = x - a1 * states[q + 1]!);
-        const u2 = (states[q + 2] = x - a2 * states[q + 2]!);
-        const u3 = (states[q + 3] = x - a3 * states[q + 3]!);
-        buffer[start[l]! + at[l]!] =
-          weights[w]! * x + weights[w + 1]! * u0 + weights[w + 2]! * u1 + weights[w + 3]! * u2 + weights[w + 4]! * u3;
-        if (++at[l]! === size[l]!) at[l] = 0;
+      // Junctions' tubes, and mouths.
+      let heard = 0;
+      for (let t = 0; t < up; t++) {
+        const { from, to } = tubes[t]!;
+        if (from !== null) leaving[t] = pressure[from]! - arriving[up + t]!;
+        if (to !== null) {
+          leaving[up + t] = pressure[to]! - arriving[t]!;
+          continue;
+        }
+        returned[t]! += follow * (arriving[t]! - returned[t]!);
+        leaving[up + t] = -returned[t]!;
+        heard += arriving[t]! - returned[t]!;
       }
-      out[offset + k] = heard;
+
+      // Each wave leaving takes its line's cell, less what the wall takes: the four shelves, one after another.
+      for (let l = 0; l < 2 * up; l++) {
+        const w0 = leaving[l]!,
+          q = 4 * l,
+          s = 8 * l;
+        const w1 = shelves[s]! * w0 + states[q]!;
+        states[q] = shelves[s + 1]! * w0 - p0 * w1;
+        const w2 = shelves[s + 2]! * w1 + states[q + 1]!;
+        states[q + 1] = shelves[s + 3]! * w1 - p1 * w2;
+        const w3 = shelves[s + 4]! * w2 + states[q + 2]!;
+        states[q + 2] = shelves[s + 5]! * w2 - p2 * w3;
+        const w4 = shelves[s + 6]! * w3 + states[q + 3]!;
+        states[q + 3] = shelves[s + 7]! * w3 - p3 * w4;
+        cells[cell[l]!] = w4;
+        if (++cell[l]! === end[l]!) cell[l] = first[l]!;
+      }
+      out[offset + k] = diameter * heard;
     }
   }
 }
