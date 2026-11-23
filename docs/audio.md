@@ -160,24 +160,51 @@ sound.
 
 ### The light kernel
 
-A second kernel, [`ExhaustLight`](../src/audio/exhaust-light.ts) (K, 2026-11-22), is the game
-kernel with linear tubes: the same cylinders, gas (`GAS`), valve law, wall loss, mouths, afterfire, start (no flow
-before a valve first opens) and listened values (`EXHAUST_LISTENING`), heard the same way, the mouths' pressure times
-their diameter. A wave does not steepen, and a junction or a mouth is no jet:
+A second kernel, [`ExhaustLight`](../src/audio/exhaust-light.ts) (K, 2026-11-23), is a model of its own, sharing
+nothing with the game kernel but the engine sound's type: one gas, in tubes of one width that have only a length,
+between valves, junctions and mouths. A sound fades in three places only: along a tube's wall, in a valve's jet and out
+of a mouth. Pressures are over the tubes' `rho c²` and flows are Mach numbers; a tube carries two waves, its pressure
+their sum and its flow their difference.
 
-| Part               | Light kernel                                                                                                                                                                                                                        |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tube               | Two delay lines of `N` samples, rounded as the game kernel's; each wave written passes its tube's wall loss.                                                                                                                        |
-| Junction           | One pressure `p = 2 sum(area × arriving) / sum(area)`; each tube's wave leaves as `p - arriving`. An afterfire's swelling enters as a flow: `p` rises by `swelling × 4 rate / (pi c sum(d²))`.                                      |
-| Mouth              | The wave returns turned over and low-passed at `ka = 1` (`openEndCutoffHz`); what is heard is `diameter × (outgoing − its low-pass)`.                                                                                               |
-| Cylinder and valve | The end law into a space of `sigma = 0`, solved once a sample in closed form from the cylinder's pressure as the sample begins; no faster than sound in the throat, and no more than brings the cylinder level with its tube's end. |
+| Part      | Light kernel                                                                                                                                                                                                                                                                                                                                                         |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tube      | Delays each of its two waves by its length over the waves' speed, a whole number of samples (at least one); each pass takes a still gas's boundary-layer loss, growing as the root of the frequency.                                                                                                                                                                 |
+| Junction  | Its `n` tubes meet at one pressure and it keeps no gas: `p = (2/n) sum(arriving)`; each tube's wave leaves as `p − arriving`.                                                                                                                                                                                                                                        |
+| Mouth     | A sphere of the bore's area breathing into the open: the wave returns turned over through a one-pole low-pass at `ka = 1` (angular frequency `c/a`); heard is what did not return, the sphere's pressure, times the diameter. The kernel's sound is the sum over its mouths.                                                                                         |
+| Valve     | A throat, `a` of the bore at `discharge × (valve/bore)² × lift²` (lift `4x(1−x)` over the opening, at most 1), between its tube and a cylinder, a still space holding its gas at `(gas/volume)^gamma`. The gas speeds up into the throat without thinning and loses its jet's head beyond it, no faster than sound in the throat; shut, it is its tube's closed end. |
+| Afterfire | A charge that left its cylinder unburned: when its valve shuts, its heat swells the gas at that valve over `afterfireSeconds`, a raised cosine, entering its tube as a flow.                                                                                                                                                                                         |
 
-It reads a sound through `straightened` (K, 2026-11-22): its wool is not read, and a box is read as a straight way
-through. A box is a pipe that is not an outlet, is wider than `LIGHT_BOX_DIAMETER` (75 mm, K by ear, 2026-11-23: the
-NSR500 of 1984's 62 mm silencer is better not a box) and is wider than every tube it meets at both its ends (primaries
-included); it is read as wide as the widest of those tubes, its length kept. The 150 mm turbine rooms and the
-two-strokes' 86 mm chambers are boxes by the same rule. The value is the light kernel's alone, with no vehicle's
-exception.
+With `d` the tube's stopped pressure (twice its arriving wave) above the cylinder's and `m` the flow from the tube into
+the cylinder, `m + K m²/2 = |d|`, `K = 1/a² − 1` into the cylinder and `(1 + (1/a − 1)²) density/fill` out of it. The
+flow is solved once a sample, with the cylinder's pressure moving as it flows: `m = 2|d| / (g + sqrt(g² + 2K|d|))`,
+`g = 1 + perSample × full / (fill × volume)`. A cylinder starts holding the outside's air; its valve opens with the
+middle of its opening at the middle of the exhaust stroke (a two-stroke's at bottom dead centre), and as it opens the
+cylinder takes its charge, `closedCharge + (1 − closedCharge) × opening` of a full one varied by up to `chargeVariation`
+(seeded xorshift32 at firings), burned unless the fuel is cut or it afterfires. Nothing allocates while rendering, and
+the sound is the same however the calls divide the samples.
+
+**What it reads.** [`lightExhaust`](../src/audio/exhaust-light.ts) reads a sound's tubes as lengths only: each
+primary's `to` and `length`, each pipe's `from`, `to` and `length`, and one diameter for every tube, the first
+primary's. A pipe's own diameter and its wool are not read; boxes, turbines' throats and rooms, and two-strokes'
+chambers are read as lengths like any pipe. Primaries and pipes are one kind of tube, beginning at a valve or a junction
+and ending at a junction or a mouth; cylinder `i`'s is tube `i`. A junction where only two tubes meet, one in and one
+out, is not a junction: the two are one tube of their lengths together, without exception (a single cylinder's is one
+tube from its valve to its mouth). The junctions left are numbered from 0 in their old order.
+
+**Its own values.** The kernel keeps every value it uses, none shared with the game kernel's of the same names. Its gas
+(`GAS`) is burned gas everywhere, a perfect gas of `gamma` 4/3 and `R` 287 J/(kg K), `Pr` 0.71, at 101325 Pa; the waves'
+speed is 480 m/s, so a centimetre of tube is a sample at 48 kHz, and the tubes' temperature follows from it,
+`c²/(gamma R)`, about 602 K. The intake's charge is at 293.15 K and the cylinder's gas at 1100 K as its valve opens. The
+engine's assumptions (`ENGINE`) are the valve's discharge coefficient 0.65 and a shut throttle's charge 0.3. Two values
+are chosen by listening (`LISTENED`): a charge varies by up to 0.03 of a full one, and an afterfire burns over 1.5 ms.
+
+**Its wall.** Kirchhoff's loss of a still gas, `kappa sqrt(f)` nepers a pass with `kappa = WALL × length / radius` and
+`WALL = sqrt(pi mu / rho)/c × (1 + (gamma − 1)/sqrt(Pr))` at the tubes' temperature (Sutherland's viscosity), is
+followed by four first-order shelves in series at corners 20, 160, 1280 and 10240 Hz (`SHELVES`, ratio 8). The shelf at
+corner `f` is `kappa sqrt(f) sqrt(2) ln(8)/pi` nepers deep, the lowest carrying the shelves below it as well (its depth
+times `sqrt(8)/(sqrt(8) − 1)`); each falls from 1 to `exp(−depth)` with its pole at its corner and its zero the depth
+above it, both placed on the tangent `tan(pi f / rate)`. The kernel runs only above twice its highest corner, 20480 Hz,
+and refuses a slower rate with a `RangeError`; it plays at the output's rate.
 
 ## Engine chain
 
@@ -290,7 +317,7 @@ one drive, the same for every vehicle at its own idle and redline:
 Engine speed changes linearly within a segment; fuel is never cut and nothing afterfires. The engine's compressed sound,
 after the chain's compressor from silence and before its gain and soft clip, is metered by ITU-R BS.1770-4 integrated
 loudness: K-weighting, the mean square of 400 ms blocks every 100 ms, the absolute gate at −70 LUFS and the relative
-gate 10 LU below the gated mean. The procedure's record (`ENGINE_LOUDNESS_PROCEDURE`, version 5) holds the drive, the
+gate 10 LU below the gated mean. The procedure's record (`ENGINE_LOUDNESS_PROCEDURE`, version 6) holds the drive, the
 rate, the renderings and what it meters; the SHA-256 of its JSON is its identity, and a change to its results raises its
 version.
 

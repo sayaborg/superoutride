@@ -344,14 +344,16 @@ The stage's name, `MF`, is the auditor's; K has not decided it. What stays open,
 
 K's decision of 2026-11-22: in the game, with the music, the settled eleven's sound is buried but for its cracks and
 (with a turbine) its intake. ENGINE SOUND QUALITY's fourth value, LIGHT, plays the player's and the rival's engines
-through the light kernel at the output's rate ([Audio](audio.md#the-light-kernel)), which has neither, the sound
-documents unchanged; its loudness is measured beside the four divisors'. The stage's name, `EL`, is the auditor's.
-What stays open, for K:
+through the light kernel at the output's rate ([Audio](audio.md#the-light-kernel)), the sound documents unchanged; its
+loudness is measured beside the four divisors'. K's decision of 2026-11-23: the light kernel is N5, a model of its own
+sharing nothing with the game kernel, that reads only tubes' lengths (EL-3; a tube's width changing rang metallic). The
+stage's name, `EL`, is the auditor's. What stays open, for K:
 
-- The default stays MID until K has heard LIGHT in the game with the music.
-- LIGHT's load on real devices. Off them (the implementer's measurement), both voices load about as LOW's and half as
-  MID's.
-- The light kernel has one listened value, `LIGHT_BOX_DIAMETER` (75 mm); no other is to be added to it.
+- The default stays MID until K has heard LIGHT in the game with the music, N5's afterfires included (at their peak
+  3 to 12 dB above EL-1's, burning at the shut valve).
+- LIGHT's load on real devices.
+- The light kernel has two listened values, `LISTENED` (a charge's variation and an afterfire's time); no other, and no
+  vehicle's exception, is to be added to it.
 
 ## Stage AT — The attract demo remade
 
