@@ -533,6 +533,7 @@ for (const [vehicle, name, liveries, count] of [
   ['the RX-7 Turbo II of 1987', 'rx-7-turbo-ii-1987', 'eight', 8],
   ['the 928 S4 of 1987', 'porsche-928-s4-1987', 'eight', 8],
   ['the Turbo Esprit of 1984', 'turbo-esprit-1984', 'four', 4],
+  ['the Countach 5000 QV of 1985', 'countach-5000-qv-1985', 'four', 4],
 ])
   test(`${vehicle}’s saved set: seven paint steps, three glass steps, four greys, ${liveries} liveries`, async () => {
     const value = JSON.parse(await readFile(new URL(`../../content/sprites/${name}.json`, import.meta.url), 'utf8'));

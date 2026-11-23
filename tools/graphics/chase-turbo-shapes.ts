@@ -5,10 +5,9 @@ import { createProceduralVehicleSolid, type Point3, type SurfaceColor } from './
 
 /**
  * Original, provisional authoring geometry. Dimensions and limitations are recorded in chase-turbo-vehicles.md. The
- * ledger's Porsche 959, 928 S4 and Turbo Esprit have none: their pictures are baked from K's models.
+ * ledger's Porsche 959, 928 S4, F40, Turbo Esprit and Countach have none: their pictures are baked from K's models.
  */
 export const CHASE_TURBO_PICTURES = {
-  COUNTACH_5000_QV_1985: 'countach-5000-qv-1985',
   FERRARI_GTO_1984: 'ferrari-gto-1984',
   PORSCHE_928_S_1984: 'porsche-928-s-1984',
   TOYOTA_PICKUP_1980: 'toyota-pickup-1980',
@@ -29,7 +28,6 @@ const black: Rgb = [18, 20, 23],
   amber: Rgb = [240, 140, 20],
   paint: Rgb = [180, 180, 180];
 const bodies: Record<ChaseTurboId, Rgb> = {
-  COUNTACH_5000_QV_1985: [245, 215, 35],
   FERRARI_GTO_1984: blue,
   PORSCHE_928_S_1984: red,
   TOYOTA_PICKUP_1980: [190, 115, 55],
@@ -84,7 +82,6 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     z = m.overallLength / 2,
     h = m.overallHeight;
   const p928 = id === 'PORSCHE_928_S_1984',
-    countach = id === 'COUNTACH_5000_QV_1985',
     gto = id === 'FERRARI_GTO_1984',
     c4 = id === 'CORVETTE_C4_1984',
     mini = id === 'AUSTIN_MINI_850_1964',
@@ -253,7 +250,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
   const baseFront = roofFront + (jeep ? 0.07 : pickup ? 0.16 : mini ? 0.13 : 0.3) * z,
     baseRear = roofRear - (jeep ? 0.06 : pickup ? 0.04 : mini ? 0.13 : nova ? 0.18 : 0.34) * z;
   const roofY = (police ? 0.92 : 1) * h,
-    roofX = (jeep ? 0.8 : pickup ? 0.83 : mini ? 0.85 : nova ? 0.72 : countach ? 0.58 : 0.68) * x;
+    roofX = (jeep ? 0.8 : pickup ? 0.83 : mini ? 0.85 : nova ? 0.72 : 0.68) * x;
   const roofColor = jeep ? black : police ? white : paint;
   const roofKind = jeep || police ? 'plain' : 'paint';
   quad(
@@ -305,28 +302,14 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
         m.frontTrack,
         m.frontWheelRadius,
         mini ? 0.13 : jeep ? 0.205 : pickup ? 0.165 : nova ? 0.185 : 0.225,
-        mini ? 10 : pickup || nova ? 14 : countach || jeep ? 15 : 16,
+        mini ? 10 : pickup || nova ? 14 : jeep ? 15 : 16,
       ],
       [
         -m.rearAxle,
         m.rearTrack,
         m.rearWheelRadius,
-        mini
-          ? 0.13
-          : jeep
-            ? 0.205
-            : pickup
-              ? 0.165
-              : nova
-                ? 0.185
-                : p928
-                  ? 0.225
-                  : countach
-                    ? 0.345
-                    : gto
-                      ? 0.265
-                      : 0.245,
-        mini ? 10 : pickup || nova ? 14 : countach || jeep ? 15 : 16,
+        mini ? 0.13 : jeep ? 0.205 : pickup ? 0.165 : nova ? 0.185 : p928 ? 0.225 : gto ? 0.265 : 0.245,
+        mini ? 10 : pickup || nova ? 14 : jeep ? 15 : 16,
       ],
     ])
       s.wheel(
@@ -402,21 +385,17 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     s.cylinder([0, 0.53 * h, -0.91 * z], [0, 0.53 * h, -1.01 * z], 0.32, black);
     s.cylinder([0, 0.53 * h, -1.012 * z], [0, 0.53 * h, -1.016 * z], 0.18, metal);
   }
-  if (p928 || countach || gto) {
-    const wingY = (p928 ? 0.52 : countach ? 0.88 : 0.56) * h,
-      wingZ = (p928 ? -0.82 : countach ? -0.83 : -0.87) * z,
-      wingWidth = (countach ? 0.9 : 0.79) * x;
-    if (countach)
-      for (const side of [-1, 1])
-        slab([side * 0.6 * x, (wingY + 0.48 * h) / 2, wingZ], [0.025, (wingY - 0.48 * h) / 2, 0.08 * z]);
+  if (p928 || gto) {
+    const wingY = (p928 ? 0.52 : 0.56) * h,
+      wingZ = (p928 ? -0.82 : -0.87) * z,
+      wingWidth = 0.79 * x;
     slab([0, wingY, wingZ], [wingWidth, 0.035, 0.09 * z], p928 ? black : paint, p928 ? 'plain' : 'paint');
   }
-  if (countach || gto) {
+  if (gto) {
     for (let i = 0; i < 7; i++)
       slab([0, 0.59 * h, -(0.45 + i * 0.055) * z], [0.5 * x, 0.01, 0.014 * z], black, 'plain');
     for (const side of [-1, 1]) {
       slab([side * 0.94 * x, 0.43 * h, -0.38 * z], [0.018, 0.08, 0.13 * z], black, 'plain');
-      if (countach) slab([side * 0.72 * x, 0.73 * h, -0.36 * z], [0.15, 0.1, 0.14], black, 'plain');
       if (gto)
         for (let i = 0; i < 3; i++)
           slab([side * 0.92 * x, 0.42 * h, -(0.82 + i * 0.045) * z], [0.02, 0.095, 0.012], black, 'plain');

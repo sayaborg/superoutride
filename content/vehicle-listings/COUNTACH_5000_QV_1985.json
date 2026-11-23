@@ -5,9 +5,14 @@
   "selectionOrder": 34,
   "visuals": {
     "spriteSet": "countach-5000-qv-1985",
-    "palette": "stock",
+    "palette": "giallo-fly",
     "steeringPicture": "montecarlo",
-    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+    "colorNames": {
+      "rosso-siviglia": "ROSSO SIVIGLIA",
+      "giallo-fly": "GIALLO FLY",
+      "bianco-polo-park": "BIANCO POLO PARK",
+      "nero-tenebre": "NERO TENEBRE"
+    }
   },
   "sound": "COUNTACH_5000_QV_1985",
   "metadata": {
