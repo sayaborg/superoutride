@@ -23,7 +23,8 @@ Each line is one area as it stands, with the document that owns it.
   to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984, 38 with the XR600R of 1985 and 39 with
   the RX-7 Turbo II of 1987, K's TOP SPEED car, and 38 again without the NSR500 of 1987 (Stage MF), in the same ledger
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored)). Among the fourteen, the
-  928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)). The
+  928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)), and
+  the Turbo Esprit of 1984 the car it chases ([Stage E82](#stage-e82--the-turbo-esprit-of-1984-chase-hqs-rival)). The
   1986 Porsche 930 and 1984 Corvette C4 coexist with their existing 1989 versions; the unidentified box truck remains
   deferred. The ledger owns specification limits and validation.
 - **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
@@ -267,6 +268,48 @@ from K's model by the car baking of Stage F110 in one color, ROSSO CORSA (F120-3
   reflection and how the front tyres sit.
 - TURBO OUTRUN's turbo button (a burst of acceleration and overheating) is the series' to decide; this stage does not
   add it.
+
+## Stage E82 — The Turbo Esprit of 1984, CHASE H.Q.'s rival
+
+K's decisions of 2026-11-22 and 2026-11-23: the car CHASE H.Q. chases is taken for the Lotus Turbo Esprit of 1984, UK
+specification, Type 82, Giugiaro's shape; nothing here claims the original says so. The existing `TURBO_ESPRIT_1984` is
+mended, not added again. Its pictures are baked from K's model by the car baking of F110-1, in four of Lotus's colors
+named by their real names, the default white for now; the four game colors go. Its driving and sound do not change.
+
+- E82-1, a draft for K: `turbo-esprit-1984` is baked from K's model (SHA-256 `e2a7254d…`, on
+  `codex/turbo-esprit-1984-glb-source`, never on main) by the RX-7's recipe, in CALYPSO RED, MONACO WHITE, BLACK and
+  BRITISH RACING GREEN, the default `monaco-white` ([Model solids](image-assets.md#model-solids)); the Esprit's
+  procedural shape and its ledger pictures go. The Countach's and the GTO's shapes and pictures are byte-identical.
+- To look at in DEV: SELECT VEHICLE's four colors for the TURBO ESPRIT, MONACO WHITE the default; the wedge and its
+  edges read through the steps and reflections on the white and the black body; the louvre's glossy dark grey from
+  behind and the rear three-quarters, two colors with the white body; the pillars, the frames and the lettering on the
+  flanks; the flat rear bumper, where the brake lamps sit and how they light, the right-hand exhaust; the brightness of
+  the bonnet's and the roof's flat faces; the four colors told apart far away, and the louvre not crushed to black; its
+  size beside the 928 S4 (how low, how wide).
+- The stage auditor's choices, awaiting K: the stage's name (`E82`, from Type 82) and its one PR; the four colors (K:
+  "there are red, white, black and green"), their keys and provisional base colors; the louvre's gloss as the greys'
+  roughness 0.10 rather than a second paint; the pictures' rim radius (0.208 m); the driving left as it is.
+- The four colors' base colors are provisional, not measured from paint samples; British Racing Green (A42) is a
+  metallic, here a flat color without flake. Whether all four were offered on the 1984 UK Turbo Esprit is not checked
+  against a primary source; the paint-code lists read are Lotus's for every model.
+- The width, height and tracks differ between secondary sources (1,860 / 1,854 / 1,850 mm wide, 1,115 / 1,118 /
+  1,120 mm high, tracks 1,520 / 1,550, 1,537 / 1,554 and 1,540 / 1,550 mm; the definition's first). They stay as
+  defined; when a primary source is read, the definition and the pictures are mended together, since dimensions mended
+  first would leave the pictures apart from the definition.
+- The wheel radii stay at the ledger's 0.285 and 0.309 m, about 7% under the tyres' nominal 0.3075 and 0.3315 m, which
+  the pictures draw; TESTAROSSA, the RX-7 and the F40 use the nominal radii, the 959 and the 928 S4 the ledger's.
+  Whether to make them one is K's.
+- The pictures: the model's height is 0.919 of its plan shape's scale, so its wheel arches are lower and the rear tyres'
+  tops (0.663 m) sit 5 mm inside the arches' edge (0.658 m); its front fenders are 20 mm narrower than its rear, where
+  the real car is widest not checked. The "esprit" lettering on the flanks is broken as the model came (K keeps it); the
+  rear bumper's LOTUS lettering is not in the model. Secondary sources describe the early (Essex) Turbo's bumpers and
+  rear louvre as matt black; K takes the louvre for a glossy dark grey and the bumpers for the body's color. The
+  louvre is a flat, broad face that shines evenly by direction, as the 928 S4's panel between its tail lamps does.
+- The GTO's saved set is older than its definition: baked again, `ferrari-gto-1984` differs from main's (SHA-256
+  `bc393207…` against `59dc8f9d…`), the same by main's code as by E82-1's; MF-7b mended its dimensions without baking
+  it again. E82-1 leaves it as it is; baking it again is the GTO's own change.
+- Not decided: CHASE H.Q.'s series (the player's car, the rival, turbo, the beacon), the Esprit's own tire values and
+  its steering picture.
 
 ## Stage MF — Silencers and turbines in the engine sounds
 
@@ -1134,7 +1177,7 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 | OUTRUN        | TESTAROSSA is the 1984 European coupé (K, 2026-11-19).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | TURBO OUTRUN  | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](turbo-outrun-road-data.md)). F40 and 959 are period road specifications.                                                                                                                                                              |
 | FINAL LAP 2   | The reference game is of 1990; the tribute's cars are of 1989 or before ([Era](product.md#era)). The catalog has `FERRARI_640` (1989) and `MCLAREN_MP4_4` (1988).                                                                                                                                                                                                                                                                                                                                                                       |
-| CHASE H.Q.    | The 928 is the S4 of 1987, US, five-speed manual (K, 2026-11-20). ESPRIT TURBO generation is open. 911 TURBO (930) relates to the existing 3.3 L definition. Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                                                                                                                        |
+| CHASE H.Q.    | The 928 is the S4 of 1987, US, five-speed manual (K, 2026-11-20). The rival's car is the Turbo Esprit of 1984, UK, Type 82 (K, 2026-11-22). 911 TURBO (930) relates to the existing 3.3 L definition. Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                                                                               |
 | CISCO HEAT    | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. Ordinary road appearances, without police livery or lights; BROUGHAM TUNED is one explicit finished specification, used unchanged on every course. |
 | BIG RUN       | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                                                                                                                                                                                  |
 

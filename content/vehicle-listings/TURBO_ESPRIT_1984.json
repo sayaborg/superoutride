@@ -5,9 +5,14 @@
   "selectionOrder": 33,
   "visuals": {
     "spriteSet": "turbo-esprit-1984",
-    "palette": "stock",
+    "palette": "monaco-white",
     "steeringPicture": "montecarlo",
-    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+    "colorNames": {
+      "calypso-red": "CALYPSO RED",
+      "monaco-white": "MONACO WHITE",
+      "black": "BLACK",
+      "british-racing-green": "BRITISH RACING GREEN"
+    }
   },
   "sound": "TURBO_ESPRIT_1984",
   "metadata": {
