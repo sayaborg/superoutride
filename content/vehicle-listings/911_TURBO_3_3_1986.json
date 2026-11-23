@@ -7,7 +7,12 @@
     "spriteSet": "911-turbo-3-3-1986",
     "palette": "silver",
     "steeringPicture": "prototipo",
-    "colorNames": { "silver": "SILVER", "black": "BLACK", "red": "GUARDS RED", "white": "GP WHITE" }
+    "colorNames": {
+      "silver": "SILVER METALLIC",
+      "black": "BLACK",
+      "red": "GUARDS RED",
+      "white": "GRAND PRIX WHITE"
+    }
   },
   "sound": "911_TURBO_3_3_1986",
   "metadata": {

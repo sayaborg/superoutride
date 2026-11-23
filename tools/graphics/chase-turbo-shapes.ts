@@ -5,7 +5,8 @@ import { createProceduralVehicleSolid, type Point3, type SurfaceColor } from './
 
 /**
  * Original, provisional authoring geometry. Dimensions and limitations are recorded in chase-turbo-vehicles.md. The
- * ledger's Porsche 959, 928 S4, F40, Turbo Esprit and Countach have none: their pictures are baked from K's models.
+ * ledger's Porsche 959, 928 S4, F40, Turbo Esprit, Countach and 911 Turbo 3.3 have none: their pictures are baked from
+ * K's models.
  */
 export const CHASE_TURBO_PICTURES = {
   FERRARI_GTO_1984: 'ferrari-gto-1984',

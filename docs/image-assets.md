@@ -616,8 +616,8 @@ domain owns the admitted sets at run time: for a vehicle's color and lamp state 
 once and draws every picture with it, and it selects yaw/bank pictures. The image domain supplies only the generic
 sprite reader.
 
-`911-turbo-3-3-1986`, `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+`golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`nova-250-1977`): drawn by
@@ -654,7 +654,7 @@ authority for the vehicle's dimensions, and each view is fitted to it.
 view, stations and heights are metres in vehicle coordinates (origin at the base point, z forward, y up):
 
 ```text
-{format, version, vehicle: "911_TURBO_3_3_1986", yawVariants: 64, background: "white" | "alpha",
+{format, version, vehicle: "GOLF_GTI_16V", yawVariants: 64, background: "white" | "alpha",
  side:  {road, roof, frontEnd, rearEnd, frontWheel, rearWheel, frontOverhangShare},
  top:   {centre, width, frontEnd, rearEnd, ties: [[sideColumn, topColumn], ...]},
  front: {centre, width, road, roof},
@@ -746,11 +746,7 @@ white), so a shaded amber stays amber and a dark texel stays a dark neutral. Eve
 the set names the same slots, so a color variant replaces the body colors and keeps the rest. By the contract's lamp
 rule, sizes 1 to 4 turn each lamp's fullest texel into a lamp texel when no texel of that lamp reached half.
 
-911 TURBO 3.3's saved set, `911-turbo-3-3-1986`, is the command's
-output for its recipe, drawn on the 1986 car's mechanics (MF-6b): silver, black, red and white. Its surface gives the hood between the front
-wings, the wings' round tops, the crowned roof and tapering tail, the rear shoulders and the tray of the rear wing;
-its marks give the windows, the headlamps and the brake lamps (the outer red lamps and the reflector square beside
-each). GOLF GTI 16V's saved set is the command's output for its recipe: red, white, black and silver. Its front and rear views are fitted to the side view's lamps and bumpers rather than to their roofs, which those views show from a little above; its marks give the rear window, the mirrors, the headlamps, foglamps and indicators, the tail lamps' amber and white sections, their lower red sections as brake lamps, and the number plates as paint; its surface is empty. Its red's two lightest steps are redder than the other sets', its middle neutral lighter, so that its silver wheels read as silver, and its red accent darker, so that a texel mixing paint with black trim stays dark in every color. VFR750R's saved set is a prototype accepted as it stands, rendered from a 3D model of the machine with its rider rather than by this generator: the model reduced to 200,000 triangles with its two wheels and its rider as separate parts, scaled uniformly so that its hubs stand at the mechanics document's axles, and drawn by each size's contract camera at 64 yaw by 7 bank images (`bankDegrees` 60), turned about the line where its tyres meet the road, under a sky above a darker road and a sun high, ahead and to the right, its wheels blurred over a turn. Its 14 colors are five greys (slots 1–5) and three paint ramps of three steps from light to dark (slots 6–8, 9–11 and 12–14), which take the model's red, white and navy paint, the rider's leathers and helmet included, lit as one flat paint; everything else takes the nearest grey, and the tail lamps' lenses the brake lamp. Its palettes replace the three ramps: tricolor is the real tricolour (red, white, navy), red is red with white and black, blue is blue with yellow and white, and black is black with orange and grey. The model, its classification and the bake lie outside the command and are not saved here. The reference photographs and screenshots used to judge a set are not saved here.
+GOLF GTI 16V's saved set is the command's output for its recipe: red, white, black and silver. Its front and rear views are fitted to the side view's lamps and bumpers rather than to their roofs, which those views show from a little above; its marks give the rear window, the mirrors, the headlamps, foglamps and indicators, the tail lamps' amber and white sections, their lower red sections as brake lamps, and the number plates as paint; its surface is empty. Its red's two lightest steps are redder than the other sets', its middle neutral lighter, so that its silver wheels read as silver, and its red accent darker, so that a texel mixing paint with black trim stays dark in every color. VFR750R's saved set is a prototype accepted as it stands, rendered from a 3D model of the machine with its rider rather than by this generator: the model reduced to 200,000 triangles with its two wheels and its rider as separate parts, scaled uniformly so that its hubs stand at the mechanics document's axles, and drawn by each size's contract camera at 64 yaw by 7 bank images (`bankDegrees` 60), turned about the line where its tyres meet the road, under a sky above a darker road and a sun high, ahead and to the right, its wheels blurred over a turn. Its 14 colors are five greys (slots 1–5) and three paint ramps of three steps from light to dark (slots 6–8, 9–11 and 12–14), which take the model's red, white and navy paint, the rider's leathers and helmet included, lit as one flat paint; everything else takes the nearest grey, and the tail lamps' lenses the brake lamp. Its palettes replace the three ramps: tricolor is the real tricolour (red, white, navy), red is red with white and black, blue is blue with yellow and white, and black is black with orange and grey. The model, its classification and the bake lie outside the command and are not saved here. The reference photographs and screenshots used to judge a set are not saved here.
 
 ### Procedural provisional solids
 
@@ -1152,6 +1148,40 @@ auditor's, provisional); the three metallics are flat colors without flake, and 
 The listing's default is `black` (K, 2026-11-20). The model is K's `porsche-928-s4-1987.glb` (SHA-256 `c43ba501…`),
 kept on K's branch `codex/928-s4-1987-glb-source`, never on main; it has no wheel nodes, and its front hub is
 (0, 0.3157, 1.25).
+
+**The 911 Turbo 3.3 of 1986.** Its set, `911-turbo-3-3-1986`, is baked from K's model by the RX-7's recipe (K,
+2026-11-23), in place of its earlier set generated from four views: the same steps (seven paint steps, three glass
+steps and four greys), light, reflections, glare, spacing, 64 directions and brake lamp colors, none moved for this
+car. What differs is the model's: the body's red (231, 10, 14) is its one paint, within 8; the glass is (10, 10, 12),
+within 4 and of roughness below 0.5, six panes (the windscreen, the doors', the rear quarters' and the rear window),
+the doors' and the rear window's added by K where the model had none, and the shelf below the rear window painted with
+them; the magenta (255, 0, 255) is the brake lamp, as K painted it. Every black part is matt: K painted it (22, 22, 24)
+at roughness 0.90, a grey, as are the rear band, which K made a dark grey (30 to 66) so that the greys' darkest steps
+stay black and the wheels' centres are not drawn reddish, its PORSCHE lettering kept as shading, the tyres, the
+wheels' centres and the underside; the wheels' rims, the lamps, the turbo script (as the model came), the crest and the
+silencer keep their own colors and are greys too. The model holds its roughness, 0.10 on the red, the glass and the
+brake lamp and 0.90 on the dark parts, and its occlusion, made as the 928 S4 model's. Its four wheels are spun as the
+model's `extras` give them, on the car's tracks: centres (±0.716, 0.316, 1.136) m front, radius 0.316, width 0.205
+(205/55 VR 16), and (±0.7505, 0.3135, −1.136) m rear, radius 0.3135, width 0.245 (245/45 VR 16); the rims are 0.2207,
+as the 928 S4's (the stage auditor's). The model was made to the car's mechanics document: 4,291 × 1,775 × 1,310 mm
+(1,742 mm across the mirrors, narrower than the rear fenders), the length to the rear bumper's guards, the width at the
+rear fenders, on the 2,272 mm wheelbase and the 1,432 and 1,501 mm tracks; its overhangs, 936 and 1,084 mm, were not
+fitted. The wheels drawn are the tires' nominal size, not the 0.304 and 0.306 m its driving uses.
+
+Its four colors are Porsche's of 1986 (K, 2026-11-23), named in English, under their earlier keys, which the series
+and tests name; the default is `silver`. The recipe's first color is the model's own red; the base colors are the
+stage auditor's, provisional, the 928 S4's of the same names, and the metallic is a flat color without flake. Whether
+all four were offered on the 1986 European car is not checked:
+
+| Palette  | Name             | Code      | Base color    |
+| -------- | ---------------- | --------- | ------------- |
+| `red`    | GUARDS RED       | 027 / G1  | 231, 10, 14   |
+| `silver` | SILVER METALLIC  | not fixed | 190, 194, 198 |
+| `black`  | BLACK            | 700 / A1  | 18, 18, 20    |
+| `white`  | GRAND PRIX WHITE | 908 / P5  | 238, 238, 232 |
+
+The model is K's `911-turbo-3-3-1986.glb` (SHA-256 `a589debd…`), kept on K's branch
+`codex/911-turbo-3-3-1986-glb-source`, never on main; it has no wheel nodes, and its front hub is (0, 0.316, 1.136).
 
 **The F40 of 1988.** Its set, `ferrari-f40-1988`, is baked from K's model by the Testarossa's recipe (K, 2026-11-19):
 the same steps (seven reds, three glass steps and four greys), light, reflections, glare, spacing, 64 directions and
