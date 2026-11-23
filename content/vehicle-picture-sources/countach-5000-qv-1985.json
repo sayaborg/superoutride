@@ -1,0 +1,215 @@
+{
+  "format": "superoutride.vehicle-model-recipe",
+  "version": 1,
+  "vehicle": "COUNTACH_5000_QV_1985",
+  "yawVariants": 64,
+  "model": {
+    "sha256": "a21ffd163bf82e3820c6b974ec2c9ef9446d340383dfde39d739de8abe27a7cc",
+    "right": "-x",
+    "up": "+y",
+    "forward": "+z",
+    "frontHub": [
+      0,
+      0.303,
+      1.225
+    ]
+  },
+  "spacing": 0.008,
+  "paints": {
+    "colors": [
+      [
+        231,
+        10,
+        14
+      ]
+    ],
+    "within": 8,
+    "lamp": [
+      255,
+      0,
+      255
+    ]
+  },
+  "glass": {
+    "color": [
+      10,
+      10,
+      12
+    ],
+    "within": 4,
+    "rough": 0.5
+  },
+  "ramps": {
+    "paints": [
+      7
+    ],
+    "glass": 3,
+    "grey": 4,
+    "sampleYaws": 16
+  },
+  "light": {
+    "main": [
+      -0.25,
+      0.85,
+      0.46
+    ],
+    "fill": [
+      0.6,
+      0.2,
+      0.5
+    ],
+    "ambient": 0.08,
+    "sky": 0.14,
+    "mainWeight": 0.92,
+    "fillWeight": 0.06,
+    "greyGain": 1.5
+  },
+  "reflection": {
+    "paint": {
+      "f0": 0.1,
+      "horizon": [
+        205,
+        218,
+        238
+      ],
+      "zenith": [
+        120,
+        160,
+        230
+      ],
+      "haze": [
+        70,
+        66,
+        68
+      ],
+      "ground": [
+        20,
+        18,
+        20
+      ],
+      "fall": 0.1,
+      "power": 0.6
+    },
+    "glass": {
+      "f0": 0.8,
+      "horizon": [
+        232,
+        240,
+        248
+      ],
+      "zenith": [
+        58,
+        120,
+        222
+      ],
+      "haze": [
+        205,
+        214,
+        224
+      ],
+      "ground": [
+        86,
+        88,
+        92
+      ],
+      "fall": 0.35,
+      "power": 0.6
+    }
+  },
+  "glare": [
+    {
+      "power": 30,
+      "strength": 2,
+      "glass": 1
+    },
+    {
+      "power": 220,
+      "strength": 4,
+      "glass": 1.5
+    }
+  ],
+  "wheels": [
+    {
+      "center": [
+        0.768,
+        0.303,
+        1.225
+      ],
+      "radius": 0.303,
+      "rim": 0.208,
+      "width": 0.225
+    },
+    {
+      "center": [
+        -0.768,
+        0.303,
+        1.225
+      ],
+      "radius": 0.303,
+      "rim": 0.208,
+      "width": 0.225
+    },
+    {
+      "center": [
+        0.803,
+        0.31125,
+        -1.225
+      ],
+      "radius": 0.31125,
+      "rim": 0.208,
+      "width": 0.345
+    },
+    {
+      "center": [
+        -0.803,
+        0.31125,
+        -1.225
+      ],
+      "radius": 0.31125,
+      "rim": 0.208,
+      "width": 0.345
+    }
+  ],
+  "liveries": {
+    "rosso-siviglia": [
+      [
+        231,
+        10,
+        14
+      ]
+    ],
+    "giallo-fly": [
+      [
+        255,
+        226,
+        56
+      ]
+    ],
+    "bianco-polo-park": [
+      [
+        238,
+        238,
+        232
+      ]
+    ],
+    "nero-tenebre": [
+      [
+        18,
+        18,
+        20
+      ]
+    ]
+  },
+  "brakeLamp": {
+    "off": [
+      125,
+      12,
+      18
+    ],
+    "on": [
+      255,
+      70,
+      40
+    ]
+  }
+}

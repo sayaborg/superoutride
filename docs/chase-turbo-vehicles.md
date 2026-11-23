@@ -47,9 +47,12 @@ specification called for an automatic in the real car.
 K takes CHASE H.Q.'s rival for the Lotus Turbo Esprit of 1984, United Kingdom, Type 82 (K, 2026-11-22);
 nothing here claims the original says so.
 
-Except the 959's, the 928 S4's, the Turbo Esprit's and the 911 Turbo 3.3's, the four palettes are game colors, without verified period paint codes. Blue GTO
-and the police livery are especially not claims of factory delivery colors. The stock-named palette key means the
-default game palette.
+K takes the car chased in CHASE H.Q.'s second stage for the Lamborghini Countach 5000 QV of 1985, Europe
+(K, 2026-11-23); nothing here claims the original says so.
+
+Except the 959's, the 928 S4's, the F40's, the Turbo Esprit's, the Countach's and the 911 Turbo 3.3's, the four palettes
+are game colors, without verified period paint codes. Blue GTO and the police livery are especially not claims of
+factory delivery colors. The stock-named palette key means the default game palette.
 
 ## Representation within the current model
 
@@ -117,7 +120,7 @@ Accessed 2026-10-23 UTC. Search snippets, blocked URLs and unread manuals are no
 The numeric ledger distinguishes `source verified`, `calculated`, `engineering estimate` and `game design`, and for
 the 959, the 928 S4 and the F40 of 1988 `source (auditor)`: the stage auditor's reading, not read for the PR that
 wrote it ([959](#porsche-959-of-1987-sources-versus-authored), [928 S4](#porsche-928-s4-of-1987-sources-versus-authored),
-[F40](#ferrari-f40-of-1988-sources-versus-authored)); the 911 Turbo 3.3's colors (item 16) are the auditor's reading
+[F40](#ferrari-f40-of-1988-sources-versus-authored)); the 911 Turbo 3.3's colors (item 17) are the auditor's reading
 likewise.
 A source-verified secondary value means that page was read, not that it has primary-document authority.
 
@@ -250,7 +253,17 @@ A source-verified secondary value means that page was read, not that it has prim
     color table, the primary source, was not read. The base colors are provisional, not measured from paint samples
     ([Model solids](image-assets.md#model-solids)).
 
-16. **911 Turbo 3.3 of 1986, colors** (Stage P930, the stage auditor's reading of 2026-11-23; the pages could not
+16. **Countach 5000 QV of 1985's colors** (C5K, 2026-11-23), the stage auditor's reading, not read for the PR that
+    wrote it. An owner's post quoting the 1986 Countach QV color chart lists Rosso Siviglia (PPG 2.464.022), Nero
+    Tenebre (PPG 2.467.026) and Bianco Polo Park (PPG 2.461.025) among its standard colors
+    ([post](https://www.ferrarichat.com/forum/posts/144283719)); the auditor did not see the chart itself. A sale's
+    description gives a QV in Giallo Fly ([classic driver](https://www.classicdriver.com/en/node/1121057)), and Giallo
+    Fly is said to have been rare on the QV; the yellow is K's choice (MF-5). The black is found written both Nero
+    Tenebre and Nero Tenebra; the post quoting the chart writes Tenebre, which is taken. No 1985 European color chart, a
+    primary source, was read, so whether all four were offered on the 1985 European car is not checked. The base colors
+    are the auditor's, not measured from paint samples.
+
+17. **911 Turbo 3.3 of 1986, colors** (Stage P930, the stage auditor's reading of 2026-11-23; the pages could not
     be reached from the environment of the PR that wrote this item). Porsche's 1986 paint lists name Guards Red, Black,
     Silver Metallic and Grand Prix White
     ([paintscratch](https://paintscratch.com/touch_up_paint/Porsche/1986-Porsche-All-Models.html),
@@ -266,16 +279,16 @@ are not evidence for the selected 1988 non-catalyst road specification.
 
 ## Pictures and sound
 
-[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for nine of
-the cars; the 959's pictures are baked from K's model instead, in its four period colors, the 928 S4's in eight
-Porsche colors, the F40's in one, ROSSO CORSA, the Turbo Esprit's in four Lotus colors, MONACO WHITE the default, and
-the 911 TURBO 3.3 of 1986's in four Porsche colors ([Model solids](image-assets.md#model-solids);
-[below](#porsche-911-turbo-33-of-1986-the-fourth-stages-car)). Those samples go through the existing shared
-camera, palette, shadows, sprite and six-LOD baker. Each of the nine has 64 yaw pictures, one bank, four palettes and the
-existing brake-lamp slot. No source photograph, ROM image or downloaded manual image is redistributed. Facet
-locations, window proportions, lights, rims, paint and details are visual estimates; this is not a dimensioned CAD
-reconstruction. Dimensions include a provisional visual envelope, so tiny mirrors, lamps or the spare can extend
-slightly beyond the nominal body panel dimensions.
+[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for eight of the
+cars; the 959's pictures are baked from K's model instead, in its four period colors, the 928 S4's in eight Porsche
+colors, the F40's in one, ROSSO CORSA, the Turbo Esprit's in four Lotus colors, MONACO WHITE the default, the Countach's
+in its four real colors, GIALLO FLY the default, and the 911 TURBO 3.3 of 1986's in four Porsche colors
+([Model solids](image-assets.md#model-solids); [below](#porsche-911-turbo-33-of-1986-the-fourth-stages-car)). Those
+samples go through the existing shared camera, palette, shadows, sprite and six-LOD baker. Each of the eight has 64 yaw
+pictures, one bank, four palettes and the existing brake-lamp slot. No source photograph, ROM image or downloaded manual
+image is redistributed. Facet locations, window proportions, lights, rims, paint and details are visual estimates; this
+is not a dimensioned CAD reconstruction. Dimensions include a provisional visual envelope, so tiny mirrors, lamps or the
+spare can extend slightly beyond the nominal body panel dimensions.
 
 Each car has its own existing-format sound graph with its cylinder count and evenly spaced firing phases.
 Ferrari flat-plane banks alternate (the F40's exhaust is written [below](#f40-exhaust-and-sound)); the two 928s route 1-3-7-2-6-5-4-8 by banks 1–4/5–8, the S4's banks meeting only
@@ -553,7 +566,7 @@ unchanged.
   tracks); its overhangs, 936 and 1,084 mm, not fitted, are within 4 mm of auto-data's 932 and 1,087 mm. Its wheels are
   the tires' nominal size (205/55 VR16 and 245/45 VR16: 0.316 and 0.3135 m), while its driving keeps 0.304 and 0.306 m.
 - Its four colors keep their keys and the silver default; their names are Porsche's: SILVER METALLIC, BLACK, GUARDS
-  RED and GRAND PRIX WHITE ([item 16](#evidence-actually-consulted)). Their base colors are provisional, the 928 S4's of
+  RED and GRAND PRIX WHITE ([item 17](#evidence-actually-consulted)). Their base colors are provisional, the 928 S4's of
   the same names, not measured from paint samples; whether all four were offered on the 1986 European car is not
   checked against a primary source.
 - The rear track: 1,501 mm is auto-data's four-speed entry; carsales and auto-data's five-speed entry give the 1986 car

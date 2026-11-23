@@ -24,8 +24,10 @@ Each line is one area as it stands, with the document that owns it.
   the RX-7 Turbo II of 1987, K's TOP SPEED car, and 38 again without the NSR500 of 1987 (Stage MF), in the same ledger
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored)). Among the fourteen, the
   928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)), and
-  the Turbo Esprit of 1984 the car it chases ([Stage E82](#stage-e82--the-turbo-esprit-of-1984-chase-hqs-rival)), and the
-  911 Turbo 3.3 of 1986 the car chased in its fourth stage ([Stage P930](#stage-p930--the-911-turbo-33-of-1986s-pictures)). The
+  the Turbo Esprit of 1984 the car it chases ([Stage E82](#stage-e82--the-turbo-esprit-of-1984-chase-hqs-rival)), the
+  Countach 5000 QV of 1985 the car it chases on the second stage
+  ([Stage C5K](#stage-c5k--the-countach-5000-qv-of-1985s-pictures)) and the 911 Turbo 3.3 of 1986 the car chased in
+  its fourth stage ([Stage P930](#stage-p930--the-911-turbo-33-of-1986s-pictures)). The
   1986 Porsche 930 and 1984 Corvette C4 coexist with their existing 1989 versions; the unidentified box truck remains
   deferred. The ledger owns specification limits and validation.
 - **Product.** TSUKUBA, the first product course, is timed by TSUKUBA CLUBMAN, the first product series, with its
@@ -84,7 +86,8 @@ Each line is one area as it stands, with the document that owns it.
   [Course authoring operations](content-and-gameplay.md#course-authoring-operations),
   [Course loading](architecture.md#course-loading)).
 
-Next PR: [Stage AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage RC](#stage-rc--one-recovery) and
+Next PR: [Stage C5K](#stage-c5k--the-countach-5000-qv-of-1985s-pictures)'s C5K-1 is a draft until K has seen its
+pictures; [Stage AT](#stage-at--the-attract-demo-remade) awaits K's device check; [Stage RC](#stage-rc--one-recovery) and
 [Stage AD](#stage-ad--three-driver-roles-and-lighter-driving) are made and await K's DEV check and K's choice of the
 replanning interval (AD-5's reports); in [Stage RM](#stage-rm--branch-tsukuba-and-the-walls), and beside it [Stage
 CS](#stage-cs--cisco-heat-from-the-roms)'s raising; [RD-6e](#courses-of-the-originals) once K's recordings come; then
@@ -342,6 +345,41 @@ named by their real names, the default white for now; the four game colors go. I
   it again. E82-1 leaves it as it is; baking it again is the GTO's own change.
 - Not decided: CHASE H.Q.'s series (the player's car, the rival, turbo, the beacon), the Esprit's own tire values and
   its steering picture.
+
+## Stage C5K — The Countach 5000 QV of 1985's pictures
+
+K's decisions of 2026-11-23: the car chased on CHASE H.Q.'s second stage is taken for the Lamborghini Countach, K's
+choice rather than a claim about the original. The existing `COUNTACH_5000_QV_1985` (1985, Europe, carburettors,
+rear wing, 5MT; MF-5) is mended, not added again: its pictures are baked from K's model of the European car (its narrow
+front bumper, the stray diagonal bar outside each rear quarter window removed) by the car baking of F110-1, every black
+part matt, in its four real colors named in full, GIALLO FLY, a bright yellow, the default; the four game colors go
+([Model solids](image-assets.md#model-solids), [Arcade car selections](chase-turbo-vehicles.md)). Its driving and its
+sound are not changed, and no series runs it.
+
+- C5K-1, a draft until K has seen the pictures: `countach-5000-qv-1985` baked from K's model (SHA-256 `a21ffd16…`, on
+  `codex/countach-5000-qv-1985-glb-source`, never on main) by the RX-7's recipe, in four colors, the default
+  `giallo-fly`; the Countach's procedural shape and its ledger pictures go, as P928-2 and P959-3 did. The other
+  procedural shapes and pictures, the GTO's, the 928 S of 1984's and the TURBO ESPRIT's among them, are byte-identical.
+- To look at in DEV: SELECT VEHICLE's four colors for the Countach, GIALLO FLY the default; the yellow's brightness and
+  its shaded side; the glass (reflecting) told from the matt black round it (without gloss); the back (the wing, the
+  badge's white letters, the low black panel, where the brake lamps are and how they light); the airbox in the body's
+  color and the rear deck's black louvres; the side NACA ducts; the four colors and the wing's shape far away (the small
+  sizes); its size beside the 928 S4 (lower, wider).
+- The stage auditor's choices, awaiting K: the stage's name `C5K` and its one PR; the four colors' keys and base colors
+  (the yellow (255, 226, 56) after K's "a little brighter"); the pictures' rim radius (0.208 m); the driving left as it
+  is.
+- The four base colors are provisional, not measured from paint samples. The yellow's shaded side turns towards olive;
+  the light is every car's, and the other yellow cars show the same, so it is not moved.
+- Whether all four colors were offered on the 1985 European car is not checked against a primary source (the colors'
+  sources are the auditor's reading; [Arcade car selections](chase-turbo-vehicles.md#evidence-actually-consulted)).
+- The wheel radii stay at the ledger's 0.288 and 0.305 m, 2–5% under the tires' nominal 0.303 and 0.311 m, which the
+  pictures draw; whether to make them one is K's.
+- The model's width is its plan's × 1.049 and its height × 0.962; at the doors and the front fenders it is 11–14 cm
+  narrower than at the rear. The real car's front width is not checked.
+- Where the diagonal bars were removed, each side keeps two small seams (about 5 cm). The finer black areas (the
+  window frames, the running gear low at the rear) are as K painted them.
+- Not decided: CHASE H.Q.'s series (the player's car, the criminals' cars, turbo, the beacon); the Countach's own tire
+  values and its steering picture.
 
 ## Stage MF — Silencers and turbines in the engine sounds
 
@@ -1208,7 +1246,7 @@ specifications follow [Era](product.md#era): one consistent model year, market a
 | OUTRUN        | TESTAROSSA is the 1984 European coupé (K, 2026-11-19).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | TURBO OUTRUN  | Stage order: New York, Washington D.C., Pittsburgh, Indianapolis, Chicago, St. Louis, Memphis, Atlanta, Miami, New Orleans, San Antonio, Dallas, Oklahoma City, Denver, Grand Canyon, Los Angeles. The reference course is raised from the ROMs of MAME's `toutrun` (K's decision; [TURBO OUTRUN](turbo-outrun-road-data.md)). F40 and 959 are period road specifications.                                                                                                                                                              |
 | FINAL LAP 2   | The reference game is of 1990; the tribute's cars are of 1989 or before ([Era](product.md#era)). The catalog has `FERRARI_640` (1989) and `MCLAREN_MP4_4` (1988).                                                                                                                                                                                                                                                                                                                                                                       |
-| CHASE H.Q.    | The 928 is the S4 of 1987, US, five-speed manual (K, 2026-11-20). The rival's car is the Turbo Esprit of 1984, UK, Type 82 (K, 2026-11-22). The car chased in the fourth stage is the 911 Turbo 3.3 of 1986, Europe, 4MT, the existing definition (K, 2026-11-23). Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                                                                                                                  |
+| CHASE H.Q.    | The 928 is the S4 of 1987, US, five-speed manual (K, 2026-11-20). The rival's car is the Turbo Esprit of 1984, UK, Type 82 (K, 2026-11-22). The car chased on the second stage is the Countach 5000 QV of 1985, Europe (K, 2026-11-23). The car chased in the fourth stage is the 911 Turbo 3.3 of 1986, Europe, 4MT, the existing definition (K, 2026-11-23). Starting point for the tribute: catching a stage's rival becomes passing it before the stage end, with no arrest ([Concept](product.md#1-concept)).                      |
 | CISCO HEAT    | Reference stages: Golden Gate Bridge → Fisherman's Wharf, Fisherman's Wharf → Union Square, Union Square → Moscone Center, Moscone Center → Twin Peaks, Twin Peaks → Treasure Island; internal forks are unverified. BROUGHAM TUNED starts from the 1989 Brougham. 300ZX candidate: 1989–early 1990 Z32 Twin Turbo, without mixing US and Japanese outputs or two-seat and 2+2 data. Ordinary road appearances, without police livery or lights; BROUGHAM TUNED is one explicit finished specification, used unchanged on every course. |
 | BIG RUN       | Reference route toward Dakar: Tunis, Tozeur, Tumu, Agadez, Bamako, Saint-Louis; the mapping to stages is unverified. A rally-raid 959 is a different vehicle from the road 959; 205 T16 is not the 205 GTI; PAJERO generation is open.                                                                                                                                                                                                                                                                                                  |
 
