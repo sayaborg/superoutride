@@ -19,7 +19,7 @@ import { admitProduct } from './delivered-product.js';
  * gain and soft clip, at each rendering, with the identities it was measured from. Saved under `content/` by the
  * measurement tool and delivered as saved.
  */
-export const ENGINE_LOUDNESS_FORMAT = Object.freeze({ format: 'superoutride.engine-loudness', version: 4 } as const);
+export const ENGINE_LOUDNESS_FORMAT = Object.freeze({ format: 'superoutride.engine-loudness', version: 5 } as const);
 /** The one engine loudness document's identifier: its file name and manifest ID. */
 export const ENGINE_LOUDNESS_ID = 'default';
 

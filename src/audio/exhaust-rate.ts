@@ -1,5 +1,5 @@
 import type { ControlSettings } from './audio-control-policy.js';
-import { ExhaustLight, LIGHT_TRIALS, type LightTrialName } from './exhaust-light.js';
+import { ExhaustLight } from './exhaust-light.js';
 import { ExhaustWaveguide } from './exhaust-waveguide.js';
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 
@@ -9,42 +9,35 @@ export type ExhaustRateDivisor = (typeof EXHAUST_RATE_DIVISORS)[number];
 
 /**
  * How an engine is rendered: the game kernel (`ExhaustWaveguide`) run at the output's rate over its divisor, or the light
- * kernel (`ExhaustLight`) at the output's rate in one of its trial forms (`LIGHT_TRIALS`; K, 2026-11-24).
+ * kernel (`ExhaustLight`) at the output's rate.
  */
 export type ExhaustRendering =
   | { readonly kernel: 'WAVEGUIDE'; readonly divisor: ExhaustRateDivisor }
-  | { readonly kernel: 'LIGHT'; readonly divisor: 1; readonly trial: LightTrialName };
+  | { readonly kernel: 'LIGHT'; readonly divisor: 1 };
 
 /**
  * The renderings an engine is played and measured at, each one record: the game kernel at each divisor, then the light
- * kernel at the output's rate (K, 2026-11-22: it has no slower rate) in each trial form, PLAIN first.
+ * kernel at the output's rate (K, 2026-11-22: it has no slower rate).
  */
 export const EXHAUST_RENDERINGS: readonly ExhaustRendering[] = Object.freeze([
   ...EXHAUST_RATE_DIVISORS.map((divisor) => Object.freeze({ kernel: 'WAVEGUIDE' as const, divisor })),
-  ...(Object.keys(LIGHT_TRIALS) as LightTrialName[]).map((trial) =>
-    Object.freeze({ kernel: 'LIGHT' as const, divisor: 1 as const, trial }),
-  ),
+  Object.freeze({ kernel: 'LIGHT' as const, divisor: 1 as const }),
 ]);
 const waveguide = (divisor: ExhaustRateDivisor): ExhaustRendering =>
   EXHAUST_RENDERINGS.find((entry) => entry.kernel === 'WAVEGUIDE' && entry.divisor === divisor)!;
-const light = (trial: LightTrialName): ExhaustRendering =>
-  EXHAUST_RENDERINGS.find((entry) => entry.kernel === 'LIGHT' && entry.trial === trial)!;
+const light = EXHAUST_RENDERINGS.find((entry) => entry.kernel === 'LIGHT')!;
 /** A rendering's name, as the engine loudness names it. */
 export const renderingName = (rendering: ExhaustRendering): string =>
-  rendering.kernel === 'WAVEGUIDE' ? `WAVEGUIDE at ${rendering.divisor}` : `LIGHT ${rendering.trial}`;
+  rendering.kernel === 'WAVEGUIDE' ? `WAVEGUIDE at ${rendering.divisor}` : 'LIGHT';
 
-/**
- * The player's ENGINE SOUND QUALITY settings (K, 2026-11-21, 2026-11-22 and 2026-11-24), MID until the player chooses.
- * `LIGHT W` and `LIGHT F` are the light kernel's trial forms, until K keeps one of the three.
- */
-export const ENGINE_SOUND_QUALITIES = Object.freeze(['HIGH', 'MID', 'LOW', 'LIGHT', 'LIGHT W', 'LIGHT F'] as const);
+/** The player's ENGINE SOUND QUALITY settings (K, 2026-11-21 and 2026-11-22), MID until the player chooses. */
+export const ENGINE_SOUND_QUALITIES = Object.freeze(['HIGH', 'MID', 'LOW', 'LIGHT'] as const);
 export type EngineSoundQuality = (typeof ENGINE_SOUND_QUALITIES)[number];
 export const DEFAULT_ENGINE_SOUND_QUALITY: EngineSoundQuality = 'MID';
 
 /**
  * The renderings a quality plays the engines at: HIGH, MID and LOW the game kernel, the player's at its own divisor and
- * a rival's at half its rate; LIGHT, LIGHT W and LIGHT F the light kernel's PLAIN, WALL and FRICTION forms for both at
- * the output's rate.
+ * a rival's at half its rate; LIGHT the light kernel for both at the output's rate.
  */
 const QUALITY_RENDERINGS: Readonly<
   Record<EngineSoundQuality, { readonly player: ExhaustRendering; readonly rival: ExhaustRendering }>
@@ -52,9 +45,7 @@ const QUALITY_RENDERINGS: Readonly<
   HIGH: Object.freeze({ player: waveguide(1), rival: waveguide(2) }),
   MID: Object.freeze({ player: waveguide(2), rival: waveguide(4) }),
   LOW: Object.freeze({ player: waveguide(4), rival: waveguide(8) }),
-  LIGHT: Object.freeze({ player: light('PLAIN'), rival: light('PLAIN') }),
-  'LIGHT W': Object.freeze({ player: light('WALL'), rival: light('WALL') }),
-  'LIGHT F': Object.freeze({ player: light('FRICTION'), rival: light('FRICTION') }),
+  LIGHT: Object.freeze({ player: light, rival: light }),
 });
 
 /** The renderings, members of `EXHAUST_RENDERINGS`, a quality plays the player's and a rival's engines at. */
@@ -111,7 +102,7 @@ export class ExhaustRenderer {
     const { divisor } = rendering;
     this.kernel =
       rendering.kernel === 'LIGHT'
-        ? new ExhaustLight(sound, rate, control.observationSeconds, LIGHT_TRIALS[rendering.trial])
+        ? new ExhaustLight(sound, rate, control.observationSeconds)
         : new ExhaustWaveguide(sound, rate / divisor, control.observationSeconds);
     this.divisor = divisor;
     this.doublers = Array.from({ length: Math.log2(divisor) }, () => new Doubler());

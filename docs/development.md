@@ -1268,7 +1268,7 @@ format/version. The delivery layout (`layoutDelivery` in
 | `music`              | Track ID                                                             | `music/<id>.json`                         | Music document ([Audio](audio.md#recordings-and-music-documents))                                                               |
 | `reference-times`    | `<course>/<vehicle>`                                                 | `reference-times/<course>/<vehicle>.json` | Reference times before the series margin, from which a timed run derives its budgets (`superoutride.course-reference-times` v1) |
 | `racing-line`        | Course ID                                                            | `racing-lines/<id>.json`                  | The course's racing lines (`superoutride.racing-line` v2)                                                                       |
-| `engine-loudness`    | `default`                                                            | `engine-loudness/<id>.json`               | Each vehicle's engine loudness, as saved (`superoutride.engine-loudness` v4, [Audio](audio.md#engine-loudness))                 |
+| `engine-loudness`    | `default`                                                            | `engine-loudness/<id>.json`               | Each vehicle's engine loudness, as saved (`superoutride.engine-loudness` v5, [Audio](audio.md#engine-loudness))                 |
 
 The manifest format ([`content-manifest.ts`](../src/content/content-manifest.ts)) admits the index through the
 admission toolkit as document `manifest.json` (format and version first, exact fields, unique kind/id identities and

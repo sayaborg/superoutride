@@ -142,10 +142,10 @@ kernel, run at the output's rate over a divisor of 1, 2, 4 or 8, and its sound i
 for each halving: each sample between two is the cubic through the four around it, `(-a + 9b + 9c - d)/16`. The kernel
 takes the observations of the first output sample of each of its own. It is the same model at every rate, only the rate
 it is given differs; tube lengths are rounded to the samples of that rate (K, by listening). The player's ENGINE SOUND
-QUALITY (K, 2026-11-21, 2026-11-22 and 2026-11-24; [Browser](browser.md#player-record)) sets both voices' renderings. HIGH, MID and
-LOW are the one game kernel at different rates: the player's divisor, and a rival at half the player's rate. LIGHT,
-LIGHT W and LIGHT F are the other kernel, the [light kernel](#the-light-kernel), in its three
-[trial forms](#its-trial-forms), for both at the output's rate, which no doubling passes; it has no slower rate:
+QUALITY (K, 2026-11-21 and 2026-11-22; [Browser](browser.md#player-record)) sets both voices' renderings. HIGH, MID and
+LOW are the one game kernel at different rates: the player's divisor, and a rival at half the player's rate. LIGHT is
+the other kernel, the [light kernel](#the-light-kernel), for both at the output's rate, which no doubling passes; it has
+no slower rate:
 
 | ENGINE SOUND QUALITY | Kernel | Player            | Rival      |
 | -------------------- | ------ | ----------------- | ---------- |
@@ -153,8 +153,6 @@ LIGHT W and LIGHT F are the other kernel, the [light kernel](#the-light-kernel),
 | MID (default)        | game   | 2 (24 kHz)        | 4 (12 kHz) |
 | LOW                  | game   | 4 (12 kHz)        | 8 (6 kHz)  |
 | LIGHT                | light  | 1 (48 kHz output) | 1 (48 kHz) |
-| LIGHT W              | light  | 1 (48 kHz output) | 1 (48 kHz) |
-| LIGHT F              | light  | 1 (48 kHz output) | 1 (48 kHz) |
 
 A wall-loss shelf whose corner the rate does not carry is left out ([derived values](#derived-values)). A change of
 quality is a change of the voices' renderings: each voice fades to silence and installs its new one, as for any change of
@@ -164,22 +162,24 @@ sound.
 
 A second kernel, [`ExhaustLight`](../src/audio/exhaust-light.ts) (K, 2026-11-23), is a model of its own, sharing
 nothing with the game kernel but the engine sound's type: one gas, in tubes of one width that have only a length,
-between valves, junctions and mouths. A sound fades in three places only: along a tube's wall, in a valve's jet and out
-of a mouth. Pressures are over the tubes' `rho c²` and flows are Mach numbers; a tube carries two waves, its pressure
+between valves, junctions and mouths. A sound fades in four ways only: in a wall's boundary layer, in a flow's friction
+on its wall (K, 2026-11-24), in a valve's jet and out of a mouth. Pressures are over the tubes' `rho c²` and flows are Mach numbers; a tube carries two waves, its pressure
 their sum and its flow their difference.
 
 | Part      | Light kernel                                                                                                                                                                                                                                                                                                                                                         |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tube      | Delays each of its two waves by its length over the waves' speed, a whole number of samples (at least one); each pass takes a still gas's boundary-layer loss, growing as the root of the frequency.                                                                                                                                                                 |
+| Friction  | The tube's flow rubs on its wall, all of it taken at the tube's middle (its friction, below).                                                                                                                                                                                                                                                                        |
 | Junction  | Its `n` tubes meet at one pressure and it keeps no gas: `p = (2/n) sum(arriving)`; each tube's wave leaves as `p − arriving`.                                                                                                                                                                                                                                        |
 | Mouth     | A sphere of the bore's area breathing into the open: the wave returns turned over through a one-pole low-pass at `ka = 1` (angular frequency `c/a`); heard is what did not return, the sphere's pressure, times the diameter. The kernel's sound is the sum over its mouths.                                                                                         |
 | Valve     | A throat, `a` of the bore at `discharge × (valve/bore)² × lift²` (lift `4x(1−x)` over the opening, at most 1), between its tube and a cylinder, a still space holding its gas at `(gas/volume)^gamma`. The gas speeds up into the throat without thinning and loses its jet's head beyond it, no faster than sound in the throat; shut, it is its tube's closed end. |
 | Afterfire | A charge that left its cylinder unburned: when its valve shuts, its heat swells the gas at that valve over `afterfireSeconds`, a raised cosine, entering its tube as a flow.                                                                                                                                                                                         |
 
 With `d` the tube's stopped pressure (twice its arriving wave) above the cylinder's and `m` the flow from the tube into
-the cylinder, `m + K m²/2 = |d|`, `K = 1/a² − 1` into the cylinder and `(1 + (1/a − 1)²) density/fill` out of it. The
-flow is solved once a sample, with the cylinder's pressure moving as it flows: `m = 2|d| / (g + sqrt(g² + 2K|d|))`,
-`g = 1 + perSample × full / (fill × volume)`. A cylinder starts holding the outside's air; its valve opens with the
+the cylinder, `g m + K m²/2 = |d|`, `K = 1/a² − 1` into the cylinder and `(1 + (1/a − 1)²) density/fill` out of it;
+`g` is how far the two sides give way to a flow of one, the tube's 1 and the cylinder's pressure's move in a sample,
+`g = 1 + perSample × full / (fill × volume)`. The flow is solved once a sample in closed form,
+`m = 2|d| / (g + sqrt(g² + 2K|d|))` (`through`), and no faster than sound in the throat. A cylinder starts holding the outside's air; its valve opens with the
 middle of its opening at the middle of the exhaust stroke (a two-stroke's at bottom dead centre), and as it opens the
 cylinder takes its charge, `closedCharge + (1 − closedCharge) × opening` of a full one varied by up to `chargeVariation`
 (seeded xorshift32 at firings), burned unless the fuel is cut or it afterfires. Nothing allocates while rendering, and
@@ -197,7 +197,9 @@ tube from its valve to its mouth). The junctions left are numbered from 0 in the
 (`GAS`) is burned gas everywhere, a perfect gas of `gamma` 4/3 and `R` 287 J/(kg K), `Pr` 0.71, at 101325 Pa; the waves'
 speed is 480 m/s, so a centimetre of tube is a sample at 48 kHz, and the tubes' temperature follows from it,
 `c²/(gamma R)`, about 602 K. The intake's charge is at 293.15 K and the cylinder's gas at 1100 K as its valve opens. The
-engine's assumptions (`ENGINE`) are the valve's discharge coefficient 0.65 and a shut throttle's charge 0.3. Two values
+engine's assumptions (`ENGINE`) are the valve's discharge coefficient 0.65 and a shut throttle's charge 0.3. The
+friction factor (`FRICTION`) is 0.02, a commercial steel pipe's in turbulent flow at the exhaust's Reynolds numbers: an
+assumption, not chosen by listening. Two values
 are chosen by listening (`LISTENED`): a charge varies by up to 0.03 of a full one, and an afterfire burns over 1.5 ms.
 
 **Its wall.** Kirchhoff's loss of a still gas, `kappa sqrt(f)` nepers a pass with `kappa = WALL × length / radius` and
@@ -208,24 +210,18 @@ times `sqrt(8)/(sqrt(8) − 1)`); each falls from 1 to `exp(−depth)` with its 
 above it, both placed on the tangent `tan(pi f / rate)`. The kernel runs only above twice its highest corner, 20480 Hz,
 and refuses a slower rate with a `RangeError`; it plays at the output's rate.
 
-#### Its trial forms
+**Its friction.** A tube's flow rubs on its wall (Darcy): the tube takes `FRICTION × (length / diameter) × m|m|/2` of
+pressure, `m` the flow's Mach number and pressure over `rho c²`. All of it is taken at one place, the tube's middle (the
+midpoint rule). With `d` twice the down wave less the up wave passing the middle and `K = FRICTION × length / diameter`,
+`2m + K m²/2 = |d|`, the valve's law between two halves of a tube that each give way by 1, solved by the same `through`;
+`m` has the sign of `d`. The waves go on from the middle as `up + m` (down) and `down − m` (up), so no gas is lost. The
+tube is not split: the two cells passing its middle are rewritten in place. A tube of one sample has no middle and no
+friction.
 
-The kernel is built in one of three forms (`LIGHT_TRIALS`, a `LightTrial` of two numbers; K, 2026-11-24), for K to hear
-in the game with the music and choose between. **They are temporary:** when K keeps one, the other two are removed. N5
-as described above leaves tubes of uneven lengths, such as primaries that differ, ringing high and long. Two forms
-shorten that ringing:
-
-| ENGINE SOUND QUALITY | Form       | `wall` | `friction` | What it changes                                                                                                                                                                |
-| -------------------- | ---------- | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| LIGHT                | `PLAIN`    | 1      | 0          | Nothing: the kernel above, sample for sample.                                                                                                                                  |
-| LIGHT W              | `WALL`     | 4      | 0          | Each wall shelf's depth (its `kappa`) is 4 times Kirchhoff's. The 4 has no physical ground; K chose it by ear. It acts most on high sounds.                                    |
-| LIGHT F              | `FRICTION` | 1      | 0.02       | The tubes' flow rubs on their walls with the friction factor 0.02 (an assumption: a steel pipe's at the exhaust's flow), whatever the frequency, the more the harder the flow. |
-
-Friction is a pressure drop `psi (L/D) m|m|/2` at each tube's middle, where `psi` is the friction factor, `L` the tube's
-length, `D` the bore and `m` the flow. It is solved like the valve's law: with `d` the down wave less the up wave passing
-the middle and `K = psi L/D`, `m = 2|d| / (1 + sqrt(1 + K|d|))` in the sign of `d`. The waves go on as `up + m` and
-`down − m`, so no gas is lost. The tube is not split: the two cells passing its middle are rewritten in place. A tube of
-one sample has no friction.
+Every tube of the light kernel is as wide as the primaries, so beyond a junction the flow is faster than a real
+exhaust's, and its friction acts more strongly than a real one's: on the F40 at full throttle (the auditor's figures)
+the primaries' flow reaches Mach 0.08, the tube after their junction 0.34 and the mouth's 0.64. This follows from the
+assumption that tubes have only a length, and the friction factor is not tuned to offset it.
 
 ## Engine chain
 
@@ -323,7 +319,7 @@ Vehicles' exhausts differ in level, as physics makes them; the game levels them 
 changes of level as it is driven (idle against full throttle) stay its physics' and its compressor's. Each vehicle's
 engine loudness is measured once at each rendering, outside the build, and saved with the identities of what it was
 measured from. The measurement ([engine loudness](../tools/authoring/engine-loudness.ts)) runs each rendering: the game's kernel at
-the output's rate over 1, 2, 4 and 8, brought up to the 48 kHz output, and the light kernel at it in each trial form, with the audio document's TIMING settings on
+the output's rate over 1, 2, 4 and 8, brought up to the 48 kHz output, and the light kernel at it, with the audio document's TIMING settings on
 one drive, the same for every vehicle at its own idle and redline:
 
 | Seconds | Engine speed        | Opening |
@@ -338,20 +334,20 @@ one drive, the same for every vehicle at its own idle and redline:
 Engine speed changes linearly within a segment; fuel is never cut and nothing afterfires. The engine's compressed sound,
 after the chain's compressor from silence and before its gain and soft clip, is metered by ITU-R BS.1770-4 integrated
 loudness: K-weighting, the mean square of 400 ms blocks every 100 ms, the absolute gate at −70 LUFS and the relative
-gate 10 LU below the gated mean. The procedure's record (`ENGINE_LOUDNESS_PROCEDURE`, version 7) holds the drive, the
+gate 10 LU below the gated mean. The procedure's record (`ENGINE_LOUDNESS_PROCEDURE`, version 8) holds the drive, the
 rate, the renderings and what it meters; the SHA-256 of its JSON is its identity, and a change to its results raises its
 version.
 
-`content/engine-loudness/default.json` is the one `superoutride.engine-loudness` version 4 document, with exactly
+`content/engine-loudness/default.json` is the one `superoutride.engine-loudness` version 5 document, with exactly
 `format`, `version`, `procedureSha256`, `audioSha256` (the audio document's SHA-256) and `vehicles`: every catalog
 vehicle once, in catalog order, with `vehicleId`, `vehicleSha256` (its mechanics document's SHA-256), `soundSha256`
-(its engine sound document's) and `lufs`, its seven loudnesses at the renderings in `EXHAUST_RENDERINGS`' order: the game kernel at the divisors 1, 2, 4
-and 8, then the light kernel's `PLAIN`, `WALL` and `FRICTION` forms. The
+(its engine sound document's) and `lufs`, its five loudnesses at the renderings in `EXHAUST_RENDERINGS`' order: the game kernel at the divisors 1, 2, 4
+and 8, then the light kernel. The
 measurement tool writes it ([Development](development.md#measured-products)),
 measuring every vehicle again when any identity differs; a build admits it as a
 [measured product](content-and-gameplay.md#measured-products), refusing it as stale when any identity differs, and
 delivers it as saved (kind `engine-loudness`, ID `default`). [`readEngineLoudness`](../src/content/engine-loudness.ts)
-is its one reader; a vehicle without exactly seven loudnesses is an `invalid_value` at its `lufs`.
+is its one reader; a vehicle without exactly five loudnesses is an `invalid_value` at its `lufs`.
 
 The game loads it once with the catalog (`loadEngineLoudness`), refusing a delivered one whose identities are not the
 delivered documents'. Each engine voice, the rival's included, takes the gain `engineGain` of its vehicle's loudness at

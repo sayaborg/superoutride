@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { ExhaustLight, LIGHT_TRIALS, lightExhaust } from '../../src/audio/exhaust-light.js';
+import { ExhaustLight, lightExhaust } from '../../src/audio/exhaust-light.js';
 
 const content = await readDeliveredContent();
 const { vehicles } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
@@ -11,53 +11,23 @@ const vehicle = (id) => vehicles.find(({ compiledVehicle }) => compiledVehicle.i
 const rate = 48000;
 
 /**
- * The auditor's values for the eleven settled sounds in each trial form (2026-11-23 and 2026-11-24): at 90 % of the
- * redline, burning, the kernel's own sound over its second and third seconds, rendered 480 samples at a time: fully
- * open, its level and its peak over its level, and fully closed, its level (dB). PLAIN's are EL-3's, the kernel before
- * its trial forms.
+ * The auditor's values for the eleven settled sounds (2026-11-24): at 90 % of the redline, burning, the kernel's own
+ * sound over its second and third seconds, rendered 480 samples at a time: fully open, its level and its peak over its
+ * level, and fully closed, its level (dB).
  */
 const AUDITED = {
-  PLAIN: {
-    FERRARI_F40_1988: [-72.9, 9.36, -68.48],
-    PORSCHE_959_1987: [-67.51, 7.87, -83.84],
-    RX_7_TURBO_II_1987: [-73.19, 7.84, -72.87],
-    PORSCHE_928_S4_1987: [-75.56, 10.04, -82.64],
-    XR600R_1985: [-67.85, 7.62, -72.52],
-    TESTAROSSA: [-74.24, 6.84, -88.27],
-    NSR500_1984: [-69.22, 8.2, -73.34],
-    TURBO_ESPRIT_1984: [-60.0, 5.22, -64.51],
-    COUNTACH_5000_QV_1985: [-65.19, 10.6, -70.5],
-    '911_TURBO_3_3_1986': [-77.02, 8.9, -82.13],
-    FERRARI_GTO_1984: [-70.08, 8.57, -63.18],
-  },
-  WALL: {
-    FERRARI_F40_1988: [-77.67, 9.64, -79.2],
-    PORSCHE_959_1987: [-73.89, 7.75, -88.4],
-    RX_7_TURBO_II_1987: [-74.23, 4.74, -75.13],
-    PORSCHE_928_S4_1987: [-79.51, 9.36, -87.43],
-    XR600R_1985: [-70.82, 7.49, -78.61],
-    TESTAROSSA: [-87.01, 7.34, -95.06],
-    NSR500_1984: [-70.83, 8.1, -76.37],
-    TURBO_ESPRIT_1984: [-72.41, 5.31, -72.82],
-    COUNTACH_5000_QV_1985: [-73.75, 8.46, -80.63],
-    '911_TURBO_3_3_1986': [-82.0, 8.85, -86.44],
-    FERRARI_GTO_1984: [-77.67, 8.41, -77.28],
-  },
-  FRICTION: {
-    FERRARI_F40_1988: [-78.89, 9.34, -75.22],
-    PORSCHE_959_1987: [-72.22, 8.46, -85.39],
-    RX_7_TURBO_II_1987: [-73.44, 7.58, -73.15],
-    PORSCHE_928_S4_1987: [-77.99, 7.87, -83.74],
-    XR600R_1985: [-70.62, 7.61, -74.71],
-    TESTAROSSA: [-82.14, 7.81, -90.91],
-    NSR500_1984: [-69.5, 8.37, -73.55],
-    TURBO_ESPRIT_1984: [-77.36, 7.49, -71.69],
-    COUNTACH_5000_QV_1985: [-71.42, 9.54, -74.22],
-    '911_TURBO_3_3_1986': [-79.17, 7.71, -83.42],
-    FERRARI_GTO_1984: [-77.03, 7.72, -69.05],
-  },
+  FERRARI_F40_1988: [-78.89, 9.34, -75.22],
+  PORSCHE_959_1987: [-72.22, 8.46, -85.39],
+  RX_7_TURBO_II_1987: [-73.44, 7.58, -73.15],
+  PORSCHE_928_S4_1987: [-77.99, 7.87, -83.74],
+  XR600R_1985: [-70.62, 7.61, -74.71],
+  TESTAROSSA: [-82.14, 7.81, -90.91],
+  NSR500_1984: [-69.5, 8.37, -73.55],
+  TURBO_ESPRIT_1984: [-77.36, 7.49, -71.69],
+  COUNTACH_5000_QV_1985: [-71.42, 9.54, -74.22],
+  '911_TURBO_3_3_1986': [-79.17, 7.71, -83.42],
+  FERRARI_GTO_1984: [-77.03, 7.72, -69.05],
 };
-const TRIALS = Object.keys(LIGHT_TRIALS);
 
 /**
  * The auditor's reading of the eleven settled sounds (2026-11-23): the diameter (mm), then each tube as
@@ -134,18 +104,9 @@ const READ = {
   ],
 };
 
-/**
- * `seconds` of a sound in a trial form at a steady `rpm` and `opening`, `quantum` samples a call; `afterfire` asks one a
- * call.
- */
-function steady(
-  sound,
-  seconds,
-  rpm,
-  opening,
-  { quantum = 480, afterfire = false, burns = true, trial = 'PLAIN' } = {},
-) {
-  const kernel = new ExhaustLight(sound, rate, 0.025, LIGHT_TRIALS[trial]);
+/** `seconds` of a sound at a steady `rpm` and `opening`, `quantum` samples a call; `afterfire` asks one a call. */
+function steady(sound, seconds, rpm, opening, { quantum = 480, afterfire = false, burns = true } = {}) {
+  const kernel = new ExhaustLight(sound, rate, 0.025);
   const out = new Float64Array(Math.round(seconds * rate));
   const speeds = new Float64Array(quantum).fill(rpm);
   const openings = new Float64Array(quantum).fill(opening);
@@ -168,27 +129,16 @@ function level(sound) {
   return { rms: decibels(rms), crest: decibels(peak / rms) };
 }
 
-test("the light kernel's sound of the settled eleven in each trial form is the auditor's within 0.1 dB", () => {
-  for (const trial of TRIALS)
-    for (const [id, [openRms, openCrest, closedRms]] of Object.entries(AUDITED[trial])) {
-      const { sound, compiledVehicle } = vehicle(id);
-      const rpm = 0.9 * compiledVehicle.powertrain.redlineRpm;
-      const open = level(steady(sound, 3, rpm, 1, { trial }).subarray(rate));
-      const closed = level(steady(sound, 3, rpm, 0, { trial }).subarray(rate));
-      const at = `${id} ${trial}`;
-      assert.ok(Math.abs(open.rms - openRms) <= 0.1, `${at} open: ${open.rms} dB against ${openRms}`);
-      assert.ok(Math.abs(open.crest - openCrest) <= 0.1, `${at} open: crest ${open.crest} dB against ${openCrest}`);
-      assert.ok(Math.abs(closed.rms - closedRms) <= 0.1, `${at} closed: ${closed.rms} dB against ${closedRms}`);
-    }
-});
-
-test('the light kernel without a trial form is its PLAIN form', () => {
-  const { sound, compiledVehicle } = vehicle('FERRARI_F40_1988');
-  const rpm = 0.9 * compiledVehicle.powertrain.redlineRpm;
-  const kernel = new ExhaustLight(sound, rate, 0.025);
-  const out = new Float64Array(rate / 4);
-  kernel.render(out, 0, out.length, new Float64Array(out.length).fill(rpm), new Float64Array(out.length).fill(1), true);
-  assert.deepEqual(out, steady(sound, 0.25, rpm, 1, { quantum: out.length }));
+test("the light kernel's sound of the settled eleven is the auditor's within 0.1 dB", () => {
+  for (const [id, [openRms, openCrest, closedRms]] of Object.entries(AUDITED)) {
+    const { sound, compiledVehicle } = vehicle(id);
+    const rpm = 0.9 * compiledVehicle.powertrain.redlineRpm;
+    const open = level(steady(sound, 3, rpm, 1).subarray(rate));
+    const closed = level(steady(sound, 3, rpm, 0).subarray(rate));
+    assert.ok(Math.abs(open.rms - openRms) <= 0.1, `${id} open: ${open.rms} dB against ${openRms}`);
+    assert.ok(Math.abs(open.crest - openCrest) <= 0.1, `${id} open: crest ${open.crest} dB against ${openCrest}`);
+    assert.ok(Math.abs(closed.rms - closedRms) <= 0.1, `${id} closed: ${closed.rms} dB against ${closedRms}`);
+  }
 });
 
 test('the light kernel reads the settled sounds as tubes of one diameter, two tubes meeting alone as one', () => {
@@ -220,42 +170,40 @@ test('the light kernel reads neither a pipe’s diameter nor its wool', () => {
   }
 });
 
-test('the light kernel starts silent and renders finite sound in each trial form, open, closed and with the fuel cut', () => {
+test('the light kernel starts silent and renders finite sound, open, closed and with the fuel cut', () => {
   for (const { sound, compiledVehicle } of vehicles) {
     const id = compiledVehicle.id;
     const { idleRpm, redlineRpm } = compiledVehicle.powertrain;
     const rpm = (idleRpm + redlineRpm) / 2;
-    for (const trial of TRIALS)
-      for (const [opening, burns] of [
-        [1, true],
-        [0, true],
-        [0, false],
-      ]) {
-        const sounded = steady(sound, 0.25, rpm, opening, { quantum: 128, burns, trial });
-        const at = `${id} ${trial} at ${opening} ${burns ? 'burning' : 'cut'}`;
-        assert.equal(sounded[0], 0, `${at} does not start silent`);
-        assert.ok(
-          sounded.every((x) => Number.isFinite(x)),
-          `${at} is not finite`,
-        );
-        assert.ok(
-          sounded.some((x) => x !== 0),
-          `${at} is silent`,
-        );
-      }
+    for (const [opening, burns] of [
+      [1, true],
+      [0, true],
+      [0, false],
+    ]) {
+      const sounded = steady(sound, 0.25, rpm, opening, { quantum: 128, burns });
+      const at = `${id} at ${opening} ${burns ? 'burning' : 'cut'}`;
+      assert.equal(sounded[0], 0, `${at} does not start silent`);
+      assert.ok(
+        sounded.every((x) => Number.isFinite(x)),
+        `${at} is not finite`,
+      );
+      assert.ok(
+        sounded.some((x) => x !== 0),
+        `${at} is silent`,
+      );
+    }
   }
 });
 
-test('an afterfire sounds in the light kernel in each trial form', () => {
-  for (const trial of TRIALS)
-    for (const id of Object.keys(AUDITED[trial])) {
-      const { sound, compiledVehicle } = vehicle(id);
-      const { idleRpm, redlineRpm } = compiledVehicle.powertrain;
-      const rpm = (idleRpm + redlineRpm) / 2;
-      const plain = level(steady(sound, 1, rpm, 0, { trial }));
-      const fired = level(steady(sound, 1, rpm, 0, { quantum: 1, afterfire: true, trial }));
-      assert.ok(fired.rms > plain.rms + 3, `${id} ${trial}: ${fired.rms} dB afterfiring against ${plain.rms}`);
-    }
+test('an afterfire sounds in the light kernel', () => {
+  for (const id of Object.keys(AUDITED)) {
+    const { sound, compiledVehicle } = vehicle(id);
+    const { idleRpm, redlineRpm } = compiledVehicle.powertrain;
+    const rpm = (idleRpm + redlineRpm) / 2;
+    const plain = level(steady(sound, 1, rpm, 0));
+    const fired = level(steady(sound, 1, rpm, 0, { quantum: 1, afterfire: true }));
+    assert.ok(fired.rms > plain.rms + 3, `${id}: ${fired.rms} dB afterfiring against ${plain.rms}`);
+  }
 });
 
 test('the light kernel refuses a rate not above twice its highest shelf', () => {

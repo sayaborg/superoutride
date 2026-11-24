@@ -58,26 +58,23 @@ const SHELVES = Object.freeze({ cornersHz: Object.freeze([20, 160, 1280, 10240])
 /** The slowest rate the light kernel runs at: above twice its highest shelf's corner. */
 const SLOWEST_RATE = 2 * SHELVES.cornersHz[SHELVES.cornersHz.length - 1]!;
 /**
- * The three forms to be chosen between in the game (K, 2026-11-24): a trial, until one stays. `wall` multiplies the
- * wall's loss (4 has no physical ground: it was chosen by listening); `friction` is the friction factor of the tubes'
- * turbulent flow (0.02, a commercial steel pipe's at the exhaust's Reynolds numbers; 0 for none).
+ * A tube's flow rubs on its wall (Darcy): FRICTION (length / diameter) m |m| / 2 of pressure along the tube. The
+ * friction factor of a commercial steel pipe in turbulent flow at the exhaust's Reynolds numbers: an assumption.
  */
-export interface LightTrial {
-  readonly wall: number;
-  readonly friction: number;
-}
-export const LIGHT_TRIALS = Object.freeze({
-  PLAIN: Object.freeze({ wall: 1, friction: 0 }),
-  WALL: Object.freeze({ wall: 4, friction: 0 }),
-  FRICTION: Object.freeze({ wall: 1, friction: 0.02 }),
-});
-export type LightTrialName = keyof typeof LIGHT_TRIALS;
+const FRICTION = 0.02;
+
+/**
+ * The size of the flow m through what takes K m^2 / 2 of pressure, driven by `drive`, the stopped pressure across it,
+ * when its two sides give way by `give` to a flow of one: give m + K m^2 / 2 = drive. A tube gives way by 1.
+ */
+const through = (drive: number, K: number, give: number): number =>
+  (2 * drive) / (give + Math.sqrt(give * give + 2 * K * drive));
 
 /** A shelf's corner at `rate`, as the tangent its filter is written in. */
 const corner = (hz: number, rate: number): number => Math.tan((Math.PI * hz) / rate);
 /** Each shelf's `[b0, b1]` for one pass of a tube: y = b0 x + s, then s = b1 x - a1 y, with `shelfPoles`' a1. */
-function shelves(length: number, diameter: number, rate: number, wall: number): number[] {
-  const kappa = (wall * WALL * length) / (diameter / 2);
+function shelves(length: number, diameter: number, rate: number): number[] {
+  const kappa = (WALL * length) / (diameter / 2);
   const { cornersHz, ratio } = SHELVES;
   return cornersHz.flatMap((hz, k) => {
     const depth =
@@ -142,8 +139,8 @@ export function lightExhaust(sound: VehicleEngineSound): LightExhaust {
 
 /**
  * The light exhaust kernel (K, 2026-11-23): one gas, in tubes of one width that have only a length, between valves,
- * junctions and mouths. A sound fades in three places: along a tube's wall, in a valve's jet, and out of a mouth.
- * A trial (`LightTrial`) may add a fourth, the friction of the tubes' flow.
+ * junctions and mouths. A sound fades in four ways: in a wall's boundary layer, in a flow's friction on its wall, in a
+ * valve's jet, and out of a mouth.
  *
  * Pressures are over the tubes' rho c^2 and flows are Mach numbers. A tube carries two waves; its pressure is their
  * sum and its flow their difference.
@@ -158,20 +155,21 @@ export function lightExhaust(sound: VehicleEngineSound): LightExhaust {
  *     (gas / volume)^gamma while its piston moves its volume. The gas speeds up into the throat without thinning, and
  *     its jet's head is lost beyond it. With d the tube's stopped pressure above the cylinder's and m the flow from
  *     the tube into the cylinder,
- *       m + K m^2 / 2 = |d|,  K = 1 / a^2 - 1 into the cylinder, (1 + (1 / a - 1)^2) density / fill out of it,
- *     and no faster than sound in the throat. Shut, the valve is its tube's closed end.
- *   A tube's flow, when the trial has friction, rubs on its wall: psi (length / diameter) m |m| / 2 of pressure, taken at
- *     the tube's middle. It is the valve's law between the tube's two halves, m + (psi length / (4 diameter)) m |m| = d
- *     with d the down wave less the up wave there, and it keeps the gas: the waves go on as up + m and down - m.
+ *       g m + K m^2 / 2 = |d|,  K = 1 / a^2 - 1 into the cylinder, (1 + (1 / a - 1)^2) density / fill out of it,
+ *     with g the tube's giving way, 1, and the cylinder's, its pressure's move to a flow of one in a sample; and no
+ *     faster than sound in the throat (`through`). Shut, the valve is its tube's closed end.
+ *   A tube's flow rubs on its wall, FRICTION (length / diameter) m |m| / 2 of pressure, all of it taken at the tube's
+ *     middle: the valve's law again, between the tube's two halves, each giving way by 1,
+ *       2 m + K m^2 / 2 = |d|,  K = FRICTION length / diameter,  d twice the down wave less the up wave there.
+ *     It keeps the gas: the waves go on from the middle as up + m and down - m.
  *   An afterfire is a charge that left its cylinder unburned: its heat swells the gas at its valve as the valve shuts.
  *
  * A cylinder's charge is the engine's swept volume of the outside's air, as far as the throttle opens (`ENGINE`), at the
  * burned gas's temperature when its valve opens; the valve opens over the middle of the exhaust stroke. Two values
  * were chosen by listening (`LISTENED`): how far a charge varies, and how long an afterfire burns.
  *
- * A sample is a step of time: a length is its whole number of samples, and a valve's flow is solved once a step, with
- * the cylinder's pressure moving as it flows (g below). Nothing allocates while rendering. The kernel refuses a rate
- * not above twice its highest shelf's corner (`SHELVES`).
+ * A sample is a step of time: a length is its whole number of samples, and a valve's flow is solved once a step.
+ * Nothing allocates while rendering. The kernel refuses a rate not above twice its highest shelf's corner (`SHELVES`).
  */
 export class ExhaustLight {
   private readonly sound: VehicleEngineSound;
@@ -187,8 +185,9 @@ export class ExhaustLight {
   private readonly poles: Float64Array;
   private readonly shelves: Float64Array;
   private readonly states: Float64Array;
-  // Friction: each tube's psi length / diameter, and how far behind each line's newest cell its tube's middle is (0: no
-  // friction there).
+  // Friction: the tubes long enough to have a middle, each one's K, and the cell of each of its two lines that is at
+  // its middle now.
+  private readonly rubbed: Int32Array;
   private readonly friction: Float64Array;
   private readonly middle: Int32Array;
   // Junctions' lines, junction by junction: junction j's are portStart[j] .. portStart[j + 1] - 1.
@@ -222,12 +221,7 @@ export class ExhaustLight {
   private opening = 0;
   private chargeSeed = 123456789;
 
-  constructor(
-    sound: VehicleEngineSound,
-    rate: number,
-    observationSeconds: number,
-    trial: LightTrial = LIGHT_TRIALS.PLAIN,
-  ) {
+  constructor(sound: VehicleEngineSound, rate: number, observationSeconds: number) {
     if (!(rate > SLOWEST_RATE))
       throw new RangeError(`The light kernel runs above ${SLOWEST_RATE} Hz, twice its wall's highest corner`);
     this.sound = sound;
@@ -246,15 +240,14 @@ export class ExhaustLight {
     this.arriving = new Float64Array(lines);
     this.leaving = new Float64Array(lines);
     this.poles = Float64Array.from(shelfPoles(rate));
-    this.shelves = Float64Array.from(
-      tubes.concat(tubes).flatMap(({ length }) => shelves(length, diameter, rate, trial.wall)),
-    );
+    this.shelves = Float64Array.from(tubes.concat(tubes).flatMap(({ length }) => shelves(length, diameter, rate)));
     this.states = new Float64Array(4 * lines);
-    this.friction = Float64Array.from(tubes, ({ length }) => (trial.friction * length) / diameter);
+    // A wave is at its tube's middle half the tube's cells after it left, the down wave the lesser half.
+    this.rubbed = Int32Array.from(tubes.flatMap((_, t) => (this.end[t]! - this.first[t]! < 2 ? [] : [t])));
+    this.friction = Float64Array.from(tubes, ({ length }) => (FRICTION * length) / diameter);
     this.middle = Int32Array.from({ length: lines }, (_, l) => {
-      const size = this.end[l]! - this.first[l]!,
-        down = Math.floor(size / 2);
-      return trial.friction <= 0 || size < 2 ? 0 : l < tubes.length ? down : size - down;
+      const size = this.end[l]! - this.first[l]!;
+      return this.first[l]! + (l < tubes.length ? size - Math.floor(size / 2) : Math.floor(size / 2));
     });
     // A tube's wave arrives at its `to` on its down line and at its `from` on its up line.
     const ports = tubes
@@ -315,7 +308,7 @@ export class ExhaustLight {
     const { pressure, portStart, portLine, returned, follow } = this;
     const { gas, density, throatMost, perSample, unburned, burning, burnt, burnSamples } = this;
     const { tubes, diameter } = this.exhaust;
-    const { friction, middle } = this;
+    const { rubbed, friction, middle } = this;
     const { valve } = sound.exhaust;
     const cylinders = sound.firingPhases.length;
     const up = tubes.length;
@@ -384,7 +377,7 @@ export class ExhaustLight {
             const K = d > 0 ? 1 / (throat * throat) - 1 : ((1 + (1 / throat - 1) ** 2) * density[i]!) / fill;
             const g = 1 + (perSample * full) / (fill * volume);
             const most = d > 0 ? CHOKED * throat : CHOKED * throat * Math.sqrt((fill * full) / density[i]!);
-            const m = Math.min((2 * size) / (g + Math.sqrt(g * g + 2 * K * size)), most);
+            const m = Math.min(through(size, K, g), most);
             flow = d > 0 ? m : -m;
             gas[i]! += perSample * flow;
           }
@@ -416,19 +409,18 @@ export class ExhaustLight {
       }
 
       // Friction: the two waves passing each tube's middle.
-      for (let t = 0; t < up; t++) {
-        if (middle[t] === 0) continue;
-        let down = cell[t]! - middle[t]!,
-          back = cell[up + t]! - middle[up + t]!;
-        if (down < first[t]!) down += end[t]! - first[t]!;
-        if (back < first[up + t]!) back += end[up + t]! - first[up + t]!;
+      for (let r = 0; r < rubbed.length; r++) {
+        const t = rubbed[r]!;
+        const down = middle[t]!,
+          back = middle[up + t]!;
         const above = cells[down]!,
           below = cells[back]!;
-        const d = above - below,
-          size = Math.abs(d);
-        const m = ((2 * size) / (1 + Math.sqrt(1 + friction[t]! * size))) * (d > 0 ? 1 : -1);
+        const d = 2 * (above - below);
+        const m = d > 0 ? through(d, friction[t]!, 2) : -through(-d, friction[t]!, 2);
         cells[down] = below + m;
         cells[back] = above - m;
+        if (++middle[t]! === end[t]!) middle[t] = first[t]!;
+        if (++middle[up + t]! === end[up + t]!) middle[up + t] = first[up + t]!;
       }
       // Each wave leaving takes its line's cell, less what the wall takes: the four shelves, one after another.
       for (let l = 0; l < 2 * up; l++) {

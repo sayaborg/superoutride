@@ -458,20 +458,15 @@ K's decision of 2026-11-22: in the game, with the music, the settled eleven's so
 (with a turbine) its intake. ENGINE SOUND QUALITY's fourth value, LIGHT, plays the player's and the rival's engines
 through the light kernel at the output's rate ([Audio](audio.md#the-light-kernel)), the sound documents unchanged; its
 loudness is measured beside the four divisors'. K's decision of 2026-11-23: the light kernel is N5, a model of its own
-sharing nothing with the game kernel, that reads only tubes' lengths (EL-3; a tube's width changing rang metallic). The
-stage's name, `EL`, is the auditor's. What stays open, for K:
+sharing nothing with the game kernel, that reads only tubes' lengths (EL-3; a tube's width changing rang metallic).
+K's decision of 2026-11-24, after hearing three forms in the game: its tubes' flow rubs on their walls (EL-5; without
+it, tubes of uneven lengths rang high and muddy). The stage's name, `EL`, is the auditor's. What stays open, for K:
 
-- **EL-4's trial (K, 2026-11-24).** N5's tubes of uneven lengths ring high and muddy (F40, GTO, TURBO ESPRIT). Until K
-  has heard them in the game with the music, ENGINE SOUND QUALITY offers the light kernel in three forms: LIGHT
-  (`PLAIN`, N5 unchanged), LIGHT W (`WALL`, the wall's loss 4 times) and LIGHT F (`FRICTION`, the tubes' flow rubbing at
-  0.02) ([Audio](audio.md#its-trial-forms)). When K keeps one, the next PR removes the other two: their
-  `LIGHT_TRIALS` entries, qualities and renderings, their two loudnesses a vehicle (the engine loudness format and
-  procedure raised again), and their tests and documents. The kept form becomes the light kernel and LIGHT.
-- The default stays MID until K has heard LIGHT in the game with the music, N5's afterfires included (at their peak
+- The default stays MID until K has heard LIGHT in the game with the music, its afterfires included (at their peak
   3 to 12 dB above EL-1's, burning at the shut valve).
-- LIGHT's load on real devices. Off them, LIGHT W loads as LIGHT and LIGHT F about a fifth more.
-- The light kernel has two listened values, `LISTENED` (a charge's variation and an afterfire's time), and LIGHT W's
-  trial factor; no other, and no vehicle's exception, is to be added to it.
+- LIGHT's load on real devices.
+- The light kernel has two listened values, `LISTENED` (a charge's variation and an afterfire's time); no other, and no
+  vehicle's exception, is to be added to it. Its friction factor, 0.02, is an assumption and is not tuned.
 
 ## Stage AT — The attract demo remade
 

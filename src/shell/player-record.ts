@@ -14,6 +14,11 @@ const PLAYER_RECORD_VERSION = 9;
 export const VOLUME_NAMES = ['master', 'music', 'effects'] as const;
 export type VolumeName = (typeof VOLUME_NAMES)[number];
 const CAMERA_YAW_SOURCES: readonly CameraYawSource[] = ['FACING', 'MOVING'];
+/** ENGINE SOUND QUALITY values of the light kernel's ended trial (K, 2026-11-24), read as LIGHT without notice. */
+const TRIAL_ENGINE_SOUND_QUALITIES: ReadonlyMap<unknown, EngineSoundQuality> = new Map([
+  ['LIGHT W', 'LIGHT'],
+  ['LIGHT F', 'LIGHT'],
+]);
 const VEHICLE_FORMS: readonly VehicleForm[] = ['car', 'bike'];
 
 /** What the camera follows by vehicle form until the player chooses: a car's heading, a bike's direction of travel. */
@@ -177,7 +182,9 @@ function admitSettings(settings: unknown): PlayerSettings | null {
     'slowDown',
   ];
   if (!hasExactKeys(settings, keys)) return null;
-  const { vehicleColors, volumes, engineSoundQuality, latestSelections, cameras, steering, slowDown } = settings;
+  const { vehicleColors, volumes, latestSelections, cameras, steering, slowDown } = settings;
+  const engineSoundQuality =
+    TRIAL_ENGINE_SOUND_QUALITIES.get(settings.engineSoundQuality) ?? settings.engineSoundQuality;
   if (!isStringMap(vehicleColors) || !isStringMap(latestSelections) || !hasExactKeys(volumes, VOLUME_NAMES))
     return null;
   if (!VOLUME_NAMES.every((name) => isPercent(volumes[name]))) return null;
