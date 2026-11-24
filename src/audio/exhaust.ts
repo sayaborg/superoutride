@@ -91,56 +91,11 @@ function shelves(length: number, diameter: number, rate: number): number[] {
 const shelfPoles = (rate: number): number[] =>
   SHELVES.cornersHz.map((hz) => (corner(hz, rate) - 1) / (corner(hz, rate) + 1));
 
-/** What the kernel reads of an engine sound's exhaust: one diameter, and tubes that have only a length. */
-export interface LightExhaust {
-  /** Every tube's diameter: the primaries'. */
-  readonly diameter: number;
-  /**
-   * The tubes. A tube begins at a valve (`from` null) or a junction and ends at a junction or a mouth (`to` null);
-   * cylinder i's is tube i.
-   */
-  readonly tubes: readonly { readonly from: number | null; readonly to: number | null; readonly length: number }[];
-  readonly junctions: number;
-}
-
-/**
- * The kernel's reading of a sound: only lengths. Every tube is as wide as a primary, so a wave passes whole from
- * one tube into the next, and two tubes meeting alone are one tube of their lengths together. Boxes, wool and every
- * pipe's own diameter are not read.
- */
-export function lightExhaust(sound: VehicleEngineSound): LightExhaust {
-  const tubes: { from: number | null; to: number | null; length: number }[] = [
-    ...sound.exhaust.primaries.map(({ to, length }) => ({ from: null, to, length })),
-    ...sound.exhaust.pipes.map(({ from, to, length }) => ({ from, to, length })),
-  ];
-  for (;;) {
-    const at = tubes.findIndex(
-      ({ to }) =>
-        to !== null &&
-        tubes.filter((tube) => tube.from === to || tube.to === to).length === 2 &&
-        tubes.some((tube) => tube.from === to),
-    );
-    if (at < 0) break;
-    const next = tubes.findIndex(({ from }) => from === tubes[at]!.to);
-    tubes[at] = { from: tubes[at]!.from, to: tubes[next]!.to, length: tubes[at]!.length + tubes[next]!.length };
-    tubes.splice(next, 1);
-  }
-  // The junctions left, numbered from 0 in their old order.
-  const kept = [...new Set(tubes.flatMap(({ from, to }) => [from, to]).filter((end) => end !== null))].sort(
-    (a, b) => a - b,
-  );
-  const number = (end: number | null): number | null => (end === null ? null : kept.indexOf(end));
-  return {
-    diameter: sound.exhaust.primaries[0]!.diameter,
-    tubes: tubes.map(({ from, to, length }) => ({ from: number(from), to: number(to), length })),
-    junctions: kept.length,
-  };
-}
-
 /**
  * The exhaust kernel (K, 2026-11-23): one gas, in tubes of one width that have only a length, between valves,
- * junctions and mouths. A sound fades in four ways: in a wall's boundary layer, in a flow's friction on its wall, in a
- * valve's jet, and out of a mouth.
+ * junctions and mouths: an engine sound's exhaust as it is written (`ExhaustDefinition`), cylinder i's tube tube i.
+ * A sound fades in four ways: in a wall's boundary layer, in a flow's friction on its wall, in a valve's jet, and out
+ * of a mouth.
  *
  * Pressures are over the tubes' rho c^2 and flows are Mach numbers. A tube carries two waves; its pressure is their
  * sum and its flow their difference.
@@ -157,7 +112,7 @@ export function lightExhaust(sound: VehicleEngineSound): LightExhaust {
  *     the tube into the cylinder,
  *       g m + K m^2 / 2 = |d|,  K = 1 / a^2 - 1 into the cylinder, (1 + (1 / a - 1)^2) density / fill out of it,
  *     with g the tube's giving way, 1, and the cylinder's, its pressure's move to a flow of one in a sample; and no
- *     faster than sound in the throat (`through`). Shut, the valve is its tube's closed end.
+ *     faster than sound in the throat (`CHOKED`). Shut, the valve is its tube's closed end.
  *   A tube's flow rubs on its wall, FRICTION (length / diameter) m |m| / 2 of pressure, all of it taken at the tube's
  *     middle: the valve's law again, between the tube's two halves, each giving way by 1,
  *       2 m + K m^2 / 2 = |d|,  K = FRICTION length / diameter,  d twice the down wave less the up wave there.
@@ -173,7 +128,6 @@ export function lightExhaust(sound: VehicleEngineSound): LightExhaust {
  */
 export class Exhaust {
   private readonly sound: VehicleEngineSound;
-  private readonly exhaust: LightExhaust;
   // Each tube's two waves, down and then up: tube t's are lines t and tubes + t. A line's cells are a ring.
   private readonly cells: Float64Array;
   private readonly first: Int32Array;
@@ -225,7 +179,9 @@ export class Exhaust {
     if (!(rate > SLOWEST_RATE))
       throw new RangeError(`The exhaust kernel runs above ${SLOWEST_RATE} Hz, twice its wall's highest corner`);
     this.sound = sound;
-    const { tubes, diameter, junctions } = (this.exhaust = lightExhaust(sound));
+    const { tubes, diameter } = sound.exhaust;
+    // Junctions are numbered from 0 with none missing.
+    const junctions = tubes.reduce((count, { from, to }) => Math.max(count, (from ?? -1) + 1, (to ?? -1) + 1), 0);
     const lines = 2 * tubes.length;
     this.first = new Int32Array(lines);
     this.end = new Int32Array(lines);
@@ -307,7 +263,7 @@ export class Exhaust {
     const { sound, cells, first, end, cell, arriving, leaving, poles, shelves, states } = this;
     const { pressure, portStart, portLine, returned, follow } = this;
     const { gas, density, throatMost, perSample, unburned, burning, burnt, burnSamples } = this;
-    const { tubes, diameter } = this.exhaust;
+    const { tubes, diameter } = sound.exhaust;
     const { rubbed, friction, middle } = this;
     const { valve } = sound.exhaust;
     const cylinders = sound.firingPhases.length;

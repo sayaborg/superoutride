@@ -174,7 +174,7 @@ function drawFiring(scene: VehiclePageScene) {
   sound.firingPhases.forEach((firing, cylinder) => {
     const x = Math.round(strip.left + firing * width);
     const lit = sinceFiring(sound, phase, cylinder) < FIRING_FLASH;
-    const color = lit ? white : bankColor(scene, collectors.get(sound.exhaust.primaries[cylinder]!.to)!);
+    const color = lit ? white : bankColor(scene, collectors[cylinder]!);
     for (let y = strip.top + (lit ? 0 : strip.tickInset); y < strip.bottom; y++) {
       frame.setPixel(x, y, color);
       frame.setPixel(x + 1, y, color);
@@ -273,8 +273,8 @@ function exhaustDiagramOf(sound: EngineSound, pixelsPerMeter: number): ExhaustDi
 }
 
 /**
- * The exhaust: its form; each primary's length (cm) and diameter (mm); the tubes true to their lengths and in proportion
- * to their diameters at the catalog's one scale and the junctions' bars, shaded as one shape (`drawShaded`): primaries
+ * The exhaust: its form; its one diameter (mm, `BORE`) and each valve tube's length (cm); the tubes true to their lengths
+ * and their diameter at the catalog's one scale and the junctions' bars, shaded as one shape (`drawShaded`): valve tubes
  * and collectors' bars in their bank's color and the rest grey; each cylinder a block before its valve that is lit
  * WHITE for `FIRING_FLASH` of a cycle after it fires; the valve's diameter and open crank angle; and the scale marks, a
  * metre and a 50 mm pipe.
@@ -287,14 +287,14 @@ function drawExhaust(scene: VehiclePageScene) {
   const white = text.mainColor(TEXT_PALETTES.WHITE);
   const layout = EXHAUST_DIAGRAM;
 
-  // Every drawn pixel box, so the pipes' values stand only in text cells nothing is drawn in.
+  // Every drawn pixel box, so the junction tubes' lengths stand only in text cells nothing is drawn in.
   const boxes: DiagramBox[] = [];
   const shapes: { box: DiagramBox; color: number }[] = [];
   const levels = new Map<number, DiagramBox>();
   for (const tube of diagram.tubes) {
     const { points, thickness } = tube;
-    const color = tube.kind === 'primary' ? bankColor(scene, tube.collector) : GREY;
-    // Pieces of no length draw nothing; a valve begins a primary and an open end ends an open pipe.
+    const color = tube.kind === 'valve' ? bankColor(scene, tube.collector) : GREY;
+    // Pieces of no length draw nothing; a valve begins a valve tube and a mouth ends an open tube.
     const pieces = points.slice(1).flatMap((point, k) => {
       const from = points[k]!;
       return from[0] === point[0] && from[1] === point[1] ? [] : [{ from, to: point, k }];
@@ -302,14 +302,14 @@ function drawExhaust(scene: VehiclePageScene) {
     pieces.forEach(({ from, to, k }, n) => {
       const level = from[1] === to[1];
       const box = tubeBox([from, to], thickness, [
-        !(k === 0 && tube.kind === 'primary'),
-        !(n === pieces.length - 1 && tube.kind === 'pipe' && tube.open),
+        !(k === 0 && tube.kind === 'valve'),
+        !(n === pieces.length - 1 && tube.open),
       ]);
       shapes.push({ box, color });
-      // A pipe's value stands by its longest level piece.
-      const known = tube.kind === 'pipe' ? levels.get(tube.pipe) : undefined;
-      if (tube.kind === 'pipe' && level && (!known || box[2] - box[0] > known[2] - known[0]))
-        levels.set(tube.pipe, box);
+      // A junction tube's length stands by its longest level piece.
+      const known = tube.kind === 'junction' ? levels.get(tube.tube) : undefined;
+      if (tube.kind === 'junction' && level && (!known || box[2] - box[0] > known[2] - known[0]))
+        levels.set(tube.tube, box);
     });
   }
   for (const { box, collector } of diagram.bars)
@@ -317,10 +317,9 @@ function drawExhaust(scene: VehiclePageScene) {
   drawShaded(frame, shapes);
   boxes.push(...shapes.map(({ box }) => box));
 
-  for (const { cylinder, collector, row, valve } of diagram.primaries) {
-    const { length, diameter } = sound.exhaust.primaries[cylinder]!;
+  for (const { cylinder, collector, row, valve } of diagram.cylinders) {
+    const { length } = sound.exhaust.tubes[cylinder]!;
     text.write(layout.lengthColumn, row, integer(length * 100).padStart(3), TEXT_PALETTES.WHITE);
-    text.write(layout.diameterColumn, row, integer(diameter * 1000).padStart(3), TEXT_PALETTES.WHITE);
     const lit = sinceFiring(sound, phase, cylinder) < FIRING_FLASH;
     const [x, y] = valve;
     const bank = bankColor(scene, collector);
@@ -328,32 +327,32 @@ function drawExhaust(scene: VehiclePageScene) {
     boxes.push([x - 7, y - 3, x - 2, y + 3]);
   }
 
-  // Each pipe's length (cm) and diameter (mm), longest first, in the text row above or else below the rows of its longest
-  // level piece, over that piece and as near its centre as cells holding nothing drawn or written allow; a pipe with no
+  // Each junction tube's length (cm), longest first, in the text row above or else below the rows of its longest
+  // level piece, over that piece and as near its centre as cells holding nothing drawn or written allow; a tube with no
   // such place has none.
   const cell = TEXT_TILE_SIZE;
   const taken = new Set<string>();
-  // Written text keeps a cell clear after it: the legend's and each primary's values.
+  // Written text keeps a cell clear after it: the legend's and each valve tube's values.
   const written = (column: number, row: number, length: number) => {
     for (let k = 0; k <= length; k++) taken.add(`${column + k},${row}`);
   };
-  written(layout.lengthColumn, layout.legendRow, layout.diameterColumn + 3 - layout.lengthColumn);
-  for (const { row } of diagram.primaries)
-    written(layout.lengthColumn, row, layout.diameterColumn + 3 - layout.lengthColumn);
+  const bore = `${integer(sound.exhaust.diameter * 1000)}mm`;
+  written(layout.lengthColumn, layout.legendRow, layout.boreColumn + 5 + bore.length - layout.lengthColumn);
+  for (const { row } of diagram.cylinders) written(layout.lengthColumn, row, 3);
   for (const [left, top, right, bottom] of boxes)
     for (let row = Math.floor((top - 1) / cell); row <= Math.floor((bottom + 1) / cell); row++)
       for (let column = Math.floor((left - 1) / cell); column <= Math.floor((right + 1) / cell); column++)
         taken.add(`${column},${row}`);
-  const pipes = sound.exhaust.pipes
-    .map((pipe, index) => ({ pipe, box: levels.get(index) }))
-    .filter((entry): entry is { pipe: (typeof sound.exhaust.pipes)[number]; box: DiagramBox } => !!entry.box)
-    .sort((a, b) => b.pipe.length - a.pipe.length);
-  for (const { pipe, box } of pipes) {
-    const value = `${integer(pipe.length * 100)}/${integer(pipe.diameter * 1000)}`;
+  const labelled = sound.exhaust.tubes
+    .map((tube, index) => ({ tube, box: levels.get(index) }))
+    .filter((entry): entry is { tube: (typeof sound.exhaust.tubes)[number]; box: DiagramBox } => !!entry.box)
+    .sort((a, b) => b.tube.length - a.tube.length);
+  for (const { tube, box } of labelled) {
+    const value = integer(tube.length * 100);
     // Starts that keep the value over its piece and inside the columns, nearest the centred one first.
     const centred = Math.round((box[0] + box[2]) / 2 / cell - value.length / 2);
-    const lowest = Math.max(layout.pipeFirstColumn, Math.floor(box[0] / cell) - value.length + 1);
-    const highest = Math.min(layout.pipeLastColumn - value.length + 1, Math.floor(box[2] / cell));
+    const lowest = Math.max(layout.labelFirstColumn, Math.floor(box[0] / cell) - value.length + 1);
+    const highest = Math.min(layout.labelLastColumn - value.length + 1, Math.floor(box[2] / cell));
     const starts = Array.from({ length: Math.max(0, highest - lowest + 1) }, (_, k) => lowest + k).sort(
       (a, b) => Math.abs(a - centred) - Math.abs(b - centred) || a - b,
     );
@@ -371,7 +370,8 @@ function drawExhaust(scene: VehiclePageScene) {
   text.write(20, layout.headingRow, 'EXHAUST', TEXT_PALETTES.DARK);
   text.write(layout.formColumn, layout.headingRow, exhaustTopology(sound), TEXT_PALETTES.WHITE);
   text.write(layout.lengthColumn + 1, layout.legendRow, 'cm', TEXT_PALETTES.DARK);
-  text.write(layout.diameterColumn + 1, layout.legendRow, 'mm', TEXT_PALETTES.DARK);
+  text.write(layout.boreColumn, layout.legendRow, 'BORE', TEXT_PALETTES.DARK);
+  text.write(layout.boreColumn + 5, layout.legendRow, bore, TEXT_PALETTES.WHITE);
   const { valve } = sound.exhaust;
   text.write(20, layout.valveRow, 'VALVE', TEXT_PALETTES.DARK);
   text.write(

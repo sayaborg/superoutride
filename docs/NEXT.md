@@ -532,13 +532,14 @@ its cracks and (with a turbine) its intake, so a light kernel was made and heard
 reads only tubes' lengths (EL-3; a tube's width changing rang metallic), its tubes' flow rubbing on their walls (EL-5;
 without it, tubes of uneven lengths rang high and muddy). Since EL-6 it is the game's one engine sound
 ([Audio](audio.md#the-exhaust-kernel)), with no ENGINE SOUND QUALITY and one measured loudness a vehicle; the former game
-kernel continues in `sayaborg/callcutter`. The stage's name, `EL`, is the auditor's. What remains, in order:
+kernel continues in `sayaborg/callcutter`. Since EL-7 it is the exhaust kernel, and the engine sound documents are what
+it reads. The stage's name, `EL`, is the auditor's. What remains, in order:
 
-- **EL-7b.** Write the engine sound documents as what the kernel reads, one diameter and tubes with only a length
-  (format version 3), with SELECT VEHICLE's exhaust picture and DEV's ENGINE SOUNDS panel; the kernel stops reading
-  them through `lightExhaust`. EL-7a gave the kernel its name, the exhaust kernel (`Exhaust`, worklet
-  `vehicle-exhaust`).
-- **EL-8.** The documents' notes (`metadata`), as the auditor writes them.
+- **EL-8.** The documents' notes (`metadata`), as the auditor writes them: since EL-7 the documents are the kernel's
+  tubes of one diameter (format version 3; the first written ones are in `sayaborg/callcutter`), while their notes, and
+  the exhaust write-ups in [Arcade car selections](chase-turbo-vehicles.md) and [Racing vehicles](racing-vehicles.md)
+  and the numeric ledgers' `sound.exhaust.*` rows (keyed by the first form's fields), still describe the first written
+  ones (each tube's diameter, chambers, wool).
 
 What stays open, for K:
 

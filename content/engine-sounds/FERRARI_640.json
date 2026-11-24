@@ -1,30 +1,26 @@
 {
   "format": "superoutride.engine-sound",
-  "version": 2,
+  "version": 3,
   "cycleRevolutions": 2,
-  "firingPhases": [
-    0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.4166666666666667, 0.5, 0.5833333333333334,
-    0.6666666666666666, 0.75, 0.8333333333333334, 0.9166666666666666
-  ],
+  "firingPhases": [0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.4166666666666667, 0.5, 0.5833333333333334, 0.6666666666666666, 0.75, 0.8333333333333334, 0.9166666666666666],
   "exhaust": {
     "valve": { "diameter": 0.0354, "open": 0.3889 },
-    "primaries": [
-      { "length": 0.48, "diameter": 0.04, "to": 0 },
-      { "length": 0.51, "diameter": 0.04, "to": 1 },
-      { "length": 0.54, "diameter": 0.04, "to": 0 },
-      { "length": 0.57, "diameter": 0.04, "to": 1 },
-      { "length": 0.48, "diameter": 0.04, "to": 0 },
-      { "length": 0.51, "diameter": 0.04, "to": 1 },
-      { "length": 0.54, "diameter": 0.04, "to": 0 },
-      { "length": 0.57, "diameter": 0.04, "to": 1 },
-      { "length": 0.48, "diameter": 0.04, "to": 0 },
-      { "length": 0.51, "diameter": 0.04, "to": 1 },
-      { "length": 0.54, "diameter": 0.04, "to": 0 },
-      { "length": 0.57, "diameter": 0.04, "to": 1 }
-    ],
-    "pipes": [
-      { "length": 0.65, "diameter": 0.06, "from": 0, "to": null },
-      { "length": 0.65, "diameter": 0.06, "from": 1, "to": null }
+    "diameter": 0.04,
+    "tubes": [
+      { "from": null, "to": 0, "length": 0.48 },
+      { "from": null, "to": 1, "length": 0.51 },
+      { "from": null, "to": 0, "length": 0.54 },
+      { "from": null, "to": 1, "length": 0.57 },
+      { "from": null, "to": 0, "length": 0.48 },
+      { "from": null, "to": 1, "length": 0.51 },
+      { "from": null, "to": 0, "length": 0.54 },
+      { "from": null, "to": 1, "length": 0.57 },
+      { "from": null, "to": 0, "length": 0.48 },
+      { "from": null, "to": 1, "length": 0.51 },
+      { "from": null, "to": 0, "length": 0.54 },
+      { "from": null, "to": 1, "length": 0.57 },
+      { "from": 0, "to": null, "length": 0.65 },
+      { "from": 1, "to": null, "length": 0.65 }
     ]
   },
   "metadata": {

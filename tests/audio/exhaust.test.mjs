@@ -3,7 +3,9 @@ import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { Exhaust, lightExhaust } from '../../src/audio/exhaust.js';
+import { Exhaust } from '../../src/audio/exhaust.js';
+import { compileEngineSound } from '../../src/audio/engine-sound.js';
+import { DefinitionDomainError } from '../../src/core/admission.js';
 
 const content = await readDeliveredContent();
 const { vehicles } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
@@ -30,7 +32,7 @@ const AUDITED = {
 };
 
 /**
- * The auditor's reading of the eleven settled sounds (2026-11-23): the diameter (mm), then each tube as
+ * The eleven settled sounds as the auditor wrote them (2026-11-23 and 11-25): the diameter (mm), then each tube as
  * `from>to length`, `v` a valve and `m` a mouth, its length in centimetres.
  */
 const valves = (to, lengths) => lengths.map((length) => `v>${to.shift()} ${length}`);
@@ -141,33 +143,82 @@ test("the exhaust kernel's sound of the settled eleven is the auditor's within 0
   }
 });
 
-test('the exhaust kernel reads the settled sounds as tubes of one diameter, two tubes meeting alone as one', () => {
+test('the settled eleven are written as tubes of one diameter, as the auditor wrote them', () => {
   for (const [id, [diameter, ...tubes]] of Object.entries(READ)) {
-    const read = lightExhaust(vehicle(id).sound);
-    assert.equal(Math.round(read.diameter * 1000), diameter, id);
+    const { exhaust } = vehicle(id).sound;
+    assert.equal(Math.round(exhaust.diameter * 1000), diameter, id);
     const end = (junction, valveOrMouth) => (junction === null ? valveOrMouth : junction);
     assert.deepEqual(
-      read.tubes.map(({ from, to, length }) => `${end(from, 'v')}>${end(to, 'm')} ${Math.round(length * 100)}`),
+      exhaust.tubes.map(({ from, to, length }) => `${end(from, 'v')}>${end(to, 'm')} ${Math.round(length * 100)}`),
       tubes,
       id,
     );
-    const ends = read.tubes.flatMap(({ from, to }) => [from, to]).filter((junction) => junction !== null);
-    assert.equal(read.junctions, new Set(ends).size, id);
   }
 });
 
-test('the exhaust kernel reads neither a pipe’s diameter nor its wool', () => {
+test('every delivered sound meets three or more tubes at each junction', () => {
   for (const { sound, compiledVehicle } of vehicles) {
-    const pipes = sound.exhaust.pipes.map(({ from, to, length, diameter }) => ({
-      from,
-      to,
-      length,
-      diameter: 2 * diameter,
-    }));
-    const other = { ...sound, exhaust: { ...sound.exhaust, pipes } };
-    const rpm = 0.9 * compiledVehicle.powertrain.redlineRpm;
-    assert.deepEqual(steady(sound, 0.25, rpm, 1), steady(other, 0.25, rpm, 1), compiledVehicle.id);
+    const met = new Map();
+    for (const { from, to } of sound.exhaust.tubes)
+      for (const end of [from, to]) if (end !== null) met.set(end, (met.get(end) ?? 0) + 1);
+    for (const [junction, count] of met) assert.ok(count >= 3, `${compiledVehicle.id}: junction ${junction}`);
   }
+});
+
+/** A two-cylinder sound, each valve's tube to junction 0, which a tube leaves for a mouth: every rule kept. */
+const KEPT = Object.freeze({
+  cycleRevolutions: 2,
+  firingPhases: [0, 0.5],
+  exhaust: {
+    valve: { diameter: 0.04, open: 0.35 },
+    diameter: 0.04,
+    tubes: [
+      { from: null, to: 0, length: 0.3 },
+      { from: null, to: 0, length: 0.3 },
+      { from: 0, to: null, length: 1 },
+    ],
+  },
+});
+const withTubes = (tubes, diameter = KEPT.exhaust.diameter) => ({
+  ...KEPT,
+  exhaust: { ...KEPT.exhaust, diameter, tubes },
+});
+const refused = (definition, path) =>
+  assert.throws(
+    () => compileEngineSound(definition),
+    (error) => error instanceof DefinitionDomainError && error.path === path,
+    path,
+  );
+
+test('an engine sound keeps every rule of its tubes, and each broken rule is refused where it is read', () => {
+  const [one, two, out] = KEPT.exhaust.tubes;
+  assert.doesNotThrow(() => compileEngineSound(KEPT));
+  // 1. One diameter, and each tube's length, positive and within the limits.
+  refused(withTubes(KEPT.exhaust.tubes, 0), 'exhaust/diameter');
+  refused(withTubes(KEPT.exhaust.tubes, 0.6), 'exhaust/diameter');
+  refused(withTubes([one, two, { ...out, length: 0 }]), 'exhaust/tubes/2/length');
+  refused(withTubes([one, two, { ...out, length: 4.5 }]), 'exhaust/tubes/2/length');
+  // 2. The first tubes are the cylinders', from their valves, and no other is.
+  refused(withTubes([one]), 'exhaust/tubes');
+  refused(withTubes([{ ...one, from: 0 }, two, out]), 'exhaust/tubes/0/from');
+  refused(withTubes([one, two, { ...out, from: null }]), 'exhaust/tubes/2/from');
+  // 3. Junctions numbered from 0, none missing.
+  refused(
+    withTubes([
+      { ...one, to: 1 },
+      { ...two, to: 1 },
+      { ...out, from: 1 },
+    ]),
+    'exhaust/tubes',
+  );
+  // 4. Three or more tubes meet at a junction: two meeting alone are one tube.
+  refused(withTubes([{ ...one, to: 0 }, { ...two, to: null }, out]), 'exhaust/tubes');
+  // 5. A mouth, which every junction reaches.
+  refused(withTubes([one, two, { from: 0, to: 0, length: 1 }]), 'exhaust/tubes');
+  refused(
+    withTubes([one, two, out, { from: 1, to: 1, length: 0.2 }, { from: 1, to: 1, length: 0.3 }]),
+    'exhaust/tubes',
+  );
 });
 
 test('the exhaust kernel starts silent and renders finite sound, open, closed and with the fuel cut', () => {

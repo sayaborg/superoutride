@@ -142,7 +142,7 @@ export function mountSurfaceSoundSettings(
   );
 }
 
-/** The engine sounds by ID: the valve's diameter and open share, and each primary's and pipe's length and diameter. */
+/** The engine sounds by ID: the valve's diameter and open share, the exhaust's one diameter and each tube's length. */
 export function mountEngineSoundRecords(
   host: HTMLElement,
   initial: Readonly<Record<string, CompiledEngineSound>>,
@@ -150,18 +150,16 @@ export function mountEngineSoundRecords(
 ) {
   return createRecordSoundSettings(
     host,
-    'ENGINE SOUNDS · exhaust valve and pipes',
+    'ENGINE SOUNDS · exhaust valve and tubes',
     initial,
     ({ exhaust }) => [
       ['Valve diameter', ['exhaust', 'valve', 'diameter'], 'm'],
       ['Valve open', ['exhaust', 'valve', 'open'], 'cycle'],
-      ...exhaust.primaries.flatMap((_, i): Field[] => [
-        [`Cylinder ${i + 1} primary length`, ['exhaust', 'primaries', i, 'length'], 'm'],
-        [`Cylinder ${i + 1} primary diameter`, ['exhaust', 'primaries', i, 'diameter'], 'm'],
-      ]),
-      ...exhaust.pipes.flatMap(({ from, to }, i): Field[] => [
-        [`Pipe ${from} → ${to ?? 'open end'} length`, ['exhaust', 'pipes', i, 'length'], 'm'],
-        [`Pipe ${from} → ${to ?? 'open end'} diameter`, ['exhaust', 'pipes', i, 'diameter'], 'm'],
+      ['Exhaust diameter', ['exhaust', 'diameter'], 'm'],
+      ...exhaust.tubes.map(({ from, to }, i): Field => [
+        `Tube ${from ?? `valve ${i + 1}`} → ${to ?? 'mouth'} length`,
+        ['exhaust', 'tubes', i, 'length'],
+        'm',
       ]),
     ],
     ({ id, sha256, metadata, ...definition }) =>

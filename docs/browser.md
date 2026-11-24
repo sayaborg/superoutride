@@ -586,8 +586,8 @@ it crosses each curve, in the curve's color; they are drawn over the curves and 
 The firing moves in slow motion, 30 times slower than real: the engine turns at `idleRpm`, a cycle taking
 `cycleRevolutions` × 60 × 30 / `idleRpm` seconds, counted in fixed steps since the vehicle was shown, from the cycle's
 start. A cylinder fires at its `firingPhases` entry and stays lit for 4 % of a cycle after it. Its bank is its
-primary's collector (`exhaustCollectors`: the junction its primary enters, a log manifold's ports one collector),
-colored by collector number YELLOW, RED, GREEN and WHITE in turn.
+collector (`exhaustCollectors`: the junction its valve tube enters, a log manifold's ports one collector; a valve tube
+that runs to a mouth its own, after the junctions'), colored by collector number YELLOW, RED, GREEN and WHITE in turn.
 
 FIRING: row 22 has `FIRING` (DARK) and, at column 8, the crank degrees between firings in firing order as their
 shortest repeating run: `EVEN 120` when all are equal, the cycle's degrees for a single cylinder (`360`), otherwise the
@@ -598,39 +598,39 @@ color from y 192, and WHITE from y 188 while lit. The engine's place is a dotted
 (DARK).
 
 EXHAUST: row 14 has `EXHAUST` at column 20 (DARK) and the exhaust's form at column 28 (WHITE). The form counts the
-flows stage by stage: the cylinders, their collectors, then the junctions at each depth reached from them along pipes
-from `from` to `to`, then the open ends leaving the last. Neighbouring stages with equal counts are one stage, and a
-single stage is written twice, so the vehicles read `12-4-2-4`, `6-2-1`, `8-2-1-2-4`, `4-1`, `4-2-1-2`, `4-2-1`, `2-2`,
-`2-1` and `1-1`. Row 15 heads the primaries' values, `cm` at column 21 and `mm` at column 24 (DARK). Row 28 has `VALVE`
-at column 20 (DARK) and, at column 26, the valve's diameter to a tenth of a millimetre and its open crank angle,
-`open` × `cycleRevolutions` × 360 (`39.6mm 280DEG`, WHITE). Row 29 has the scale marks: `1m` at column 20 (DARK) and a
-metre as a WHITE line with end ticks from x 184, and `50mm` at column 28 (DARK) and a 50 mm pipe a metre long from
-x 264.
+flows stage by stage: the cylinders, their collectors, then the junctions at each depth reached from them along tubes
+from `from` to `to`, then the mouths leaving the last (with the valve tubes that run to a mouth). Neighbouring stages
+with equal counts are one stage, and a single stage is written twice, so the vehicles read `12-4-2`, `8-4-2-1`,
+`8-2-1-2-4`, `6-2-1`, `4-2-1-2`, `4-1-2`, `4-4`, `2-1` and `1-1`, among others. Row 15 has `cm` at column 21 (DARK),
+heading the valve tubes' lengths, and `BORE` at column 24 (DARK) with the exhaust's one diameter in millimetres at
+column 29 (`40mm`, WHITE). Row 28 has `VALVE` at column 20 (DARK) and, at column 26, the valve's diameter to a tenth of
+a millimetre and its open crank angle, `open` × `cycleRevolutions` × 360 (`39.6mm 280DEG`, WHITE). Row 29 has the
+scale marks: `1m` at column 20 (DARK) and a metre as a WHITE line with end ticks from x 184, and `50mm` at column 28
+(DARK) and a 50 mm pipe a metre long from x 264.
 
-Every vehicle's exhaust is drawn at one length scale and one diameter scale (`src/view/exhaust-diagram.ts`; the
-screen makes the diagram once for each engine sound): the largest whole pixels per metre at which the catalog's
-farthest-reaching exhaust, from its leftmost valve to its farthest open end, fits between x 216 and x 314 (24 px/m for
-GOLF GTI 16V's 4.03 m), and a thickness proportional to the diameter, 100 pixels per metre (a 60 mm pipe 6 pixels,
-none under 1):
+Every vehicle's exhaust is drawn as it is written and heard (`src/view/exhaust-diagram.ts`; the screen makes the
+diagram once for each engine sound): its tubes all as thick as its one diameter, 100 pixels per metre (a 60 mm bore
+6 pixels, none under 1), at one length scale, the largest whole pixels per metre at which the catalog's
+farthest-reaching exhaust, from its leftmost valve to its farthest mouth, fits between x 216 and x 314 (24 px/m for
+GOLF GTI 16V's 4.03 m):
 
 - Every tube runs level for its own length; junctions' bars join tubes at different heights and carry no length. Along
-  pipes between junctions, `to` stands its pipe's length after `from` (a loop's closing pipe as it falls), and each
-  group of junctions the cylinders reach shifts so its leftmost valve, junction or open end stands at x 216. Junctions
-  the cylinders do not reach are not drawn.
-- Primaries take a text row each from row 16, each running along its row's middle from its valve to its junction, so
-  unequal primaries show as staggered valves. Their order is that of their junctions going upstream from each last
-  junction (one no pipe leaves for another junction), pipes into a junction before its own primaries, so a merge's
-  primaries stand together and a log manifold's ports step down along it. Each primary's length in centimetres stands
-  right-aligned in columns 20–22 and its diameter in millimetres in columns 23–25 (WHITE).
-- A junction stands at the mean height of its primaries, or else of the junctions whose pipes enter it. The pipes
-  leaving a junction for open ends, or for junctions that pipe alone enters and no primary, stand side by side about
-  its height, each as wide as what it carries, 2 pixels apart; any other pipe runs at its `from` junction's height. An
-  open end is the end of its pipe.
-- Each junction is one upright bar, as wide as its thickest tube and centred on its x, from the top to the bottom of
-  every tube's cross-section where that tube reaches it. A tube `t` pixels thick spans `low = floor((t-1)/2)` pixels
-  above or left of its line and `t-1-low` below or right; an end that joins a bar reaches past its point by that side's
-  part, ending inside the bar, and a valve or an open end does not. Primaries, and the bars of collectors two or more
-  primaries enter, are in their bank's color; the other pipes and bars (a log manifold's ports, a single primary's
+  junction tubes, `to` stands its tube's length after `from` (a loop's closing tube as it falls), and each group of
+  junctions the cylinders reach shifts so its leftmost valve, junction or mouth stands at x 216. A valve tube that runs
+  to a mouth starts at x 216. Junctions the cylinders do not reach are not drawn.
+- Valve tubes take a text row each from row 16, each running along its row's middle from its valve to its junction, so
+  unequal ones show as staggered valves. Their order is that of their junctions going upstream from each last junction
+  (one no tube leaves for another junction), junction tubes into a junction before its own valve tubes, so a merge's
+  valve tubes stand together and a log manifold's ports step down along it; those that run to a mouth follow, in
+  cylinder order. Each valve tube's length in centimetres stands right-aligned in columns 20–22 (WHITE).
+- A junction stands at the mean height of its valve tubes, or else of the junctions whose tubes enter it. The tubes
+  leaving a junction for mouths, or for junctions that tube alone enters and no valve tube, stand side by side about
+  its height, each as wide as what it carries, 2 pixels apart; any other tube runs at its `from` junction's height.
+- Each junction is one upright bar, as wide as the tubes and centred on its x, from the top to the bottom of every
+  tube's cross-section where that tube reaches it. A tube `t` pixels thick spans `low = floor((t-1)/2)` pixels above or
+  left of its line and `t-1-low` below or right; an end that joins a bar reaches past its point by that side's part,
+  ending inside the bar, and a valve or a mouth does not. Valve tubes, and the bars of collectors two or more valve
+  tubes enter, are in their bank's color; the other tubes and bars (a log manifold's ports, a single valve tube's
   junction) are grey. Collectors' bars are drawn last.
 - The tubes and bars are painted flat, then shaded once as one shape whatever their colors: a pixel that tops a
   vertical run of 3 or more drawn pixels, or ends a horizontal run of 3 or more on the left and does not end a vertical
@@ -638,10 +638,10 @@ none under 1):
   right and does not top a vertical run, is at half brightness; lit wins over both. Parts under 3 pixels are flat, and
   no line is drawn where colors meet.
 - Each cylinder is a block of 6×7 pixels just before its valve, DIM edged in its bank's color, WHITE while lit.
-- Each pipe's length and diameter, `315/50` (DARK), stands in the text row above, or else below, the rows of its longest
-  level piece, over it and as near its centre as columns 26–39 and rows 15–27 allow, in cells holding nothing drawn or
-  written and not just after written text; longest pipes first. A pipe with no such place has no value: the scale marks
-  read it.
+- Each junction tube's length in centimetres, `315` (DARK), stands in the text row above, or else below, the rows of
+  its longest level piece, over it and as near its centre as columns 26–39 and rows 15–27 allow, in cells holding
+  nothing drawn or written and not just after written text; longest tubes first. A tube with no such place has no value:
+  the scale marks read it.
 
 #### DRIVETRAIN
 
@@ -1171,8 +1171,8 @@ runs preserve them:
 - **IMPACT** (`impact-sound-settings`): each counterpart's impact reference work.
 - **ROLLING** (`rolling-sound-settings`): the rolling-model settings.
 - **SURFACES** (`surface-sound-settings`): a chosen material's surface sound, its rolling palette and friction input.
-- **ENGINE SOUNDS** (`engine-sound-records`): a chosen engine sound's valve diameter and open share, and its primary and
-  pipe lengths and diameters. A line above them (`engine-loudness-state`) says whether the measured engine loudness
+- **ENGINE SOUNDS** (`engine-sound-records`): a chosen engine sound's valve diameter and open share, its exhaust's one
+  diameter and its tubes' lengths. A line above them (`engine-loudness-state`) says whether the measured engine loudness
   describes the current TIMING and ENGINE SOUNDS values, is stale for them (measured for the delivered values; adopt
   them and run `npm run measure -- generate`), or is not measured in this build.
 

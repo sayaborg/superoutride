@@ -12,17 +12,18 @@ export interface EngineSoundDefinition {
 }
 
 /**
- * The exhaust from the valves to the tail: one primary per cylinder, in `firingPhases` order, then the pipes. Junctions
- * are numbered from 0; waves travel both ways, so `from`/`to` only name a pipe's ends. Lengths and diameters are
- * internal dimensions in metres.
+ * The exhaust from the valves to the tail, as the exhaust kernel reads it: tubes of one diameter that have only a
+ * length, between valves, junctions and mouths. Tube i of the first `firingPhases.length` is cylinder i's, from its
+ * valve (`from: null`; the head's exhaust port included); every other tube runs from a junction. A tube ends at a
+ * junction or at a mouth (`to: null`). Junctions are numbered from 0 and are where three or more tubes meet; waves travel
+ * both ways, so `from`/`to` only name a tube's ends. Lengths and the diameter are internal dimensions in metres.
  */
 export interface ExhaustDefinition {
   /** One cylinder's exhaust valve (a two-stroke's exhaust port). */
   readonly valve: ExhaustValve;
-  /** Cylinder i's primary, from its valve (the head's exhaust port included) to junction `to`. */
-  readonly primaries: readonly ExhaustPrimary[];
-  /** Pipes from junction `from` to junction `to`, or to an open end (`to: null`), as far as the tail. */
-  readonly pipes: readonly ExhaustPipe[];
+  /** Every tube's internal diameter. */
+  readonly diameter: number;
+  readonly tubes: readonly ExhaustTube[];
 }
 
 export interface ExhaustValve {
@@ -32,23 +33,11 @@ export interface ExhaustValve {
   readonly open: number;
 }
 
-export interface ExhaustPrimary {
-  readonly length: number;
-  readonly diameter: number;
-  readonly to: number;
-}
-
-export interface ExhaustPipe {
-  readonly length: number;
-  /** The pipe's internal diameter, a silencer's body's when the pipe is one: wool lining it leaves it as written. */
-  readonly diameter: number;
-  readonly from: number;
+/** A tube from a valve (`from: null`) or a junction, to a junction or a mouth (`to: null`). */
+export interface ExhaustTube {
+  readonly from: number | null;
   readonly to: number | null;
-  /**
-   * The thickness of the glass wool lining the pipe, in metres: it changes the pipe's loss alone. Absent (or 0, which
-   * compiles to absent), the pipe has none.
-   */
-  readonly wool?: number;
+  readonly length: number;
 }
 
 /** Validated acoustic values, as `compileEngineSound` returns them. */
@@ -63,79 +52,77 @@ export interface CompiledEngineSound extends EngineSound {
 }
 
 /**
- * Resource limits: author values bounding the kernel's work and delay storage, not claims about real exhausts. A tube
- * (primary or pipe) is at most `tubeLengthMeters` long and `tubeDiameterMeters` wide.
+ * Resource limits: author values bounding the kernel's work and delay storage, not claims about real exhausts: at most
+ * `cylinders` firing phases and `tubes` tubes, every tube at most `tubeLengthMeters` long and the exhaust at most
+ * `diameterMeters` wide.
  */
 export const EXHAUST_LIMITS = Object.freeze({
   cylinders: 16,
-  pipes: 32,
+  tubes: 48,
   tubeLengthMeters: 4,
-  tubeDiameterMeters: 0.5,
+  diameterMeters: 0.5,
 });
 
 const junction = (value: unknown): value is number => Number.isInteger(value) && (value as number) >= 0;
 
-/** A tube's length and diameter: positive, within the resource limits, refused at `<path>/length` or `/diameter`. */
-function checkTube(tube: { readonly length: number; readonly diameter: number } | undefined, path: string): void {
-  if (!tube) throw new DefinitionDomainError(path, 'Expected a tube');
-  const { tubeLengthMeters, tubeDiameterMeters } = EXHAUST_LIMITS;
-  if (!Number.isFinite(tube.length) || tube.length <= 0 || tube.length > tubeLengthMeters)
-    throw new DefinitionDomainError(`${path}/length`, `A length lies within (0, ${tubeLengthMeters}] m`);
-  if (!Number.isFinite(tube.diameter) || tube.diameter <= 0 || tube.diameter > tubeDiameterMeters)
-    throw new DefinitionDomainError(`${path}/diameter`, `A diameter lies within (0, ${tubeDiameterMeters}] m`);
-}
-
-/** A pipe's wool: absent, 0, or a thickness of which two leave room within its diameter, refused at `<path>/wool`. */
-function checkWool(pipe: ExhaustPipe, path: string): void {
-  const { wool } = pipe;
-  if (wool === undefined || wool === 0) return;
-  if (!Number.isFinite(wool) || wool < 0 || 2 * wool >= pipe.diameter)
-    throw new DefinitionDomainError(`${path}/wool`, 'A wool thickness lies within (0, diameter / 2) m');
-}
-
 /**
- * Check the exhaust's junctions, refusing at the field each rule reads: junctions numbered from 0
- * (`exhaust/primaries/1/to`, `exhaust/pipes/2/from`, `exhaust/pipes/2/to`), contiguous; at least one open pipe; every
- * junction reaching an open end through pipes (either direction). The last two are rules over the pipes together and
- * refuse at `exhaust/pipes`. Loops are allowed.
+ * Check the exhaust's tubes and junctions, refusing at the field each rule reads: each tube's length, within the limits
+ * (`exhaust/tubes/2/length`); the first `cylinders` tubes from a valve, in the cylinders' order, and no other
+ * (`exhaust/tubes/1/from`); every end a junction number from 0, or null for a valve or a mouth (`exhaust/tubes/2/to`).
+ * Rules over the tubes together refuse at `exhaust/tubes`: their count; junctions numbered from 0 with none missing;
+ * three or more tubes meeting at every junction (two meeting alone are one tube); at least one mouth, which every
+ * junction reaches through tubes (either direction). Loops are allowed.
  */
-function checkJunctions(primaries: readonly ExhaustPrimary[], pipes: readonly ExhaustPipe[]): void {
-  primaries.forEach(({ to }, i) => {
-    if (!junction(to)) throw new DefinitionDomainError(`exhaust/primaries/${i}/to`, 'A junction number from 0');
+function checkTubes(tubes: readonly ExhaustTube[], cylinders: number): void {
+  const { tubes: most, tubeLengthMeters } = EXHAUST_LIMITS;
+  if (tubes.length < cylinders || tubes.length > most)
+    throw new DefinitionDomainError(
+      'exhaust/tubes',
+      `Expected ${cylinders} to ${most} tubes: one from each valve first`,
+    );
+  tubes.forEach(({ from, to, length }, i) => {
+    const at = `exhaust/tubes/${i}`;
+    if (!Number.isFinite(length) || length <= 0 || length > tubeLengthMeters)
+      throw new DefinitionDomainError(`${at}/length`, `A length lies within (0, ${tubeLengthMeters}] m`);
+    if (i < cylinders ? from !== null : !junction(from))
+      throw new DefinitionDomainError(
+        `${at}/from`,
+        i < cylinders ? `Tube ${i} runs from cylinder ${i}'s valve (null)` : 'A junction number from 0',
+      );
+    if (to !== null && !junction(to)) throw new DefinitionDomainError(`${at}/to`, 'A junction number from 0, or null');
   });
-  pipes.forEach(({ from, to }, i) => {
-    if (!junction(from)) throw new DefinitionDomainError(`exhaust/pipes/${i}/from`, 'A junction number from 0');
-    if (to !== null && !junction(to))
-      throw new DefinitionDomainError(`exhaust/pipes/${i}/to`, 'A junction number from 0, or null');
-  });
-  const used = new Set<number>(primaries.map(({ to }) => to));
-  for (const pipe of pipes) {
-    used.add(pipe.from);
-    if (pipe.to !== null) used.add(pipe.to);
+  // How many tube ends meet at each junction.
+  const met = new Map<number, number>();
+  for (const { from, to } of tubes)
+    for (const end of [from, to]) if (end !== null) met.set(end, (met.get(end) ?? 0) + 1);
+  for (let k = 0; k < met.size; k++) {
+    if (!met.has(k)) throw new DefinitionDomainError('exhaust/tubes', `Junctions are numbered from 0; ${k} is missing`);
+    if (met.get(k)! < 3)
+      throw new DefinitionDomainError(
+        'exhaust/tubes',
+        `Junction ${k} is met by ${met.get(k)} tube ends; three or more meet at a junction, and two are one tube`,
+      );
   }
-  const count = used.size;
-  for (let k = 0; k < count; k++)
-    if (!used.has(k))
-      throw new DefinitionDomainError('exhaust/pipes', `Junctions are numbered from 0; ${k} is missing`);
-  // Junctions touching an open pipe reach the open end; spread that across pipes until nothing changes.
-  const reaches = new Set<number>(pipes.filter((pipe) => pipe.to === null).map((pipe) => pipe.from));
-  if (reaches.size === 0) throw new DefinitionDomainError('exhaust/pipes', 'At least one pipe is open (to: null)');
+  // Junctions touching a mouth's tube reach the open; spread that across tubes until nothing changes.
+  if (!tubes.some(({ to }) => to === null))
+    throw new DefinitionDomainError('exhaust/tubes', 'At least one tube ends at a mouth (to: null)');
+  const reaches = new Set<number>(tubes.flatMap(({ from, to }) => (to === null && from !== null ? [from] : [])));
   for (let grown = true; grown;) {
     grown = false;
-    for (const { from, to } of pipes)
-      if (to !== null && reaches.has(from) !== reaches.has(to)) {
+    for (const { from, to } of tubes)
+      if (from !== null && to !== null && reaches.has(from) !== reaches.has(to)) {
         reaches.add(from).add(to);
         grown = true;
       }
   }
-  for (let k = 0; k < count; k++)
-    if (!reaches.has(k)) throw new DefinitionDomainError('exhaust/pipes', `Junction ${k} reaches no open end`);
+  for (let k = 0; k < met.size; k++)
+    if (!reaches.has(k)) throw new DefinitionDomainError('exhaust/tubes', `Junction ${k} reaches no mouth`);
 }
 
 /**
  * The one value check of an engine sound. Each rule refuses at the field it reads (`firingPhases/2`,
- * `exhaust/primaries/0/length`, `exhaust/pipes/1/diameter`, `exhaust/pipes/1/wool`, `exhaust/valve/open`); the pipes' count and topology,
- * rules over them together, at `exhaust/pipes`.
+ * `exhaust/valve/open`, `exhaust/diameter`, `exhaust/tubes/0/length`); the tubes' count and topology, rules over them
+ * together, at `exhaust/tubes` (`checkTubes`).
  */
 export function compileEngineSound(definition: EngineSoundDefinition): EngineSound {
   const { cycleRevolutions, firingPhases, exhaust } = definition;
@@ -147,34 +134,26 @@ export function compileEngineSound(definition: EngineSoundDefinition): EngineSou
     if (!Number.isFinite(phase) || phase < 0 || phase >= 1 || (i > 0 && phase <= firingPhases[i - 1]!))
       throw new DefinitionDomainError(`firingPhases/${i}`, 'A firing phase lies in [0, 1), after the one before');
   });
-  if (!exhaust || !exhaust.valve || !Array.isArray(exhaust.primaries) || !Array.isArray(exhaust.pipes))
+  if (!exhaust || !exhaust.valve || !Array.isArray(exhaust.tubes))
     throw new DefinitionDomainError('exhaust', 'invalid exhaust topology');
-  const { valve, primaries, pipes } = exhaust;
+  const { valve, diameter, tubes } = exhaust;
   if (!Number.isFinite(valve.diameter) || valve.diameter <= 0)
     throw new DefinitionDomainError('exhaust/valve/diameter', 'A valve diameter is positive');
   if (!Number.isFinite(valve.open) || valve.open <= 0 || valve.open >= 1)
     throw new DefinitionDomainError('exhaust/valve/open', 'A valve is open for a share of the cycle within (0, 1)');
-  if (primaries.length !== firingPhases.length)
-    throw new DefinitionDomainError('exhaust/primaries', 'Expected one primary per firing phase');
-  primaries.forEach((primary, i) => checkTube(primary, `exhaust/primaries/${i}`));
-  if (pipes.length < 1 || pipes.length > EXHAUST_LIMITS.pipes)
-    throw new DefinitionDomainError('exhaust/pipes', `Expected 1 to ${EXHAUST_LIMITS.pipes} pipes`);
-  pipes.forEach((pipe, i) => {
-    checkTube(pipe, `exhaust/pipes/${i}`);
-    checkWool(pipe, `exhaust/pipes/${i}`);
-  });
-  checkJunctions(primaries, pipes);
+  if (!Number.isFinite(diameter) || diameter <= 0 || diameter > EXHAUST_LIMITS.diameterMeters)
+    throw new DefinitionDomainError(
+      'exhaust/diameter',
+      `A diameter lies within (0, ${EXHAUST_LIMITS.diameterMeters}] m`,
+    );
+  checkTubes(tubes, firingPhases.length);
   return Object.freeze({
     cycleRevolutions,
     firingPhases: Object.freeze([...firingPhases]),
     exhaust: Object.freeze({
       valve: Object.freeze({ diameter: valve.diameter, open: valve.open }),
-      primaries: Object.freeze(primaries.map(({ length, diameter, to }) => Object.freeze({ length, diameter, to }))),
-      pipes: Object.freeze(
-        pipes.map(({ length, diameter, from, to, wool }) =>
-          Object.freeze({ length, diameter, from, to, ...(wool ? { wool } : {}) }),
-        ),
-      ),
+      diameter,
+      tubes: Object.freeze(tubes.map(({ from, to, length }) => Object.freeze({ from, to, length }))),
     }),
   });
 }

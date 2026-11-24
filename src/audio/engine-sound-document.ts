@@ -8,16 +8,10 @@ import {
   readRecord,
   type AdmissionResult,
 } from '../core/admission.js';
-import {
-  compileEngineSound,
-  type CompiledEngineSound,
-  type EngineSound,
-  type ExhaustPipe,
-  type ExhaustPrimary,
-} from './engine-sound.js';
+import { compileEngineSound, type CompiledEngineSound, type EngineSound, type ExhaustTube } from './engine-sound.js';
 
 export const ENGINE_SOUND_DOCUMENT_FORMAT = 'superoutride.engine-sound';
-export const ENGINE_SOUND_DOCUMENT_VERSION = 2;
+export const ENGINE_SOUND_DOCUMENT_VERSION = 3;
 
 /** The `superoutride.engine-sound` document of an engine sound and its notes: what the DEV export saves. */
 export function engineSoundDocument(sound: EngineSound & { readonly metadata: unknown }) {
@@ -36,7 +30,7 @@ export function engineSoundDocument(sound: EngineSound & { readonly metadata: un
 export type EngineSoundCatalog = Readonly<Record<string, CompiledEngineSound>>;
 
 /**
- * Admit one `superoutride.engine-sound` version 2 document. The reader checks format, version and field shapes;
+ * Admit one `superoutride.engine-sound` version 3 document. The reader checks format, version and field shapes;
  * `compileEngineSound` alone validates the values. `metadata` is authoring commentary, kept as written and not read.
  */
 export function compileEngineSoundDocument(
@@ -52,25 +46,15 @@ export function compileEngineSoundDocument(
       ENGINE_SOUND_DOCUMENT_FORMAT,
       ENGINE_SOUND_DOCUMENT_VERSION,
     );
-    const exhaust = readRecord(v.exhaust, '/exhaust', ['valve', 'primaries', 'pipes']);
+    const exhaust = readRecord(v.exhaust, '/exhaust', ['valve', 'diameter', 'tubes']);
     const valve = readRecord(exhaust.valve, '/exhaust/valve', ['diameter', 'open']);
-    const primaries = readArray(exhaust.primaries, '/exhaust/primaries', (item, at): ExhaustPrimary => {
-      const primary = readRecord(item, at, ['length', 'diameter', 'to']);
+    const end = (value: unknown, at: string) => (value === null ? null : readNumber(value, at));
+    const tubes = readArray(exhaust.tubes, '/exhaust/tubes', (item, at): ExhaustTube => {
+      const tube = readRecord(item, at, ['from', 'to', 'length']);
       return {
-        length: readNumber(primary.length, `${at}/length`),
-        diameter: readNumber(primary.diameter, `${at}/diameter`),
-        to: readNumber(primary.to, `${at}/to`),
-      };
-    });
-    const pipes = readArray(exhaust.pipes, '/exhaust/pipes', (item, at): ExhaustPipe => {
-      const wool = typeof item === 'object' && item !== null && Object.hasOwn(item, 'wool');
-      const pipe = readRecord(item, at, ['length', 'diameter', 'from', 'to', ...(wool ? ['wool'] : [])]);
-      return {
-        length: readNumber(pipe.length, `${at}/length`),
-        diameter: readNumber(pipe.diameter, `${at}/diameter`),
-        from: readNumber(pipe.from, `${at}/from`),
-        to: pipe.to === null ? null : readNumber(pipe.to, `${at}/to`),
-        ...(wool ? { wool: readNumber(pipe.wool, `${at}/wool`) } : {}),
+        from: end(tube.from, `${at}/from`),
+        to: end(tube.to, `${at}/to`),
+        length: readNumber(tube.length, `${at}/length`),
       };
     });
     const definition = {
@@ -81,8 +65,8 @@ export function compileEngineSoundDocument(
           diameter: readNumber(valve.diameter, '/exhaust/valve/diameter'),
           open: readNumber(valve.open, '/exhaust/valve/open'),
         },
-        primaries,
-        pipes,
+        diameter: readNumber(exhaust.diameter, '/exhaust/diameter'),
+        tubes,
       },
     };
     const sound = admitDomain(() => compileEngineSound(definition));

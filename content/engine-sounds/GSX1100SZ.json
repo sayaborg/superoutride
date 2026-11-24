@@ -1,66 +1,19 @@
 {
   "format": "superoutride.engine-sound",
-  "version": 2,
+  "version": 3,
   "cycleRevolutions": 2,
   "firingPhases": [0, 0.25, 0.5, 0.75],
   "exhaust": {
-    "valve": {
-      "diameter": 0.03252691193458119,
-      "open": 0.4
-    },
-    "primaries": [
-      {
-        "length": 0.56,
-        "diameter": 0.031,
-        "to": 0
-      },
-      {
-        "length": 0.62,
-        "diameter": 0.031,
-        "to": 0
-      },
-      {
-        "length": 0.56,
-        "diameter": 0.031,
-        "to": 1
-      },
-      {
-        "length": 0.62,
-        "diameter": 0.031,
-        "to": 1
-      }
-    ],
-    "pipes": [
-      {
-        "length": 0.3,
-        "diameter": 0.028,
-        "from": 0,
-        "to": 1
-      },
-      {
-        "length": 0.76,
-        "diameter": 0.043,
-        "from": 0,
-        "to": 2
-      },
-      {
-        "length": 0.76,
-        "diameter": 0.043,
-        "from": 1,
-        "to": 3
-      },
-      {
-        "length": 0.08,
-        "diameter": 0.032,
-        "from": 2,
-        "to": null
-      },
-      {
-        "length": 0.08,
-        "diameter": 0.032,
-        "from": 3,
-        "to": null
-      }
+    "valve": { "diameter": 0.03252691193458119, "open": 0.4 },
+    "diameter": 0.031,
+    "tubes": [
+      { "from": null, "to": 0, "length": 0.56 },
+      { "from": null, "to": 0, "length": 0.62 },
+      { "from": null, "to": 1, "length": 0.56 },
+      { "from": null, "to": 1, "length": 0.62 },
+      { "from": 0, "to": 1, "length": 0.3 },
+      { "from": 0, "to": null, "length": 0.84 },
+      { "from": 1, "to": null, "length": 0.84 }
     ]
   },
   "metadata": {

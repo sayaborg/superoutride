@@ -29,41 +29,51 @@ filter and envelope state. Player tire sound reads the player's observed tire ob
 rival sound uses the rival's observed powertrain values and its own vehicle's engine sound.
 
 An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per cycle, ordered firing phases and
-the exhaust from the valves to the tail: one cylinder's exhaust valve (`valve`), each cylinder's primary and the pipes,
-every tube with its length and internal diameter in metres, and a pipe may add the thickness of the wool lining it
-(`wool`, in metres), which the kernel does not read ([what it reads](#the-exhaust-kernel)). Each firing phase is that cylinder's exhaust-opening instant
-(start of blowdown); the offset from combustion top dead centre is common to all cylinders and is not represented. Phase
-count determines cylinder count, and the primaries follow the firing phases' order: cylinder i's primary runs from its
-valve, the head's exhaust port included, to junction `to`. Each pipe runs from junction `from` to junction `to`, or to
-an open end (`to: null`), as far as the tailpipes; a turbine is a short, narrow pipe of its throat. The valve's
-`diameter` is that of the circle whose area is the valve's greatest open area (for poppet valves
-`count × min(π·d·lift, π·d²/4)`, for a two-stroke the port window's area), and `open` is how long it is open, seat to
-seat, as a share of the cycle from the firing phase. The resource limits are author values bounding the kernel's work
-and storage, not claims about real engines: 1 to 16 firing phases and 1 to 32 pipes (32 so that a silencer can later be
-written as a wide pipe), every tube longer than 0 and at most 4 m, and wider than 0 and at most 0.5 m. A pipe's `wool`
-is absent, 0 (compiled as absent), or more than 0 and less than half its diameter, refused at `/exhaust/pipes/<n>/wool`.
-`compileEngineSound` validates an `EngineSoundDefinition` into an `EngineSound`: positive valve diameter, `open` within
-(0, 1), one primary per firing phase, tubes within the limits and the junctions' topology. Firing rows identify events
-and collector groups.
+the exhaust from the valves to the mouths, written as what the [exhaust kernel](#the-exhaust-kernel) reads (K,
+2026-11-25): one cylinder's exhaust valve (`valve`), one internal diameter for every tube (`diameter`, in metres) and the
+tubes (`tubes`), each `{from, to, length}` with only a length in metres. Each firing phase is that cylinder's
+exhaust-opening instant (start of blowdown); the offset from combustion top dead centre is common to all cylinders and
+is not represented. Phase count determines cylinder count. The valve's `diameter` is that of the circle whose area is
+the valve's greatest open area (for poppet valves `count × min(π·d·lift, π·d²/4)`, for a two-stroke the port window's
+area), and `open` is how long it is open, seat to seat, as a share of the cycle from the firing phase.
+
+A tube begins at a valve (`from: null`) or a junction and ends at a junction or a mouth, open to the outside
+(`to: null`). [`compileEngineSound`](../src/audio/engine-sound.ts) validates an `EngineSoundDefinition` into an
+`EngineSound` by these rules, each refused where it is read:
+
+1. The valve's `diameter` is positive and its `open` within (0, 1); the exhaust's `diameter` is positive and at most
+   0.5 m (`exhaust/diameter`); each tube's `length` is positive and at most 4 m (`exhaust/tubes/<n>/length`).
+2. The first tubes, one for each firing phase in their order, are the cylinders', from their valves (cylinder `i`'s is
+   tube `i`, the head's exhaust port included); no other tube runs from a valve (`exhaust/tubes/<n>/from`).
+3. Junctions are numbered from 0 with none missing (`exhaust/tubes`).
+4. A junction is where three or more tubes meet: two meeting alone are one tube, written as one of their lengths
+   together, so an exhaust has one writing; a cylinder's tube may run from its valve to a mouth (`exhaust/tubes`).
+5. At least one tube ends at a mouth, and every junction reaches one through tubes (`exhaust/tubes`).
+
+The resource limits are author values bounding the kernel's work and storage, not claims about real engines: 1 to 16
+firing phases and at most 48 tubes (`EXHAUST_LIMITS`; the delivered sounds have at most 21, and their longest tube is
+3.43 m). Firing rows identify events and collector groups.
 
 Engine sound definitions are content: `content/engine-sounds/<id>.json` stores one
-`superoutride.engine-sound` version 2 document per sound ID, its file name without `.json`, which is also its
+`superoutride.engine-sound` version 3 document per sound ID, its file name without `.json`, which is also its
 manifest ID; the documents carry none. The fields are `format`, `version`, `cycleRevolutions`, `firingPhases`,
-`exhaust` (`valve` of `{diameter, open}`, `primaries` of `{length, diameter, to}` and `pipes` of
-`{length, diameter, from, to}` with `to: null` for an open end and an optional `wool`, which a primary does not take)
-and `metadata` (authoring notes, such as each value's references; not read, and kept as written only for the DEV
-export). The audio layer compiles a document:
-[`compileEngineSoundDocument`](../src/audio/engine-sound-document.ts) checks format, version and field shapes
-with the admission toolkit and leaves value validation to `compileEngineSound`, whose failure is an `invalid_value`
-diagnostic at the field the rule reads (`/exhaust/primaries/0/length`, `/exhaust/pipes/1/diameter`,
-`/exhaust/primaries/2/to`, `/exhaust/valve/open`), or at `/exhaust/pipes` for the pipes' count and topology (junctions
-numbered from 0, one open end reached from every junction), rules over the pipes together; the `CompiledEngineSound`
-adds the sound ID and the delivered bytes' SHA-256. Firing phases are used exactly as written. The content layer
-([engine-sound catalog](../src/content/engine-sound-catalog.ts)) admits every document, delivers it as kind
-`engine-sound` and passes the catalog to the vehicle catalog, whose listings resolve their `sound` in it; the
-same sample-free engine kernel plays every sound. DEV's ENGINE SOUNDS panel ([Browser](browser.md#sound-controls))
-changes a sound's valve and its primary and pipe lengths and diameters, each change through `compileEngineSound`; every voice whose
+`exhaust` (`valve` of `{diameter, open}`, `diameter`, and `tubes` of `{from, to, length}`) and `metadata` (authoring
+notes, such as each value's references; not read, and kept as written only for the DEV export). The audio layer
+compiles a document: [`compileEngineSoundDocument`](../src/audio/engine-sound-document.ts) checks format, version and
+field shapes with the admission toolkit and leaves value validation to `compileEngineSound`, whose failure is an
+`invalid_value` diagnostic at the field the rule reads (`/exhaust/tubes/0/length`, `/exhaust/tubes/2/from`,
+`/exhaust/diameter`, `/exhaust/valve/open`), or at `/exhaust/tubes` for the rules over the tubes together; the
+`CompiledEngineSound` adds the sound ID and the delivered bytes' SHA-256. Firing phases are used exactly as written. The
+content layer ([engine-sound catalog](../src/content/engine-sound-catalog.ts)) admits every document, delivers it as
+kind `engine-sound` and passes the catalog to the vehicle catalog, whose listings resolve their `sound` in it; the same
+sample-free engine kernel plays every sound. DEV's ENGINE SOUNDS panel ([Browser](browser.md#sound-controls)) changes a
+sound's valve, its diameter and its tubes' lengths, each change through `compileEngineSound`; every voice whose
 competitor's vehicle uses that sound fades to silence and installs it, as for any change of sound.
+
+The documents were first written from the real exhausts, with each tube's own diameter, silencers' and catalysts'
+bodies as wide tubes, turbines' throats and rooms, and the silencers' linings; the kernel read only their lengths, so
+they were rewritten as it read them (EL-7). Those documents, with the rules they were written by, are in
+`sayaborg/callcutter`.
 
 ## Engine synthesis
 
@@ -97,13 +107,9 @@ cylinder takes its charge, `closedCharge + (1 − closedCharge) × opening` of a
 (seeded xorshift32 at firings), burned unless the fuel is cut or it afterfires. Nothing allocates while rendering, and
 the sound is the same however the calls divide the samples.
 
-**What it reads.** [`lightExhaust`](../src/audio/exhaust.ts) reads a sound's tubes as lengths only: each
-primary's `to` and `length`, each pipe's `from`, `to` and `length`, and one diameter for every tube, the first
-primary's. A pipe's own diameter and its wool are not read; boxes, turbines' throats and rooms, and two-strokes'
-chambers are read as lengths like any pipe. Primaries and pipes are one kind of tube, beginning at a valve or a junction
-and ending at a junction or a mouth; cylinder `i`'s is tube `i`. A junction where only two tubes meet, one in and one
-out, is not a junction: the two are one tube of their lengths together, without exception (a single cylinder's is one
-tube from its valve to its mouth). The junctions left are numbered from 0 in their old order.
+**What it reads.** The engine sound's exhaust as it is written ([its rules](#observations-and-engine-sounds)): the
+valve, the one diameter and the tubes, cylinder `i`'s tube `i`. Junctions are numbered from 0, so their count is the
+highest junction a tube names, plus one; there is no reading in between.
 
 **Its own values.** The kernel keeps every value it uses. Its gas
 (`GAS`) is burned gas everywhere, a perfect gas of `gamma` 4/3 and `R` 287 J/(kg K), `Pr` 0.71, at 101325 Pa; the waves'
@@ -130,9 +136,10 @@ midpoint rule). With `d` twice the down wave less the up wave passing the middle
 tube is not split: the two cells passing its middle are rewritten in place. A tube of one sample has no middle and no
 friction.
 
-Every tube of the exhaust kernel is as wide as the primaries, so beyond a junction the flow is faster than a real
-exhaust's, and its friction acts more strongly than a real one's: on the F40 at full throttle (the auditor's figures)
-the primaries' flow reaches Mach 0.08, the tube after their junction 0.34 and the mouth's 0.64. This follows from the
+Every tube of the exhaust kernel is as wide as the cylinders' tubes (the real headers' bore), so beyond a junction the
+flow is faster than a real exhaust's, and its friction acts more strongly than a real one's: on the F40 at full throttle
+(the auditor's figures) the cylinders' tubes' flow reaches Mach 0.08, the tube after their junction 0.34 and the mouth's
+0.64. This follows from the
 assumption that tubes have only a length, and the friction factor is not tuned to offset it.
 
 ## Engine chain

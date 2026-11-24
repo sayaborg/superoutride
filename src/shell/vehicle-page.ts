@@ -101,7 +101,7 @@ export const SIDE_VIEW = Object.freeze({
 });
 /** ENGINE's firing runs `SLOW_MOTION` times slower than real, the engine turning at idle. */
 export const SLOW_MOTION = 30;
-/** The bank colors of the firing strip's ticks and the exhaust's primaries, by junction number in turn. */
+/** The bank colors of the firing strip's ticks and the exhaust's valve tubes, by collector in turn. */
 export const BANK_PALETTES = Object.freeze([
   TEXT_PALETTES.YELLOW,
   TEXT_PALETTES.RED,
@@ -127,22 +127,22 @@ export const FIRING_STRIP = Object.freeze({
   noteRow: 28,
 });
 /**
- * The exhaust diagram in columns 20–39: `EXHAUST` and the form on `headingRow` (the form at `formColumn`); `cm` and `mm`
- * heading the primaries' lengths, right-aligned in columns 20–22, and diameters, in columns 23–25, on `legendRow`; a
- * primary a row from `firstRow`; the pipes' values within columns `pipeFirstColumn`–`pipeLastColumn`; the valve on
- * `valveRow` and the scale marks on `scaleRow`. Tubes run from the leftmost
- * valve at x `left` to open ends no farther than x `right` at `exhaustPixelsPerMeter`, `pixelsAcrossPerMeter` of their
- * diameter across (a 60 mm pipe 6 pixels), laid `gap` apart where a junction splits.
+ * The exhaust diagram in columns 20–39: `EXHAUST` and the form on `headingRow` (the form at `formColumn`); `cm` heading
+ * the valve tubes' lengths, right-aligned in columns 20–22, and `BORE` with the exhaust's one diameter from `boreColumn`,
+ * on `legendRow`; a valve tube a row from `firstRow`; the junction tubes' lengths within columns
+ * `labelFirstColumn`–`labelLastColumn`; the valve on `valveRow` and the scale marks on `scaleRow`. Tubes run from the
+ * leftmost valve at x `left` to open ends no farther than x `right` at `exhaustPixelsPerMeter`, `pixelsAcrossPerMeter`
+ * of the diameter across (a 60 mm pipe 6 pixels), laid `gap` apart where a junction splits.
  */
 export const EXHAUST_DIAGRAM = Object.freeze({
   headingRow: 14,
   formColumn: 28,
   legendRow: 15,
   lengthColumn: 20,
-  diameterColumn: 23,
+  boreColumn: 24,
   firstRow: 16,
-  pipeFirstColumn: 26,
-  pipeLastColumn: 39,
+  labelFirstColumn: 26,
+  labelLastColumn: 39,
   valveRow: 28,
   scaleRow: 29,
   left: 216,

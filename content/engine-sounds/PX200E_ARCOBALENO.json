@@ -1,12 +1,14 @@
 {
   "format": "superoutride.engine-sound",
-  "version": 2,
+  "version": 3,
   "cycleRevolutions": 1,
   "firingPhases": [0],
   "exhaust": {
     "valve": { "diameter": 0.029, "open": 0.45 },
-    "primaries": [{ "length": 0.765, "diameter": 0.033, "to": 0 }],
-    "pipes": [{ "length": 0.12, "diameter": 0.018, "from": 0, "to": null }]
+    "diameter": 0.033,
+    "tubes": [
+      { "from": null, "to": null, "length": 0.885 }
+    ]
   },
   "metadata": {
     "note": "Exhaust port through the cylinder duct, downpipe and box to the small tailpipe. Lengths are estimates. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Port: about 660 mm2 (estimate), open about 162 deg (measured on an original cylinder, owners' forum)."

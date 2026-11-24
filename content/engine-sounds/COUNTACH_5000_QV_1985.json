@@ -1,40 +1,30 @@
 {
   "format": "superoutride.engine-sound",
-  "version": 2,
+  "version": 3,
   "cycleRevolutions": 2,
-  "firingPhases": [
-    0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.4166666666666667, 0.5, 0.5833333333333334,
-    0.6666666666666666, 0.75, 0.8333333333333334, 0.9166666666666666
-  ],
+  "firingPhases": [0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.4166666666666667, 0.5, 0.5833333333333334, 0.6666666666666666, 0.75, 0.8333333333333334, 0.9166666666666666],
   "exhaust": {
     "valve": { "diameter": 0.045, "open": 0.36 },
-    "primaries": [
-      { "length": 0.4, "diameter": 0.043, "to": 0 },
-      { "length": 0.4, "diameter": 0.043, "to": 2 },
-      { "length": 0.46, "diameter": 0.043, "to": 1 },
-      { "length": 0.46, "diameter": 0.043, "to": 3 },
-      { "length": 0.34, "diameter": 0.043, "to": 0 },
-      { "length": 0.34, "diameter": 0.043, "to": 2 },
-      { "length": 0.32, "diameter": 0.043, "to": 1 },
-      { "length": 0.32, "diameter": 0.043, "to": 3 },
-      { "length": 0.36, "diameter": 0.043, "to": 0 },
-      { "length": 0.36, "diameter": 0.043, "to": 2 },
-      { "length": 0.36, "diameter": 0.043, "to": 1 },
-      { "length": 0.36, "diameter": 0.043, "to": 3 }
-    ],
-    "pipes": [
-      { "length": 0.78, "diameter": 0.057, "from": 0, "to": 4 },
-      { "length": 0.5, "diameter": 0.057, "from": 1, "to": 4 },
-      { "length": 0.44, "diameter": 0.18, "from": 4, "to": 5, "wool": 0.02 },
-      { "length": 0.08, "diameter": 0.081, "from": 5, "to": 6 },
-      { "length": 0.38, "diameter": 0.171, "from": 6, "to": 7 },
-      { "length": 0.2, "diameter": 0.097, "from": 7, "to": null },
-      { "length": 0.78, "diameter": 0.057, "from": 2, "to": 8 },
-      { "length": 0.5, "diameter": 0.057, "from": 3, "to": 8 },
-      { "length": 0.44, "diameter": 0.18, "from": 8, "to": 9, "wool": 0.02 },
-      { "length": 0.08, "diameter": 0.081, "from": 9, "to": 10 },
-      { "length": 0.38, "diameter": 0.171, "from": 10, "to": 11 },
-      { "length": 0.2, "diameter": 0.097, "from": 11, "to": null }
+    "diameter": 0.043,
+    "tubes": [
+      { "from": null, "to": 0, "length": 0.4 },
+      { "from": null, "to": 2, "length": 0.4 },
+      { "from": null, "to": 1, "length": 0.46 },
+      { "from": null, "to": 3, "length": 0.46 },
+      { "from": null, "to": 0, "length": 0.34 },
+      { "from": null, "to": 2, "length": 0.34 },
+      { "from": null, "to": 1, "length": 0.32 },
+      { "from": null, "to": 3, "length": 0.32 },
+      { "from": null, "to": 0, "length": 0.36 },
+      { "from": null, "to": 2, "length": 0.36 },
+      { "from": null, "to": 1, "length": 0.36 },
+      { "from": null, "to": 3, "length": 0.36 },
+      { "from": 0, "to": 4, "length": 0.78 },
+      { "from": 1, "to": 4, "length": 0.5 },
+      { "from": 4, "to": null, "length": 1.1 },
+      { "from": 2, "to": 5, "length": 0.78 },
+      { "from": 3, "to": 5, "length": 0.5 },
+      { "from": 5, "to": null, "length": 1.1 }
     ]
   },
   "metadata": {
