@@ -42,7 +42,7 @@ A tube begins at a valve (`from: null`) or a junction and ends at a junction or 
 `EngineSound` by these rules, each refused where it is read:
 
 1. The valve's `diameter` is positive and its `open` within (0, 1); the exhaust's `diameter` is positive and at most
-   0.5 m (`exhaust/diameter`); each tube's `length` is positive and at most 4 m (`exhaust/tubes/<n>/length`).
+   0.5 m (`exhaust/diameter`); each tube's `length` is positive and at most 8 m (`exhaust/tubes/<n>/length`).
 2. The first tubes, one for each firing phase in their order, are the cylinders', from their valves (cylinder `i`'s is
    tube `i`, the head's exhaust port included); no other tube runs from a valve (`exhaust/tubes/<n>/from`).
 3. Junctions are numbered from 0 with none missing (`exhaust/tubes`).
@@ -50,9 +50,9 @@ A tube begins at a valve (`from: null`) or a junction and ends at a junction or 
    together, so an exhaust has one writing; a cylinder's tube may run from its valve to a mouth (`exhaust/tubes`).
 5. At least one tube ends at a mouth, and every junction reaches one through tubes (`exhaust/tubes`).
 
-The resource limits are author values bounding the kernel's work and storage, not claims about real engines: 1 to 16
-firing phases and at most 48 tubes (`EXHAUST_LIMITS`; the delivered sounds have at most 21, and their longest tube is
-3.43 m). Firing rows identify events and collector groups.
+The resource limits are author values bounding the kernel's work and storage and refusing broken values, not claims
+about real engines or rules of the sound: 1 to 16 firing phases, at most 48 tubes and tubes of at most 8 m
+(`EXHAUST_LIMITS`; the delivered sounds have at most 21 tubes, and their longest tube is 3.43 m). Firing rows identify events and collector groups.
 
 Engine sound definitions are content: `content/engine-sounds/<id>.json` stores one
 `superoutride.engine-sound` version 3 document per sound ID, its file name without `.json`, which is also its

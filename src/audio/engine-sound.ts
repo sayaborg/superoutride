@@ -52,14 +52,15 @@ export interface CompiledEngineSound extends EngineSound {
 }
 
 /**
- * Resource limits: author values bounding the kernel's work and delay storage, not claims about real exhausts: at most
+ * Resource limits: author values bounding the kernel's work and delay storage and refusing broken values, not claims
+ * about real exhausts or rules of the sound: at most
  * `cylinders` firing phases and `tubes` tubes, every tube at most `tubeLengthMeters` long and the exhaust at most
  * `diameterMeters` wide.
  */
 export const EXHAUST_LIMITS = Object.freeze({
   cylinders: 16,
   tubes: 48,
-  tubeLengthMeters: 4,
+  tubeLengthMeters: 8,
   diameterMeters: 0.5,
 });
 

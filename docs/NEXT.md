@@ -537,7 +537,8 @@ it reads. The stage's name, `EL`, is the auditor's. What remains, in order:
 
 - **EL-8.** EL-8a removed SELECT VEHICLE's ENGINE page and its exhaust diagram, which no row opened. EL-8b moved the
   first-written exhausts' provenance to `sayaborg/callcutter`, leaving one rule ([Audio](audio.md#observations-and-engine-sounds))
-  and a one-sentence note in each document. Next, the tubes' length limit rises from 4 to 8 m (EL-8c).
+  and a one-sentence note in each document. EL-8c raised the tubes' length limit from 4 to 8 m (a vehicle to come has a tube over 4 m); it bounds
+  broken values, not the sound.
 
 What stays open, for K:
 
