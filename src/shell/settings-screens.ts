@@ -15,7 +15,7 @@ import { STEERING_REFERENCES, type SteeringRule } from '../vehicle/steering-rule
 const VOLUME_STEP = 5;
 const VOLUME_LABELS: Readonly<Record<VolumeName, string>> = { master: 'MASTER', music: 'MUSIC', effects: 'EFFECTS' };
 /** ENGINE SOUND QUALITY's choices, lightest first, so UP gives more. */
-const ENGINE_SOUND_QUALITY_STEPS: readonly EngineSoundQuality[] = ['LIGHT', 'LOW', 'MID', 'HIGH'];
+const ENGINE_SOUND_QUALITY_STEPS: readonly EngineSoundQuality[] = ['LIGHT', 'LIGHT W', 'LIGHT F', 'LOW', 'MID', 'HIGH'];
 /** The camera setting of each vehicle form, by its label. */
 const CAMERA_LABELS: Readonly<Record<VehicleForm, string>> = { car: 'CAR CAMERA', bike: 'BIKE CAMERA' };
 /** The steering settings of each vehicle form, by their labels. */
@@ -59,7 +59,7 @@ function stepVolume(value: number, by: -1 | 1): number {
 /**
  * SETTINGS' cards, one a setting, each showing its value, which UP (the next, or more) and DOWN change and the player
  * record keeps: MASTER, MUSIC and EFFECTS volumes in steps of five, stopping at 0 and 100 and applied at once through
- * `setVolume`; ENGINE SOUND QUALITY (LOW, MID or HIGH), which the sound follows at once; CAR CAMERA and BIKE CAMERA (FACING or MOVING); CAR STEERING and BIKE STEERING (FRONT or CENTER); CAR
+ * `setVolume`; ENGINE SOUND QUALITY (LIGHT, LIGHT W, LIGHT F, LOW, MID or HIGH), which the sound follows at once; CAR CAMERA and BIKE CAMERA (FACING or MOVING); CAR STEERING and BIKE STEERING (FRONT or CENTER); CAR
  * STEERING USE and BIKE STEERING USE (100%, 95% or 90%); SLOW DOWN (ON or OFF), the choices wrapping; CARD DESIGN, the
  * cards' style while their design is tried (K, 2026-11-12), which lasts for the page and no record keeps; then CONTROLS
  * and CLEAR RECORDS, whose CONFIRM opens their own rows. CONFIRM on a value does nothing. While the MUSIC card is in focus,

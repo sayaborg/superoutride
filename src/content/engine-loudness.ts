@@ -10,7 +10,7 @@ import {
 } from '../core/admission.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
-import { EXHAUST_RENDERINGS } from '../audio/exhaust-rate.js';
+import { EXHAUST_RENDERINGS, renderingName } from '../audio/exhaust-rate.js';
 import type { ContentDelivery } from './content-delivery.js';
 import { admitProduct } from './delivered-product.js';
 
@@ -19,7 +19,7 @@ import { admitProduct } from './delivered-product.js';
  * gain and soft clip, at each rendering, with the identities it was measured from. Saved under `content/` by the
  * measurement tool and delivered as saved.
  */
-export const ENGINE_LOUDNESS_FORMAT = Object.freeze({ format: 'superoutride.engine-loudness', version: 3 } as const);
+export const ENGINE_LOUDNESS_FORMAT = Object.freeze({ format: 'superoutride.engine-loudness', version: 4 } as const);
 /** The one engine loudness document's identifier: its file name and manifest ID. */
 export const ENGINE_LOUDNESS_ID = 'default';
 
@@ -119,7 +119,7 @@ export function readEngineLoudness(
         throw new AdmissionError(
           'invalid_value',
           `${at}/lufs`,
-          `Expected one loudness for each rendering, ${EXHAUST_RENDERINGS.map(({ kernel, divisor }) => `${kernel} at ${divisor}`).join(', ')}`,
+          `Expected one loudness for each rendering, ${EXHAUST_RENDERINGS.map(renderingName).join(', ')}`,
         );
       loudness.set(vehicleId, Object.freeze(lufs));
     });

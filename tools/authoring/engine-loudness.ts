@@ -7,14 +7,14 @@ import { procedureSha256 } from '../course/procedure.js';
 
 /**
  * The engine loudness procedure: one drive at each of the `renderings`, the game's exhaust kernel at each divisor of
- * the 48 kHz output brought up to it and the light kernel at the output's rate, metered by ITU-R BS.1770-4 integrated loudness of the engine's compressed sound, before its
+ * the 48 kHz output brought up to it and the light kernel at the output's rate in each trial form, metered by ITU-R BS.1770-4 integrated loudness of the engine's compressed sound, before its
  * gain and soft clip. Each drive segment is its seconds, the engine speed it runs from and to (`idle` and `redline` are
  * the vehicle's, linearly between) and the opening; fuel is never cut. Any code change that changes its results raises
  * its version.
  */
 export const ENGINE_LOUDNESS_PROCEDURE = Object.freeze({
   name: 'superoutride.engine-loudness',
-  version: 6,
+  version: 7,
   sampleRate: 48000,
   renderings: EXHAUST_RENDERINGS,
   measured: 'compressed',

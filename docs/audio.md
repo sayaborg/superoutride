@@ -142,10 +142,10 @@ kernel, run at the output's rate over a divisor of 1, 2, 4 or 8, and its sound i
 for each halving: each sample between two is the cubic through the four around it, `(-a + 9b + 9c - d)/16`. The kernel
 takes the observations of the first output sample of each of its own. It is the same model at every rate, only the rate
 it is given differs; tube lengths are rounded to the samples of that rate (K, by listening). The player's ENGINE SOUND
-QUALITY (K, 2026-11-21 and 2026-11-22; [Browser](browser.md#player-record)) sets both voices' renderings. HIGH, MID and
-LOW are the one game kernel at different rates: the player's divisor, and a rival at half the player's rate. LIGHT is
-the other kernel, the [light kernel](#the-light-kernel), for both at the output's rate, which no doubling passes; it has
-no slower rate:
+QUALITY (K, 2026-11-21, 2026-11-22 and 2026-11-24; [Browser](browser.md#player-record)) sets both voices' renderings. HIGH, MID and
+LOW are the one game kernel at different rates: the player's divisor, and a rival at half the player's rate. LIGHT,
+LIGHT W and LIGHT F are the other kernel, the [light kernel](#the-light-kernel), in its three
+[trial forms](#its-trial-forms), for both at the output's rate, which no doubling passes; it has no slower rate:
 
 | ENGINE SOUND QUALITY | Kernel | Player            | Rival      |
 | -------------------- | ------ | ----------------- | ---------- |
@@ -153,6 +153,8 @@ no slower rate:
 | MID (default)        | game   | 2 (24 kHz)        | 4 (12 kHz) |
 | LOW                  | game   | 4 (12 kHz)        | 8 (6 kHz)  |
 | LIGHT                | light  | 1 (48 kHz output) | 1 (48 kHz) |
+| LIGHT W              | light  | 1 (48 kHz output) | 1 (48 kHz) |
+| LIGHT F              | light  | 1 (48 kHz output) | 1 (48 kHz) |
 
 A wall-loss shelf whose corner the rate does not carry is left out ([derived values](#derived-values)). A change of
 quality is a change of the voices' renderings: each voice fades to silence and installs its new one, as for any change of
@@ -205,6 +207,25 @@ corner `f` is `kappa sqrt(f) sqrt(2) ln(8)/pi` nepers deep, the lowest carrying 
 times `sqrt(8)/(sqrt(8) − 1)`); each falls from 1 to `exp(−depth)` with its pole at its corner and its zero the depth
 above it, both placed on the tangent `tan(pi f / rate)`. The kernel runs only above twice its highest corner, 20480 Hz,
 and refuses a slower rate with a `RangeError`; it plays at the output's rate.
+
+#### Its trial forms
+
+The kernel is built in one of three forms (`LIGHT_TRIALS`, a `LightTrial` of two numbers; K, 2026-11-24), for K to hear
+in the game with the music and choose between. **They are temporary:** when K keeps one, the other two are removed. N5
+as described above leaves tubes of uneven lengths, such as primaries that differ, ringing high and long. Two forms
+shorten that ringing:
+
+| ENGINE SOUND QUALITY | Form       | `wall` | `friction` | What it changes                                                                                                                                                                |
+| -------------------- | ---------- | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| LIGHT                | `PLAIN`    | 1      | 0          | Nothing: the kernel above, sample for sample.                                                                                                                                  |
+| LIGHT W              | `WALL`     | 4      | 0          | Each wall shelf's depth (its `kappa`) is 4 times Kirchhoff's. The 4 has no physical ground; K chose it by ear. It acts most on high sounds.                                    |
+| LIGHT F              | `FRICTION` | 1      | 0.02       | The tubes' flow rubs on their walls with the friction factor 0.02 (an assumption: a steel pipe's at the exhaust's flow), whatever the frequency, the more the harder the flow. |
+
+Friction is a pressure drop `psi (L/D) m|m|/2` at each tube's middle, where `psi` is the friction factor, `L` the tube's
+length, `D` the bore and `m` the flow. It is solved like the valve's law: with `d` the down wave less the up wave passing
+the middle and `K = psi L/D`, `m = 2|d| / (1 + sqrt(1 + K|d|))` in the sign of `d`. The waves go on as `up + m` and
+`down − m`, so no gas is lost. The tube is not split: the two cells passing its middle are rewritten in place. A tube of
+one sample has no friction.
 
 ## Engine chain
 
@@ -302,7 +323,7 @@ Vehicles' exhausts differ in level, as physics makes them; the game levels them 
 changes of level as it is driven (idle against full throttle) stay its physics' and its compressor's. Each vehicle's
 engine loudness is measured once at each rendering, outside the build, and saved with the identities of what it was
 measured from. The measurement ([engine loudness](../tools/authoring/engine-loudness.ts)) runs each rendering: the game's kernel at
-the output's rate over 1, 2, 4 and 8, brought up to the 48 kHz output, and the light kernel at it, with the audio document's TIMING settings on
+the output's rate over 1, 2, 4 and 8, brought up to the 48 kHz output, and the light kernel at it in each trial form, with the audio document's TIMING settings on
 one drive, the same for every vehicle at its own idle and redline:
 
 | Seconds | Engine speed        | Opening |
@@ -317,20 +338,20 @@ one drive, the same for every vehicle at its own idle and redline:
 Engine speed changes linearly within a segment; fuel is never cut and nothing afterfires. The engine's compressed sound,
 after the chain's compressor from silence and before its gain and soft clip, is metered by ITU-R BS.1770-4 integrated
 loudness: K-weighting, the mean square of 400 ms blocks every 100 ms, the absolute gate at −70 LUFS and the relative
-gate 10 LU below the gated mean. The procedure's record (`ENGINE_LOUDNESS_PROCEDURE`, version 6) holds the drive, the
+gate 10 LU below the gated mean. The procedure's record (`ENGINE_LOUDNESS_PROCEDURE`, version 7) holds the drive, the
 rate, the renderings and what it meters; the SHA-256 of its JSON is its identity, and a change to its results raises its
 version.
 
-`content/engine-loudness/default.json` is the one `superoutride.engine-loudness` version 3 document, with exactly
+`content/engine-loudness/default.json` is the one `superoutride.engine-loudness` version 4 document, with exactly
 `format`, `version`, `procedureSha256`, `audioSha256` (the audio document's SHA-256) and `vehicles`: every catalog
 vehicle once, in catalog order, with `vehicleId`, `vehicleSha256` (its mechanics document's SHA-256), `soundSha256`
-(its engine sound document's) and `lufs`, its five loudnesses at the renderings in `EXHAUST_RENDERINGS`' order: the game kernel at the divisors 1, 2, 4
-and 8, then the light kernel. The
+(its engine sound document's) and `lufs`, its seven loudnesses at the renderings in `EXHAUST_RENDERINGS`' order: the game kernel at the divisors 1, 2, 4
+and 8, then the light kernel's `PLAIN`, `WALL` and `FRICTION` forms. The
 measurement tool writes it ([Development](development.md#measured-products)),
 measuring every vehicle again when any identity differs; a build admits it as a
 [measured product](content-and-gameplay.md#measured-products), refusing it as stale when any identity differs, and
 delivers it as saved (kind `engine-loudness`, ID `default`). [`readEngineLoudness`](../src/content/engine-loudness.ts)
-is its one reader; a vehicle without exactly five loudnesses is an `invalid_value` at its `lufs`.
+is its one reader; a vehicle without exactly seven loudnesses is an `invalid_value` at its `lufs`.
 
 The game loads it once with the catalog (`loadEngineLoudness`), refusing a delivered one whose identities are not the
 delivered documents'. Each engine voice, the rival's included, takes the gain `engineGain` of its vehicle's loudness at
