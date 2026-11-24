@@ -1,4 +1,4 @@
-import { ExhaustLight } from './exhaust-light.js';
+import { Exhaust } from './exhaust.js';
 import { EngineChain } from './engine-chain.js';
 import type { ControlSettings } from './audio-control-policy.js';
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
@@ -16,7 +16,7 @@ export interface ExhaustConfiguration {
 }
 
 class ExhaustProcessor extends AudioWorkletProcessor {
-  private engine: { readonly kernel: ExhaustLight; readonly chain: EngineChain } | null = null;
+  private engine: { readonly kernel: Exhaust; readonly chain: EngineChain } | null = null;
   private running = true;
   private readonly meter = new ProcessingMeter(this.port, sampleRate);
   private readonly rest = new WorkletRest();
@@ -57,7 +57,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
   /** The voice sends an admitted configuration, used as given; the kernel and the chain start from silence. */
   private configure({ sound, control, gain }: ExhaustConfiguration): void {
     this.engine = {
-      kernel: new ExhaustLight(sound, sampleRate, control.observationSeconds),
+      kernel: new Exhaust(sound, sampleRate, control.observationSeconds),
       chain: new EngineChain(sampleRate, gain),
     };
   }
@@ -93,4 +93,4 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     return true;
   }
 }
-registerProcessor('exhaust-waveguide', ExhaustProcessor);
+registerProcessor('vehicle-exhaust', ExhaustProcessor);

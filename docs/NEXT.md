@@ -531,17 +531,19 @@ K's decisions of 2026-11-22 to 2026-11-24: in the game, with the music, the sett
 its cracks and (with a turbine) its intake, so a light kernel was made and heard. It is N5, a model of its own that
 reads only tubes' lengths (EL-3; a tube's width changing rang metallic), its tubes' flow rubbing on their walls (EL-5;
 without it, tubes of uneven lengths rang high and muddy). Since EL-6 it is the game's one engine sound
-([Audio](audio.md#the-light-kernel)), with no ENGINE SOUND QUALITY and one measured loudness a vehicle; the former game
+([Audio](audio.md#the-exhaust-kernel)), with no ENGINE SOUND QUALITY and one measured loudness a vehicle; the former game
 kernel continues in `sayaborg/callcutter`. The stage's name, `EL`, is the auditor's. What remains, in order:
 
-- **EL-7.** Trim the engine sound documents of what the light kernel does not read (pipes' diameters, boxes, wool), with
-  SELECT VEHICLE's exhaust picture and DEV's ENGINE SOUNDS panel.
-- **EL-8.** The names (LIGHT, light) and the documents.
+- **EL-7b.** Write the engine sound documents as what the kernel reads, one diameter and tubes with only a length
+  (format version 3), with SELECT VEHICLE's exhaust picture and DEV's ENGINE SOUNDS panel; the kernel stops reading
+  them through `lightExhaust`. EL-7a gave the kernel its name, the exhaust kernel (`Exhaust`, worklet
+  `vehicle-exhaust`).
+- **EL-8.** The documents' notes (`metadata`), as the auditor writes them.
 
 What stays open, for K:
 
 - The engine's load on real devices.
-- The light kernel has two listened values, `LISTENED` (a charge's variation and an afterfire's time); no other, and no
+- The exhaust kernel has two listened values, `LISTENED` (a charge's variation and an afterfire's time); no other, and no
   vehicle's exception, is to be added to it. Its friction factor, 0.02, is an assumption and is not tuned.
 
 ## Stage AT — The attract demo remade

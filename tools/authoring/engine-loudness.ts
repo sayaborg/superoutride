@@ -1,6 +1,6 @@
 import type { ControlSettings } from '../../src/audio/audio-control-policy.js';
 import { compressed } from '../../src/audio/engine-chain.js';
-import { ExhaustLight } from '../../src/audio/exhaust-light.js';
+import { Exhaust } from '../../src/audio/exhaust.js';
 import type { CompiledVehicleDefinition } from '../../src/vehicle/definition-document.js';
 import { ENGINE_LOUDNESS_ID } from '../../src/content/engine-loudness.js';
 import { procedureSha256 } from '../course/procedure.js';
@@ -44,7 +44,7 @@ export function measureEngineLoudness(vehicle: CompiledVehicleDefinition, contro
 /** The procedure's drive through a vehicle's exhaust kernel, at the output's rate. */
 function driveSound(vehicle: CompiledVehicleDefinition, control: ControlSettings): Float64Array {
   const { sampleRate, drive } = ENGINE_LOUDNESS_PROCEDURE;
-  const kernel = new ExhaustLight(vehicle.sound, sampleRate, control.observationSeconds);
+  const kernel = new Exhaust(vehicle.sound, sampleRate, control.observationSeconds);
   const lengths = drive.map(({ seconds }) => Math.round(seconds * sampleRate));
   const signal = new Float64Array(lengths.reduce((sum, samples) => sum + samples, 0));
   let offset = 0;

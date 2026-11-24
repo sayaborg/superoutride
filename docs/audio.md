@@ -31,7 +31,7 @@ rival sound uses the rival's observed powertrain values and its own vehicle's en
 An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per cycle, ordered firing phases and
 the exhaust from the valves to the tail: one cylinder's exhaust valve (`valve`), each cylinder's primary and the pipes,
 every tube with its length and internal diameter in metres, and a pipe may add the thickness of the wool lining it
-(`wool`, in metres), which the kernel does not read ([what it reads](#the-light-kernel)). Each firing phase is that cylinder's exhaust-opening instant
+(`wool`, in metres), which the kernel does not read ([what it reads](#the-exhaust-kernel)). Each firing phase is that cylinder's exhaust-opening instant
 (start of blowdown); the offset from combustion top dead centre is common to all cylinders and is not represented. Phase
 count determines cylinder count, and the primaries follow the firing phases' order: cylinder i's primary runs from its
 valve, the head's exhaust port included, to junction `to`. Each pipe runs from junction `from` to junction `to`, or to
@@ -67,18 +67,18 @@ competitor's vehicle uses that sound fades to silence and installs it, as for an
 
 ## Engine synthesis
 
-The game's one engine kernel is the light kernel below (K, 2026-11-24). The former game kernel, K's reference kernel of
+The game's one engine kernel is the exhaust kernel below (K, 2026-11-24). The former game kernel, K's reference kernel of
 2026-11-20, continues in `sayaborg/callcutter`.
 
-### The light kernel
+### The exhaust kernel
 
-The kernel, [`ExhaustLight`](../src/audio/exhaust-light.ts) (K, 2026-11-23), is a model of its own, reading nothing of
+The kernel, [`Exhaust`](../src/audio/exhaust.ts) (K, 2026-11-23), is a model of its own, reading nothing of
 another sound file but the engine sound's type: one gas, in tubes of one width that have only a length,
 between valves, junctions and mouths. A sound fades in four ways only: in a wall's boundary layer, in a flow's friction
 on its wall (K, 2026-11-24), in a valve's jet and out of a mouth. Pressures are over the tubes' `rho c²` and flows are Mach numbers; a tube carries two waves, its pressure
 their sum and its flow their difference.
 
-| Part      | Light kernel                                                                                                                                                                                                                                                                                                                                                         |
+| Part      | Kernel                                                                                                                                                                                                                                                                                                                                                               |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Tube      | Delays each of its two waves by its length over the waves' speed, a whole number of samples (at least one); each pass takes a still gas's boundary-layer loss, growing as the root of the frequency.                                                                                                                                                                 |
 | Friction  | The tube's flow rubs on its wall, all of it taken at the tube's middle (its friction, below).                                                                                                                                                                                                                                                                        |
@@ -97,7 +97,7 @@ cylinder takes its charge, `closedCharge + (1 − closedCharge) × opening` of a
 (seeded xorshift32 at firings), burned unless the fuel is cut or it afterfires. Nothing allocates while rendering, and
 the sound is the same however the calls divide the samples.
 
-**What it reads.** [`lightExhaust`](../src/audio/exhaust-light.ts) reads a sound's tubes as lengths only: each
+**What it reads.** [`lightExhaust`](../src/audio/exhaust.ts) reads a sound's tubes as lengths only: each
 primary's `to` and `length`, each pipe's `from`, `to` and `length`, and one diameter for every tube, the first
 primary's. A pipe's own diameter and its wool are not read; boxes, turbines' throats and rooms, and two-strokes'
 chambers are read as lengths like any pipe. Primaries and pipes are one kind of tube, beginning at a valve or a junction
@@ -130,7 +130,7 @@ midpoint rule). With `d` twice the down wave less the up wave passing the middle
 tube is not split: the two cells passing its middle are rewritten in place. A tube of one sample has no middle and no
 friction.
 
-Every tube of the light kernel is as wide as the primaries, so beyond a junction the flow is faster than a real
+Every tube of the exhaust kernel is as wide as the primaries, so beyond a junction the flow is faster than a real
 exhaust's, and its friction acts more strongly than a real one's: on the F40 at full throttle (the auditor's figures)
 the primaries' flow reaches Mach 0.08, the tube after their junction 0.34 and the mouth's 0.64. This follows from the
 assumption that tubes have only a length, and the friction factor is not tuned to offset it.
@@ -138,8 +138,8 @@ assumption that tubes have only a length, and the friction factor is not tuned t
 ## Engine chain
 
 ```text
-light kernel at the output's rate -> compressor -> gain (engineDriveLufs) -> soft clip
-                                 -> voice/master gain -> master compressor
+exhaust kernel at the output's rate -> compressor -> gain (engineDriveLufs) -> soft clip
+                                   -> voice/master gain -> master compressor
 ```
 
 The kernel's sound, at the output's rate, goes through the [engine chain](../src/audio/engine-chain.ts) (K, 2026-11-21)
@@ -159,8 +159,8 @@ levelled after the compressor. The chain, like the kernel, starts from silence w
 
 ## Derived values
 
-Derived values follow from physics and are never DEV settings: the light kernel's tubes' temperature, choked flow, wall
-loss and mouths' corner ([the light kernel](#the-light-kernel)), the rival inverse-distance law and the rival pan
+Derived values follow from physics and are never DEV settings: the exhaust kernel's tubes' temperature, choked flow, wall
+loss and mouths' corner ([the exhaust kernel](#the-exhaust-kernel)), the rival inverse-distance law and the rival pan
 geometry.
 
 A vehicle's mechanics give its engine sound two values ([vehicle engine sound](../src/audio/vehicle-engine-sound.ts)):
@@ -169,7 +169,7 @@ one cylinder's swept volume, the displacement over the cylinders, and the geomet
 sound (`createVehicleDefinition`), and the vehicle's `sound` carries them; when DEV's ENGINE SOUNDS panel changes a
 sound, the audio lifetime pairs it again for each vehicle using it.
 
-The light kernel's two listened values (`LISTENED`) are the owner's, kept by the code, not DEV settings. Every other
+The exhaust kernel's two listened values (`LISTENED`) are the owner's, kept by the code, not DEV settings. Every other
 value is a DEV setting in one of the groups MIX (`MixSettings`), TIMING
 (`ControlSettings`), RIVAL (`RivalSettings`), IMPACT (`ImpactSettings`) and the tire groups UNIFIED (`UnifiedSettings`)
 and ROLLING (`RollingSettings`); they are the implementer's, and [Calibration](calibration.md) lists them. DEV has no
@@ -180,7 +180,7 @@ ENGINE group (K, 2026-11-21).
 Vehicles' exhausts differ in level, as physics makes them; the game levels them by measurement, while each engine's own
 changes of level as it is driven (idle against full throttle) stay its physics' and its compressor's. Each vehicle's
 engine loudness is measured once, outside the build, and saved with the identities of what it was measured from. The
-measurement ([engine loudness](../tools/authoring/engine-loudness.ts)) runs the light kernel at the 48 kHz output's rate,
+measurement ([engine loudness](../tools/authoring/engine-loudness.ts)) runs the exhaust kernel at the 48 kHz output's rate,
 with the audio document's TIMING settings, on one drive, the same for every vehicle at its own idle and redline:
 
 | Seconds | Engine speed        | Opening |

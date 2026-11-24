@@ -311,23 +311,23 @@ turbochargers' wastegates are not represented. DEV's ENGINE SOUNDS panel changes
 ## Engine sound settings
 
 The engine sound has no DEV settings (K, 2026-11-21). Its values are [derived](#derived-values), physical assumptions
-(the light kernel's `GAS`, `ENGINE` and `FRICTION`, [Audio](audio.md#the-light-kernel)) or the owner's, chosen by listening and kept by the code:
+(the exhaust kernel's `GAS`, `ENGINE` and `FRICTION`, [Audio](audio.md#the-exhaust-kernel)) or the owner's, chosen by listening and kept by the code:
 
-| Value                         | Meaning                                                       | Value  | Owner                       |
-| ----------------------------- | ------------------------------------------------------------- | ------ | --------------------------- |
-| `LISTENED.chargeVariation`    | The light kernel's: each charge varies by up to this share    | 0.03   | K, 2026-11-20 and 11-23     |
-| `LISTENED.afterfireSeconds`   | The light kernel's: an afterfire burns at its valve over this | 1.5 ms | K, 2026-11-20 and 11-23     |
-| `ENGINE_CHAIN.levelSeconds`   | The compressor follows the sound's mean square over this      | 50 ms  | K, 2026-11-21               |
-| `ENGINE_CHAIN.ratio`          | The compressor's ratio, threshold at the bottom               | 2:1    | K, 2026-11-21               |
-| `ENGINE_CHAIN.ceiling`        | The soft clip's ceiling over the level the gain brings        | 2      | K, 2026-11-21               |
-| `DOWNSHIFT_BLIP.opening`      | A locked downshift's blip opening peak                        | 1      | K (EX-10)                   |
-| `DOWNSHIFT_BLIP.decaySeconds` | Its exponential decay time                                    | 0.25 s | K (EX-10)                   |
-| `AFTERFIRE.openingBelow`      | An afterfire needs the effective opening below this           | 0.02   | provisional (K, 2026-11-21) |
-| `AFTERFIRE.idleRatio`         | and engine RPM above this times idle, fuel not cut            | 1.3    | provisional (K, 2026-11-21) |
-| `AFTERFIRE.perSecond`         | Afterfires a second on average while so                       | 1      | provisional (K, 2026-11-21) |
+| Value                         | Meaning                                                         | Value  | Owner                       |
+| ----------------------------- | --------------------------------------------------------------- | ------ | --------------------------- |
+| `LISTENED.chargeVariation`    | The exhaust kernel's: each charge varies by up to this share    | 0.03   | K, 2026-11-20 and 11-23     |
+| `LISTENED.afterfireSeconds`   | The exhaust kernel's: an afterfire burns at its valve over this | 1.5 ms | K, 2026-11-20 and 11-23     |
+| `ENGINE_CHAIN.levelSeconds`   | The compressor follows the sound's mean square over this        | 50 ms  | K, 2026-11-21               |
+| `ENGINE_CHAIN.ratio`          | The compressor's ratio, threshold at the bottom                 | 2:1    | K, 2026-11-21               |
+| `ENGINE_CHAIN.ceiling`        | The soft clip's ceiling over the level the gain brings          | 2      | K, 2026-11-21               |
+| `DOWNSHIFT_BLIP.opening`      | A locked downshift's blip opening peak                          | 1      | K (EX-10)                   |
+| `DOWNSHIFT_BLIP.decaySeconds` | Its exponential decay time                                      | 0.25 s | K (EX-10)                   |
+| `AFTERFIRE.openingBelow`      | An afterfire needs the effective opening below this             | 0.02   | provisional (K, 2026-11-21) |
+| `AFTERFIRE.idleRatio`         | and engine RPM above this times idle, fuel not cut              | 1.3    | provisional (K, 2026-11-21) |
+| `AFTERFIRE.perSecond`         | Afterfires a second on average while so                         | 1      | provisional (K, 2026-11-21) |
 
-The engines play the light kernel at the output's rate, the one engine sound (K, 2026-11-24;
-[Audio](audio.md#the-light-kernel)).
+The engines play the exhaust kernel at the output's rate, the one engine sound (K, 2026-11-24;
+[Audio](audio.md#the-exhaust-kernel)).
 
 ## UNIFIED tire settings
 

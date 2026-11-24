@@ -27,7 +27,7 @@ export function createEngineVoice(
   const output = context.createGain();
   output.gain.value = 0;
   output.connect(destination);
-  const exhaust = new AudioWorkletNode(context, 'exhaust-waveguide', {
+  const exhaust = new AudioWorkletNode(context, 'vehicle-exhaust', {
     numberOfInputs: 0,
     numberOfOutputs: 1,
     outputChannelCount: [1],

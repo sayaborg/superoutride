@@ -3,7 +3,7 @@ import test from 'node:test';
 import { readDeliveredContent } from '../../tools/course/read-content.ts';
 import { loadVehicleDefinitions } from '../../src/content/vehicle-catalog.js';
 import { loadEngineSounds } from '../../src/content/engine-sound-catalog.js';
-import { ExhaustLight, lightExhaust } from '../../src/audio/exhaust-light.js';
+import { Exhaust, lightExhaust } from '../../src/audio/exhaust.js';
 
 const content = await readDeliveredContent();
 const { vehicles } = await loadVehicleDefinitions(content, await loadEngineSounds(content));
@@ -106,7 +106,7 @@ const READ = {
 
 /** `seconds` of a sound at a steady `rpm` and `opening`, `quantum` samples a call; `afterfire` asks one a call. */
 function steady(sound, seconds, rpm, opening, { quantum = 480, afterfire = false, burns = true } = {}) {
-  const kernel = new ExhaustLight(sound, rate, 0.025);
+  const kernel = new Exhaust(sound, rate, 0.025);
   const out = new Float64Array(Math.round(seconds * rate));
   const speeds = new Float64Array(quantum).fill(rpm);
   const openings = new Float64Array(quantum).fill(opening);
@@ -129,7 +129,7 @@ function level(sound) {
   return { rms: decibels(rms), crest: decibels(peak / rms) };
 }
 
-test("the light kernel's sound of the settled eleven is the auditor's within 0.1 dB", () => {
+test("the exhaust kernel's sound of the settled eleven is the auditor's within 0.1 dB", () => {
   for (const [id, [openRms, openCrest, closedRms]] of Object.entries(AUDITED)) {
     const { sound, compiledVehicle } = vehicle(id);
     const rpm = 0.9 * compiledVehicle.powertrain.redlineRpm;
@@ -141,7 +141,7 @@ test("the light kernel's sound of the settled eleven is the auditor's within 0.1
   }
 });
 
-test('the light kernel reads the settled sounds as tubes of one diameter, two tubes meeting alone as one', () => {
+test('the exhaust kernel reads the settled sounds as tubes of one diameter, two tubes meeting alone as one', () => {
   for (const [id, [diameter, ...tubes]] of Object.entries(READ)) {
     const read = lightExhaust(vehicle(id).sound);
     assert.equal(Math.round(read.diameter * 1000), diameter, id);
@@ -156,7 +156,7 @@ test('the light kernel reads the settled sounds as tubes of one diameter, two tu
   }
 });
 
-test('the light kernel reads neither a pipe’s diameter nor its wool', () => {
+test('the exhaust kernel reads neither a pipe’s diameter nor its wool', () => {
   for (const { sound, compiledVehicle } of vehicles) {
     const pipes = sound.exhaust.pipes.map(({ from, to, length, diameter }) => ({
       from,
@@ -170,7 +170,7 @@ test('the light kernel reads neither a pipe’s diameter nor its wool', () => {
   }
 });
 
-test('the light kernel starts silent and renders finite sound, open, closed and with the fuel cut', () => {
+test('the exhaust kernel starts silent and renders finite sound, open, closed and with the fuel cut', () => {
   for (const { sound, compiledVehicle } of vehicles) {
     const id = compiledVehicle.id;
     const { idleRpm, redlineRpm } = compiledVehicle.powertrain;
@@ -195,7 +195,7 @@ test('the light kernel starts silent and renders finite sound, open, closed and 
   }
 });
 
-test('an afterfire sounds in the light kernel', () => {
+test('an afterfire sounds in the exhaust kernel', () => {
   for (const id of Object.keys(AUDITED)) {
     const { sound, compiledVehicle } = vehicle(id);
     const { idleRpm, redlineRpm } = compiledVehicle.powertrain;
@@ -206,9 +206,9 @@ test('an afterfire sounds in the light kernel', () => {
   }
 });
 
-test('the light kernel refuses a rate not above twice its highest shelf', () => {
+test('the exhaust kernel refuses a rate not above twice its highest shelf', () => {
   const { sound } = vehicles[0];
-  assert.throws(() => new ExhaustLight(sound, 20480, 0.025), RangeError);
+  assert.throws(() => new Exhaust(sound, 20480, 0.025), RangeError);
 });
 
 /**
@@ -225,7 +225,7 @@ const SEGMENTS = [
 function drive({ sound, compiledVehicle }, quantum) {
   const { idleRpm, redlineRpm } = compiledVehicle.powertrain;
   const speeds = { idle: idleRpm, redline: redlineRpm, cut: 1.04 * redlineRpm, middle: (idleRpm + redlineRpm) / 2 };
-  const kernel = new ExhaustLight(sound, rate, 0.025);
+  const kernel = new Exhaust(sound, rate, 0.025);
   const out = new Float64Array(SEGMENTS.reduce((sum, { samples }) => sum + samples, 0));
   let offset = 0;
   for (const { samples, from, to, opening, burns, afterfire } of SEGMENTS) {
@@ -244,7 +244,7 @@ function drive({ sound, compiledVehicle }, quantum) {
   return out;
 }
 
-test('the light kernel renders the same sound one sample at a time as 128 at a time', () => {
+test('the exhaust kernel renders the same sound one sample at a time as 128 at a time', () => {
   for (const vehicle of vehicles) {
     const single = drive(vehicle, 1),
       quanta = drive(vehicle, 128);

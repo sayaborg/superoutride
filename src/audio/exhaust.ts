@@ -1,7 +1,7 @@
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 
 /**
- * The light kernel's gas: burned gas everywhere, a perfect gas. Assumptions, none chosen by listening; the speed of
+ * The exhaust kernel's gas: burned gas everywhere, a perfect gas. Assumptions, none chosen by listening; the speed of
  * the tubes' waves makes a centimetre of tube a sample at 48 kHz, and stands for gas at about 330 C.
  */
 const GAS = Object.freeze({
@@ -55,7 +55,7 @@ const WALL = (() => {
  * The kernel's rate is above twice the highest corner.
  */
 const SHELVES = Object.freeze({ cornersHz: Object.freeze([20, 160, 1280, 10240]), ratio: 8 });
-/** The slowest rate the light kernel runs at: above twice its highest shelf's corner. */
+/** The slowest rate the kernel runs at: above twice its highest shelf's corner. */
 const SLOWEST_RATE = 2 * SHELVES.cornersHz[SHELVES.cornersHz.length - 1]!;
 /**
  * A tube's flow rubs on its wall (Darcy): FRICTION (length / diameter) m |m| / 2 of pressure along the tube. The
@@ -91,7 +91,7 @@ function shelves(length: number, diameter: number, rate: number): number[] {
 const shelfPoles = (rate: number): number[] =>
   SHELVES.cornersHz.map((hz) => (corner(hz, rate) - 1) / (corner(hz, rate) + 1));
 
-/** What the light kernel reads of an engine sound's exhaust: one diameter, and tubes that have only a length. */
+/** What the kernel reads of an engine sound's exhaust: one diameter, and tubes that have only a length. */
 export interface LightExhaust {
   /** Every tube's diameter: the primaries'. */
   readonly diameter: number;
@@ -104,7 +104,7 @@ export interface LightExhaust {
 }
 
 /**
- * The light kernel's reading of a sound: only lengths. Every tube is as wide as a primary, so a wave passes whole from
+ * The kernel's reading of a sound: only lengths. Every tube is as wide as a primary, so a wave passes whole from
  * one tube into the next, and two tubes meeting alone are one tube of their lengths together. Boxes, wool and every
  * pipe's own diameter are not read.
  */
@@ -138,7 +138,7 @@ export function lightExhaust(sound: VehicleEngineSound): LightExhaust {
 }
 
 /**
- * The light exhaust kernel (K, 2026-11-23): one gas, in tubes of one width that have only a length, between valves,
+ * The exhaust kernel (K, 2026-11-23): one gas, in tubes of one width that have only a length, between valves,
  * junctions and mouths. A sound fades in four ways: in a wall's boundary layer, in a flow's friction on its wall, in a
  * valve's jet, and out of a mouth.
  *
@@ -171,7 +171,7 @@ export function lightExhaust(sound: VehicleEngineSound): LightExhaust {
  * A sample is a step of time: a length is its whole number of samples, and a valve's flow is solved once a step.
  * Nothing allocates while rendering. The kernel refuses a rate not above twice its highest shelf's corner (`SHELVES`).
  */
-export class ExhaustLight {
+export class Exhaust {
   private readonly sound: VehicleEngineSound;
   private readonly exhaust: LightExhaust;
   // Each tube's two waves, down and then up: tube t's are lines t and tubes + t. A line's cells are a ring.
@@ -223,7 +223,7 @@ export class ExhaustLight {
 
   constructor(sound: VehicleEngineSound, rate: number, observationSeconds: number) {
     if (!(rate > SLOWEST_RATE))
-      throw new RangeError(`The light kernel runs above ${SLOWEST_RATE} Hz, twice its wall's highest corner`);
+      throw new RangeError(`The exhaust kernel runs above ${SLOWEST_RATE} Hz, twice its wall's highest corner`);
     this.sound = sound;
     const { tubes, diameter, junctions } = (this.exhaust = lightExhaust(sound));
     const lines = 2 * tubes.length;
