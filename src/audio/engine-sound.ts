@@ -59,7 +59,7 @@ export interface CompiledEngineSound extends EngineSound {
 export const EXHAUST_LIMITS = Object.freeze({
   cylinders: 16,
   tubes: 48,
-  tubeLengthMeters: 4,
+  tubeLengthMeters: 6,
   diameterMeters: 0.5,
 });
 

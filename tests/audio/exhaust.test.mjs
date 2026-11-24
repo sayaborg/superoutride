@@ -197,7 +197,7 @@ test('an engine sound keeps every rule of its tubes, and each broken rule is ref
   refused(withTubes(KEPT.exhaust.tubes, 0), 'exhaust/diameter');
   refused(withTubes(KEPT.exhaust.tubes, 0.6), 'exhaust/diameter');
   refused(withTubes([one, two, { ...out, length: 0 }]), 'exhaust/tubes/2/length');
-  refused(withTubes([one, two, { ...out, length: 4.5 }]), 'exhaust/tubes/2/length');
+  refused(withTubes([one, two, { ...out, length: 6.5 }]), 'exhaust/tubes/2/length');
   // 2. The first tubes are the cylinders', from their valves, and no other is.
   refused(withTubes([one]), 'exhaust/tubes');
   refused(withTubes([{ ...one, from: 0 }, two, out]), 'exhaust/tubes/0/from');

@@ -42,7 +42,7 @@ A tube begins at a valve (`from: null`) or a junction and ends at a junction or 
 `EngineSound` by these rules, each refused where it is read:
 
 1. The valve's `diameter` is positive and its `open` within (0, 1); the exhaust's `diameter` is positive and at most
-   0.5 m (`exhaust/diameter`); each tube's `length` is positive and at most 4 m (`exhaust/tubes/<n>/length`).
+   0.5 m (`exhaust/diameter`); each tube's `length` is positive and at most 6 m (`exhaust/tubes/<n>/length`).
 2. The first tubes, one for each firing phase in their order, are the cylinders', from their valves (cylinder `i`'s is
    tube `i`, the head's exhaust port included); no other tube runs from a valve (`exhaust/tubes/<n>/from`).
 3. Junctions are numbered from 0 with none missing (`exhaust/tubes`).
