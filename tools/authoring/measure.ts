@@ -47,8 +47,8 @@ export interface MeasureJob {
 export interface MeasureResult {
   readonly vehicleId: string;
   readonly runs: readonly { readonly course: string; readonly run: ReturnType<typeof runCourseReference> }[];
-  /** The engine loudness (LUFS) at each divisor when the job measured it, else null. */
-  readonly lufs: readonly number[] | null;
+  /** The engine loudness (LUFS) when the job measured it, else null. */
+  readonly lufs: number | null;
 }
 
 /** A saved file to write: its path under `content/`, its text, and the value saved there before (null if none). */
@@ -167,7 +167,7 @@ async function assessMeasurement(store: ContentStore, content: CompiledContent, 
   const loudnessSources = engineLoudnessSources(content.definitions.vehicles, content.audio.sha256);
   const loudnessSha256 = await engineLoudnessProcedureSha256();
   const savedLoudness = await savedJson(ENGINE_LOUDNESS_PATH);
-  const freshLoudness = new Map<string, readonly number[]>();
+  const freshLoudness = new Map<string, number>();
   if (!everything) {
     const current = readEngineLoudness(savedLoudness, loudnessSources, '', { procedureSha256: loudnessSha256 });
     if (current.ok) for (const [vehicleId, lufs] of current.value) freshLoudness.set(vehicleId, lufs);

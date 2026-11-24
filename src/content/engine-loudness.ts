@@ -10,16 +10,15 @@ import {
 } from '../core/admission.js';
 import { SHA256_TEXT } from '../core/content-digest.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
-import { EXHAUST_RENDERINGS, renderingName } from '../audio/exhaust-rate.js';
 import type { ContentDelivery } from './content-delivery.js';
 import { admitProduct } from './delivered-product.js';
 
 /**
  * The engine loudness: each vehicle's measured integrated loudness (LUFS) of its engine's compressed sound, before its
- * gain and soft clip, at each rendering, with the identities it was measured from. Saved under `content/` by the
+ * gain and soft clip, with the identities it was measured from. Saved under `content/` by the
  * measurement tool and delivered as saved.
  */
-export const ENGINE_LOUDNESS_FORMAT = Object.freeze({ format: 'superoutride.engine-loudness', version: 5 } as const);
+export const ENGINE_LOUDNESS_FORMAT = Object.freeze({ format: 'superoutride.engine-loudness', version: 6 } as const);
 /** The one engine loudness document's identifier: its file name and manifest ID. */
 export const ENGINE_LOUDNESS_ID = 'default';
 
@@ -29,8 +28,8 @@ export interface EngineLoudnessEntry {
   readonly vehicleSha256: string;
   /** Its engine sound document's SHA-256. */
   readonly soundSha256: string;
-  /** One loudness for each of `EXHAUST_RENDERINGS`, in its order. */
-  readonly lufs: readonly number[];
+  /** Its engine's loudness (LUFS). */
+  readonly lufs: number;
 }
 
 export interface EngineLoudnessDocument {
@@ -78,14 +77,14 @@ const invalid: Mismatch = (path, reason) => {
 /**
  * Admit an engine loudness document for `sources`: the audio document's identity, and every catalog vehicle once in
  * catalog order with its own identities; `procedureSha256`, when given, is the measurement's. Each mismatch is refused
- * through `mismatch`. Returns each vehicle's loudness at each rendering by vehicle ID.
+ * through `mismatch`. Returns each vehicle's loudness by vehicle ID.
  */
 export function readEngineLoudness(
   input: unknown,
   sources: EngineLoudnessSources,
   document = '',
   { procedureSha256 = null, mismatch = invalid }: { procedureSha256?: string | null; mismatch?: Mismatch } = {},
-): AdmissionResult<ReadonlyMap<string, readonly number[]>> {
+): AdmissionResult<ReadonlyMap<string, number>> {
   return admit(document, () => {
     const data = readDocument(
       input,
@@ -107,21 +106,14 @@ export function readEngineLoudness(
       entries.some(({ vehicleId }, index) => vehicleId !== sources.vehicles[index]!.vehicleId)
     )
       mismatch('/vehicles', `Expected the catalog's vehicles, ${sources.vehicles.map((v) => v.vehicleId).join(', ')}`);
-    const loudness = new Map<string, readonly number[]>();
+    const loudness = new Map<string, number>();
     entries.forEach(({ at, entry, vehicleId }, index) => {
       const { vehicleSha256, soundSha256 } = sources.vehicles[index]!;
       if (readString(entry.vehicleSha256, `${at}/vehicleSha256`, SHA256_TEXT) !== vehicleSha256)
         mismatch(`${at}/vehicleSha256`, "The vehicle's mechanics changed since its engine loudness was measured");
       if (readString(entry.soundSha256, `${at}/soundSha256`, SHA256_TEXT) !== soundSha256)
         mismatch(`${at}/soundSha256`, "The vehicle's engine sound changed since its engine loudness was measured");
-      const lufs = readArray(entry.lufs, `${at}/lufs`, (value, pointer) => readNumber(value, pointer));
-      if (lufs.length !== EXHAUST_RENDERINGS.length)
-        throw new AdmissionError(
-          'invalid_value',
-          `${at}/lufs`,
-          `Expected one loudness for each rendering, ${EXHAUST_RENDERINGS.map(renderingName).join(', ')}`,
-        );
-      loudness.set(vehicleId, Object.freeze(lufs));
+      loudness.set(vehicleId, readNumber(entry.lufs, `${at}/lufs`));
     });
     return loudness;
   });
@@ -135,7 +127,7 @@ export async function loadEngineLoudness(
   content: ContentDelivery,
   vehicles: readonly CompiledVehicleDefinition[],
   audioSha256: string,
-): Promise<ReadonlyMap<string, readonly number[]> | null> {
+): Promise<ReadonlyMap<string, number> | null> {
   if (!content.manifest.files.some((file) => file.kind === 'engine-loudness')) return null;
   return admitProduct(content, 'engine-loudness', ENGINE_LOUDNESS_ID, (value, document) =>
     readEngineLoudness(value, engineLoudnessSources(vehicles, audioSha256), document),

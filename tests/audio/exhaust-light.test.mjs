@@ -210,3 +210,45 @@ test('the light kernel refuses a rate not above twice its highest shelf', () => 
   const { sound } = vehicles[0];
   assert.throws(() => new ExhaustLight(sound, 20480, 0.025), RangeError);
 });
+
+/**
+ * About 0.75 s of whole 128-sample quanta: opening to redline; the fuel cut at 1.04 times redline, fully open; then
+ * closed at the middle of the revs with an afterfire asked before every sample, so at every firing.
+ */
+const SEGMENTS = [
+  { samples: 12032, from: 'idle', to: 'redline', opening: 1, burns: true, afterfire: false },
+  { samples: 12032, from: 'cut', to: 'cut', opening: 1, burns: false, afterfire: false },
+  { samples: 12032, from: 'middle', to: 'middle', opening: 0, burns: true, afterfire: true },
+];
+
+/** The segments through a vehicle's kernel, `quantum` samples a call but one a call while afterfires are asked. */
+function drive({ sound, compiledVehicle }, quantum) {
+  const { idleRpm, redlineRpm } = compiledVehicle.powertrain;
+  const speeds = { idle: idleRpm, redline: redlineRpm, cut: 1.04 * redlineRpm, middle: (idleRpm + redlineRpm) / 2 };
+  const kernel = new ExhaustLight(sound, rate, 0.025);
+  const out = new Float64Array(SEGMENTS.reduce((sum, { samples }) => sum + samples, 0));
+  let offset = 0;
+  for (const { samples, from, to, opening, burns, afterfire } of SEGMENTS) {
+    const rpm = Float64Array.from(
+      { length: samples },
+      (_, n) => speeds[from] + ((speeds[to] - speeds[from]) * n) / samples,
+    );
+    const open = new Float64Array(samples).fill(opening);
+    const count = afterfire ? 1 : quantum;
+    for (let n = 0; n < samples; n += count) {
+      if (afterfire) kernel.afterfire();
+      kernel.render(out, offset + n, count, rpm.subarray(n, n + count), open.subarray(n, n + count), burns);
+    }
+    offset += samples;
+  }
+  return out;
+}
+
+test('the light kernel renders the same sound one sample at a time as 128 at a time', () => {
+  for (const vehicle of vehicles) {
+    const single = drive(vehicle, 1),
+      quanta = drive(vehicle, 128);
+    const differs = single.findIndex((value, n) => value !== quanta[n]);
+    assert.equal(differs, -1, `${vehicle.compiledVehicle.id} differs at sample ${differs}`);
+  }
+});

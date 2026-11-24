@@ -168,11 +168,11 @@ test('PRESS START leads to SELECT SERIES, whose last card is FREE PLAY, and BACK
   assert.equal(send('PAUSE'), 'confirm');
   assert.deepEqual(names(), ['SETTINGS']);
   assert.equal(screen.row.world, DEMO);
-  assert.equal(items().length, 14);
+  assert.equal(items().length, 13);
   assert.deepEqual(items().slice(-2), ['CONTROLS', 'CLEAR RECORDS']);
   // A value's CONFIRM does nothing.
   assert.equal(send('CONFIRM'), null);
-  for (let i = 0; i < 12; i++) assert.equal(send('DOWN'), 'move');
+  for (let i = 0; i < 11; i++) assert.equal(send('DOWN'), 'move');
   send('CONFIRM');
   assert.deepEqual(names(), ['CONTROLS']);
   send('BACK');
@@ -204,7 +204,7 @@ test('PAUSE opens SETTINGS from any row, on what that row stands on, and BACK or
   const at = screen.index;
   send('PAUSE');
   assert.equal(screen.row.world, clubPicture);
-  for (let i = 0; i < 12; i++) send('DOWN');
+  for (let i = 0; i < 11; i++) send('DOWN');
   send('CONFIRM');
   assert.deepEqual([screen.row.cards[0].name, screen.row.world], ['CONTROLS', clubPicture]);
   assert.equal(send('PAUSE'), 'back');
@@ -233,7 +233,7 @@ test('LEFT and RIGHT wrap a row of three or more and shake one of one or two; UP
   assert.equal(screen.index, 0);
   // SETTINGS' CLEAR RECORDS?: two cards, which do not wrap.
   send('PAUSE');
-  for (let i = 0; i < 13; i++) send('DOWN');
+  for (let i = 0; i < 12; i++) send('DOWN');
   send('CONFIRM');
   assert.equal(send('LEFT'), null);
   assert.equal(screen.index, 0);

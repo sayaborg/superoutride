@@ -1,4 +1,4 @@
-import { ExhaustRenderer, type ExhaustRendering } from './exhaust-rate.js';
+import { ExhaustLight } from './exhaust-light.js';
 import { EngineChain } from './engine-chain.js';
 import type { ControlSettings } from './audio-control-policy.js';
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
@@ -8,16 +8,15 @@ declare const sampleRate: number;
 declare const AudioWorkletProcessor: { new (): { readonly port: MessagePort } };
 declare function registerProcessor(name: string, processor: typeof AudioWorkletProcessor): void;
 
-/** What the voice installs: an admitted sound and control, its rendering and the gain for that rendering. */
+/** What the voice installs: an admitted sound and control, and the engine's gain. */
 export interface ExhaustConfiguration {
   readonly sound: VehicleEngineSound;
   readonly control: ControlSettings;
-  readonly rendering: ExhaustRendering;
   readonly gain: number;
 }
 
 class ExhaustProcessor extends AudioWorkletProcessor {
-  private engine: { readonly renderer: ExhaustRenderer; readonly chain: EngineChain } | null = null;
+  private engine: { readonly kernel: ExhaustLight; readonly chain: EngineChain } | null = null;
   private running = true;
   private readonly meter = new ProcessingMeter(this.port, sampleRate);
   private readonly rest = new WorkletRest();
@@ -41,7 +40,7 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     if (initial) this.configure(initial);
     this.port.onmessage = ({ data }) => {
       if (this.meter.receive(data) || this.rest.receive(data)) return;
-      if (data === 'afterfire') this.engine?.renderer.afterfire();
+      if (data === 'afterfire') this.engine?.kernel.afterfire();
       else if (data === 'stop') {
         this.running = false;
         this.engine = null;
@@ -56,9 +55,9 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     };
   }
   /** The voice sends an admitted configuration, used as given; the kernel and the chain start from silence. */
-  private configure({ sound, control, rendering, gain }: ExhaustConfiguration): void {
+  private configure({ sound, control, gain }: ExhaustConfiguration): void {
     this.engine = {
-      renderer: new ExhaustRenderer(sound, sampleRate, rendering, control),
+      kernel: new ExhaustLight(sound, sampleRate, control.observationSeconds),
       chain: new EngineChain(sampleRate, gain),
     };
   }
@@ -87,8 +86,8 @@ class ExhaustProcessor extends AudioWorkletProcessor {
     this.rpm.fill(rpm);
     this.load.fill(load);
     // The exhaust's sound at the output's rate, then the engine's chain: compressor, gain, soft clip.
-    const { renderer, chain } = this.engine;
-    renderer.render(this.pressure, 0, output.length, this.rpm, this.load, burns);
+    const { kernel, chain } = this.engine;
+    kernel.render(this.pressure, 0, output.length, this.rpm, this.load, burns);
     for (let i = 0; i < output.length; i++) output[i] = chain.process(this.pressure[i]!);
     this.meter.end(started, output.length);
     return true;

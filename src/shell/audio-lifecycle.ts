@@ -39,7 +39,7 @@ const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'keydown'] as co
 /** DOM, permission and failure boundary. Presentation updates fail closed without stopping gameplay. */
 /**
  * Each competitor's engine sounds its own vehicle's engine sound, from the vehicle catalog, at the gain of its measured
- * `engineLoudness` for the rendering the player record's ENGINE SOUND QUALITY plays it at; a sound the DEV ENGINE SOUNDS
+ * `engineLoudness`; a sound the DEV ENGINE SOUNDS
  * panel changed is sounded as each vehicle using it sounds it (`compileVehicleEngineSound`), still at the loudness
  * measured for the delivered values. The DEV sound controls
  * start from the delivered audio document's `settings` and the delivered surface and engine `sounds`, whose records the
@@ -54,8 +54,8 @@ export function createAudioLifecycle(
     readonly materialIds: readonly string[];
     readonly surfaces: CompiledSurfaceSounds;
     readonly engines: EngineSoundCatalog;
-    /** Each vehicle's measured engine loudness at each rendering, or null for a delivery without it. */
-    readonly engineLoudness: ReadonlyMap<string, readonly number[]> | null;
+    /** Each vehicle's measured engine loudness, or null for a delivery without it. */
+    readonly engineLoudness: ReadonlyMap<string, number> | null;
   },
   settings: AudioSettings,
   player: PlayerRecord,
@@ -85,9 +85,7 @@ export function createAudioLifecycle(
       },
     ]),
   );
-  const engineOf = (
-    vehicleId: string,
-  ): { readonly sound: VehicleEngineSound; readonly lufs: readonly number[] | null } => {
+  const engineOf = (vehicleId: string): { readonly sound: VehicleEngineSound; readonly lufs: number | null } => {
     const entry = voiced.get(vehicleId);
     if (!entry) throw new Error(`No engine sound for vehicle ${vehicleId}`);
     const source = engineSounds[entry.vehicle.sound.id]!;
@@ -97,8 +95,6 @@ export function createAudioLifecycle(
     }
     return entry;
   };
-  // The player record's ENGINE SOUND QUALITY, which the scene follows at each update.
-  const engineSoundQuality = () => player.settings.engineSoundQuality;
   const playerEmitter = createVehicleAudioEmitter();
   const rivalEmitters: ReturnType<typeof createVehicleAudioEmitter>[] = [];
   const presentRivals: ReturnType<typeof createVehicleAudioEmitter>[] = [];
@@ -338,7 +334,6 @@ export function createAudioLifecycle(
           readVehicleAudio(rivals[i]!, rivalEmitters[i]!);
           presentRivals[i] = rivalEmitters[i]!;
         }
-        scene.setEngineSoundQuality(engineSoundQuality());
         scene.update(playerEmitter, presentRivals, engineOf);
       } catch {
         fail();

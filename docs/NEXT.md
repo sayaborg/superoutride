@@ -74,7 +74,7 @@ Each line is one area as it stands, with the document that owns it.
   friction circle, the game-wide load sensitivity, a vehicle's grip balance between its axles), protection, steering
   and recovery ([Vehicle physics](vehicle-physics.md)); [Stage TR](#stage-tr--the-brush-tire)'s values await K's DEV.
 - **Audio.** The audio scene and sound graph, engine sounds by one model of the exhaust's tubes and spaces (Stage ES:
-  afterfires the powertrain decides, ENGINE SOUND QUALITY's rates and its LIGHT kernel ([Stage EL](#stage-el--the-light-engine-sound)), a compressor before each vehicle's measured gain;
+  afterfires the powertrain decides, one kernel, the light one ([Stage EL](#stage-el--the-light-engine-sound)), a compressor before each vehicle's measured gain;
   silencers in eight so far, [Stage MF](#stage-mf--silencers-and-turbines-in-the-engine-sounds)), tire audio (UNIFIED),
   recordings and music, effects and contact sound; the recordings are placeholders until K's files replace them
   ([Audio](audio.md), [Tire audio](tire-audio.md), [placeholder recordings](#placeholder-recordings)).
@@ -492,17 +492,23 @@ The stage's name, `MF`, is the auditor's; K has not decided it. What stays open,
 
 ## Stage EL — The light engine sound
 
-K's decision of 2026-11-22: in the game, with the music, the settled eleven's sound is buried but for its cracks and
-(with a turbine) its intake. ENGINE SOUND QUALITY's fourth value, LIGHT, plays the player's and the rival's engines
-through the light kernel at the output's rate ([Audio](audio.md#the-light-kernel)), the sound documents unchanged; its
-loudness is measured beside the four divisors'. K's decision of 2026-11-23: the light kernel is N5, a model of its own
-sharing nothing with the game kernel, that reads only tubes' lengths (EL-3; a tube's width changing rang metallic).
-K's decision of 2026-11-24, after hearing three forms in the game: its tubes' flow rubs on their walls (EL-5; without
-it, tubes of uneven lengths rang high and muddy). The stage's name, `EL`, is the auditor's. What stays open, for K:
+K's decisions of 2026-11-22 to 2026-11-24: in the game, with the music, the settled eleven's sound was buried but for
+its cracks and (with a turbine) its intake, so a light kernel was made and heard. It is N5, a model of its own that
+reads only tubes' lengths (EL-3; a tube's width changing rang metallic), its tubes' flow rubbing on their walls (EL-5;
+without it, tubes of uneven lengths rang high and muddy). Since EL-6 it is the game's one engine sound
+([Audio](audio.md#the-light-kernel)), with no ENGINE SOUND QUALITY and one measured loudness a vehicle; the former game
+kernel continues in `sayaborg/callcutter`. The stage's name, `EL`, is the auditor's. What remains, in order:
 
-- The default stays MID until K has heard LIGHT in the game with the music, its afterfires included (at their peak
-  3 to 12 dB above EL-1's, burning at the shut valve).
-- LIGHT's load on real devices.
+- **EL-6b.** Remove the former game kernel, no longer played: `src/audio/exhaust-waveguide.ts`, `exhaust-acoustics.ts`
+  and `exhaust-rate.ts`, the tests `exhaust-render.test.mjs` (with its values) and `wall-loss.test.mjs`, and their
+  descriptions in [Audio](audio.md) (its engine synthesis and derived values) and [Calibration](calibration.md).
+- **EL-7.** Trim the engine sound documents of what the light kernel does not read (pipes' diameters, boxes, wool), with
+  SELECT VEHICLE's exhaust picture and DEV's ENGINE SOUNDS panel.
+- **EL-8.** The names (LIGHT, light) and the documents.
+
+What stays open, for K:
+
+- The engine's load on real devices.
 - The light kernel has two listened values, `LISTENED` (a charge's variation and an afterfire's time); no other, and no
   vehicle's exception, is to be added to it. Its friction factor, 0.02, is an assumption and is not tuned.
 

@@ -3,7 +3,6 @@ import { fadeToSilence, follow } from './audio-parameter.js';
 import { sameControlSettings, type ControlSettings } from './audio-control-policy.js';
 import { DEFAULT_AUDIO_SETTINGS } from './audio-defaults.js';
 import type { ExhaustConfiguration } from './exhaust-processor.js';
-import type { ExhaustRendering } from './exhaust-rate.js';
 import type { VehicleEngineSound } from './vehicle-engine-sound.js';
 import type { VehicleAudioObservation } from './vehicle-audio-observation.js';
 import type { ProcessingReport } from './processing-meter.js';
@@ -16,9 +15,8 @@ import { watchProcessor } from './processor-failure.js';
 export const DOWNSHIFT_BLIP = Object.freeze({ opening: 1, decaySeconds: 0.25 });
 
 /**
- * One reusable exhaust worklet. A change of engine sound, rendering (its kernel and divisor), gain or kernel control
- * installs a new kernel after the same fade. Settings are admitted ones, used as given; a rendering is a member of
- * `EXHAUST_RENDERINGS`, and `gain` is the engine's for it (`engineGain`).
+ * One reusable exhaust worklet. A change of engine sound, gain or kernel control installs a new kernel after the same
+ * fade. Settings are admitted ones, used as given, and `gain` is the engine's (`engineGain`).
  */
 export function createEngineVoice(
   context: BaseAudioContext,
@@ -38,39 +36,25 @@ export function createEngineVoice(
   const requireProcessor = watchProcessor(exhaust, 'engine sound');
   let active: ExhaustConfiguration | null = null;
   let pending: (ExhaustConfiguration & { at: number }) | null = null;
-  const same = (
-    entry: ExhaustConfiguration | null,
-    sound: VehicleEngineSound,
-    rendering: ExhaustRendering,
-    gain: number,
-  ) =>
-    entry?.sound === sound &&
-    entry.rendering === rendering &&
-    entry.gain === gain &&
-    sameControlSettings(entry.control, control);
+  const same = (entry: ExhaustConfiguration | null, sound: VehicleEngineSound, gain: number) =>
+    entry?.sound === sound && entry.gain === gain && sameControlSettings(entry.control, control);
   // The last shift and afterfire sequences heard; null until the first update after construction or silence.
   let heardShift: number | null = null;
   let heardAfterfire: number | null = null;
   return {
-    update(
-      state: VehicleAudioObservation,
-      sound: VehicleEngineSound,
-      rendering: ExhaustRendering,
-      gain: number,
-      distanceGain = 1,
-    ): void {
+    update(state: VehicleAudioObservation, sound: VehicleEngineSound, gain: number, distanceGain = 1): void {
       requireProcessor();
       const now = context.currentTime;
-      const changed = !same(active, sound, rendering, gain);
+      const changed = !same(active, sound, gain);
       if (active && changed) {
-        if (!same(pending, sound, rendering, gain)) {
-          pending = { sound, rendering, gain, control, at: fadeToSilence(output.gain, now, control.fadeSeconds) };
+        if (!same(pending, sound, gain)) {
+          pending = { sound, gain, control, at: fadeToSilence(output.gain, now, control.fadeSeconds) };
         }
         if (pending && now < pending.at) return;
       }
       pending = null;
       if (changed) {
-        active = { sound, rendering, gain, control };
+        active = { sound, gain, control };
         exhaust.port.postMessage(active);
       }
       const { shift, afterfire } = state;
