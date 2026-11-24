@@ -19,6 +19,6 @@
     ]
   },
   "metadata": {
-    "note": "Two cast elements pair cylinders 1+4 and 2+3 (33 mm outlets, FIA A-5295) into a twin downpipe; one pipe through the front, centre and rear silencers to two tailpipes. Lengths are estimates. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: two exhaust valves of 28 mm, 10.2 mm lift, 69 BBDC / 38 ATDC = 287 deg (FIA A-5295)."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/GOLF_GTI_16V.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

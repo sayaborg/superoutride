@@ -15,6 +15,6 @@
     ]
   },
   "metadata": {
-    "note": "Cast 4-into-1 manifold (outer runners longer) into the Garrett T3 turbine (0.48 A/R housing), represented by its throat (26 mm, 0.08 m); the closed wastegate is not represented; one pipe through the centre and rear silencers to one tailpipe. Every pipe is an estimate. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: 36.5 mm (FIA A-5355); 9.5 mm lift and about 238 deg are estimates."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/DELTA_HF_INTEGRALE.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

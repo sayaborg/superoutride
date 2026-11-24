@@ -13,6 +13,6 @@
     ]
   },
   "metadata": {
-    "note": "Headers (38 mm tapering to 36 mm OD) through the small collector box under the gearbox, a link pipe and the single high silencer. Lengths are estimates. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: 38 mm (BMW part), 308 deg cam with 9.4 mm lift (BMW literature)."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/R80_GS_PARIS_DAKAR.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

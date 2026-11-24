@@ -14,6 +14,6 @@
     ]
   },
   "metadata": {
-    "note": "The 1984 machine, NV0A (Honda's RACERS pages): a 90-degree single-crank V4 firing one cylinder every 90 degrees, 54 x 54.5 mm, 499.2 cc, one cycle per revolution; the banks are taken to alternate. Four independent pipes, as the two-stroke is, neither widened nor moved: each a header (0.22 m x 38 mm), an expansion chamber (0.46 m x 86 mm; the four alike in section and volume, 110 mm at their widest, running where a tank would be, over the engine), a stinger (0.20 m x 22 mm; the one bank's two, from junctions 5 and 7, 0.24 m: K wanted the banks a little apart, and the 0.04 m is the auditor's), a silencer with the wool (0.28 m x 62 mm; its bore 22 mm, as the stinger, straight through) and an outlet (0.02 m x 22 mm). Lengths and diameters are estimates from photographs (about 0.60 m of chamber and 0.08 m within the cylinder, a stinger of about 0.20 m x 22 mm, a silencer of about 0.29 m x 60 mm). The 20 mm of wool was set by ear (K, 2026-11-22); lengths are in steps of 0.02 m. Port area approximated by a 28 mm equivalent circle, 200 degrees open, the NSR500 of 1987's estimate."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/NSR500_1984.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

@@ -8,8 +8,8 @@ fuel consumption are not implemented. Existing automatic shifts, launch assistan
 are game aids, not historical equipment. In particular, these F1 cars do **not** reproduce high-speed aerodynamic
 cornering loads.
 
-The [numeric ledger](racing-vehicles/numeric-ledger.csv) maps every numeric mechanics and sound field to its
-original value/unit, source section, selected condition, adopted value/unit, conversion, confidence and uncertainty.
+The [numeric ledger](racing-vehicles/numeric-ledger.csv) maps every numeric mechanics and sound field, but the
+exhaust's diameter and tubes ([Audio](audio.md#observations-and-engine-sounds)), to its original value/unit, source section, selected condition, adopted value/unit, conversion, confidence and uncertainty.
 Its four confidence labels are **source verified**, **calculated**, **engineering estimate**, and **game design**.
 A source beside an estimate provides vehicle context, not verification of that estimate. Calculations retain the
 uncertainty of their inputs. Authored JSON remains the runtime authority; this CSV is an audit, never a second loader.
@@ -200,10 +200,7 @@ resistance, so the machine tops out in sixth below its redline, at 285.5 km/h
 gives follow the 1987 machine: ride frequencies, damping, travel, the front wheel's inertia and brake and the drag
 `q=0.18 kg/m`; yaw and pitch inertias scale with its mass and the square of its wheelbase (92 / 111 kg m²), the rear
 wheel's inertia with the square of its radius (0.58 kg m²) and the rear brake with its radius (253 N m). Compression 11
-is the 1987 machine's estimate. Its sound is its own (`NSR500_1984`, K's rules of 2026-11-22;
-[Calibration](calibration.md#exhaust-topologies)): four separate paths, each a header, a chamber running where a tank
-would be, a stinger, a silencer with the wool and an outlet, the one bank's stingers 0.04 m longer than the other's,
-lengths estimated from photographs; its pictures are baked from K's model in eight liveries ([Model
+is the 1987 machine's estimate. Its sound is its own (`NSR500_1984`), four separate paths; its pictures are baked from K's model in eight liveries ([Model
 solids](image-assets.md#model-solids)).
 
 The NSR500 of 1984 runs on the default tire and carries its mass 0.30 of its wheelbase high, both for now
@@ -240,10 +237,12 @@ logos and tiny details remain provisional: color bands and race numbers identify
 is not reproduced. Every shape uses the same ground anchor, lighting, shadow and renderer folding rules as other vehicles.
 Six complete direction/bank sheets per vehicle are written to `dist/racing-pictures/<set>-lod0.png` through `lod5.png`.
 
-Each sound has its own authored engine-sound v2 document, using the existing acoustic kernel. The bikes have one cycle
-per revolution and four separate primary/chamber/stinger paths, not the four-stroke VFR sound. The NSR500 of 1984's
-sound is described [above](#honda-nsr500-of-1984-historical-reference-versus-authored). Yamaha's evenly spaced
-quarter-cycle events are an approximation and claim no ignition order. Four-stroke events are evenly spaced through two
-revolutions: 6 for RA168E, 12 for Tipo 035/5, 8 for DFV. Cylinder-to-collector assignments are estimated. Pipe lengths,
-areas and valve/port timing are unmeasured acoustic geometry; straight chamber and turbo-throat tubes omit their actual
-dynamics. The engine-loudness measurement is generated with the existing deterministic procedure.
+Each sound has its own engine-sound document, played by the exhaust kernel. The bikes have one cycle per revolution and
+four separate paths, not the four-stroke VFR sound. Yamaha's evenly spaced quarter-cycle events are an approximation
+and claim no ignition order. Four-stroke events are evenly spaced through two revolutions: 6 for RA168E, 12 for Tipo
+035/5, 8 for DFV. Valve and port timing are estimates. The engine-loudness measurement is generated with the existing
+deterministic procedure.
+
+The exhausts are written as the exhaust kernel reads them: one diameter and tubes that have only a length
+([Audio](audio.md#observations-and-engine-sounds)). The exhausts as first written, and their sources, are in
+`sayaborg/callcutter`, with this document as it stood at `f196885` (`origin/docs/racing-vehicles.md`).

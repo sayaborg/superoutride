@@ -16,7 +16,8 @@ pursuit behavior, HUD, gear label or physics mechanism is added. They use ordina
 **These are provisional vehicle reconstructions, not fourteen fully verified factory simulations.** Published
 power and dimension anchors are used where identified below; several gear ratios, masses and much of the
 geometry and acoustics still require better primary evidence. The [numeric ledger](chase-turbo-vehicles/numeric-ledger.csv)
-classifies every numerical mechanics and sound input. Runtime JSON remains the sole numerical authority;
+classifies every numerical mechanics and sound input but the exhaust's diameter and tubes
+([Audio](audio.md#observations-and-engine-sounds)). Runtime JSON remains the sole numerical authority;
 the ledger is an audit, not an input loader. Do not interpret a precise decimal as measurement precision.
 
 ## Fixed identities
@@ -193,14 +194,8 @@ A source-verified secondary value means that page was read, not that it has prim
     140 lb-ft at 2,500 rpm and a two-branch manifold straight to the turbo; about 100 lb-ft at 2,000 and the 4 into 2
     ([projectm71](https://www.projectm71.com/TurboEsprit.html)). UK mass and dimensions
     ([ultimatespecs](https://www.ultimatespecs.com/car-specs/Lotus/132269/Lotus-Esprit-Turbo-22i.html)). The sound's
-    sources: the exhaust valves ([datasheet](https://lotusmarques.com/parts/datasheets/841-lotus-esprit-turbo-exhaust-valves)),
-    the cam ([table](https://users.ox.ac.uk/~ohare/engine.htm)), the manifold's pairing
-    ([stainless manifold](http://www.lotusespritworld.com/EGuides/EModifications/StainlessManifold.html)), the 1980–87
-    manifold and turbo diagram
-    ([image](https://lotusmarques.com/images/lm/Esprit-exhaust-manifold-and-turbo-80-87/esprit-turbo-man-80-87-wm.jpg)),
-    the pipe bore of a 1985 US car ([thread](https://www.lotustalk.com/threads/exhaust-diameter.378097)), the turbine's
-    A/R ([thread](https://www.lotustalk.com/threads/turbo-mods-upgrades.108579/)) and a replacement system's photograph
-    ([image](https://www41.easy-myshop.jp/emsrsc/nilaikanai/itemimg/2131/item.2131.1.jpg)).
+    valve sources: the exhaust valves ([datasheet](https://lotusmarques.com/parts/datasheets/841-lotus-esprit-turbo-exhaust-valves))
+    and the cam ([table](https://users.ox.ac.uk/~ohare/engine.htm)).
 
 12. **Countach 5000 QV of 1985** (MF-5, 2026-11-22). K's note of the period catalogue gives the gears
     2.232/1.625/1.088/0.858/0.707 and final 4.091 (45/11); two specification pages agree
@@ -209,11 +204,7 @@ A source-verified secondary value means that page was read, not that it has prim
     overhangs and weight split ([lambocars](https://www.lambocars.com/countach-lp500-quattrovalvole-specs-performance/)):
     the catalogue and several sources give a 2,500 mm wheelbase, but their overhangs (933 and 757 mm) and length
     (4,140 mm) give 2,450 mm, which stays. No redline source was found (an ignition box's 7,800 rpm limit on a forum and
-    the catalogue's top speed in fifth at 7,300 rpm); 7,500 rpm stays. The sound's sources: eurospares' 1985 5000 QV
-    exhaust diagram 028
-    ([diagram](https://www.eurospares.co.uk/lamborghini/countach/countach-5000-qv-1985/part-diagrams/028/exhaust-pipes)),
-    a replacement manifold's photograph
-    ([image](https://www.stainless-exhaust.com/wp-content/gallery/exhausts/lamborghini-countach-manifolds.jpg)), the
+    the catalogue's top speed in fifth at 7,300 rpm); 7,500 rpm stays. The sound's valve sources: the
     valve sizes ([supercarnostalgia](https://supercarnostalgia.com/blog/lamborghini-countach-quattrovalvole)), the cam's
     lift and duration ([Web Cam](https://www.webcamshafts.com/pages_vehicles/automobile/lamborghini/2663.html)) and the
     cam timing and clearance on a forum
@@ -227,12 +218,7 @@ A source-verified secondary value means that page was read, not that it has prim
     [ultimatespecs](<https://www.ultimatespecs.com/de/car-specs/Porsche/239048/Porsche-911-Coupe-(911-series)-33-Turbo-4-speed.html>));
     a 1986 European car with the M930/66 engine and the 930/36 box
     ([classic driver](https://www.classicdriver.com/de/car/porsche/911-turbo/1986/1085571)). The torque curve's 950,
-    3,000 and 6,800 rpm points are estimates (owners' boost figures by speed; no curve was found). The sound's
-    sources: Porsche's diagrams for the 930.66/68 engine, the heat exchangers
-    ([202-10](https://www.design911.com/uploads/images/diagrams/diagrams/911_1989_2_02_202-10.jpg)), the turbine's pipes,
-    wastegate and silencer ([202-15](https://www.design911.com/uploads/images/diagrams/diagrams/911_1989_2_02_202-15.jpg))
-    and the crossing pipe
-    ([202-05](https://www.design911.com/uploads/images/diagrams/diagrams/911_1989_2_02_202-05.jpg)).
+    3,000 and 6,800 rpm points are estimates (owners' boost figures by speed; no curve was found).
 
 14. **GTO of 1984** (MF-7, 2026-11-22). The owner's manual (Cat. 345/85, K's note): idle 950 ± 50 rpm warm, rear
     tyres 255/50 VR16 (Goodyear); a parts list correction of 22 October 1985 adds Pirelli P7 with 265/50 VR16 rear
@@ -240,11 +226,7 @@ A source-verified secondary value means that page was read, not that it has prim
     [Octane](https://www.octane-magazine.com/articles/features/ferrari-288-gto-driving-and-celebrating-the-legend/),
     "without fluids") stays the base; the manual's English column calls it curb weight. The torque curve's 950 and
     3,000 rpm points are estimates (no curve was found; Octane describes a flat low end and a dramatic rise from 4,000
-    rpm). The sound's sources: parts diagram 012
-    ([eurospares](https://www.eurospares.co.uk/ferrari/288/288-gto/part-diagrams/012/exhaust-system)), silencer 123426
-    ([photograph](https://racecarsdirect.com/content/UserImages/127931/713764.jpg)), a manifold under restoration
-    ([photograph](https://www.dkeng.co.uk/restoration_images/1701388800/large_1702465293_288m_december23_8.jpg)), the
-    tube manifolds and one silencer ([supercars.net](https://www.supercars.net/blog/ferrari-288-gto/)) and the F40's
+    rpm). The sound's valve source: the F40's
     cam timing ([thread](https://www.ferrarichat.com/forum/threads/288-and-f40-cam-specs.473123/)).
 
 15. **Turbo Esprit's colors** (E82-1, 2026-11-23), the stage auditor's reading; neither list was reachable from
@@ -311,12 +293,15 @@ image is redistributed. Facet locations, window proportions, lights, rims, paint
 is not a dimensioned CAD reconstruction. Dimensions include a provisional visual envelope, so tiny mirrors, lamps or the
 spare can extend slightly beyond the nominal body panel dimensions.
 
-Each car has its own existing-format sound graph with its cylinder count and evenly spaced firing phases.
-Ferrari flat-plane banks alternate (the F40's exhaust is written [below](#f40-exhaust-and-sound)); the two 928s route 1-3-7-2-6-5-4-8 by banks 1–4/5–8, the S4's banks meeting only
-in its rear silencer ([below](#porsche-928-s4-of-1987-sources-versus-authored)), while Chevy V8s route
-1-8-4-3-6-5-7-2 by odd/even banks. Flat sixes and V12 use alternating banks. Except the S4's and the F40's, whose
-sources are given below, all valve openings, diameters, pipe dimensions and collector simplifications are estimates. They are
-synthesized approximations, not recordings or independently verified exhaust acoustics. No siren, turbo sound process or physics is added.
+Each car has its own sound with its cylinder count and evenly spaced firing phases. Ferrari flat-plane banks alternate;
+the two 928s route 1-3-7-2-6-5-4-8 by banks 1–4/5–8, while Chevy V8s route 1-8-4-3-6-5-7-2 by odd/even banks. Flat
+sixes and V12 use alternating banks. Except the S4's and the F40's, whose sources are given below, all valve openings
+and diameters are estimates. They are synthesized approximations, not recordings. No siren, turbo sound process or
+physics is added.
+
+The exhausts are written as the exhaust kernel reads them: one diameter and tubes that have only a length
+([Audio](audio.md#observations-and-engine-sounds)). The exhausts as first written, and their sources, are in
+`sayaborg/callcutter`, with this document as it stood at `f196885` (`origin/docs/chase-turbo-vehicles.md`).
 
 ## Reproduction and validation
 
@@ -369,7 +354,6 @@ reachable from the PR's environment. K's decisions are the year, the specificati
 | Drag              | cW 0.31 (Porsche); frontal area 1.92 m² (a forum's transcription of Porsche's table)                                                     | `q = 0.5 × 1.225 × 0.31 × 1.92` = **0.36456 kg/m**                                                | source, secondary, calculated |
 | Inertias          | —                                                                                                                                        | Box estimates **3,006 / 2,762 kg m²**                                                             | calculated                    |
 | Brakes            | —                                                                                                                                        | 1,675 × 11.5 m/s², 65:35, × 0.315 / 0.311 m, to 25 N m: **3,950 / 2,100 N m**                     | game design                   |
-| Exhaust           | Two manifolds, a cross tube, two K26, one silencer (catalogue)                                                                           | [Calibration](calibration.md#exhaust-topologies); below                                           | catalogue, estimate           |
 | Unchanged         | Length, width, height, rear track, wheelbase 2,272 mm, 2,849 cc, compression ratio                                                       | As before; CG 0.47 m, suspension, front drive 0.4, idle 900                                       | as in the CSV                 |
 
 The six ratios were 3.5, 2.059, 1.409, 1.074, 0.861 and 0.696; the upper three are a 911 G50's and fit no 959 tooth
@@ -384,15 +368,9 @@ count. Point 1 was 235 N m at 2,000 rpm and point 2 500 N m at 5,000 rpm, both e
 - The torque curve is the steady full-throttle envelope of five points, as every car's. The second turbocharger's
   onset, boost and its lag, PSK's varying split (the front share stays a fixed 0.4) and the ride-height control are
   not represented (K).
-- The engine sound follows K's rules of 2026-11-22 ([Calibration](calibration.md#exhaust-topologies)), its lengths
-  estimated from eurospares' parts diagrams 202-000, -002 and -005: each bank's three short branches (0.10 m) enter one
-  log 118 mm apart, written as three pipes of 0.12 m, the cylinders joining one by one; at the log's end the bank's K26,
-  its throat (6 cm², 27.6 mm) and the turbines' one room; from the turbines pipes of 0.26 and 0.36 m into the one
-  silencer, written as its 0.70 m body run through with the wool, the one expansion chamber (how the gas runs within it
-  is not known); its two tails as one. The cross tube, the wastegate and its silencer are not written; no catalyst. The
-  two exhaust valves of each cylinder are one of their combined area: two of 33 mm (the 928 four-valve head's, whose
-  seat the 959 shares; the 959's own valve not confirmed) give 46.7 mm. The valve's opening (0.36 of the cycle, about
-  260 degrees), every length and diameter, estimated from parts diagrams, are estimates.
+- The engine sound's two exhaust valves of each cylinder are one of their combined area: two of 33 mm (the 928
+  four-valve head's, whose seat the 959 shares; the 959's own valve not confirmed) give 46.7 mm. The valve's opening
+  (0.36 of the cycle, about 260 degrees) is an estimate.
 - Its pictures are baked from K's model in four 1987 colors, GRAND PRIX WHITE the default
   ([Model solids](image-assets.md#model-solids)); the model's wheelbase is 2,301 mm against the 2,272 mm its driving
   uses, and its wheels are the tyres' nominal size, while its driving keeps this ledger's radii (K, 2026-11-20).
@@ -438,26 +416,10 @@ values `source (auditor)`.
 | Body           | 4,523 / 1,836 / 1,282 mm, wheelbase 2,500 mm, 1,590 kg (item 1; B agrees; one list gives 1,580 kg); Cd 0.34 (secondary)                                                       | Unchanged; the CdA stays an estimate                                                  | source verified              |
 | Tires          | 225/50 VR16 on 7J × 16, 245/45 VR16 on 8J × 16 (B); 631 and 627 mm across                                                                                                     | Radii 0.305 / 0.306 m, the ledger's convention (unchanged)                            | engineering estimate         |
 | Exhaust valves | Two per cylinder, 33 mm (a parts vendor); 17° BBDC to 2° BTDC at 1 mm lift, 195° (A); about 240° seat to seat, 8.5 mm lift (a cam regrinder's figure on a forum)              | `valve` 46.7 mm (33 × √2), `open` 0.3333 (240° of 720°)                               | source (auditor), calculated |
-| Exhaust        | Below                                                                                                                                                                         | [Calibration](calibration.md#exhaust-topologies)                                      | source (auditor), estimate   |
-
-The exhaust as the auditor read it: each bank has a stainless 4-into-1 manifold of 42 mm primaries about 15 and 20 cm
-long into a 52 mm collector (an owner who modelled the engine; which cylinders take the long ones is not given); the
-two banks run separately to the car's rear, "twin pipes for the full length" (A), each through its downpipe, its own
-catalyst (two from 1987) and its own centre silencer, all 52 mm inside (55 mm outside, 1.5 mm wall); the banks first
-meet in the transverse rear silencer, whose two inlets are 47 mm inside; two tailpipes about 59 mm outside leave at the
-left rear. The factory system has no crossover. The forum and vendor figures are not primary documents; no source gives
-the pipes' lengths.
 
 ### The 928 S4 in the current model
 
-- The sound writes the two valves of a cylinder as one of their combined area and follows K's rules of 2026-11-22
-  ([Calibration](calibration.md#exhaust-topologies)), its lengths estimated from eurospares' parts diagrams 202-000,
-  -005 and -010: each bank's downpipe (0.20 m right, 0.50 m left; which bank's is the longer the diagrams do not settle,
-  and the left is taken), two expansion chambers 0.08 m apart, the first with the wool, and 1.40 m to the rear chamber
-  where the banks first meet; its two tailpipes of 55 mm inside (an owners' measurement) as one of their combined area.
-  The pipes are the measured 52 mm times 1.14; the chambers stand for the catalysts and the centre and rear silencers,
-  their sizes and places by ear (K). The front two cylinders of each bank are taken as those with the long primaries, an
-  estimate. Some posts give one oval outlet on other years and markets; the 1987 US car is written with two.
+- The sound writes the two valves of a cylinder as one of their combined area.
 - The wheel radii stay at the ledger's 0.305 and 0.306 m, about 3% under the tires' nominal 0.3157 and 0.3135 m.
 - The 50:50 axle split, the CG height and the frontal area remain unverified estimates; the torque curve's points at
   675, 1,875 and 6,600 rpm remain estimates.
@@ -489,11 +451,7 @@ The stage auditor's reading (2026-11-20), not reached by the PR that wrote this 
 - B: a transcription of the [1987 US owner's manual](https://members.rennlist.com/pirtle/87man22.htm); the
   countershaft pair is explained in [the S4 manual transmission](https://members.rennlist.com/pirtle/s4mtrans.htm).
 - C: Porsche's [928 parts catalogue for the US, 1987–91](https://files.porsche.com/f/332100/1ff15ee75e/kat511-usa-928-91-katalog.pdf).
-- Exhaust and valves, owners' and vendors' figures: [pipe measurements](https://rennlist.com/forums/928-forum/446353-exhaust-system-measurements-rear-h-pipe-install.html),
-  [the layout by year](https://rennlist.com/forums/928-forum/36626-exhaust-pipe-sizes.html),
-  [the primaries](https://rennlist.com/forums/928-forum/755885-s4-intake-manifold-facts-and-ideas-13.html),
-  [the tailpipes](https://rennlist.com/forums/928-forum/369753-928-muffler-exhaust-tips.html),
-  [the cams](https://rennlist.com/forums/928-forum/1287743-928-gt-cams-2.html) and
+- Valves, owners' and vendors' figures: [the cams](https://rennlist.com/forums/928-forum/1287743-928-gt-cams-2.html) and
   [the exhaust valves](https://www.design911.com/porsche/928gt-5-0l-1989-91/porsche-engine-valves-guides-and-springs/).
 
 ## Ferrari F40 of 1988: sources versus authored
@@ -505,8 +463,7 @@ numbers follow this ledger's [conventions](#numerical-conventions-and-remaining-
 
 The source column is the stage auditor's reading (2026-11-19 and 2026-11-20) of the pages listed [below](#f40-sources);
 the PRs that wrote this section could not reach them, so none is marked as read here: their class is `source (auditor)`. K's decisions are the year and
-market, the 1,235 kg base and the European gearing; the auditor's choices are the nominal wheel radii and the exhaust's
-estimates.
+market, the 1,235 kg base and the European gearing; the auditor's choice is the nominal wheel radii.
 
 | Item                 | Source (auditor's reading)                                                                        | Authored `FERRARI_F40_1988`                                                           | Class               |
 | -------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------- |
@@ -526,28 +483,15 @@ estimates.
   rolling radius of about 0.322 m, so the game's gearing is about 3.5% longer than the car's.
 - Boost onset and lag are not represented; the torque curve is the steady full-throttle envelope, unchanged.
 
-### F40 exhaust and sound
+### F40 sound
 
-The engine sound follows K's rules of 2026-11-22 ([Calibration](calibration.md#exhaust-topologies)) on Ferrari's part
-list 021 (exhaust, cars without catalyst), as the auditor read its text, and lengths estimated from eurospares' parts
-diagrams, a photograph of silencer 136399 and Tubi Style's replacement's dimensions (about ±20 %).
+The engine sound's valve and firing, as the auditor read them:
 
-| Part                          | Written                                                                                                   | Class                               |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| Exhaust valves                | Two of 26 mm a cylinder (FIA form): equal-area 36.8 mm; lift taken ≥ 6.5 mm                               | source (auditor), calculated        |
-| Valve timing                  | 54° BBDC / 10° ATDC at 0.5 mm, read as the Testarossa's: about 280°, `open` 0.3889                        | source (auditor), calculated        |
-| Firing order                  | 1-5-3-7-4-8-2-6, the banks alternating: phases unchanged                                                  | source (auditor)                    |
-| Eight primaries               | Steel, unequal: 0.70, 0.46, 0.36 and 0.58 × 40 mm in each bank's firing order                             | estimate; 35 mm × 1.14              |
-| Risers                        | 2 × 0.14 × 51 mm, a bank's four primaries into one to its turbine                                         | estimate                            |
-| Pipe between the manifolds    | Not written, as the 959's cross tube (K, 2026-11-21)                                                      | connection: source (auditor)        |
-| Turbines                      | Throat 0.08 × 27.6 mm (the 959's) and the turbines' one room, 0.12 × 150 mm                               | throat: estimate; room: game design |
-| Turbochargers to the silencer | 0.22 and 0.32 × 62 mm, about 0.10 m apart                                                                 | estimate; 54 mm × 1.14              |
-| Silencer                      | About 0.52 × 220 mm, the pipes entering at its middle: its two halves as one, 0.26 × 311 mm with the wool | lengths: estimate; size: by ear (K) |
-| Outer outlets                 | The two (about 0.48 m) as one of their combined area, 0.48 × 102 mm                                       | estimate, calculated                |
-
-- The wastegate is not represented, nor its centre outlet, as for the RX-7.
-- The 54 mm is a replacement maker's main pipe for the catalyst car, outside or inside not stated; Ferrari's own pipe is
-  not checked.
+| Part           | Written                                                                            | Class                        |
+| -------------- | ---------------------------------------------------------------------------------- | ---------------------------- |
+| Exhaust valves | Two of 26 mm a cylinder (FIA form): equal-area 36.8 mm; lift taken ≥ 6.5 mm        | source (auditor), calculated |
+| Valve timing   | 54° BBDC / 10° ATDC at 0.5 mm, read as the Testarossa's: about 280°, `open` 0.3889 | source (auditor), calculated |
+| Firing order   | 1-5-3-7-4-8-2-6, the banks alternating: phases unchanged                           | source (auditor)             |
 
 ### F40 measured on the flat
 
@@ -570,9 +514,8 @@ It launches, shifts through all five gears and restarts from rest (182 km/h 8 s 
 The stage auditor's reading (2026-11-19 and 2026-11-20), not read for these PRs:
 [FIA homologation form B-293](https://historicdb.fia.com/sites/default/files/car_attachment/1601077201/homologation_form_number_293_group_b.pdf),
 [a US/European specification list](https://www.ferrarichat.com/forum/posts/139741571),
-[a road test's figures as quoted](https://www.gtplanet.net/forum/threads/difficult-car-ferrari-f40.310621/),
-[Ferrari's part list 021, exhaust without catalyst](https://www.allferrariparts.com/tbl12205.html) and
-[a replacement maker's catalogue](https://catalogue.tubistyle.it/ferrari/f40-1987-1992.html); the 1,235 kg is from a
+and [a road test's figures as quoted](https://www.gtplanet.net/forum/threads/difficult-car-ferrari-f40.310621/); the
+1,235 kg is from a
 specification table of the 1988 car (cars-data).
 
 ## Porsche 911 Turbo 3.3 of 1986: the third stage's car
@@ -645,7 +588,6 @@ US mass and length, and the power and torque anchors.
 | Brakes                | —                                                                                                                  | 1,365 × 11.5 m/s², 65:35, × 0.316 m, to 25 N m: **3,225 / 1,725 N m**                    | game design             |
 | Suspension            | —                                                                                                                  | 1.5 Hz, 0.4, 0.3 m                                                                       | game design             |
 | Exhaust port          | Opens 75° BBDC, closes 48° ATDC (p. 1)                                                                             | `valve.open` 0.95 (below)                                                                | source (T), game design |
-| Exhaust               | Manifold, turbo, front and main converters, Y, two 12,000 cc main silencers (pp. 4B-3, 4B-41, 4B-45)               | [Calibration](calibration.md#exhaust-topologies); lengths and diameters are estimates    | source (T), estimate    |
 
 ### Representation within the current model
 
@@ -663,12 +605,6 @@ US mass and length, and the power and torque anchors.
 - The twin-scroll turbine's switch (only the primary passage below 2,700 rpm, both above; p. 4B-17), the wastegate
   built into the turbocharger and the air-cooled intercooler under the hood scoop (pp. 4B-18, 4B-45) are not
   represented; the torque curve's point at 2,000 rpm (180 N m) stays an estimate.
-- Its engine sound follows K's rules of 2026-11-22 ([Calibration](calibration.md#exhaust-topologies)): each rotor's
-  runner (0.14 and 0.32 m) to the twin-scroll turbine, whose throat is its two passages' combined area, both open, and
-  the turbines' one room; one pipe sized from the 2.25 in converters, the Y's two legs of about 2 in as one of their
-  combined area, and one expansion chamber with the wool at the rear silencers' place. The converters' bodies are not
-  written, and the run's lengths are estimates from photographs of an aftermarket system's layout. Its note keeps the
-  port timing's sentence as it was, which still says the training material was not read here.
 - Its pictures are baked from K's model in eight 1987 paints ([Model solids](image-assets.md#model-solids)); the
   model's wheelbase is 2,393 mm against the 2,430 mm its driving uses, a difference K allowed.
 
@@ -693,7 +629,7 @@ the real car's tests and its top speed is above the claim; the numbers are left 
 
 [Mazda's Turbo II training material](http://foxed.ca/rx7manual/manuals/S4T2training.pdf): K's copy, 75 pages, read
 by the stage auditor (2026-11-19) on the pages cited above; it is not in the repository. It gives no power, torque or
-torque curve, redline or rev limit, gear ratios, mass, dimensions, tires, or exhaust lengths, diameters and port areas.
+torque curve, redline or rev limit, gear ratios, mass, dimensions, tires, or port areas.
 
 The stage auditor's other starting points (2026-11-19), not read for these PRs:
 [1987 North American specifications](https://www.automobile-catalog.com/car/1987/1639295/mazda_rx-7_turbo_ii.html),
@@ -712,7 +648,7 @@ FREE PLAY's classes offer it through catalog membership, as every vehicle. Its n
 exception for this car.
 
 K's decisions (2026-11-24) are the year and the specification, that it replaces the Mini 850 in OUT RUN's traffic, the
-exhaust's form (below), the rear indicators as the model has them and the torque curve from the DIN figures. The source
+rear indicators as the model has them and the torque curve from the DIN figures. The source
 column is the stage auditor's reading (2026-11-24) of parts sellers', magazines' and enthusiasts' pages, not read for
 the PRs that wrote this section. The primary source, the 1968 owner's manual's tables, was a PDF without text, which the
 auditor could not read.
@@ -736,7 +672,6 @@ auditor could not read.
 | Suspension            | Swing axle at the rear                                                                         | 1.5 Hz, 0.4, 0.3 m; the swing axle is not represented                                          | game design           |
 | Valves                | Intake 35.5 mm, exhaust 32 mm, one each a cylinder; exhaust 44.5° BBDC to 4° ATDC at 1 mm lift | `valve` 0.032 m, `open` 0.3174 (228.5 / 720)                                                   | source                |
 | Firing                | 1-4-3-2, at even intervals                                                                     | `firingPhases` 0, 0.25, 0.5, 0.75                                                              | source                |
-| Exhaust               | The Ernst silencer with the heat exchangers, two tails (a cut silencer's video, parts sellers) | [Calibration](calibration.md#exhaust-topologies); below                                        | source, K, estimate   |
 
 ### Representation in the current model
 
@@ -745,16 +680,6 @@ auditor could not read.
 - The torque curve is drawn from the DIN figures (K, 2026-11-24), not the US car's SAE gross ones.
 - The valve's opening, 0.3174, is the cam's opening at 1 mm lift, so it is shorter than the other sounds' openings, which
   are taken seat to seat; the nominal opening was not found.
-- Its engine sound follows K's rules ([Calibration](calibration.md#exhaust-topologies)) with K's form for this car
-  (2026-11-24): no expansion chamber; each cylinder's primary runs from its port through the silencer to the nearer
-  tail, the run within the silencer counted in its length, the four of one length, 0.74 m; cylinders 1 and 4 join at
-  the right, 3 and 2 at the left, and each side has its tail, 0.22 m. The lengths are measured from frames of a video
-  of a stock Ernst silencer cut open, scaled by the parts sellers' 614 mm between its connecting pipes and 335 mm
-  between its outlets (±4 %): cylinders 2 and 4 reach the chamber about 630 and 590 mm from their ports, through the
-  pipes crossing the silencer; cylinders 1 and 3 end at the end chamber's dome about 600 mm from theirs, an estimate
-  from the design's equal lengths (±50 mm), not measured. The video's silencer has two preheat pipes (1971 on), the 1968
-  car's one; their connecting pipes are the same 614 mm apart, so the inside is taken as the same. The tails are the
-  1968 to 1974 part, 225 mm long. The tails' inner tubes and wool and the chambers' volumes are not written.
 - Its pictures are baked from K's model in seven 1968 Beetle colors, SAVANNA BEIGE the default
   ([Model solids](image-assets.md#model-solids)); the wheels drawn are the tyre's nominal size, 0.326 m, while its
   driving keeps 0.31 m. The rear indicators above the tail lamps are amber, as the model has them (K); the 1968 US car's
@@ -779,8 +704,6 @@ It launches, shifts through all four gears and restarts from rest (65 km/h 8 s a
 ### The Beetle's sources
 
 The stage auditor's reading (2026-11-24) of parts sellers', magazines' and enthusiasts' pages, not read for these PRs;
-the pages are not listed here. The exhaust's lengths come from
-[a video of a stock Ernst silencer cut open](https://www.youtube.com/watch?v=OQlmITr10R8), measured by the auditor. The
+the pages are not listed here. The
 1968 owner's manual's tables, the primary source for the mass and the axle loads, were not read. Not decided, for K
-([NEXT](NEXT.md#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)): the estimates above, the valve's opening
-and the first and third primaries' length.
+([NEXT](NEXT.md#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)): the estimates above and the valve's opening.

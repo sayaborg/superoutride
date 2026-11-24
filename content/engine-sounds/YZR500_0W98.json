@@ -14,6 +14,6 @@
     ]
   },
   "metadata": {
-    "note": "1988 70-degree V4 crank phasing is unverified; evenly spaced phases are an acoustic estimate, not a claimed ignition order. Lower front-pair pipes are longer and cross underneath to the right. One cycle per revolution. Four independent pipes; straight chamber and stinger surrogates. Port area approximated by a 28 mm equivalent circle, 200 degrees open. All pipe dimensions and port timing are engineering estimates; see docs/racing-vehicles.md."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/YZR500_0W98.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

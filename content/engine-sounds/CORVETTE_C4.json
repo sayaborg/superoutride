@@ -31,6 +31,6 @@
     ]
   },
   "metadata": {
-    "note": "Each port joins its bank's cast log manifold (rear outlets); a Y-pipe with a light-off converter in each leg, the dual-bed converter, a rear Y and two mufflers with two tailpipes each. Y-pipe 2.25 in and rear section 2.5/2.25 in (replacement parts); lengths are estimates. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: 38.1 mm, 10.92 mm lift (GM bulletin lobe lift x 1.5 rocker), about 298 deg advertised (estimate)."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/CORVETTE_C4.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

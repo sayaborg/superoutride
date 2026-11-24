@@ -20,6 +20,6 @@
     ]
   },
   "metadata": {
-    "note": "Provisional acoustic graph, not a measured exhaust or recording. Equal firing intervals; cross-plane V8 bank routing from 1-3-7-2-6-5-4-8; valve opening, diameters and all lengths are engineering estimates. Existing pipe solver only; silencer and turbo losses are not separately modelled."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/PORSCHE_928_S_1984.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

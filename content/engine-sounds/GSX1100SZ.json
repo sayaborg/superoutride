@@ -17,6 +17,6 @@
     ]
   },
   "metadata": {
-    "note": "1982 GSX1100SZ: four-stroke inline four, evenly spaced events in the manufacturer's 1-2-4-3 order (99501-37000-01E p58). Stock 4-into-2 with a balance link and two tailpipes; collector pairing and all tube dimensions are acoustic estimates. Equivalent valve diameter is sqrt(2) times the specified 23 mm exhaust valve (p52); open fraction is an unmeasured acoustic estimate. Silencer bodies are approximated by straight pipes, not measured recordings. See docs/road-bikes.md."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/GSX1100SZ.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

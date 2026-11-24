@@ -17,6 +17,6 @@
     ]
   },
   "metadata": {
-    "note": "1984 UK ZX900-A1: four-stroke inline four, manual firing order 1-2-4-3; evenly spaced 180-degree events. Four headers pair into left/right silencers with a balance pipe (A1 UK parts diagram). Primary event order maps cylinders 1,2,4,3 to left,left,right,right; that cylinder-to-collector identification is an engineering interpretation of the diagram. Every tube length/diameter is estimated. Silencer internals are represented by straight pipes. Equivalent valve diameter sqrt(2)*24.7 mm uses two exhaust valves per cylinder (period review); 290/720 opening fraction uses manual 65 BBDC /45 ATDC timing."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/GPZ900R_A1.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

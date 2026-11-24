@@ -17,6 +17,6 @@
     ]
   },
   "metadata": {
-    "note": "Rear pair and front pair (longer pipes around the radiator) join, then one collector through the single silencer. Every pipe is an estimate. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Valve: two exhaust valves of 23 mm and 8.0 mm lift (estimates); about 285 deg seat to seat from 50 BBDC / 20 ATDC at 1 mm (Honda manual via owners' club)."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/VFR750R.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

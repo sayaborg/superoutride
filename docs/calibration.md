@@ -243,14 +243,10 @@ ratio is the geometric ratio from references; physics does not read it, and the 
 ## Exhaust topologies
 
 [Engine-sound documents](../content/engine-sounds/) write each exhaust as the exhaust kernel reads it: one diameter, the
-bore of the real headers, and tubes from the valves to the mouths that have only a length
-([Audio](audio.md#observations-and-engine-sounds)). Each document's `metadata.note` names its references. Values from
-references are the valve sizes, lifts and timings (FIA homologation forms, part data, shop manuals as quoted), the
-headers' bores (replacement parts, homologation forms), the manifolds' forms and the compression ratios; the others
-(most lengths and some valve dimensions) are estimates, chosen physically plausible. The documents as first written,
-every tube with its own diameter and the rules K wrote them by (2026-11-22), are in `sayaborg/callcutter`; the
-Beetle 1500 of 1968's, written after the copy, is in this repository's history (`dffe8e0`). DEV's ENGINE
-SOUNDS panel changes the valve, the diameter and the lengths ([Browser](browser.md#sound-controls)).
+bore of the real headers, and tubes from the valves to the mouths that have only a length. Where each exhaust, its valve
+included, comes from is [Audio](audio.md#observations-and-engine-sounds)'s rule: each document's `metadata.note` names
+its first-written exhaust in `sayaborg/callcutter`, which keeps its references. DEV's ENGINE SOUNDS panel changes the
+valve, the diameter and the lengths ([Browser](browser.md#sound-controls)).
 
 ## Engine sound settings
 

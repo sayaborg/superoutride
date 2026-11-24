@@ -11,6 +11,6 @@
     ]
   },
   "metadata": {
-    "note": "Exhaust port through the cylinder duct, downpipe and box to the small tailpipe. Lengths are estimates. Silencer, catalyst and collector-box bodies are straight pipes of their inlet diameter. Port: about 660 mm2 (estimate), open about 162 deg (measured on an original cylinder, owners' forum)."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/PX200E_ARCOBALENO.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

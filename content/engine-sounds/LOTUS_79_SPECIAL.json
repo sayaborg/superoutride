@@ -20,6 +20,6 @@
     ]
   },
   "metadata": {
-    "note": "8 cylinders, four stroke; evenly spaced acoustic events with alternating collector assignment. Firing order, valve timing, valve areas and all pipe dimensions are engineering estimates, not measured race-car sound. Two four-into-one collectors, DFV-based game engine; 500 kW and two forward ratios are project design, not 1978 specifications. See docs/racing-vehicles.md."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/LOTUS_79_SPECIAL.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

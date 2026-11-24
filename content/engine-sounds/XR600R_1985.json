@@ -11,6 +11,6 @@
     ]
   },
   "metadata": {
-    "note": "The radial four-valve head's two exhaust ports and their two head pipes (about 0.32 m) as one tube of their combined area (x 42 mm), then one pipe (0.22 m x 46 mm, from 40 mm), the silencer and a short tail (0.12 m). The motorcycle has no expansion chamber: the two written here (0.38 m x 132 mm with the wool, 5.2 L; 0.08 m; 0.18 m x 110 mm, 1.7 L; 6.9 L in all, 11.7 times the displacement) are K's, by ear. The run after the join, 0.98 m, and from the ports to the outlet, 1.30 m, are the motorcycle's. Lengths are estimates from partzilla's 1985 MUFFLER parts diagram (about +-20 %). The pipes' diameters are the real car's inner diameters times 1.14, the primaries' included; the expansion chambers' (silencers' bodies') sizes and places, the 1.14 and the 20 mm of wool were set by ear (K, 2026-11-22). Lengths are in steps of 0.02 m. Valve: two exhaust valves of 31 mm (replacement parts) and 8.0 mm lift (estimate), so the curtain is the head's area; about 265 deg seat to seat from 45 BBDC / 5 ATDC at 1 mm (Honda manual as quoted), widened as VFR750R's. Two 28 mm carburetors (1985) feed the intake, which is not modelled."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/XR600R_1985.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

@@ -17,6 +17,6 @@
     ]
   },
   "metadata": {
-    "note": "1981 US CB900F: four-stroke inline four, evenly spaced events in the service manual's 1-2-4-3 firing order (p25-4). Stock 4-into-2 with two tailpipes; collector pairing, balance link and all tube dimensions are acoustic estimates. Valve equivalent area assumes two 23 mm exhaust valves (diameter unverified for this market); open fraction uses 93 BBDC + 180 + 70 ATDC at zero lift, p25-3, not the one-mm timing. Silencer bodies are approximated by straight pipes, not measured recordings. See docs/road-bikes.md."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/CB900F_1981.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }

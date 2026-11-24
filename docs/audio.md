@@ -70,10 +70,12 @@ sample-free engine kernel plays every sound. DEV's ENGINE SOUNDS panel ([Browser
 sound's valve, its diameter and its tubes' lengths, each change through `compileEngineSound`; every voice whose
 competitor's vehicle uses that sound fades to silence and installs it, as for any change of sound.
 
-The documents were first written from the real exhausts, with each tube's own diameter, silencers' and catalysts'
-bodies as wide tubes, turbines' throats and rooms, and the silencers' linings; the kernel read only their lengths, so
-they were rewritten as it read them (EL-7). Those documents, with the rules they were written by, are in
-`sayaborg/callcutter`.
+**Where an exhaust comes from.** A document written before EL-7 is its engine's first-written exhaust read as the
+kernel reads it; that exhaust, every tube with its own diameter, and its sources are in `sayaborg/callcutter`. The
+diameter is that exhaust's primaries' diameter; each tube's length is that exhaust's tube's, the tubes that run on in a
+row without a junction between them added together; the valve is as it was. Each such document's note says so and
+names its first-written exhaust there. A document written later is written in this form from the start and gives its
+own sources in its note.
 
 ## Engine synthesis
 

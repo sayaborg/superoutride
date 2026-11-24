@@ -24,6 +24,6 @@
     ]
   },
   "metadata": {
-    "note": "12 cylinders, four stroke; evenly spaced acoustic events with alternating collector assignment. Firing order, valve timing, valve areas and all pipe dimensions are engineering estimates, not measured race-car sound. Two six-into-one collectors; nominal equivalent valve diameter is sqrt(2) times 25 mm. Existing instantaneous automatic shifting remains the game aid. See docs/racing-vehicles.md."
+    "note": "Read from this engine's first-written exhaust, kept with its sources in sayaborg/callcutter (engines/sounds/FERRARI_640.json): its valve, its primaries' diameter, and its tubes' lengths, tubes in a row added."
   }
 }
