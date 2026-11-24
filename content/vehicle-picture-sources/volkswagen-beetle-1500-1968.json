@@ -1,0 +1,236 @@
+{
+  "format": "superoutride.vehicle-model-recipe",
+  "version": 1,
+  "vehicle": "VOLKSWAGEN_BEETLE_1500_1968",
+  "yawVariants": 64,
+  "model": {
+    "sha256": "400113de0c93a364915e1c69b8e7267acd4eb723dc6574f03d80e0c3f80ee512",
+    "right": "-x",
+    "up": "+y",
+    "forward": "+z",
+    "frontHub": [
+      0,
+      0.326,
+      1.2
+    ]
+  },
+  "spacing": 0.008,
+  "paints": {
+    "colors": [
+      [
+        231,
+        10,
+        14
+      ]
+    ],
+    "within": 8,
+    "lamp": [
+      255,
+      0,
+      255
+    ]
+  },
+  "glass": {
+    "color": [
+      10,
+      10,
+      12
+    ],
+    "within": 4,
+    "rough": 0.5
+  },
+  "ramps": {
+    "paints": [
+      7
+    ],
+    "glass": 3,
+    "grey": 4,
+    "sampleYaws": 16
+  },
+  "light": {
+    "main": [
+      -0.25,
+      0.85,
+      0.46
+    ],
+    "fill": [
+      0.6,
+      0.2,
+      0.5
+    ],
+    "ambient": 0.08,
+    "sky": 0.14,
+    "mainWeight": 0.92,
+    "fillWeight": 0.06,
+    "greyGain": 1.5
+  },
+  "reflection": {
+    "paint": {
+      "f0": 0.1,
+      "horizon": [
+        205,
+        218,
+        238
+      ],
+      "zenith": [
+        120,
+        160,
+        230
+      ],
+      "haze": [
+        70,
+        66,
+        68
+      ],
+      "ground": [
+        20,
+        18,
+        20
+      ],
+      "fall": 0.1,
+      "power": 0.6
+    },
+    "glass": {
+      "f0": 0.8,
+      "horizon": [
+        232,
+        240,
+        248
+      ],
+      "zenith": [
+        58,
+        120,
+        222
+      ],
+      "haze": [
+        205,
+        214,
+        224
+      ],
+      "ground": [
+        86,
+        88,
+        92
+      ],
+      "fall": 0.35,
+      "power": 0.6
+    }
+  },
+  "glare": [
+    {
+      "power": 30,
+      "strength": 2,
+      "glass": 1
+    },
+    {
+      "power": 220,
+      "strength": 4,
+      "glass": 1.5
+    }
+  ],
+  "wheels": [
+    {
+      "center": [
+        0.6555,
+        0.326,
+        1.2
+      ],
+      "radius": 0.326,
+      "rim": 0.208,
+      "width": 0.147
+    },
+    {
+      "center": [
+        -0.6555,
+        0.326,
+        1.2
+      ],
+      "radius": 0.326,
+      "rim": 0.208,
+      "width": 0.147
+    },
+    {
+      "center": [
+        0.675,
+        0.326,
+        -1.2
+      ],
+      "radius": 0.326,
+      "rim": 0.208,
+      "width": 0.147
+    },
+    {
+      "center": [
+        -0.675,
+        0.326,
+        -1.2
+      ],
+      "radius": 0.326,
+      "rim": 0.208,
+      "width": 0.147
+    }
+  ],
+  "liveries": {
+    "royal-red": [
+      [
+        231,
+        10,
+        14
+      ]
+    ],
+    "savanna-beige": [
+      [
+        222,
+        198,
+        152
+      ]
+    ],
+    "vw-blue": [
+      [
+        40,
+        72,
+        120
+      ]
+    ],
+    "zenith-blue": [
+      [
+        150,
+        176,
+        198
+      ]
+    ],
+    "delta-green": [
+      [
+        150,
+        178,
+        150
+      ]
+    ],
+    "lotus-white": [
+      [
+        236,
+        232,
+        218
+      ]
+    ],
+    "black": [
+      [
+        18,
+        18,
+        20
+      ]
+    ]
+  },
+  "brakeLamp": {
+    "off": [
+      125,
+      12,
+      18
+    ],
+    "on": [
+      255,
+      70,
+      40
+    ]
+  }
+}

@@ -1,7 +1,8 @@
-# CHASE H.Q. and Turbo OutRun vehicle selections and the RX-7 Turbo II of 1987
+# CHASE H.Q. and Turbo OutRun vehicle selections, the RX-7 Turbo II of 1987 and the Beetle 1500 of 1968
 
 This ledger owns the fourteen additional vehicle definitions selected from the supplied arcade-vehicle report, and
-the [Mazda RX-7 Turbo II of 1987](#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored), authored by its conventions.
+the [Mazda RX-7 Turbo II of 1987](#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored) and the
+[Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-versus-authored), authored by its conventions.
 The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored).
 It records the chosen real-car specification, the limits of the evidence, the provisional authoring inputs and
 validation. Shared physics, images, sound and selection behavior retain their existing owners.
@@ -699,3 +700,87 @@ The stage auditor's other starting points (2026-11-19), not read for these PRs:
 [a transcription of the US specifications and ratios](https://www.rotarycarclub.com/rotary_forum/showthread.php?p=44127),
 [the launch drag coefficient](https://features.csmonitor.com/1985/1107/hmazda.html) and
 [1987 Mazda paint codes](https://paintref.com/cgi-bin/colorcodedisplay.cgi?manuf=Mazda&model=&year=1987).
+
+## Volkswagen Beetle 1500 of 1968: sources versus authored
+
+K takes OUT RUN's traffic Beetle for the Volkswagen Beetle 1500 of 1968 (K, 2026-11-24); nothing here claims the
+original says so. `VOLKSWAGEN_BEETLE_1500_1968` is the 1968 model year's Type 1 / 113 Deluxe Sedan as sold in the US:
+left-hand drive, the air-cooled 1,493 cc flat four, a four-speed manual and rear drive with the swing axle, without a
+sunroof, with the upright "iron" tail lamps. Its listing selects the US car and the 4MT; its engine is shown as `F4`.
+FREE PLAY's classes offer it through catalog membership, as every vehicle. Its numbers follow this ledger's
+[conventions](#numerical-conventions-and-remaining-uncertainty); the estimates among them add no formula or rule and no
+exception for this car.
+
+K's decisions (2026-11-24) are the year and the specification, that it replaces the Mini 850 in OUT RUN's traffic, the
+exhaust's form (below), the rear indicators as the model has them and the torque curve from the DIN figures. The source
+column is the stage auditor's reading (2026-11-24) of parts sellers', magazines' and enthusiasts' pages, not read for
+the PRs that wrote this section. The primary source, the 1968 owner's manual's tables, was a PDF without text, which the
+auditor could not read.
+
+| Item                  | Source (auditor's reading)                                                                     | Authored `VOLKSWAGEN_BEETLE_1500_1968`                                                         | Class                 |
+| --------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------- |
+| Length, width, height | 4,031 / 1,549 / 1,501 mm                                                                       | 4.031 / 1.549 / 1.501 m                                                                        | source                |
+| Wheelbase             | 2,400 mm                                                                                       | Axles **1.392 / 1.008 m** from the CG: a rear share of 0.58 (no axle loads were read)          | source, estimate      |
+| Tracks                | 1,311 / 1,350 mm                                                                               | 1.311 / 1.35 m                                                                                 | source                |
+| Mass                  | 820 kg (792 to 821 kg by source)                                                               | **895 kg**: 820 + the 75 kg driver                                                             | source, calculated    |
+| Engine                | Air-cooled flat four, OHV, 1,493 cc (83 × 69 mm), 7.5:1; idle 800 to 950 rpm                   | 1,493 cc, `cycle` 4, 7.5, idle 850                                                             | source                |
+| Power, torque         | 44 PS DIN at 4,000 rpm, 100 N m at 2,000 rpm (K: DIN); 53 bhp SAE at 4,200, 78 lb-ft at 2,600  | Point 2: 100 N m at 2,000; point 3: 77.258453 N m at 4,000 (44 PS); the SAE figures not used   | source, K, calculated |
+| Curve's other points  | —                                                                                              | 58 N m at 850 and 85 at 1,425 (0.58 and 0.85 of point 2's), 63.351931 at 4,500 (0.82 of 3's)   | estimate              |
+| Redline               | No tachometer                                                                                  | **4,500 rpm**, a little above the power's                                                      | estimate              |
+| Transmission          | 3.80, 2.06, 1.26, 0.89; final 4.125 (8:33)                                                     | As the source                                                                                  | source                |
+| Tires                 | 5.60-15 on 4J × 15                                                                             | Radii 0.31 m (nominal 0.326, less the load's squash); inertias `25r²` / `27r²` = 2.403 / 2.595 | source, estimate      |
+| Drag                  | —                                                                                              | `q = 0.5 × 1.225 × 0.48 × 1.80 m²` = **0.5292 kg/m**; Cd and the frontal area are estimates    | estimate              |
+| CG height             | —                                                                                              | 0.53 m                                                                                         | estimate              |
+| Inertias              | —                                                                                              | Box estimates **1,391 / 1,380 kg m²**                                                          | calculated            |
+| Brakes                | —                                                                                              | 895 × 11.5 m/s², 65:35, × 0.31 m, to 25 N m: **2,075 / 1,125 N m**                             | game design           |
+| Suspension            | Swing axle at the rear                                                                         | 1.5 Hz, 0.4, 0.3 m; the swing axle is not represented                                          | game design           |
+| Valves                | Intake 35.5 mm, exhaust 32 mm, one each a cylinder; exhaust 44.5° BBDC to 4° ATDC at 1 mm lift | `valve` 0.032 m, `open` 0.3174 (228.5 / 720)                                                   | source                |
+| Firing                | 1-4-3-2, at even intervals                                                                     | `firingPhases` 0, 0.25, 0.5, 0.75                                                              | source                |
+| Exhaust               | The Ernst silencer with the heat exchangers, two tails (a cut silencer's video, parts sellers) | [Calibration](calibration.md#exhaust-topologies); below                                        | source, K, estimate   |
+
+### Representation in the current model
+
+- Its four forward gears are shifted by the existing automatic shifts, as every car's. The swing axle's camber change
+  and the rear engine's other effects beyond its mass share are not represented; its tire is the default tire.
+- The torque curve is drawn from the DIN figures (K, 2026-11-24), not the US car's SAE gross ones.
+- The valve's opening, 0.3174, is the cam's opening at 1 mm lift, so it is shorter than the other sounds' openings, which
+  are taken seat to seat; the nominal opening was not found.
+- Its engine sound follows K's rules ([Calibration](calibration.md#exhaust-topologies)) with K's form for this car
+  (2026-11-24): no expansion chamber; each cylinder's primary runs from its port through the silencer to the nearer
+  tail, the run within the silencer counted in its length, the four of one length, 0.74 m; cylinders 1 and 4 join at
+  the right, 3 and 2 at the left, and each side has its tail, 0.22 m. The lengths are measured from frames of a video
+  of a stock Ernst silencer cut open, scaled by the parts sellers' 614 mm between its connecting pipes and 335 mm
+  between its outlets (±4 %): cylinders 2 and 4 reach the chamber about 630 and 590 mm from their ports, through the
+  pipes crossing the silencer; cylinders 1 and 3 end at the end chamber's dome about 600 mm from theirs, an estimate
+  from the design's equal lengths (±50 mm), not measured. The video's silencer has two preheat pipes (1971 on), the 1968
+  car's one; their connecting pipes are the same 614 mm apart, so the inside is taken as the same. The tails are the
+  1968 to 1974 part, 225 mm long. The tails' inner tubes and wool and the chambers' volumes are not written.
+- Its pictures are baked from K's model in seven 1968 Beetle colors, SAVANNA BEIGE the default
+  ([Model solids](image-assets.md#model-solids)); the wheels drawn are the tyre's nominal size, 0.326 m, while its
+  driving keeps 0.31 m. The rear indicators above the tail lamps are amber, as the model has them (K); the 1968 US car's
+  were red, amber from 1973.
+
+### The Beetle on the flat
+
+The existing solver on this ledger's flat, dry, windless straight with the automatic shifts, not compared with the real
+car's figures, which were not looked up, and not tuned:
+
+| Measure                         | Measured                                                        |
+| ------------------------------- | --------------------------------------------------------------- |
+| 0–100 km/h                      | 20.3 s (60 mph in about 18.4 s)                                 |
+| Quarter mile                    | About 21.1 s, at about 101 km/h (between the run's 1 s samples) |
+| Speed after 240 s               | 129 km/h in fourth at 4,070 rpm, below the redline              |
+| Redline speeds, first to fourth | 34, 62, 101, 143 km/h                                           |
+| Shifts                          | 34, 62 and 101 km/h, at 2.7, 7.1 and 21.1 s                     |
+| Braking from 100 km/h           | 2.57 s, 36.0 m                                                  |
+
+It launches, shifts through all four gears and restarts from rest (65 km/h 8 s after stopping).
+
+### The Beetle's sources
+
+The stage auditor's reading (2026-11-24) of parts sellers', magazines' and enthusiasts' pages, not read for these PRs;
+the pages are not listed here. The exhaust's lengths come from
+[a video of a stock Ernst silencer cut open](https://www.youtube.com/watch?v=OQlmITr10R8), measured by the auditor. The
+1968 owner's manual's tables, the primary source for the mass and the axle loads, were not read. Not decided, for K
+([NEXT](NEXT.md#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)): the estimates above, the valve's opening
+and the first and third primaries' length.

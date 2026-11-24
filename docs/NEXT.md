@@ -21,8 +21,11 @@ Each line is one area as it stands, with the document that owns it.
   machine ([Stage XR](#stage-xr--the-xr600r-of-1985-and-enduro-racers-machine)).
 - The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the catalog
   to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984, 38 with the XR600R of 1985 and 39 with
-  the RX-7 Turbo II of 1987, K's TOP SPEED car, and 38 again without the NSR500 of 1987 (Stage MF), in the same ledger
-  ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored)). Among the fourteen, the
+  the RX-7 Turbo II of 1987, K's TOP SPEED car, 38 again without the NSR500 of 1987 (Stage MF), 37 without the 911
+  TURBO 3.3 of 1989 and 38 with the Beetle 1500 of 1968
+  ([Stage VW113](#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)), in the same ledger
+  ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored),
+  [the Beetle's](chase-turbo-vehicles.md#volkswagen-beetle-1500-of-1968-sources-versus-authored)). Among the fourteen, the
   928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)), and
   the Turbo Esprit of 1984 the car it chases ([Stage E82](#stage-e82--the-turbo-esprit-of-1984-chase-hqs-rival)), the
   Countach 5000 QV of 1985 the car it chases on the second stage
@@ -60,7 +63,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
 - **Pictures.** GOLF GTI 16V's pictures are a generated set, VFR750R's a 3D prototype,
-  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the M23 PP SPEC's, the NSR500 of 1984's and
+  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the M23 PP SPEC's, the NSR500 of 1984's and
   the XR600R of 1985's baked from K's models, the three cars' with a car's glossy finish, the other vehicles' converted provisional pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
@@ -310,6 +313,43 @@ changed, and no series runs it.
 - The front fenders are 10 mm a side narrower than the rear (K's model); the overhangs are not compared with a source.
 - Not decided: CHASE H.Q.'s series (the player's car, the cars chased, turbo, the beacon); the 928 S of 1984, the
   fifth stage's car, keeps its procedural pictures.
+
+## Stage VW113 — The Beetle 1500 of 1968 in OUT RUN's traffic
+
+K's decisions of 2026-11-24: the Volkswagen Beetle 1500 of 1968 (Type 1 / 113 Deluxe Sedan, US, left-hand drive, 4MT,
+without a sunroof, the iron-tail lamps) is a vehicle of its own, `VOLKSWAGEN_BEETLE_1500_1968`, and replaces the Mini
+850 in OUT RUN's traffic; the Mini 850 stays in TURBO OUTRUN's. Its torque curve is the DIN figures'; its exhaust has no
+expansion chamber, each primary's run within the silencer counted in its length, the four primaries of one length; the
+rear indicators stay as the model has them; its pictures are baked from K's model by the car baking
+([Arcade car selections](chase-turbo-vehicles.md#volkswagen-beetle-1500-of-1968-sources-versus-authored),
+[Model solids](image-assets.md#model-solids)). The colors' choice and default were left to the stage auditor.
+
+- VW113-1: the vehicle added (definition, sound, listing, the set baked from K's model, SHA-256 `400113de…`, on
+  `codex/volkswagen-beetle-1500-1968-glb-source`, never on main), the engine loudness measured again; no series runs it.
+- VW113-2: OUT RUN's traffic takes the Beetle in the Mini 850's place, of the same weight and place in each of the six
+  classes.
+- The stage auditor's choices, awaiting K: the names `VW113`, `VOLKSWAGEN_BEETLE_1500_1968` and
+  `volkswagen-beetle-1500-1968`; the seven colors, their order, keys and base colors, SAVANNA BEIGE the default; the
+  definition's estimates; the two PRs.
+- To look at in DEV: SELECT VEHICLE's seven colors, SAVANNA BEIGE the default, and the exhaust's picture (four
+  primaries, two tails); revving and driving's sound; OUT RUN's traffic with Beetles and no Mini, and the Beetle small
+  and far away; the windows told from the matt black (the bumpers' bands, the running boards); its size beside the
+  GOLF, the 911 Turbo 3.3 and the PICKUP.
+- Estimates: the rear share 0.58, the CG height (0.53 m), the wheel radius (0.31 m), the CdA (0.864 m²) and the redline
+  (4,500 rpm).
+- The valve's opening, 0.3174, is from the cam's angles at 1 mm lift; correct it when the nominal angles are read.
+- The first and third primaries' length is an estimate (±50 mm). The video's silencer is the type with two preheat
+  pipes (1971 on), the 1968 car's the type with one; the connecting pipes are the same 614 mm apart, so the inside is
+  taken as the same.
+- The 1968 US car's rear indicators were red all over (amber from 1973); the model's are amber, and K keeps them.
+- The seven base colors are provisional, not measured from paint samples; the codes are not read from the factory's
+  color table.
+- Drawn grey: the tail lamps' amber and white and the front indicators. An amber tinge of the original model stays inside
+  the headlamps.
+- The tyres' lowest point stands 5 mm above the road (the radius matched at the tread's ribs); the tyres clear the
+  fenders by 4–7 mm (they do not touch).
+- The body's faces are not smoothed; only the seven windows were made flat.
+- The owner's manual's tables (the mass, the axle loads) were not read.
 
 ## Stage F120 — The F40 of 1988
 

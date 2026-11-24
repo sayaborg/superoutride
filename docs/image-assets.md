@@ -617,7 +617,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`nova-250-1977`): drawn by
@@ -1317,6 +1317,49 @@ stage auditor's, provisional, the blue the earlier procedural set's (24, 65, 156
 The listing's default is `rosso-corsa`; its four game colors are gone. The model is K's `ferrari-gto-1984.glb`
 (SHA-256 `4a9d61f0…`), kept on K's branch `codex/ferrari-gto-1984-glb-source`, never on main; it has no wheel nodes,
 and its front hub is (0, 0.3157, 1.225).
+
+**The Beetle 1500 of 1968.** Its set, `volkswagen-beetle-1500-1968`, is baked from K's model of the 1968 US car (Type 1
+/ 113 Deluxe Sedan, left-hand drive, without a sunroof, the iron-tail lamps) by the RX-7's recipe (K, 2026-11-24): the
+same steps (seven paint steps, three glass steps and four greys), light, reflections, glare, spacing, 64 directions and
+brake lamp colors, none moved for this car. What differs is the model's, which K looked at and accepted without
+painting it: the body's red (231, 10, 14) is its one paint, within 8; the glass is (10, 10, 12), within 4 and of
+roughness below 0.5, seven panes, all made flat; the magenta (255, 0, 255) is the brake lamp, the red part of each tail
+lamp alone. Every black part is matt, (22, 22, 24) of roughness 0.90: the bumpers' bands, the running boards' tops, the
+engine lid's vents, the gaps, the tyres and the underside, which is as the model came; it is a grey, never glass. The
+chrome, the wheels, the headlamps, the front indicators and the tail lamps' amber top and white bottom keep the model's
+colors and roughness, greys like every color neither paint, glass nor lamp; the amber rear indicators above the tail
+lamps stay as the model has them (K), though the 1968 US car's were red. No other color lies within 8 of the paint nor
+within 4 of the glass (the stage auditor counted). The body's faces are not smoothed, and an amber tinge of the
+original model stays inside the headlamps. The model holds its roughness, 0.10 on the red, the glass and the brake lamp
+and 0.90 on the matt black. Its four wheels are spun on the 5.60-15 tyre's nominal size: centres (±0.6555, 0.326, 1.2)
+m front and (±0.675, 0.326, −1.2) m rear, radius 0.326 and width 0.147; the rims are 0.208, the model's edge between
+wheel and tyre measured (0.20–0.21 m; the stage auditor's). The model is in metres, +y up, +z forward and +x to the
+left, its origin on the road, on the centreline, halfway between the axles (z +1.2 and −1.2). It is fitted to the car's
+definition: 4,031 mm long, 1,549 mm wide (1,528 mm across the mirrors, inside the body's width) and 1,501 mm high, on
+its 2,400 mm wheelbase and 1,311 / 1,350 mm tracks (the model's tyres measure 1,308–1,310 and 1,348–1,349 mm); its plan
+is scaled to the length, its width by 0.946 and its height by 0.919 of that, the axles moved apart to the wheelbase and
+the overhangs, 762 and 869 mm, shortened. The wheels drawn are the tyre's nominal size, not the 0.31 m its driving
+uses; the tyres' lowest point stands 5 mm above the road, the radius being matched at the tread's ribs, and they clear
+the fenders by 4–7 mm.
+
+Its seven liveries are 1968 Beetle colors by their real names, the model's red first (the names, order, codes, keys and
+base colors are the stage auditor's, which K left to the auditor, 2026-11-24; the base colors are provisional, not
+measured from paint samples, and the codes are not read from the factory's color table). ROYAL RED's base color is the
+other cars' red, a little brighter than the real paint:
+
+| Palette         | Name          | Code | Base color    |
+| --------------- | ------------- | ---- | ------------- |
+| `royal-red`     | ROYAL RED     | L30A | 231, 10, 14   |
+| `savanna-beige` | SAVANNA BEIGE | L620 | 222, 198, 152 |
+| `vw-blue`       | VW BLUE       | L633 | 40, 72, 120   |
+| `zenith-blue`   | ZENITH BLUE   | L639 | 150, 176, 198 |
+| `delta-green`   | DELTA GREEN   | L610 | 150, 178, 150 |
+| `lotus-white`   | LOTUS WHITE   | L282 | 236, 232, 218 |
+| `black`         | BLACK         | L41  | 18, 18, 20    |
+
+The listing's default is `savanna-beige` (the stage auditor's). The model is K's `volkswagen-beetle-1500-1968.glb`
+(SHA-256 `400113de…`), kept on K's branch `codex/volkswagen-beetle-1500-1968-glb-source`, never on main; it has no wheel
+nodes, and its front hub is (0, 0.326, 1.2).
 
 ## HUD picture generator
 

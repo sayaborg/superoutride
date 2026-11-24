@@ -1,0 +1,32 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 6,
+  "form": "car",
+  "selectionOrder": 47,
+  "visuals": {
+    "spriteSet": "volkswagen-beetle-1500-1968",
+    "palette": "savanna-beige",
+    "steeringPicture": "montecarlo",
+    "colorNames": {
+      "royal-red": "ROYAL RED",
+      "savanna-beige": "SAVANNA BEIGE",
+      "vw-blue": "VW BLUE",
+      "zenith-blue": "ZENITH BLUE",
+      "delta-green": "DELTA GREEN",
+      "lotus-white": "LOTUS WHITE",
+      "black": "BLACK"
+    }
+  },
+  "sound": "VOLKSWAGEN_BEETLE_1500_1968",
+  "metadata": {
+    "manufacturer": "Volkswagen",
+    "model": "Beetle 1500",
+    "period": "1968",
+    "mobileLabel": "BEETLE 1500",
+    "engine": "F4",
+    "engineKind": "4-stroke",
+    "identifier": { "officialLabel": "Type 1 / 113", "shortLabel": "113" },
+    "selectedSpecification": ["USA", "4MT"],
+    "physicsAnchor": { "modelYear": "1968", "market": "USA" }
+  }
+}
