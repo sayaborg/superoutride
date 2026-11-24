@@ -2,7 +2,6 @@ import type { SoftwareSurface } from '../view/software-surface.js';
 import type { TextLayer } from '../view/text-layer.js';
 import { TEXT_PALETTES } from '../image/text-tiles.js';
 import type { CompiledVehicleDefinition } from '../vehicle/definition-document.js';
-import { exhaustExtent } from '../view/exhaust-diagram.js';
 
 // SELECT VEHICLE's layout: every position, scale and time its frame and pages draw by. Pixel positions are in the
 // 320×240 frame; text positions in the 40×30 text grid, 8 pixels to a cell.
@@ -12,7 +11,7 @@ export const YAW_IMAGE_STEPS = 6;
 /** Fixed steps each page stays before the next (6 s). */
 export const VEHICLE_PAGE_STEPS = 360;
 /**
- * ENGINE's free-revving throttle by the page's fixed steps, the same for every vehicle (values the author chose): each
+ * A revving page's free-revving throttle by the page's fixed steps, the same for every vehicle (values the author chose): each
  * entry's throttle holds from its step until the next entry's, idle for 1.5 s, full for 1 s, closed for 1.5 s and full
  * to the page's end.
  */
@@ -52,10 +51,10 @@ export const WALLPAPER_SHADE = Object.freeze({
 /** A page's value columns: labels at a column, values `valueOffset` columns on, from `firstRow`. */
 export const VALUE_COLUMNS = Object.freeze({ left: 0, right: 20, valueOffset: 8, firstRow: 14 });
 /**
- * The graph in pixels, under text columns 22-39 and rows 4-11: ENGINE's horizontal axis runs from 20 % of redline at
- * the left edge, 16 pixels for each 10 %, to 110 % beyond the right edge; the vertical axis from 0 on the bottom row to
- * 100 % on the top grid line, with grid lines every 25 % (15 pixels). DRIVETRAIN's horizontal axis runs from 0 at the
- * left edge to the top gear's speed at redline on the right edge, under the same grid.
+ * The graph in pixels, under text columns 22-39 and rows 4-11: its grid's vertical lines stand where a redline axis
+ * from 20 % at the left edge, 16 pixels for each 10 %, to 110 % beyond the right edge has its tenths; the vertical axis
+ * runs from 0 on the bottom row to 100 % on the top grid line, with grid lines every 25 % (15 pixels). DRIVETRAIN's
+ * horizontal axis runs from 0 at the left edge to the top gear's speed at redline on the right edge, under that grid.
  */
 export const GRAPH = Object.freeze({
   left: 176,
@@ -68,8 +67,6 @@ export const GRAPH = Object.freeze({
   gridRedline: 0.1,
   gridLevels: 4,
 });
-/** The engine speed's marks on ENGINE's curves: squares `markRadius` pixels about each crossing. */
-export const ENGINE_SPEED_LINE = Object.freeze({ markRadius: 1 });
 /**
  * The gear rows: labels at `label`, ratios at `ratio` under the `RATIO` heading at `ratioHeading`, road speeds at `kmh`
  * under the `KMH` heading.
@@ -99,65 +96,6 @@ export const SIDE_VIEW = Object.freeze({
   loadFirstColumn: 22,
   loadLastColumn: 36,
 });
-/** ENGINE's firing runs `SLOW_MOTION` times slower than real, the engine turning at idle. */
-export const SLOW_MOTION = 30;
-/** The bank colors of the firing strip's ticks and the exhaust's valve tubes, by collector in turn. */
-export const BANK_PALETTES = Object.freeze([
-  TEXT_PALETTES.YELLOW,
-  TEXT_PALETTES.RED,
-  TEXT_PALETTES.GREEN,
-  TEXT_PALETTES.WHITE,
-]);
-/** The share of a cycle a cylinder stays lit after it fires, on the firing strip and in the exhaust. */
-export const FIRING_FLASH = 0.04;
-/**
- * The firing strip: one cycle across x `left`-`right` on the baseline y `bottom`, a grey tick every `tickDegrees` of
- * crank, each cylinder's tick from `top` + `tickInset` (from `top` while lit) and the cursor dotted from `top` - 2.
- * `FIRING` and its intervals stand on `labelRow`, the axis labels on `axisRow` and the slow-motion note on `noteRow`.
- */
-export const FIRING_STRIP = Object.freeze({
-  left: 8,
-  right: 151,
-  top: 188,
-  bottom: 199,
-  tickDegrees: 90,
-  tickInset: 4,
-  labelRow: 22,
-  axisRow: 26,
-  noteRow: 28,
-});
-/**
- * The exhaust diagram in columns 20–39: `EXHAUST` and the form on `headingRow` (the form at `formColumn`); `cm` heading
- * the valve tubes' lengths, right-aligned in columns 20–22, and `BORE` with the exhaust's one diameter from `boreColumn`,
- * on `legendRow`; a valve tube a row from `firstRow`; the junction tubes' lengths within columns
- * `labelFirstColumn`–`labelLastColumn`; the valve on `valveRow` and the scale marks on `scaleRow`. Tubes run from the
- * leftmost valve at x `left` to open ends no farther than x `right` at `exhaustPixelsPerMeter`, `pixelsAcrossPerMeter`
- * of the diameter across (a 60 mm pipe 6 pixels), laid `gap` apart where a junction splits.
- */
-export const EXHAUST_DIAGRAM = Object.freeze({
-  headingRow: 14,
-  formColumn: 28,
-  legendRow: 15,
-  lengthColumn: 20,
-  boreColumn: 24,
-  firstRow: 16,
-  labelFirstColumn: 26,
-  labelLastColumn: 39,
-  valveRow: 28,
-  scaleRow: 29,
-  left: 216,
-  right: 314,
-  pixelsAcrossPerMeter: 100,
-  gap: 2,
-});
-/**
- * The one length scale of every vehicle's exhaust diagram: the largest whole pixels per metre at which the catalog's
- * farthest-reaching exhaust, from its leftmost valve to its farthest open end, fits between `left` and `right`.
- */
-export function exhaustPixelsPerMeter(vehicles: readonly CompiledVehicleDefinition[]): number {
-  const extent = Math.max(...vehicles.map((vehicle) => exhaustExtent(vehicle.sound)));
-  return Math.floor((EXHAUST_DIAGRAM.right - EXHAUST_DIAGRAM.left) / extent);
-}
 /** The listed era, market and specification: labels at column 0, values at column 5, wrapped by words. */
 export const LISTING_COLUMNS = Object.freeze({ label: 0, value: 5 });
 /** A lighter grey than DARK, for axes (RGB555 22, 22, 22). */
@@ -167,8 +105,7 @@ export const DIM = 12 | (12 << 5) | (12 << 10);
 
 /**
  * What a page draws from: the frame and text under it, the shown vehicle, the fuel-cut entry ratio, the fixed steps
- * since the vehicle was shown, the free-revving engine's speed (RPM) on a page that revs it, otherwise null, and the
- * exhaust diagram's scale.
+ * since the vehicle was shown, and the free-revving engine's speed (RPM) on a page that revs it, otherwise null.
  */
 export interface VehiclePageScene {
   readonly frame: SoftwareSurface;
@@ -177,8 +114,6 @@ export interface VehiclePageScene {
   readonly fuelCutEnterRedlineRatio: number;
   readonly shownSteps: number;
   readonly engineRpm: number | null;
-  /** The exhaust diagram's one length scale (`exhaustPixelsPerMeter`). */
-  readonly exhaustPixelsPerMeter: number;
 }
 
 /**
@@ -199,8 +134,8 @@ export function freeRevThrottle(step: number): number {
 }
 
 /**
- * The graph's grid: DARK lines every 25 % of its height and every 10 % of redline on ENGINE's axis (the last clipped at
- * its right edge), and the lighter axes on its left edge and bottom row.
+ * The graph's grid: DARK lines every 25 % of its height and every 10 % of redline on the redline axis (the last clipped
+ * at its right edge), and the lighter axes on its left edge and bottom row.
  */
 export function drawGraphGrid({ frame, text }: VehiclePageScene) {
   const height = GRAPH.bottom - GRAPH.top;

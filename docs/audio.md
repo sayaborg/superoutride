@@ -368,9 +368,9 @@ the scene is built.
 The [sound graph](../src/audio/sound-graph.ts) owns the named buses (`engine`, `tire`) and the master path:
 each bus feeds the MASTER gain, then a compressor set by the MIX settings (`MixSettings`, written directly to
 the compressor's parameters), then the output. Each bus declares whether it is live: a live bus sounds only while a
-vehicle is driven, through one live gate before the MASTER gain. A vehicle is driven during a run and on SELECT
-VEHICLE's ENGINE page, which revs the shown vehicle's engine standing still and gives its observation as the
-player's, with no rivals ([Browser](browser.md#engine)); menu music and effects are unchanged by it. `engine`, `tire` and `contact` are live; `music` and
+vehicle is driven, through one live gate before the MASTER gain. A vehicle is driven during a run and while a vehicle's
+card rests in focus on the rows, which revs its engine standing still and gives its observation as the player's, with
+no rivals ([Browser](browser.md#card-rows)); menu music and effects are unchanged by it. `engine`, `tire` and `contact` are live; `music` and
 `effects` are not. The player record's volumes are the one source of the MASTER gain and of the `music` (MUSIC) and `effects`
 (EFFECTS) bus gains; the DEV ENG and TIRE mix
 values set the live buses' gains. A volume change applies at once through the bus and master gains.

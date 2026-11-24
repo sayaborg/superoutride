@@ -486,8 +486,8 @@ transmits nothing and the engine revs freely with the throttle. Fuel cut and idl
 still bound the opening, and the effective opening follows the throttle as it does when driving. The next free update
 uses the fixed capacity again, so the clutch slips from the engine speed the hold left. The held step is one
 function (`updateHeldVehicle`), which reads and writes only the actuators, powertrain, wheel speeds and control
-observation; SELECT VEHICLE's ENGINE page revs a vehicle standing at idle through it
-([Browser](browser.md#engine)).
+observation; a vehicle's card in focus on the rows revs a vehicle standing at idle through it
+([Browser](browser.md#card-rows)).
 
 The idle-holding opening is the opening whose step would land exactly on idle. Idle is therefore
 held by torque, not by a clamp on engine speed, and settles without oscillation. A small throttle whose torque cannot exceed friction does not raise engine speed or

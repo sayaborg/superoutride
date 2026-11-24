@@ -535,11 +535,11 @@ without it, tubes of uneven lengths rang high and muddy). Since EL-6 it is the g
 kernel continues in `sayaborg/callcutter`. Since EL-7 it is the exhaust kernel, and the engine sound documents are what
 it reads. The stage's name, `EL`, is the auditor's. What remains, in order:
 
-- **EL-8.** The documents' notes (`metadata`), as the auditor writes them: since EL-7 the documents are the kernel's
-  tubes of one diameter (format version 3; the first written ones are in `sayaborg/callcutter`), while their notes, and
-  the exhaust write-ups in [Arcade car selections](chase-turbo-vehicles.md) and [Racing vehicles](racing-vehicles.md)
-  and the numeric ledgers' `sound.exhaust.*` rows (keyed by the first form's fields), still describe the first written
-  ones (each tube's diameter, chambers, wool).
+- **EL-8.** EL-8a removed SELECT VEHICLE's ENGINE page and its exhaust diagram, which no row opened. Next, the
+  provenance: the documents' notes, the exhaust write-ups in [Arcade car selections](chase-turbo-vehicles.md),
+  [Racing vehicles](racing-vehicles.md) and [Road bikes](road-bikes.md) and the numeric ledgers' `sound.exhaust` rows of
+  the first written form go to `sayaborg/callcutter`, with one rule in [Audio](audio.md) in their place (EL-8b); then
+  the tubes' length limit rises from 4 to 8 m (EL-8c).
 
 What stays open, for K:
 

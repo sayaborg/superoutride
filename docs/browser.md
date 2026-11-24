@@ -78,7 +78,7 @@ its RETRY and BACK reloading the page; its reason goes to the console.
 The page always has one current screen, owned by the screen host. A screen advances one fixed step, draws one
 frame (the framebuffer and the [text layer](architecture.md#text-layer)) and says whether it is live: whether the
 player's driving input and sound run on it. A screen may also say that it drives a vehicle the player does not drive:
-SELECT VEHICLE's ENGINE page revving its engine, which no row shows until the vehicle's card is designed. The host runs the frame loop while the page is visible and stops it
+the rows with a vehicle's card in focus, revving its engine. The host runs the frame loop while the page is visible and stops it
 while the document is hidden or after `pagehide`; only the host watches document visibility and page hiding, and a
 page restored from the back/forward cache reloads. Driving input is live exactly while the page is
 visible, no transition runs and the current screen is live; a vehicle is driven while the page is visible, no
@@ -275,7 +275,7 @@ A vehicle's page ([vehicle card](../src/shell/vehicle-card.ts)):
   the weight on each axle is on it.
 
 While a vehicle's card rests in focus, its picture turns from the still one, a yaw image every 6 fixed steps (a turn in
-6.4 s), and its engine revs as the catalog's ENGINE page revved it: its model, as a run builds it, held and revved from
+6.4 s), and its engine revs: its model, as a run builds it, held and revved from
 idle by the free-revving throttle (idle for 1.5 s, full for 1 s, closed for 1.5 s and full to 6 s, again and again;
 the second 6 s repeat), its speed a WHITE upright line on the graph with a 3×3 mark on each curve in the curve's color.
 Its engine is heard, as the player's in a run, over the series' music (K, 2026-11-12): the rows' screen drives a
@@ -508,8 +508,8 @@ rebuilt run, live at once, reads it as it stands, so a key held through the rebu
 SELECT VEHICLE's catalog pages wait for the vehicle's card ([NEXT](NEXT.md#card-ui)): until its contents are designed
 no row shows them, and their [modules](../src/shell/vehicle-screen.ts) stand ready for it. SELECT VEHICLE is a catalog
 page per vehicle on the 40×30 text grid, its values read from the compiled vehicle and its listing as the simulation
-holds them. Rows 0–11 stand on every page; below them three pages, ENGINE, DRIVETRAIN and
-CHASSIS, take turns. `src/shell/vehicle-page.ts` holds every position, scale and time named here.
+holds them. Rows 0–11 stand on every page; below them two pages, DRIVETRAIN and CHASSIS,
+take turns. `src/shell/vehicle-page.ts` holds every position, scale and time named here.
 
 | Rows  | Columns | Content                                                                                                                                                                                                                          |
 | ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -522,15 +522,15 @@ CHASSIS, take turns. `src/shell/vehicle-page.ts` holds every position, scale and
 | 4–11  | 22–39   | the page's diagram                                                                                                                                                                                                               |
 | 11    | 1–21    | the color's display name, `▲ GUARDS RED 3/4 ▼` (WHITE), within 1–21 for a name of up to 13 characters and a set's at most eight colors (a longer one, up to 24, runs on over the diagram's row); with fixed colors its name only |
 | 12    | 1–      | the page tabs                                                                                                                                                                                                                    |
-| 12    | 30–37   | `PAGE n/3` (DARK)                                                                                                                                                                                                                |
+| 12    | 30–37   | `PAGE n/2` (DARK)                                                                                                                                                                                                                |
 | 14–29 | 0–39    | the page's values                                                                                                                                                                                                                |
 
 The picture turns through the yaw images, one every six fixed steps, in the shown color. Each vehicle has one scale,
 the largest from the player depth down (in steps of 1 %) at which every yaw image, standing at one anchor, fits columns
 0–19 by rows 4–10 (160×56 pixels), and that anchor centres the images in the box.
 
-Each page stays 360 fixed steps (6 s), then the next follows, ENGINE after CHASSIS; no key turns the pages and no
-black stands between them. A change of vehicle returns to ENGINE at the start of its time; a change of color keeps the page and its time.
+Each page stays 360 fixed steps (6 s), then the next follows, DRIVETRAIN after CHASSIS; no key turns the pages and
+no black stands between them. A change of vehicle returns to DRIVETRAIN at the start of its time; a change of color keeps the page and its time.
 The tabs on row 12 name the pages from column 1, two columns apart, the shown page WHITE and the others DARK. Under the
 shown page's name, on y 103, its time line runs DIM across the name's width, YELLOW from the left over the share of
 the page's time gone; a DIM rule crosses the frame on y 106. Over a wallpaper the frame stands at quarter brightness,
@@ -542,111 +542,12 @@ right column's at columns 20 and 28. Power and torque are integers from 10 up an
 RPM, millimetres, kilograms, inertias and brake torques are integers; ratios have three decimals below 10 and two from 10 up (`14.47`), wheel inertias one,
 and ride frequency, damping and drag two. A left value ends by column 18 and a right value by column 39.
 
-#### ENGINE
-
-Row 3 heads the graph with `TORQUE` (YELLOW) at column 22 and `POWER` (RED) at column 31. The graph is drawn in pixels
-under the text, in x 176–319 and y 32–95. Its horizontal axis runs from 20 % to 110 % of redline, 16 pixels for each
-10 %, with a grid line every 10 % (the last clipped at x 319); its vertical axis from 0 on row 95 to the top grid line
-on row 35, with grid lines at 25, 50, 75 and 100 %. The grid is DARK, the axes (x 176, y 95) a lighter grey, and the
-redline a RED line dashed every second pixel. The
-torque curve (YELLOW) and the power curve (RED) are each scaled so its maximum touches the top grid line; they are a
-pixel wide, joined vertically between columns, and run from the larger of idle and 20 % of redline to the fuel-cut
-entry, `fuelCutEnterRedlineRatio` times redline, following the curve above redline
-([Vehicle physics](vehicle-physics.md#wheel-and-powertrain)). The graph has no axis numbers.
-
-On ENGINE the shown vehicle's engine revs standing still: its model, as a run builds it, is held as in a race's READY
-([Vehicle physics](vehicle-physics.md#wheel-and-powertrain)), so its inertia, friction, fuel cut and throttle actuator are
-the run's, and the throttle asked of it follows the page's time, the same for every vehicle:
-
-| Page time | Throttle |
-| --------- | -------- |
-| 0–1.5 s   | 0 (idle) |
-| 1.5–2.5 s | full     |
-| 2.5–4 s   | 0        |
-| 4–6 s     | full     |
-
-Its sound is the player's engine voice, sounding the vehicle's engine sound from the engine's observation as a run's
-player's does, while the title track plays on unchanged; the tires' voice receives the vehicle at rest. The vehicle
-sound is live on ENGINE alone ([Audio](audio.md#mix-and-lifetime)): entering it opens the live gate, and leaving it, a
-transition or a hidden page closes the gate with the silence fade, so the change to DRIVETRAIN, at the limiter, fades
-out. Each time ENGINE is shown, a change of vehicle included, the engine starts again at idle; a change of color
-does not touch it, and no other page runs it. While its speed is at or above 20 % of redline a WHITE upright line
-stands at that speed on the horizontal axis, from the top grid line to the bottom row, with a mark of 3×3 pixels where
-it crosses each curve, in the curve's color; they are drawn over the curves and under the text.
-
-| Rows 14–20, left  | Example      | Source                                                    |
-| ----------------- | ------------ | --------------------------------------------------------- |
-| `ENGINE`          | `F12 4943cc` | listing `metadata.engine`, `displacementCc`               |
-| `CYCLE`           | `4-STROKE`   | `cycle`                                                   |
-| `POWER`           | `287kW/6300` | the curve's maximum of `rpm*torque` (point D) and its RPM |
-| `TORQUE`          | `490Nm/4500` | the curve's maximum (point C) and its RPM                 |
-| `IDLE`, `REDLINE` | `1000rpm`    | `idleRpm`, `redlineRpm`                                   |
-| `CUT`             | `7140rpm`    | the fuel-cut entry, `fuelCutEnterRedlineRatio` × redline  |
-
-The firing moves in slow motion, 30 times slower than real: the engine turns at `idleRpm`, a cycle taking
-`cycleRevolutions` × 60 × 30 / `idleRpm` seconds, counted in fixed steps since the vehicle was shown, from the cycle's
-start. A cylinder fires at its `firingPhases` entry and stays lit for 4 % of a cycle after it. Its bank is its
-collector (`exhaustCollectors`: the junction its valve tube enters, a log manifold's ports one collector; a valve tube
-that runs to a mouth its own, after the junctions'), colored by collector number YELLOW, RED, GREEN and WHITE in turn.
-
-FIRING: row 22 has `FIRING` (DARK) and, at column 8, the crank degrees between firings in firing order as their
-shortest repeating run: `EVEN 120` when all are equal, the cycle's degrees for a single cylinder (`360`), otherwise the
-run joined by `-` (`90-270`). Under it one cycle (`cycleRevolutions` × 360°) runs across x 8–151 on a grey baseline on
-y 199, with a grey tick 3 pixels deep every 90°. Each cylinder has a tick two pixels wide at its phase, in its bank's
-color from y 192, and WHITE from y 188 while lit. The engine's place is a dotted grey cursor from y 186. Row 26 has `0`,
-`CRANK DEG` at column 5 and the cycle's degrees right-aligned in columns 16–18 (DARK), and row 28 has `IDLE x1/30`
-(DARK).
-
-EXHAUST: row 14 has `EXHAUST` at column 20 (DARK) and the exhaust's form at column 28 (WHITE). The form counts the
-flows stage by stage: the cylinders, their collectors, then the junctions at each depth reached from them along tubes
-from `from` to `to`, then the mouths leaving the last (with the valve tubes that run to a mouth). Neighbouring stages
-with equal counts are one stage, and a single stage is written twice, so the vehicles read `12-4-2`, `8-4-2-1`,
-`8-2-1-2-4`, `6-2-1`, `4-2-1-2`, `4-1-2`, `4-4`, `2-1` and `1-1`, among others. Row 15 has `cm` at column 21 (DARK),
-heading the valve tubes' lengths, and `BORE` at column 24 (DARK) with the exhaust's one diameter in millimetres at
-column 29 (`40mm`, WHITE). Row 28 has `VALVE` at column 20 (DARK) and, at column 26, the valve's diameter to a tenth of
-a millimetre and its open crank angle, `open` × `cycleRevolutions` × 360 (`39.6mm 280DEG`, WHITE). Row 29 has the
-scale marks: `1m` at column 20 (DARK) and a metre as a WHITE line with end ticks from x 184, and `50mm` at column 28
-(DARK) and a 50 mm pipe a metre long from x 264.
-
-Every vehicle's exhaust is drawn as it is written and heard (`src/view/exhaust-diagram.ts`; the screen makes the
-diagram once for each engine sound): its tubes all as thick as its one diameter, 100 pixels per metre (a 60 mm bore
-6 pixels, none under 1), at one length scale, the largest whole pixels per metre at which the catalog's
-farthest-reaching exhaust, from its leftmost valve to its farthest mouth, fits between x 216 and x 314 (24 px/m for
-GOLF GTI 16V's 4.03 m):
-
-- Every tube runs level for its own length; junctions' bars join tubes at different heights and carry no length. Along
-  junction tubes, `to` stands its tube's length after `from` (a loop's closing tube as it falls), and each group of
-  junctions the cylinders reach shifts so its leftmost valve, junction or mouth stands at x 216. A valve tube that runs
-  to a mouth starts at x 216. Junctions the cylinders do not reach are not drawn.
-- Valve tubes take a text row each from row 16, each running along its row's middle from its valve to its junction, so
-  unequal ones show as staggered valves. Their order is that of their junctions going upstream from each last junction
-  (one no tube leaves for another junction), junction tubes into a junction before its own valve tubes, so a merge's
-  valve tubes stand together and a log manifold's ports step down along it; those that run to a mouth follow, in
-  cylinder order. Each valve tube's length in centimetres stands right-aligned in columns 20–22 (WHITE).
-- A junction stands at the mean height of its valve tubes, or else of the junctions whose tubes enter it. The tubes
-  leaving a junction for mouths, or for junctions that tube alone enters and no valve tube, stand side by side about
-  its height, each as wide as what it carries, 2 pixels apart; any other tube runs at its `from` junction's height.
-- Each junction is one upright bar, as wide as the tubes and centred on its x, from the top to the bottom of every
-  tube's cross-section where that tube reaches it. A tube `t` pixels thick spans `low = floor((t-1)/2)` pixels above or
-  left of its line and `t-1-low` below or right; an end that joins a bar reaches past its point by that side's part,
-  ending inside the bar, and a valve or a mouth does not. Valve tubes, and the bars of collectors two or more valve
-  tubes enter, are in their bank's color; the other tubes and bars (a log manifold's ports, a single valve tube's
-  junction) are grey. Collectors' bars are drawn last.
-- The tubes and bars are painted flat, then shaded once as one shape whatever their colors: a pixel that tops a
-  vertical run of 3 or more drawn pixels, or ends a horizontal run of 3 or more on the left and does not end a vertical
-  run at the bottom, is lit halfway to white; one that ends a vertical run at the bottom, or a horizontal run on the
-  right and does not top a vertical run, is at half brightness; lit wins over both. Parts under 3 pixels are flat, and
-  no line is drawn where colors meet.
-- Each cylinder is a block of 6×7 pixels just before its valve, DIM edged in its bank's color, WHITE while lit.
-- Each junction tube's length in centimetres, `315` (DARK), stands in the text row above, or else below, the rows of
-  its longest level piece, over it and as near its centre as columns 26–39 and rows 15–27 allow, in cells holding
-  nothing drawn or written and not just after written text; longest tubes first. A tube with no such place has no value:
-  the scale marks read it.
-
 #### DRIVETRAIN
 
-Row 3 heads the graph with `GEARS` (YELLOW) at column 22. The graph stands where ENGINE's does, on its grid and axes,
-and shows each gear's engine speed against road speed: its horizontal axis runs from 0 at x 176 to the top gear's
+Row 3 heads the graph with `GEARS` (YELLOW) at column 22. The graph is drawn in pixels under the text, in x 176–319
+and y 32–95, on a DARK grid of lines every 10 % of a redline axis from 20 % to 110 %, 16 pixels for each 10 % (the last
+clipped at x 319), and at 25, 50, 75 and 100 % of its height, the axes (x 176, y 95) a lighter grey. It shows each
+gear's engine speed against road speed: its horizontal axis runs from 0 at x 176 to the top gear's
 road speed at redline at x 319, and its vertical axis from 0 on row 95 to redline on the top grid line, where the
 redline is a RED line dashed every second pixel. Each gear is a straight line, a pixel wide and joined vertically
 between columns, from the origin to its road speed at redline: DIM up to the previous gear's speed at redline and

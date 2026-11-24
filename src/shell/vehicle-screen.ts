@@ -36,11 +36,10 @@ import {
   freeRevThrottle,
   type VehiclePage,
 } from './vehicle-page.js';
-import { ENGINE_PAGE } from './vehicle-engine-page.js';
 import { DRIVETRAIN_PAGE } from './vehicle-drivetrain-page.js';
 import { CHASSIS_PAGE } from './vehicle-chassis-page.js';
 
-const PAGES: readonly VehiclePage[] = Object.freeze([ENGINE_PAGE, DRIVETRAIN_PAGE, CHASSIS_PAGE]);
+const PAGES: readonly VehiclePage[] = Object.freeze([DRIVETRAIN_PAGE, CHASSIS_PAGE]);
 
 /** A vehicle's display name: its manufacturer and model. */
 export function vehicleName(vehicle: CompiledVehicleDefinition): string {
@@ -120,12 +119,12 @@ function drawTabs(frame: SoftwareSurface, text: TextLayer, page: number, pageSte
 
 /**
  * SELECT VEHICLE, one catalog page per vehicle: its name, a picture turning through its yaw images in its color, and
- * its pages (ENGINE, DRIVETRAIN, CHASSIS) in turn, each for `VEHICLE_PAGE_STEPS` fixed steps, with the physical values
+ * its pages (DRIVETRAIN, CHASSIS) in turn, each for `VEHICLE_PAGE_STEPS` fixed steps, with the physical values
  * as the simulation holds them under `driving`. On a page that revs, the shown vehicle's model, as a run builds it, is
  * held and revved by `FREE_REV_THROTTLE` from idle at the page's start; a change of vehicle starts it again. While it
  * revs the screen drives a vehicle, and each frame gives `sound` the engine's observation, as the player's. LEFT and RIGHT change
  * the vehicle and UP and DOWN its color, each wrapping around, starting from `choice`; each vehicle is first shown in
- * `colorOf` its color. A change of vehicle returns to the first page, ENGINE, at the start of its time. With fixed colors it has no color
+ * `colorOf` its color. A change of vehicle returns to the first page, DRIVETRAIN, at the start of its time. With fixed colors it has no color
  * choice and keeps that color. CONFIRM chooses the shown vehicle and color (null with fixed colors).
  */
 export function createVehicleScreen(
@@ -143,8 +142,6 @@ export function createVehicleScreen(
     entry: boolean;
     /** A picture the page stands over, shaded by `WALLPAPER_SHADE`; null for the plain background. */
     background: TilePicture | null;
-    /** The exhaust diagram's one length scale, the whole catalog's (`exhaustPixelsPerMeter`). */
-    exhaustPixelsPerMeter: number;
   },
   actions: { confirm(vehicle: CompiledVehicleDefinition, color: string | null): void; back(): void },
 ): Screen {
@@ -277,7 +274,6 @@ export function createVehicleScreen(
         fuelCutEnterRedlineRatio,
         shownSteps,
         engineRpm: engine?.powertrain.engineRpm ?? null,
-        exhaustPixelsPerMeter: choice.exhaustPixelsPerMeter,
       });
       text.draw(frame);
       if (engine) sound(observation);
