@@ -374,7 +374,7 @@ Its 4.84 m run after the manifold is one tube
 - F150-1: the vehicle added (definition, sound, listing, the set baked from K's model, SHA-256 `1944c926…`, on
   `codex/ford-f-150-1975-glb-source`, never on main), the engine loudness measured again; no series runs it.
 - F150-2: OUT RUN's traffic takes the F-150 in the TOYOTA PICKUP's place, of the same weight and place in each of the
-  six classes.
+  six classes; no measured product changes.
 - The stage auditor's choices, awaiting K: the names `F150`, `FORD_F_150_1975` and `ford-f-150-1975`; the eight colors,
   their base colors and WIND BLUE the default (no source gives the colors' sales); the definition's estimates; the
   exhaust's form; the three PRs.
