@@ -1340,6 +1340,10 @@ start gate of both grids by it `startGate`, which every original's conversion us
 grid from the front, the rivals first and the player behind them; a RACE's entries take the slots its class gives
 them ([Run setup](content-and-gameplay.md#run-setup)).
 
+A kind's largest body, which the rules below make room for, is the largest among the catalog's vehicles of the kind at
+most 5 m long (`GRID_BODY_LENGTH_LIMIT`, K, 2026-11-25): longer vehicles, trucks and the like, run in traffic and never
+stand on a grid.
+
 1. **The start line.** On a circuit, its line: a grid's front slot stands where its original's front place does, but
    never nearer the line than half its kind's largest body in the vehicle catalog (a car 4.996 × 2.15 m, a bike 2.38 ×
    0.85 m), so that no body crosses the line at GO; an original's grid nearer moves back so far, whole, and the general

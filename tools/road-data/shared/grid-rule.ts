@@ -51,7 +51,16 @@ export interface StartGrids extends GridStand {
   readonly laneWidth: number;
 }
 
-/** The largest body of each kind in the vehicle catalog, metres along and across. */
+/**
+ * The longest vehicle a grid makes room for, metres (K, 2026-11-25): longer ones, trucks and the like, run in traffic
+ * and never stand on a grid, so they size no grid.
+ */
+export const GRID_BODY_LENGTH_LIMIT = 5;
+
+/**
+ * The largest body of each kind among the vehicle catalog's vehicles at most `GRID_BODY_LENGTH_LIMIT` long, metres
+ * along and across.
+ */
 type Body = { readonly length: number; readonly width: number };
 let bodies: Record<GridKind, Body> | undefined;
 function largestBodies(): Record<GridKind, Body> {
@@ -72,6 +81,7 @@ function largestBodies(): Record<GridKind, Body> {
     );
     if (!mechanics.ok) throw new AuthoringError(mechanics.diagnostics);
     const { overallLength, overallWidth } = mechanics.value.compiledVehicle;
+    if (overallLength > GRID_BODY_LENGTH_LIMIT) continue;
     largest[form] = {
       length: Math.max(largest[form].length, overallLength),
       width: Math.max(largest[form].width, overallWidth),
