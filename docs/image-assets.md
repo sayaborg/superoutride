@@ -617,7 +617,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`nova-250-1977`): drawn by
@@ -1277,6 +1277,46 @@ auditor's, provisional, not measured from paint samples), the model's red first:
 The listing's default is `giallo-fly`, a bright yellow (K, 2026-11-23); its four game colors are gone. The model is K's
 `countach-5000-qv-1985.glb` (SHA-256 `a21ffd16…`), kept on K's branch `codex/countach-5000-qv-1985-glb-source`, never
 on main; it has no wheel nodes, and its front hub is (0, 0.303, 1.225).
+
+**The GTO of 1984.** Its set, `ferrari-gto-1984`, is baked from K's model of the European car by the RX-7's recipe (K,
+2026-11-24), in place of its earlier procedural set: the same steps (seven paint steps, three glass steps and four
+greys), light, reflections, glare, spacing, 64 directions and brake lamp colors, none moved for this car. What differs
+is the model's: the body's red (231, 10, 14) is its one paint, within 8; the glass is (10, 10, 12), within 4 and of
+roughness below 0.5, six panes (the windscreen, the doors', the rear quarters' and the upright rear window); the
+magenta (255, 0, 255) is the brake lamp, the inner round lamp on each side, which K painted. Every black part is matt,
+(22, 22, 24) of roughness 0.90, which K painted: the window frames (a band within 25 mm of the paint), the A and B
+pillars, the well round the rear window and its floor, the front and rear bumpers, the front grille, the thin line along
+each flank, the rings round the tail lamps and the mirrors' glass; it is a grey, never glass, and there is no glossy
+black. The tyres and the underside keep their own dark colors at roughness 0.90; the wheels, the headlamps, the outer
+tail lamps (amber (236, 120, 24) with a white centre, so a grey like every color neither paint, glass nor lamp), the
+grille's horse (rough, as the model came), the badges and the silencers keep the model's colors and roughness, greys
+too. K flattened the windscreen with its wipers, the rear window's well floor and the rear lettering (the GTO script
+and the mark beside it, their color and relief gone); the body's other faces are not smoothed. The model holds its
+roughness, 0.10 on the red, the glass and the brake lamp and 0.90 on the dark parts, and its occlusion, made as the
+928 S4 model's is. Its four wheels are spun as the model's `extras` give them: centres (±0.7795, 0.3157, 1.225) m front
+and (±0.781, 0.3307, −1.225) m rear, radii 0.3157 and 0.3307, widths 0.225 and 0.255 (225/50 VR 16 and 255/50 VR 16,
+the owner's manual's Goodyears); the rims are 0.240 and 0.245, the model's wheels' edges measured (0.238–0.246 and
+0.242–0.250 m; the stage auditor's), larger than the 16-inch cars' 0.2207 because the model's wheels are large for
+their tyres. The model is fitted to the car's definition: 4,225 mm long to the bumpers, 1,850 mm wide at the rear
+fenders (1,830 mm at the front fenders, as K's model is; 1,751 mm across the mirrors) and 1,150 mm high, on its
+2,450 mm wheelbase and 1,559 / 1,562 mm tracks; its plan is scaled to the length, its width by 0.977 and its height by
+0.955 of that, the axles moved apart to the wheelbase and the overhangs, 1,021 and 754 mm, shortened (not compared with
+a source). The wheels drawn are the tires' nominal size, not the 0.305 and 0.319 m its driving uses, so the tyres stand
+close under the arches (17–18 mm front, 12–13 mm rear). A small bump stays at the left wiper's root.
+
+Its two liveries (K, 2026-11-24) are the real car's red, the model's own and the default, and H.Q. BLUE, the arcade
+original's blue, not a color the real car was offered in and named by no real color; the keys and base colors are the
+stage auditor's, provisional, the blue the earlier procedural set's (24, 65, 156)
+([sources](chase-turbo-vehicles.md#evidence-actually-consulted)):
+
+| Palette       | Name        | Code                  | Base color  |
+| ------------- | ----------- | --------------------- | ----------- |
+| `rosso-corsa` | ROSSO CORSA | FER 300/6 (not fixed) | 231, 10, 14 |
+| `hq-blue`     | H.Q. BLUE   |                       | 24, 65, 156 |
+
+The listing's default is `rosso-corsa`; its four game colors are gone. The model is K's `ferrari-gto-1984.glb`
+(SHA-256 `4a9d61f0…`), kept on K's branch `codex/ferrari-gto-1984-glb-source`, never on main; it has no wheel nodes,
+and its front hub is (0, 0.3157, 1.225).
 
 ## HUD picture generator
 

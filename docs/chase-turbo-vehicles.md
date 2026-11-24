@@ -26,7 +26,7 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 | TURBO_ESPRIT_1984     | 1984 UK Turbo Esprit, Type 82                        | 910 low-compression 2174 cc carburetted turbo four; Citroen 5MT | White Giugiaro wedge, rear louvers; not the Stevens X180                |
 | COUNTACH_5000_QV_1985 | 1985 European carburetted 5000 Quattrovalvole        | 5167 cc DOHC 48-valve V12; 5MT                                  | Yellow, rear wing and wide rear tires; not the 25th Anniversary body    |
 | 911_TURBO_3_3_1986    | 1986 MY European 911 Turbo 3.3 Coupe                 | 3299 cc air-cooled turbo flat six (930/66, 300 PS); 4MT         | Silver metallic, round headlights, wide rear fenders, black-rimmed tray |
-| FERRARI_GTO_1984      | 1984 European GTO, Tipo F114                         | F114B, 2855.08 cc twin-turbo flat-plane V8; 5MT                 | Blue arcade recolor, rear-fender slots, paired round rear lamps         |
+| FERRARI_GTO_1984      | 1984 European GTO, Tipo F114                         | F114B, 2855.08 cc twin-turbo flat-plane V8; 5MT                 | Rosso Corsa or H.Q. BLUE, K's model; paired round rear lamps            |
 | PORSCHE_928_S_1984    | 1984 MY US 928 S                                     | M28.19, 4664 cc SOHC 16-valve V8; 5MT                           | Red early body, rubber bumper trim and small spoiler                    |
 | TOYOTA_PICKUP_1980    | 1980 MY US 49-state RN42, regular cab, long bed, 2WD | 2189 cc 20R SOHC four; 4MT                                      | Open long bed, separate upright cab, rectangular lamps                  |
 | FERRARI_F40_1988      | 1988 European F40, non-catalyst, fixed ride height   | F120-family 2936.25 cc twin-turbo flat-plane V8; 5MT            | Red, high fixed wing, round rear lamps, three exhaust outlets           |
@@ -50,9 +50,14 @@ nothing here claims the original says so.
 K takes the car chased in CHASE H.Q.'s second stage for the Lamborghini Countach 5000 QV of 1985, Europe
 (K, 2026-11-23); nothing here claims the original says so.
 
-Except the 959's, the 928 S4's, the F40's, the Turbo Esprit's, the Countach's and the 911 Turbo 3.3's, the four palettes
-are game colors, without verified period paint codes. Blue GTO and the police livery are especially not claims of
-factory delivery colors. The stock-named palette key means the default game palette.
+K takes the car chased in CHASE H.Q.'s fourth stage for the Ferrari GTO of 1984, Europe
+(K, 2026-11-23); nothing here claims the original says so.
+
+Except the 959's, the 928 S4's, the F40's, the Turbo Esprit's, the Countach's, the 911 Turbo 3.3's and the GTO's, the
+four palettes are game colors, without verified period paint codes; the police livery is especially not a claim of a
+factory delivery color. The stock-named palette key means the default game palette. The GTO has two colors: ROSSO
+CORSA, the real car's, and H.Q. BLUE, the arcade original's blue, which is not a factory color
+([item 18](#evidence-actually-consulted)).
 
 ## Representation within the current model
 
@@ -120,8 +125,8 @@ Accessed 2026-10-23 UTC. Search snippets, blocked URLs and unread manuals are no
 The numeric ledger distinguishes `source verified`, `calculated`, `engineering estimate` and `game design`, and for
 the 959, the 928 S4 and the F40 of 1988 `source (auditor)`: the stage auditor's reading, not read for the PR that
 wrote it ([959](#porsche-959-of-1987-sources-versus-authored), [928 S4](#porsche-928-s4-of-1987-sources-versus-authored),
-[F40](#ferrari-f40-of-1988-sources-versus-authored)); the 911 Turbo 3.3's colors (item 17) are the auditor's reading
-likewise.
+[F40](#ferrari-f40-of-1988-sources-versus-authored)); the 911 Turbo 3.3's colors (item 17) and the GTO's (item 18) are
+the auditor's reading likewise.
 A source-verified secondary value means that page was read, not that it has primary-document authority.
 
 1. **928 S4 factory-table transcription**, [general/engine](https://www.jenniskens.eu/Technical/TechSpecs/TechSpecs1.htm)
@@ -272,6 +277,20 @@ A source-verified secondary value means that page was read, not that it has prim
     Guards Red, 1976 to 1986; Black is 700 / A1. Silver Metallic's 1986 code differs between sources (L936 and 980) and
     is not fixed here; its name is the same. No 1986 European color list, the primary source, was read.
 
+18. **GTO of 1984, colors** (Stage F114, the stage auditor's reading of 2026-11-24; the pages could not be reached from
+    the environment of the PR that wrote this item). Most sources say every production GTO was painted Rosso Corsa
+    ([Wikipedia](https://wikipedia.com/wiki/288_GTO),
+    [Ferrari's magazine](https://ferrari.com/en-BY/magazine/articles/ferrari-colors-rosso-portofino-rosso-corsa-racing-red),
+    which says the 288 GTO came in this red alone, and
+    [Supercar Nostalgia](https://supercarnostalgia.com/blog/ferrari-288-gto)). Its paint is given as Rosso Corsa
+    FER 300/6 for 1984 to 1989 in owners' posts, one by Marcel Massini and one quoting Keith Bluemel's book
+    ([post](https://www.ferrarichat.com/forum/posts/146326817), [post](https://www.ferrarichat.com/forum/posts/146912517));
+    the same posts say three cars (47647, 47649 and 47711) were Rosso Chiaro, and another says a book gives 300/9
+    ([thread](https://www.ferrarichat.com/forum/threads/288-gto-color-code.563599)), so the code is not fixed here; the
+    name is the same. The factory's color table, the primary source, was not read. H.Q. BLUE is not a real car's color
+    and has no source: its base color is the earlier procedural set's blue. Both base colors are the auditor's,
+    provisional, not measured from paint samples.
+
 Conflicting secondary Countach pages mix incompatible bore, gearbox, power-unit and performance figures;
 they are not blanket authorities for this data. An Esprit page labelled simply “Turbo” actually describes
 the 1987 Stevens body and is not the 1984 geometry source. Unread F40 racing tables and a later owner's manual
@@ -279,12 +298,13 @@ are not evidence for the selected 1988 non-catalyst road specification.
 
 ## Pictures and sound
 
-[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for eight of the
+[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for seven of the
 cars; the 959's pictures are baked from K's model instead, in its four period colors, the 928 S4's in eight Porsche
 colors, the F40's in one, ROSSO CORSA, the Turbo Esprit's in four Lotus colors, MONACO WHITE the default, the Countach's
-in its four real colors, GIALLO FLY the default, and the 911 TURBO 3.3 of 1986's in four Porsche colors
-([Model solids](image-assets.md#model-solids); [below](#porsche-911-turbo-33-of-1986-the-fourth-stages-car)). Those
-samples go through the existing shared camera, palette, shadows, sprite and six-LOD baker. Each of the eight has 64 yaw
+in its four real colors, GIALLO FLY the default, the 911 TURBO 3.3 of 1986's in four Porsche colors
+([below](#porsche-911-turbo-33-of-1986-the-third-stages-car)) and the GTO's in two, ROSSO CORSA the default
+([below](#ferrari-gto-of-1984-the-fourth-stages-car); [Model solids](image-assets.md#model-solids)). Those
+samples go through the existing shared camera, palette, shadows, sprite and six-LOD baker. Each of the seven has 64 yaw
 pictures, one bank, four palettes and the existing brake-lamp slot. No source photograph, ROM image or downloaded manual
 image is redistributed. Facet locations, window proportions, lights, rims, paint and details are visual estimates; this
 is not a dimensioned CAD reconstruction. Dimensions include a provisional visual envelope, so tiny mirrors, lamps or the
@@ -554,9 +574,9 @@ The stage auditor's reading (2026-11-19 and 2026-11-20), not read for these PRs:
 [a replacement maker's catalogue](https://catalogue.tubistyle.it/ferrari/f40-1987-1992.html); the 1,235 kg is from a
 specification table of the 1988 car (cars-data).
 
-## Porsche 911 Turbo 3.3 of 1986: the fourth stage's car
+## Porsche 911 Turbo 3.3 of 1986: the third stage's car
 
-K takes the car chased in CHASE H.Q.'s fourth stage for the Porsche 911 Turbo 3.3 of 1986, Europe
+K takes the car chased in CHASE H.Q.'s third stage for the Porsche 911 Turbo 3.3 of 1986, Europe
 (K, 2026-11-23); nothing here claims the original says so. It is the existing `911_TURBO_3_3_1986`, the 1986 European
 car with the 4MT (MF-6, [item 13](#evidence-actually-consulted)), not a vehicle added again; its driving and sound are
 unchanged.
@@ -573,6 +593,23 @@ unchanged.
   1,492 mm. The definition keeps 1,501 mm.
 - The rear band is a dark grey where the real car has a red reflector; the turbo script and the band's lettering are
   rough, as the model has them.
+
+## Ferrari GTO of 1984: the fourth stage's car
+
+K takes the car chased in CHASE H.Q.'s fourth stage for the Ferrari GTO of 1984, Europe (K, 2026-11-23); nothing here
+claims the original says so. It is the existing `FERRARI_GTO_1984`, the 1984 European car with the 5MT (MF-7,
+[item 14](#evidence-actually-consulted)), not a vehicle added again; its driving and sound are unchanged.
+
+- Its pictures are baked from K's model ([Model solids](image-assets.md#model-solids)), no longer drawn by
+  [shape authoring](../tools/graphics/chase-turbo-shapes.ts). The model was made to this ledger's dimensions (4,225 ×
+  1,850 × 1,150 mm, 2,450 mm wheelbase, 1,559 / 1,562 mm tracks); its overhangs, 1,021 and 754 mm, were not fitted nor
+  compared with a source. Its wheels are the tires' nominal size (225/50 VR16 and 255/50 VR16: 0.3157 and 0.3307 m),
+  while its driving keeps 0.305 and 0.319 m.
+- Its two colors (K, 2026-11-24) are ROSSO CORSA, the real car's red and the default, and H.Q. BLUE, the arcade
+  original's blue, not a factory color; the four game colors are gone ([item 18](#evidence-actually-consulted)).
+  Their base colors are the auditor's, provisional.
+- The outer tail lamps' amber is drawn grey, as every color that is neither paint, glass nor brake lamp; the grille's
+  horse is rough, as the model has it.
 
 ## Mazda RX-7 Turbo II of 1987: sources versus authored
 

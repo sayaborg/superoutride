@@ -136,8 +136,8 @@ try {
   }
   if (requested === 'all' || requested === 'review') {
     await save('overview', overview);
-    await save('chase-hq', overview.slice(0, 3));
-    await save('turbo-outrun', overview.slice(3));
+    await save('chase-hq', overview.slice(0, 2));
+    await save('turbo-outrun', overview.slice(2));
   }
   await writeFile(
     new URL(requested === 'all' || requested === 'review' ? 'review.json' : `${requested}-review.json`, directory),

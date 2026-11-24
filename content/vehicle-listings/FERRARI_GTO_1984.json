@@ -5,9 +5,9 @@
   "selectionOrder": 36,
   "visuals": {
     "spriteSet": "ferrari-gto-1984",
-    "palette": "stock",
+    "palette": "rosso-corsa",
     "steeringPicture": "montecarlo",
-    "colorNames": { "stock": "GAME BASE", "red": "GAME RED", "blue": "GAME BLUE", "white": "GAME WHITE" }
+    "colorNames": { "rosso-corsa": "ROSSO CORSA", "hq-blue": "H.Q. BLUE" }
   },
   "sound": "FERRARI_GTO_1984",
   "metadata": {
