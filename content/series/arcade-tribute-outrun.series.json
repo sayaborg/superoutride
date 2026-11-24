@@ -35,7 +35,7 @@
         "path": "lane",
         "vehicles": [
           {
-            "vehicle": "AUSTIN_MINI_850_1964",
+            "vehicle": "VOLKSWAGEN_BEETLE_1500_1968",
             "weight": 1
           },
           {
@@ -89,7 +89,7 @@
         "path": "lane",
         "vehicles": [
           {
-            "vehicle": "AUSTIN_MINI_850_1964",
+            "vehicle": "VOLKSWAGEN_BEETLE_1500_1968",
             "weight": 1
           },
           {
@@ -143,7 +143,7 @@
         "path": "lane",
         "vehicles": [
           {
-            "vehicle": "AUSTIN_MINI_850_1964",
+            "vehicle": "VOLKSWAGEN_BEETLE_1500_1968",
             "weight": 1
           },
           {
@@ -197,7 +197,7 @@
         "path": "lane",
         "vehicles": [
           {
-            "vehicle": "AUSTIN_MINI_850_1964",
+            "vehicle": "VOLKSWAGEN_BEETLE_1500_1968",
             "weight": 1
           },
           {
@@ -251,7 +251,7 @@
         "path": "lane",
         "vehicles": [
           {
-            "vehicle": "AUSTIN_MINI_850_1964",
+            "vehicle": "VOLKSWAGEN_BEETLE_1500_1968",
             "weight": 1
           },
           {
@@ -305,7 +305,7 @@
         "path": "lane",
         "vehicles": [
           {
-            "vehicle": "AUSTIN_MINI_850_1964",
+            "vehicle": "VOLKSWAGEN_BEETLE_1500_1968",
             "weight": 1
           },
           {

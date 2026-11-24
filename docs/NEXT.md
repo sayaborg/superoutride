@@ -325,9 +325,9 @@ rear indicators stay as the model has them; its pictures are baked from K's mode
 [Model solids](image-assets.md#model-solids)). The colors' choice and default were left to the stage auditor.
 
 - VW113-1: the vehicle added (definition, sound, listing, the set baked from K's model, SHA-256 `400113de…`, on
-  `codex/volkswagen-beetle-1500-1968-glb-source`, never on main), the engine loudness measured again; no series runs it.
+  `codex/volkswagen-beetle-1500-1968-glb-source`, never on main), the engine loudness measured again.
 - VW113-2: OUT RUN's traffic takes the Beetle in the Mini 850's place, of the same weight and place in each of the six
-  classes.
+  classes; no measured product changes. TURBO OUTRUN's traffic keeps the Mini 850.
 - The stage auditor's choices, awaiting K: the names `VW113`, `VOLKSWAGEN_BEETLE_1500_1968` and
   `volkswagen-beetle-1500-1968`; the seven colors, their order, keys and base colors, SAVANNA BEIGE the default; the
   definition's estimates; the two PRs.
