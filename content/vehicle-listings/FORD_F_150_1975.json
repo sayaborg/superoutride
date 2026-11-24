@@ -1,0 +1,33 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 6,
+  "form": "car",
+  "selectionOrder": 48,
+  "visuals": {
+    "spriteSet": "ford-f-150-1975",
+    "palette": "wind-blue",
+    "steeringPicture": "montecarlo",
+    "colorNames": {
+      "candyapple-red": "CANDYAPPLE RED",
+      "wind-blue": "WIND BLUE",
+      "wimbledon-white": "WIMBLEDON WHITE",
+      "midnight-blue-metallic": "MIDNIGHT BLUE METALLIC",
+      "hatteras-green-metallic": "HATTERAS GREEN METALLIC",
+      "sequoia-brown-metallic": "SEQUOIA BROWN METALLIC",
+      "vineyard-gold": "VINEYARD GOLD",
+      "raven-black": "RAVEN BLACK"
+    }
+  },
+  "sound": "FORD_F_150_1975",
+  "metadata": {
+    "manufacturer": "Ford",
+    "model": "F-150 Custom",
+    "period": "1975",
+    "mobileLabel": "F-150",
+    "engine": "I6",
+    "engineKind": "4-stroke",
+    "identifier": { "officialLabel": "F-150", "shortLabel": "F-150" },
+    "selectedSpecification": ["300 Six", "Regular Cab Styleside 4x2", "133 in / 3MT"],
+    "physicsAnchor": { "modelYear": "1975", "market": "USA" }
+  }
+}

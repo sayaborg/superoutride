@@ -1,8 +1,9 @@
-# CHASE H.Q. and Turbo OutRun vehicle selections, the RX-7 Turbo II of 1987 and the Beetle 1500 of 1968
+# CHASE H.Q. and Turbo OutRun vehicle selections, the RX-7 Turbo II of 1987 and OUT RUN's traffic cars
 
 This ledger owns the fourteen additional vehicle definitions selected from the supplied arcade-vehicle report, and
-the [Mazda RX-7 Turbo II of 1987](#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored) and the
-[Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-versus-authored), authored by its conventions.
+the [Mazda RX-7 Turbo II of 1987](#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored), and OUT RUN's traffic cars,
+the [Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-versus-authored) and the
+[Ford F-150 of 1975](#ford-f-150-of-1975-sources-versus-authored), authored by its conventions.
 The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored).
 It records the chosen real-car specification, the limits of the evidence, the provisional authoring inputs and
 validation. Shared physics, images, sound and selection behavior retain their existing owners.
@@ -707,3 +708,85 @@ The stage auditor's reading (2026-11-24) of parts sellers', magazines' and enthu
 the pages are not listed here. The
 1968 owner's manual's tables, the primary source for the mass and the axle loads, were not read. Not decided, for K
 ([NEXT](NEXT.md#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)): the estimates above and the valve's opening.
+
+## Ford F-150 of 1975: sources versus authored
+
+K takes OUT RUN's traffic pickup for the Ford F-150 of 1975 (K, 2026-11-25); nothing here claims the original says so.
+`FORD_F_150_1975` is the 1975 Custom Regular Cab Styleside 4×2 on the 133 in wheelbase, the sixth-generation F-Series'
+first F-150 in its first year: the 300 cu in inline six, the three-speed column manual and rear drive. Its listing
+selects the 300 Six, the Regular Cab Styleside 4x2 and the 133 in wheelbase with the 3MT; its engine is shown as `I6`.
+FREE PLAY's classes offer it through catalog membership, as every vehicle. Its numbers follow this ledger's
+[conventions](#numerical-conventions-and-remaining-uncertainty); the estimates among them add no formula or rule and no
+exception for this car.
+
+K's decisions (2026-11-25) are the year and the specification, that it replaces the TOYOTA PICKUP in OUT RUN's traffic,
+the dimensions as the sources give them, the model's large mirrors and rear step bumper (both options) kept, the
+tailgate's outer face and both bumpers made smooth (the FORD lettering's relief and color gone), the box's inside in
+the body's color, the rear bumper moved to the drawing's 25 mm behind the box, the tyres round and on the road, the
+pictures' spacing (0.004 m) and the run after the manifold written as one tube. The source column is the stage
+auditor's reading (2026-11-25), not read for the PRs that wrote this section, of Ford's 1975 pickup catalogue (**C**:
+Ford Pickups '75, FDT-7510, July 1974, K's copy), Ford's 1976 Truck Body Builder's Layout Book of the same body (**D**,
+the drawing named) and web pages (**W**).
+
+| Item                 | Source (auditor's reading)                                                                                      | Authored `FORD_F_150_1975`                                                                                                                                  | Class              |
+| -------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Length               | 215.58 in (5,476 mm) with the step bumper: 31.73 + 133.0 + 50.85 (D); 214.60 in (5,451 mm) to the box (76BB908) | **5.476 m**, with the step bumper                                                                                                                           | source             |
+| Width                | Cab 79.08–79.16 in, box 79.06 in, front bumper 79.62 in (2,022 mm) (D)                                          | **2.022 m**, the front bumper                                                                                                                               | source             |
+| Height               | 71.6 in (1,819 mm): an owner's post about a 1979 F-100, no support                                              | 1.819 m                                                                                                                                                     | unsupported        |
+| Wheelbase, overhangs | 133.0 in (3,378 mm) (C, D); 31.73 / 49.87 in to the box's end (806 / 1,267 mm) (D)                              | Axles **1.4525 / 1.9255 m** from the CG: a rear share of 0.43 (an empty pickup)                                                                             | source, estimate   |
+| Tracks               | 64.4 / 64.8 in (1,636 / 1,646 mm) (C)                                                                           | 1.636 / 1.646 m                                                                                                                                             | source             |
+| Mass                 | GVW 6,050 lb less a payload of 2,275 lb with the driver (C): 3,775 lb (1,712 kg)                                | **1,787 kg**: 1,712 + the 75 kg driver                                                                                                                      | source, calculated |
+| Engine               | 300 cu in (4,917 cc) OHV six, 4.00 × 3.98 in, 8.0:1 (C, W)                                                      | 4,917 cc, `cycle` 4, 8.0, idle 650 (an estimate)                                                                                                            | source, estimate   |
+| Power, torque        | 120 hp net at 3,400 rpm, 223 lb-ft (302 N m) at 1,600 rpm (W); a 101 hp version is listed for the year          | Point 2: 302.347402 N m at 1,600; point 3: 251.326208 N m at 3,400 (120 hp)                                                                                 | source, calculated |
+| Curve's other points | —                                                                                                               | 175.361493 N m at 650 and 256.995292 at 1,125 (0.58 and 0.85 of point 2's), 206.08749 at 4,000 (0.82 of 3's)                                                | estimate           |
+| Redline              | No tachometer                                                                                                   | **4,000 rpm**, a little above the power's                                                                                                                   | estimate           |
+| Transmission         | Three-speed, fully synchronized, column shift, 2.99 / 1.75 / 1.00 (C, parts tables); Ford 9 in axle (C)         | As the source; final **3.50** (only 3.25 or 3.50 could be narrowed to)                                                                                      | source, estimate   |
+| Tires                | L78-15D on 5.5 in rims (C)                                                                                      | Radii 0.355 m (nominal 0.371, less the load's squash); inertias `25r²` / `27r²` = 3.151 / 3.403                                                             | source, estimate   |
+| Drag                 | —                                                                                                               | `q = 0.5 × 1.225 × 0.55 × 3.0 m²` = **1.0106 kg/m**; Cd and the frontal area are estimates                                                                  | estimate           |
+| CG height            | —                                                                                                               | 0.70 m                                                                                                                                                      | estimate           |
+| Inertias             | —                                                                                                               | Box estimates **5,074 / 4,958 kg m²**                                                                                                                       | calculated         |
+| Brakes               | —                                                                                                               | 1,787 × 11.5 m/s², 65:35, × 0.355 m, to 25 N m: **4,750 / 2,550 N m**                                                                                       | game design        |
+| Suspension           | —                                                                                                               | 1.5 Hz, 0.4, 0.3 m                                                                                                                                          | game design        |
+| Valves               | Intake 1.78 in, exhaust 1.56 in (39.6 mm), a later year's (W); exhaust 54° BBDC to 34° ATDC at 0.006 in (W)     | `valve` 0.0396 m, `open` 0.3722 (268 / 720)                                                                                                                 | source, estimate   |
+| Firing               | 1-5-3-6-2-4, at even intervals (W)                                                                              | `firingPhases` 0 to 5/6 by sixths                                                                                                                           | source             |
+| `exhaust.diameter`   | —                                                                                                               | **0.04 m**: the manifold's branch, about 35 mm, × 1.14                                                                                                      | estimate           |
+| `exhaust.tubes`      | One outlet; 2.00 in pipe; silencer 6.00 in across, 27.00 in long; no catalyst on the F-150 (D, 76BB002)         | Six from the valves to junction 0, 0.32 / 0.20 / 0.10 / 0.32 / 0.20 / 0.10 m in firing order; one of **4.84 m** to the open (the drawing's layout, ±0.15 m) | source, estimate   |
+
+The 205.28 in length in some tables is the chassis cab's, without the box, and is not used. 120 hp is taken because
+the F-150, the heavier rating without a catalyst, is that version.
+
+### The F-150 in the current model
+
+- Its three forward gears are shifted by the existing automatic shifts, as every car's; its tire is the default tire.
+- Its engine sound is written as the exhaust kernel reads it, its sources in its own note
+  ([Audio](audio.md#observations-and-engine-sounds)): no expansion chamber, the log manifold's six tubes, the nearer its
+  outlet the shorter, and the run after the manifold one tube (K, 2026-11-25).
+- Its pictures are baked from K's model in eight 1975 Ford colors, WIND BLUE the default, at a spacing of 0.004 m
+  ([Model solids](image-assets.md#model-solids)); the wheels drawn are the tyre's nominal size, 0.371 m, while its
+  driving keeps 0.355 m. The large mirrors and the rear step bumper are options; the Custom's standard were small
+  mirrors and no rear bumper.
+
+### The F-150 on the flat
+
+The existing solver on this ledger's flat, dry, windless straight with the automatic shifts, not compared with the real
+car's figures, which were not looked up, and not tuned:
+
+| Measure                        | Measured                                                        |
+| ------------------------------ | --------------------------------------------------------------- |
+| 0–100 km/h                     | 14.4 s (60 mph in about 13.2 s)                                 |
+| Quarter mile                   | About 19.3 s, at about 112 km/h (between the run's 1 s samples) |
+| Speed after 240 s              | 147 km/h in third at 3,860 rpm, below the redline               |
+| Redline speeds, first to third | 51, 87, 153 km/h                                                |
+| Shifts                         | 51 and 87 km/h, at 4.2 and 10.2 s                               |
+| Braking from 100 km/h          | 2.48 s, 35.2 m                                                  |
+
+It launches, shifts through all three gears and restarts from rest (76 km/h 8 s after stopping).
+
+### The F-150's sources
+
+The stage auditor's reading (2026-11-25), not read for these PRs: Ford's 1975 pickup catalogue (FDT-7510, K's copy),
+[Ford's 1976 Truck Body Builder's Layout Book](https://www.fordification.net/tech/bodybuilder76.htm) (drawings 76BB002
+and 76BB908; the 1976 edition, of the same body) and web pages for the engine's power, torque, firing order, valves
+and cam. The service manual's tables, the primary source for the engine, and the height table 76BB060 were not read.
+Not decided, for K ([NEXT](NEXT.md#stage-f150--the-f-150-of-1975-in-out-runs-traffic)): the height, the estimates
+above, the power (120 or 101 hp), the valves and cam (a later year's and an enthusiast's) and the exhaust's lengths.

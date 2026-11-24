@@ -617,7 +617,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`nova-250-1977`): drawn by
@@ -1360,6 +1360,66 @@ other cars' red, a little brighter than the real paint:
 The listing's default is `savanna-beige` (the stage auditor's). The model is K's `volkswagen-beetle-1500-1968.glb`
 (SHA-256 `400113de…`), kept on K's branch `codex/volkswagen-beetle-1500-1968-glb-source`, never on main; it has no wheel
 nodes, and its front hub is (0, 0.326, 1.2).
+
+**The F-150 of 1975.** Its set, `ford-f-150-1975`, is baked from K's model of the 1975 Custom Regular Cab Styleside 4×2
+by the RX-7's recipe (K, 2026-11-25): the same steps (seven paint steps, three glass steps and four greys), light,
+reflections, glare, 64 directions and brake lamp colors, none moved for this car. Its spacing alone differs, 0.004 m
+(K, 2026-11-25): at the recipe's 0.008 m the tailgate and the rear bumper, which stand 3.2 m behind the base point and
+so about twice as large on the screen, were drawn with gaps between their samples' points, through which the inner
+faces behind showed dark, and seen from behind they were speckled. When every set is baked again (the colors'
+adjustment), the baker is to choose the spacing from the size of a texel at the solid's nearest point rather than a
+number for each vehicle (K); until then the other sets keep 0.008 m.
+
+What differs is the model's, which K did not paint: the body's red (231, 10, 14) is its one paint, within 8, the
+box's inside (painted as the body, K) and the tailgate's face among it; the glass is (10, 10, 12), within 4 and of
+roughness below 0.5, four panes (the windscreen, the rear window and the doors'), made flat, the windscreen moving up
+to 43 mm; the magenta (255, 0, 255) is the brake lamp, the red of the rear lamps. Every black part is matt, (22, 22, 24) of roughness 0.90: the tyres, the underside, the grille's depth and the gaps; it is a grey, never glass. The
+grille, the headlamps, both bumpers, the mirrors, the wheels, the window frames, the side markers and the badges keep
+the model's colors and roughness, greys like every color neither paint, glass nor lamp, the front indicators' amber,
+the red side markers and the rear lamps' white among them. No other color lies within 8 of the paint nor within 4 of
+the glass (the stage auditor counted). The large mirrors and the rear step bumper, both options, stay as the model has
+them (K). The tailgate's outer face (to 0.69 m either side of the centre) and both bumpers are made smooth, each set on
+one section drawn along the width: the tailgate's horizontal steps stay, and the FORD lettering's relief and color are
+gone (K); the rear bumper's steps beside the plate and its ends are only lightly smoothed. The doors, the box's sides,
+the fenders and the bonnet keep their waves. The rear bumper was moved forward 83.3 mm as one part, unflattened, to
+stand 24.7 mm behind the box's end (the drawing's 25 mm, K). A bump like a spare tyre stays on the box's floor, and a
+thin light-blue reflection of the original model stays on the rear bumper's top, a grey. The model holds its
+roughness, 0.10 on the red, the glass and the brake lamp and 0.90 on the matt black.
+
+Its tyres follow K's one rule for tyres (2026-11-25): round, the centre one radius above the road and the lowest point
+on it. The model's tyres were flattened where they met the road (about 10 mm over ±14°) and are made round: within
+4 mm of 0.371 m all round, the centres 0.371 m up and the lowest points 0.1 to 1.0 mm above the road. The other models'
+tyres float a few millimetres, their centres set from the round part (the Beetle's 5 mm), and are brought to the rule
+when every set is baked again (K), not now. Its four wheels are spun on the L78-15 tyre's nominal size: centres
+(±0.818, 0.371, 1.689) m front and (±0.823, 0.371, −1.689) m rear, radius 0.371 and width 0.226; the rims are 0.215,
+the model's edge between wheel and tyre measured (0.21–0.22 m; the stage auditor's). The model is in metres, +y up, +z
+forward and +x to the left, its origin on the road, on the centreline, halfway between the axles (z +1.689 and −1.689).
+It is fitted to the car's definition: 5,475.6 mm long to the rear bumper (5,450.9 mm to the box's end), its body
+2,010.7 mm wide at the front fenders, 2,001.9 mm at the cab and 2,005.6 mm at the box, the bumpers 2,022 mm (2,442 mm
+across the mirrors), and 1,819 mm high, on its 3,378 mm wheelbase and 1,636 / 1,646 mm tracks (the model's tyres
+measure 1,641 and 1,650–1,651 mm), the overhangs 805.9 and 1,266.9 mm; its width is scaled by 5.578 and its height by
+5.312, and its length by 5.670 about the wheels, 5.549 between the axles and 4.543 and 6.705 in the overhangs. The tyres
+clear the fenders by 29–49 mm.
+
+Its eight liveries are standard 1975 Ford truck colors by the catalogue's names, eight of its thirteen, the model's red
+first (the choice, order, keys and base colors are the stage auditor's, which K left to the auditor, 2026-11-25; the
+base colors are provisional, not measured from paint samples, and no source gives how many trucks each color sold).
+CANDYAPPLE RED's base color is the other cars' red:
+
+| Palette                   | Name                    | Base color    |
+| ------------------------- | ----------------------- | ------------- |
+| `candyapple-red`          | CANDYAPPLE RED          | 231, 10, 14   |
+| `wind-blue`               | WIND BLUE               | 150, 196, 226 |
+| `wimbledon-white`         | WIMBLEDON WHITE         | 238, 236, 224 |
+| `midnight-blue-metallic`  | MIDNIGHT BLUE METALLIC  | 26, 36, 72    |
+| `hatteras-green-metallic` | HATTERAS GREEN METALLIC | 46, 86, 62    |
+| `sequoia-brown-metallic`  | SEQUOIA BROWN METALLIC  | 92, 60, 40    |
+| `vineyard-gold`           | VINEYARD GOLD           | 196, 160, 84  |
+| `raven-black`             | RAVEN BLACK             | 18, 18, 20    |
+
+The listing's default is `wind-blue`, the color of K's model and photographs (the stage auditor's). The model is K's
+`ford-f-150-1975.glb` (SHA-256 `1944c926…`), kept on K's branch `codex/ford-f-150-1975-glb-source`, never on main; it
+has no wheel nodes, and its front hub is (0, 0.371, 1.689).
 
 ## HUD picture generator
 

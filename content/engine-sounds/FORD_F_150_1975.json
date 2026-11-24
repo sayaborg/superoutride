@@ -1,0 +1,22 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 3,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.16666666666666666, 0.3333333333333333, 0.5, 0.6666666666666666, 0.8333333333333334],
+  "exhaust": {
+    "valve": { "diameter": 0.0396, "open": 0.3722 },
+    "diameter": 0.04,
+    "tubes": [
+      { "from": null, "to": 0, "length": 0.32 },
+      { "from": null, "to": 0, "length": 0.2 },
+      { "from": null, "to": 0, "length": 0.1 },
+      { "from": null, "to": 0, "length": 0.32 },
+      { "from": null, "to": 0, "length": 0.2 },
+      { "from": null, "to": 0, "length": 0.1 },
+      { "from": 0, "to": null, "length": 4.84 }
+    ]
+  },
+  "metadata": {
+    "note": "1975 US Ford F-150 Custom (300 Six, 4,917 cc, 120 hp net): an inline six, one exhaust valve a cylinder, firing 1-5-3-6-2-4 at even intervals; the tubes from the valves in that order. Valve: 1.56 in (39.6 mm), a later year's value on the web; the lift passes a quarter of the diameter, so the diameter as it is. Open 268 / 720 = 0.3722, from 54 BBDC / 34 ATDC at 0.006 in tappet lift (an enthusiast's measurement). The 1975 car's primary source was not read. No expansion chamber: the cast log manifold's six ports join one pipe (junction 0). Its outlet is taken between cylinders 3 and 4, so each cylinder's tube is its run along the log, the nearer the shorter: 1 and 6 0.32 m, 2 and 5 0.20 m, 3 and 4 0.10 m, estimates from the 114 mm between cylinders (the stage auditor's). From the outlet one tube of 4.84 m to the open, built up from Ford's 1976 Truck Body Builder's Layout Book, drawing 76BB002 (the same generation's body), as the stage auditor read it: a downpipe of about 1.7 m, the silencer 0.69 m (27.00 in long, 6.00 in across) and a tail of about 2.45 m, to 34.38 in behind the rear axle, leaving 35.00 in right of the centreline; the downpipe's start and the silencer's place are read from the drawing (+-0.15 m). The F-150 has no catalyst. The silencer's body and volume are not written. Diameter 0.04 m: the manifold's branch, about 35 mm inside, times 1.14 (an estimate)."
+  }
+}

@@ -22,10 +22,12 @@ Each line is one area as it stands, with the document that owns it.
 - The [fourteen arcade car selections](chase-turbo-vehicles.md) are provisional FREE PLAY entries, bringing the catalog
   to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984, 38 with the XR600R of 1985 and 39 with
   the RX-7 Turbo II of 1987, K's TOP SPEED car, 38 again without the NSR500 of 1987 (Stage MF), 37 without the 911
-  TURBO 3.3 of 1989 and 38 with the Beetle 1500 of 1968
-  ([Stage VW113](#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)), in the same ledger
+  TURBO 3.3 of 1989, 38 with the Beetle 1500 of 1968
+  ([Stage VW113](#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)) and 39 with the F-150 of 1975
+  ([Stage F150](#stage-f150--the-f-150-of-1975-in-out-runs-traffic)), in the same ledger
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored),
-  [the Beetle's](chase-turbo-vehicles.md#volkswagen-beetle-1500-of-1968-sources-versus-authored)). Among the fourteen, the
+  [the Beetle's](chase-turbo-vehicles.md#volkswagen-beetle-1500-of-1968-sources-versus-authored),
+  [the F-150's](chase-turbo-vehicles.md#ford-f-150-of-1975-sources-versus-authored)). Among the fourteen, the
   928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)), and
   the Turbo Esprit of 1984 the car it chases ([Stage E82](#stage-e82--the-turbo-esprit-of-1984-chase-hqs-rival)), the
   Countach 5000 QV of 1985 the car it chases on the second stage
@@ -63,7 +65,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
 - **Pictures.** GOLF GTI 16V's pictures are a generated set, VFR750R's a 3D prototype,
-  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the M23 PP SPEC's, the NSR500 of 1984's and
+  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the M23 PP SPEC's, the NSR500 of 1984's and
   the XR600R of 1985's baked from K's models, the three cars' with a car's glossy finish, the other vehicles' converted provisional pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
@@ -350,6 +352,56 @@ rear indicators stay as the model has them; its pictures are baked from K's mode
   fenders by 4–7 mm (they do not touch).
 - The body's faces are not smoothed; only the seven windows were made flat.
 - The owner's manual's tables (the mass, the axle loads) were not read.
+
+## Stage F150 — The F-150 of 1975 in OUT RUN's traffic
+
+K's decisions of 2026-11-25: the Ford F-150 of 1975 (Custom, Regular Cab, Styleside, 4×2, 133 in, 300 Six, 3MT) is a
+vehicle of its own, `FORD_F_150_1975`, on the dimensions the sources give, and replaces the TOYOTA PICKUP in OUT RUN's
+traffic; the TOYOTA PICKUP stays. Its pictures are baked from K's model by the car baking at a spacing of 0.004 m, its
+large mirrors and rear step bumper (options) kept, the tailgate's face and both bumpers smoothed (the FORD lettering
+gone), the box's inside in the body's color, the rear bumper at the drawing's 25 mm, the tyres round and on the road.
+Its 4.84 m run after the manifold is one tube
+([Arcade car selections](chase-turbo-vehicles.md#ford-f-150-of-1975-sources-versus-authored),
+[Model solids](image-assets.md#model-solids)). The colors' choice and default were left to the stage auditor.
+
+- F150-1a: a grid makes room for the largest body among the vehicles at most 5 m long (K, 2026-11-25; [the
+  grid](original-road-data.md#the-grid)): the F-150 (5.476 m), which runs in traffic alone, sizes no grid, and no grid
+  changes.
+- Whether a vehicle over 5 m may be the player's own (K, 2026-11-25, pending): likely not; for now it stays as it is,
+  and nothing keeps it from being chosen. FREE PLAY's SELECT VEHICLE offers the F-150, and a FREE PLAY RACE + TRAFFIC
+  starts and runs with it as the player and its 11 rivals (TSUKUBA and FINAL LAP 2's JAPAN, 60 s each, no fault or
+  recovery), though the grid rule makes room for bodies of 5 m at most.
+- F150-1: the vehicle added (definition, sound, listing, the set baked from K's model, SHA-256 `1944c926…`, on
+  `codex/ford-f-150-1975-glb-source`, never on main), the engine loudness measured again; no series runs it.
+- F150-2: OUT RUN's traffic takes the F-150 in the TOYOTA PICKUP's place, of the same weight and place in each of the
+  six classes.
+- The stage auditor's choices, awaiting K: the names `F150`, `FORD_F_150_1975` and `ford-f-150-1975`; the eight colors,
+  their base colors and WIND BLUE the default (no source gives the colors' sales); the definition's estimates; the
+  exhaust's form; the three PRs.
+- To look at in DEV: SELECT VEHICLE's eight colors, WIND BLUE the default; revving and driving's sound (a low-revving six); OUT RUN's traffic with F-150s and no TOYOTA PICKUP, and the
+  F-150 small and far away; the tyres on the road and the shadow; the box's inside in the body's color, the smooth
+  tailgate and bumpers, the rear bumper's step; its size beside the GOLF and the 911 Turbo 3.3, and in the lanes.
+- The height, 1.819 m, has no support (an owner's post about a 1979 F-100); the drawing's side view measures about
+  1.758 m at the design attitude. The height table (76BB060) was not read.
+- Estimates: the rear share 0.43, the CG height (0.70 m), the wheel radius (0.355 m), the CdA (1.65 m²), the idle
+  (650 rpm), the redline (4,000 rpm) and the final drive (3.50; only 3.25 or 3.50 could be narrowed to).
+- The power is the 120 hp rating; a table gives 101 hp for the same year. The service manual's tables, the primary
+  source, were not read. The valves and the cam are a later year's and an enthusiast's measurement.
+- The primaries' lengths are estimates; the run after the manifold is read from the drawing (±0.15 m).
+- The large mirrors and the rear bumper are options: the Custom's standard were small mirrors and no rear bumper.
+- The eight base colors are provisional; nothing supports them as the colors most sold then.
+- As the model has them: a bump like a spare tyre on the box's floor; the windscreen was flattened by up to 43 mm; a
+  thin light-blue reflection on the rear bumper's top (a grey).
+- Drawn grey: the front indicators, the side markers and the rear lamps' white.
+- Smoothed are only the four windows, the tailgate's outer face (to 0.69 m either side of the centre) and both
+  bumpers; the doors, the box's sides, the fenders and the bonnet keep their waves, and how to smooth them is not
+  decided. The rear bumper's steps beside the plate and its ends are only lightly smoothed.
+- The pictures' spacing (K, 2026-11-25): 0.004 m for the F-150 alone, the other sets 0.008 m. When every set is baked
+  again, the baker is to choose it from the size of a texel at the nearest point, not a number for each vehicle.
+- The other vehicles' tyres (K, 2026-11-25): the one rule is round, the centre one radius up and the lowest point on the
+  road. Only the F-150 keeps it now; the other models' tyres float a few millimetres (the Beetle's 5 mm), their centres
+  set from the round part. They are mended and baked again when every set is (the colors' adjustment), not in this
+  stage.
 
 ## Stage F120 — The F40 of 1988
 

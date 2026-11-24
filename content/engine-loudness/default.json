@@ -231,6 +231,12 @@
       "vehicleSha256": "2301bde20f7f52830ae4b6601186504e0256adc440666e62cb809d72a9d34039",
       "soundSha256": "fa6190fb9fd88d641cc09e4cca0806fa6c6f6b3ab1a50df64c279aa96a18b300",
       "lufs": -40.705005086001194
+    },
+    {
+      "vehicleId": "FORD_F_150_1975",
+      "vehicleSha256": "af594e8e3558c0b96d0751e469ae60aa46e2ac5fca30f9750f00ff263a211bcc",
+      "soundSha256": "b878c0bbc5a8257a1956a2c6be10b9a684b3dc4dafd2b4605c019c509bc5733e",
+      "lufs": -45.85974128231766
     }
   ]
 }
