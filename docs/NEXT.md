@@ -422,7 +422,7 @@ sound are not changed, and no series runs it.
 ## Stage MF — Silencers and turbines in the engine sounds
 
 K's decisions of 2026-11-21 and 2026-11-22, taken by listening on SELECT VEHICLE's ENGINE page. A pipe may carry the
-glass wool lining it (`wool`, MF-3a; [Audio](audio.md#derived-values)). Eleven sounds follow K's exhaust rules of
+glass wool lining it (`wool`, MF-3a; [Audio](audio.md#observations-and-engine-sounds)). Eleven sounds follow K's exhaust rules of
 2026-11-22 ([Calibration](calibration.md#exhaust-topologies)): the real car's valves, joins and tube lengths, the tubes
 one size wider (× 1.14), expansion chambers set by ear with 20 mm of wool in the one nearest the engine, every turbine
 as its throat and one room of 0.12 m × 150 mm, two-strokes as the machine is. They are TESTAROSSA, the RX-7 Turbo II of
@@ -431,13 +431,8 @@ as its throat and one room of 0.12 m × 150 mm, two-strokes as the machine is. T
 replaced the NSR500 of 1987's ([Arcade car selections](chase-turbo-vehicles.md), [Racing vehicles](racing-vehicles.md)).
 The stage's name, `MF`, is the auditor's; K has not decided it. What stays open, for K:
 
-- All eleven are settled for now: K heard them on the ENGINE page and decides them again after driving them in the game,
-  built at MID (24 kHz) and checked at HIGH (48 kHz).
 - Every real length and diameter is an estimate from parts diagrams and photographs (about ±20 %); each sound's note
   names its sources. Where measured dimensions are found, they replace them.
-- The wool's resistivity, 30,000 Pa s/m², is an estimate, not a measurement. The wool's loss does not grow with the
-  wave's height, and the volume within it is not represented (both tried, and refused by ear). Where a shelf's zero
-  meets 0.49 of the rate, its top loss differs a little between rates.
 - The turbines' room (0.12 m × 150 mm, by ear; 0.12 m for the steps of 0.02 m) is larger than a real turbine wheel's
   housing (about 0.3 L by estimate); the wheel itself is not in the model. The 959's cross tube and the F40's pipe
   between the manifolds are in the real cars and not written (K: with the 959's, the sound was noise).
@@ -499,9 +494,6 @@ without it, tubes of uneven lengths rang high and muddy). Since EL-6 it is the g
 ([Audio](audio.md#the-light-kernel)), with no ENGINE SOUND QUALITY and one measured loudness a vehicle; the former game
 kernel continues in `sayaborg/callcutter`. The stage's name, `EL`, is the auditor's. What remains, in order:
 
-- **EL-6b.** Remove the former game kernel, no longer played: `src/audio/exhaust-waveguide.ts`, `exhaust-acoustics.ts`
-  and `exhaust-rate.ts`, the tests `exhaust-render.test.mjs` (with its values) and `wall-loss.test.mjs`, and their
-  descriptions in [Audio](audio.md) (its engine synthesis and derived values) and [Calibration](calibration.md).
 - **EL-7.** Trim the engine sound documents of what the light kernel does not read (pipes' diameters, boxes, wool), with
   SELECT VEHICLE's exhaust picture and DEV's ENGINE SOUNDS panel.
 - **EL-8.** The names (LIGHT, light) and the documents.

@@ -258,7 +258,7 @@ and FERRARI_GTO_1984) follow them:
   that changes along a pipe is not followed closely. Not widened: turbines, expansion chambers and two-strokes.
 - An expansion chamber, a silencer's or a catalyst's body, is a wide pipe whose size and place K sets by ear and which
   may differ from the car's: chambers in series are 0.08 m apart; the one nearest the engine is the larger and carries
-  the path's one `wool`, 0.02 m in every vehicle ([Audio](audio.md#derived-values)); a turbocharged engine, whose
+  the path's one `wool`, 0.02 m in every vehicle ([Audio](audio.md#observations-and-engine-sounds)); a turbocharged engine, whose
   turbine stands where the first chamber would, may have one chamber, which carries the wool. One size larger or smaller
   is the diameter times or over 1.14.
 - A turbine is two pipes, one pair for each turbocharger, the same in every vehicle: its throat, 0.08 m long, of the
@@ -309,22 +309,20 @@ turbochargers' wastegates are not represented. DEV's ENGINE SOUNDS panel changes
 ## Engine sound settings
 
 The engine sound has no DEV settings (K, 2026-11-21). Its values are [derived](#derived-values), physical assumptions
-(`GAS`, [Audio](audio.md#derived-values)) or the owner's, chosen by listening and kept by the code:
+(the light kernel's `GAS`, `ENGINE` and `FRICTION`, [Audio](audio.md#the-light-kernel)) or the owner's, chosen by listening and kept by the code:
 
-| Value                                | Meaning                                                       | Value  | Owner                       |
-| ------------------------------------ | ------------------------------------------------------------- | ------ | --------------------------- |
-| `EXHAUST_LISTENING.chargeVariation`  | Each firing's charge varies by up to this share of a full one | 0.03   | K, 2026-11-20               |
-| `EXHAUST_LISTENING.afterfireSeconds` | An afterfire's charge burns over this                         | 1.5 ms | K, 2026-11-20               |
-| `LISTENED.chargeVariation`           | The light kernel's: each charge varies by up to this share    | 0.03   | K, 2026-11-20 and 11-23     |
-| `LISTENED.afterfireSeconds`          | The light kernel's: an afterfire burns at its valve over this | 1.5 ms | K, 2026-11-20 and 11-23     |
-| `ENGINE_CHAIN.levelSeconds`          | The compressor follows the sound's mean square over this      | 50 ms  | K, 2026-11-21               |
-| `ENGINE_CHAIN.ratio`                 | The compressor's ratio, threshold at the bottom               | 2:1    | K, 2026-11-21               |
-| `ENGINE_CHAIN.ceiling`               | The soft clip's ceiling over the level the gain brings        | 2      | K, 2026-11-21               |
-| `DOWNSHIFT_BLIP.opening`             | A locked downshift's blip opening peak                        | 1      | K (EX-10)                   |
-| `DOWNSHIFT_BLIP.decaySeconds`        | Its exponential decay time                                    | 0.25 s | K (EX-10)                   |
-| `AFTERFIRE.openingBelow`             | An afterfire needs the effective opening below this           | 0.02   | provisional (K, 2026-11-21) |
-| `AFTERFIRE.idleRatio`                | and engine RPM above this times idle, fuel not cut            | 1.3    | provisional (K, 2026-11-21) |
-| `AFTERFIRE.perSecond`                | Afterfires a second on average while so                       | 1      | provisional (K, 2026-11-21) |
+| Value                         | Meaning                                                       | Value  | Owner                       |
+| ----------------------------- | ------------------------------------------------------------- | ------ | --------------------------- |
+| `LISTENED.chargeVariation`    | The light kernel's: each charge varies by up to this share    | 0.03   | K, 2026-11-20 and 11-23     |
+| `LISTENED.afterfireSeconds`   | The light kernel's: an afterfire burns at its valve over this | 1.5 ms | K, 2026-11-20 and 11-23     |
+| `ENGINE_CHAIN.levelSeconds`   | The compressor follows the sound's mean square over this      | 50 ms  | K, 2026-11-21               |
+| `ENGINE_CHAIN.ratio`          | The compressor's ratio, threshold at the bottom               | 2:1    | K, 2026-11-21               |
+| `ENGINE_CHAIN.ceiling`        | The soft clip's ceiling over the level the gain brings        | 2      | K, 2026-11-21               |
+| `DOWNSHIFT_BLIP.opening`      | A locked downshift's blip opening peak                        | 1      | K (EX-10)                   |
+| `DOWNSHIFT_BLIP.decaySeconds` | Its exponential decay time                                    | 0.25 s | K (EX-10)                   |
+| `AFTERFIRE.openingBelow`      | An afterfire needs the effective opening below this           | 0.02   | provisional (K, 2026-11-21) |
+| `AFTERFIRE.idleRatio`         | and engine RPM above this times idle, fuel not cut            | 1.3    | provisional (K, 2026-11-21) |
+| `AFTERFIRE.perSecond`         | Afterfires a second on average while so                       | 1      | provisional (K, 2026-11-21) |
 
 The engines play the light kernel at the output's rate, the one engine sound (K, 2026-11-24;
 [Audio](audio.md#the-light-kernel)).
@@ -552,17 +550,15 @@ inverse-distance law `referenceMeters/max(referenceMeters, distance)`; the audib
 These values follow from physics under the stated [assumptions](audio.md#derived-values); DEV controls never
 change them.
 
-| Value                 | Derivation                                        | Value                 |
-| --------------------- | ------------------------------------------------- | --------------------- |
-| `ACOUSTICS.waveSpeed` | `sqrt(gamma*R*T)` at 573.15 K, rounded            | 480 m/s               |
-| Mouth corner          | `c/(2*pi*a)` at the open pipe's radius `a`        | per tube              |
-| Wall loss             | Kirchhoff `alpha(f)`, four shelves at 20·8^k Hz   | per tube              |
-| Steepening            | `(gamma+1)/2`                                     | 1.2                   |
-| Swept volume          | displacement / cylinders                          | per vehicle           |
-| `BLOWDOWN_REFERENCE`  | Burned charge at exhaust opening; valve `C_d`     | 1100 K; 0.65          |
-| `GAS`                 | Intake charge; choked flow; closed charge         | 293.15 K; 0.5787; 0.3 |
-| Rival gain            | Inverse distance, unity within `referenceMeters`  | —                     |
-| Rival pan             | Lateral displacement / `max(panMinimumMeters, d)` | —                     |
+| Value              | Derivation                                        | Value       |
+| ------------------ | ------------------------------------------------- | ----------- |
+| Tubes' temperature | `c²/(gamma*R)` at 480 m/s, `gamma` 4/3            | about 602 K |
+| Choked flow        | `(2/(gamma+1))^((gamma+1)/(2(gamma-1)))`          | 0.5830      |
+| Mouth corner       | `ka = 1` at the bore's radius `a`                 | per vehicle |
+| Wall loss          | Kirchhoff, four shelves at 20·8^k Hz              | per tube    |
+| Swept volume       | displacement / cylinders                          | per vehicle |
+| Rival gain         | Inverse distance, unity within `referenceMeters`  | —           |
+| Rival pan          | Lateral displacement / `max(panMinimumMeters, d)` | —           |
 
 ## Mix levels
 

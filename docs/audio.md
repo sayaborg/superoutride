@@ -31,7 +31,7 @@ rival sound uses the rival's observed powertrain values and its own vehicle's en
 An [engine sound](../src/audio/engine-sound.ts) contains one or two revolutions per cycle, ordered firing phases and
 the exhaust from the valves to the tail: one cylinder's exhaust valve (`valve`), each cylinder's primary and the pipes,
 every tube with its length and internal diameter in metres, and a pipe may add the thickness of the wool lining it
-(`wool`, in metres; [derived values](#derived-values)). Each firing phase is that cylinder's exhaust-opening instant
+(`wool`, in metres), which the kernel does not read ([what it reads](#the-light-kernel)). Each firing phase is that cylinder's exhaust-opening instant
 (start of blowdown); the offset from combustion top dead centre is common to all cylinders and is not represented. Phase
 count determines cylinder count, and the primaries follow the firing phases' order: cylinder i's primary runs from its
 valve, the head's exhaust port included, to junction `to`. Each pipe runs from junction `from` to junction `to`, or to
@@ -61,90 +61,19 @@ numbered from 0, one open end reached from every junction), rules over the pipes
 adds the sound ID and the delivered bytes' SHA-256. Firing phases are used exactly as written. The content layer
 ([engine-sound catalog](../src/content/engine-sound-catalog.ts)) admits every document, delivers it as kind
 `engine-sound` and passes the catalog to the vehicle catalog, whose listings resolve their `sound` in it; the
-same sample-free engine kernels play every sound. DEV's ENGINE SOUNDS panel ([Browser](browser.md#sound-controls))
+same sample-free engine kernel plays every sound. DEV's ENGINE SOUNDS panel ([Browser](browser.md#sound-controls))
 changes a sound's valve and its primary and pipe lengths and diameters, each change through `compileEngineSound`; every voice whose
 competitor's vehicle uses that sound fades to silence and installs it, as for any change of sound.
 
-The delivered sounds have no silencers yet: each will be written into its document as a wide pipe, one vehicle at a
-time. Without them the blowdown's shocks reach the outside whole, so the engines are loud and rough; that is the model's
-right answer for these exhausts (K, 2026-11-20), and no smoothing stands in for the silencers.
-
 ## Engine synthesis
 
-The [kernel](../src/audio/exhaust-waveguide.ts) is K's reference kernel of 2026-11-20, its arithmetic kept exactly. The
-exhaust is a network of tubes and the spaces their ends open into. There is one kind of space: a junction is a space
-with no volume, a cylinder a space whose volume its piston moves. The outside alone is apart, and it is where the
-sound is heard. Engine RPM and opening are observations, followed per sample with TIMING's `observationSeconds`; there
-are no torque or crank dynamics. Pressures and waves are over the tubes' `rho c^2`: a wave is `w = p / (rho c^2)`, and a
-flow's Mach number is the difference of the two waves at a tube's end.
-
-**The one law of a tube's end.** Every end opens, through a throat of `a` of the tube's cross-section, into a space
-whose width is `1/sigma` of the tube's (a cylinder or the outside: `sigma = 0`; at a junction, the tube's cross-section
-over the other ends' sum, at most 1). A narrowing stream keeps its total pressure; a widening one keeps its momentum and
-so loses the head of `u_throat - u_after`. With `m` the flow from the tube into the space and `P` the space's pressure:
-
-```text
-tube -> space:  p_end - P =  m²/2 * ((1/a - sigma)² + sigma² - 1)
-space -> tube:  p_end - P = -m²/2 * (1 + (1/a - 1)² - sigma²) / q
-```
-
-`q` weighs the space's gas against the tube's (1 where they are the same gas). An end whose stopped pressure stands `d`
-above its space's has the flow `m + K m|m|/2 = d` of its head `K`. A valve's flow is not faster than sound in its throat:
-`m` is at most `choked × a` out of the tube, and that times the cylinder gas's sound speed over the tube's into it.
-
-**Lines.** Each primary and pipe is two lines, one each way. A line carries its tube's wall loss and a pipe's wool
-([derived values](#derived-values)), then `N = round(length × rate / waveSpeed)` samples (at least 1) in which a value
-`w` travels at `c (1 + steepening w)`: a strong wave runs faster, later values overtake earlier ones, and where they do
-they form a shock that keeps the wave's area. The value arriving now is the one sent at the `t` that makes
-`-k S(t) + (t - (now - N))²/2` least (`S` the running sum of `w`, `k = steepening × N`: Lax and Oleinik). Each `t` is a
-straight line in `now - N`, so the least is the lower envelope of the lines; sent in order and asked in order, each
-line enters and leaves the envelope once. Between two samples where the residual crosses nothing, the arriving value is
-interpolated. The shocks make the blowdown's crack.
-
-**Spaces.** A space holds gas `G`, counted as the volume it would fill at the outside's pressure, in a volume `V`; its
-pressure is `(G/V)^gamma`. Each sample, every junction finds the pressure at which its ends' flows, each by the law,
-bring nothing in over the sample (it holds nothing): two ends make one quadratic; more are solved by Newton's step kept
-between the pressures already known too low and too high, to within `1e-9`, in at most 60 rounds. A cylinder finds its
-pressure the same way with its one end, its valve the end's throat, its gas filling the volume along the tangent of
-`fill = (1 + gamma P)^(1/gamma)` within the sample; it keeps what it held and what its valve brought.
-
-**Mouths.** The outside is a space of `sigma = 0` whose pressure at a mouth is `P = w_in - lowpass(w_in)`, the one-pole
-corner at `ka = 1` (`c/(2 pi a)`). What is heard is the sum over the open ends of that pressure times the mouth's
-inner diameter: the outside pushing back on the mouth. There is no DC removal and no output low-pass.
-
-**Cylinders.** Each cylinder's valve opens at its firing phase and is open for `valve.open` of the cycle; its open
-area over the primary's is `min(1, C_d × (valve.diameter / primary.diameter)² × 16 u²(1-u)²)` at position `u` in that
-interval, a lift of zero value and slope at both ends. The opening is centred: its middle stands at the middle of a
-four-stroke's exhaust stroke, and at a two-stroke's bottom dead centre; the piston moves the volume
-`clearance + swept (1 - cos angle)/2` (`clearance = swept/(r - 1)`, `swept` one cylinder's share of the displacement
-and `r` the compression ratio, both from the vehicle's mechanics). As its valve opens, a cylinder takes its charge: the
-share `closedCharge + (1 - closedCharge) × opening` of a full one, varied at each firing by up to `chargeVariation`
-(seeded xorshift32, drawn only at firings, so the same input history gives the same sound), burned at `burnedKelvin` and
-let out with the density that follows from its expansion. A cylinder holds nothing and lets nothing out from the
-kernel's start until its valve first opens (K, 2026-11-21): a valve already open when the kernel starts stays shut to
-the flow until it opens again, so a new kernel starts without a burst.
-
-**Fuel cut and afterfire.** While the observation reports fuel cut, a cylinder lets out the air it drew, unburned, at
-the intake's temperature. An afterfire is a charge that does not burn in its cylinder: `afterfire()` marks the next
-cylinder to open; it lets its charge out at the intake's temperature, and when its valve shuts the charge burns at its
-primary's junction, entering it as its gas's swelling (the heat it would have given in the cylinder, given at the
-junction's steady pressure) over `afterfireSeconds`, a raised cosine in time. During fuel cut an `afterfire()` still
-marks the next charge, which, unburned, does not burn.
-
-The kernel renders sample by sample; each sample's arithmetic, and the order of every sum (a junction's ends: its
-primaries in cylinder order, then each pipe's `from` and `to` ends in pipe order; the mouths in pipe order; the
-afterfires burning, latest first), is the same however the calls divide the samples. A line's ring holds the power of
-two at or above `4N + 8` values, so a sound of at most 2 × (16 + 32) lines stores at most 96 rings of 8192 values (at
-4 m and 192 kHz) in each of its four arrays.
-
-**Not played.** The game plays every engine, the player's and the rival's, through the
-[light kernel](#the-light-kernel) at the output's rate (K, 2026-11-24); the kernel above is no longer played, and its
-code leaves the game in the next PR (it continues in `sayaborg/callcutter`).
+The game's one engine kernel is the light kernel below (K, 2026-11-24). The former game kernel, K's reference kernel of
+2026-11-20, continues in `sayaborg/callcutter`.
 
 ### The light kernel
 
-A second kernel, [`ExhaustLight`](../src/audio/exhaust-light.ts) (K, 2026-11-23), is a model of its own, sharing
-nothing with the game kernel but the engine sound's type: one gas, in tubes of one width that have only a length,
+The kernel, [`ExhaustLight`](../src/audio/exhaust-light.ts) (K, 2026-11-23), is a model of its own, reading nothing of
+another sound file but the engine sound's type: one gas, in tubes of one width that have only a length,
 between valves, junctions and mouths. A sound fades in four ways only: in a wall's boundary layer, in a flow's friction
 on its wall (K, 2026-11-24), in a valve's jet and out of a mouth. Pressures are over the tubes' `rho c²` and flows are Mach numbers; a tube carries two waves, its pressure
 their sum and its flow their difference.
@@ -176,7 +105,7 @@ and ending at a junction or a mouth; cylinder `i`'s is tube `i`. A junction wher
 out, is not a junction: the two are one tube of their lengths together, without exception (a single cylinder's is one
 tube from its valve to its mouth). The junctions left are numbered from 0 in their old order.
 
-**Its own values.** The kernel keeps every value it uses, none shared with the game kernel's of the same names. Its gas
+**Its own values.** The kernel keeps every value it uses. Its gas
 (`GAS`) is burned gas everywhere, a perfect gas of `gamma` 4/3 and `R` 287 J/(kg K), `Pr` 0.71, at 101325 Pa; the waves'
 speed is 480 m/s, so a centimetre of tube is a sample at 48 kHz, and the tubes' temperature follows from it,
 `c²/(gamma R)`, about 602 K. The intake's charge is at 293.15 K and the cylinder's gas at 1100 K as its valve opens. The
@@ -230,58 +159,9 @@ levelled after the compressor. The chain, like the kernel, starts from silence w
 
 ## Derived values
 
-Derived values follow from physics and are never DEV settings: the wave speed (`ACOUSTICS.waveSpeed`, 480 m/s),
-each tube's wall-loss filter and open-end corner, the rival inverse-distance law and the rival pan geometry.
-[Exhaust acoustics](../src/audio/exhaust-acoustics.ts) derives the pipe values under stated physical assumptions
-(`REFLECTION_REFERENCE`): 573.15 K air at 101325 Pa, `gamma=1.4`, `R=287 J/(kg K)` and `Pr=0.71`; each tube's radius
-`a` is its document's.
-
-The kernel's gas (`GAS`) is a set of physical assumptions, none chosen by listening: `gamma` 1.4; `steepening`
-`(gamma + 1)/2 = 1.2`; `choked` 0.5787, `(2/(gamma + 1))^((gamma + 1)/(2(gamma - 1)))` to four places; the tubes' gas at
-`REFLECTION_REFERENCE`'s 573.15 K, which sets the waves' speed and is the unit of density; the intake's charge at
-293.15 K; the burned charge at `BLOWDOWN_REFERENCE`'s 1100 K (petrol engines are typically 1000–1300 K when the exhaust
-valve opens); the exhaust valve's discharge coefficient `C_d`, `BLOWDOWN_REFERENCE`'s 0.65 (measured exhaust valves give
-0.6–0.7 at working lift); and `closedCharge` 0.3, the share of the intake's pressure a shut throttle leaves to the
-cylinders.
-
-The derivation uses `c=sqrt(gamma*R*T)`, `fc=c/(2*pi*a)` for the mouth's corner and
-Kirchhoff's wall loss `alpha(f)=sqrt(pi*f*nu)/(a*c)*(1+(gamma-1)/sqrt(Pr))`. Sutherland viscosity uses
-`mu0=1.716e-5 Pa s`, `T0=273 K` and `S=111 K`; density is `p/(R*T)` and `nu=mu/density`. A traversal's loss
-`exp(-alpha(f)*L)` grows as `sqrt(f)`: `ln|H(f)| = -kappa*sqrt(f)` with `kappa = alpha(f)*L/sqrt(f)`, fixed per tube.
-The kernel applies it as four first-order shelves at corners `f_k = 20*8^k` Hz (20, 160, 1280 and 10240 Hz, ratio
-`r = 8`), the same for every tube, each `D_k = kappa*(sqrt(2)*ln(r)/pi)*sqrt(f_k)` nepers deep. A shallow shelf's
-loss has the form `x²/(1+x²)` of frequency over its corner, and over an unbounded geometric series of corners
-`integral of x^(1/2)/(1+x²) dx = pi/sqrt(2)` makes the sum exactly `kappa*sqrt(f)`; the shelves omitted below 20 Hz
-sum to `D_0/(sqrt(r)-1)`, which the lowest shelf carries (its depth times `sqrt(r)/(sqrt(r)-1)`), and the DC gain
-stays 1. Each shelf is the analog `(wp/wz)(s+wz)/(s+wp)` through the bilinear transform: `K = 2*rate`,
-`wp = K*tan(pi*f_k/rate)`, `wz = K*tan(pi*f_z/rate)` with zero `f_z = min(f_k*exp(D_k), 0.49*rate)`; with
-`g = wp/wz`, `b0 = g*(K+wz)/(K+wp)`, `b1 = g*(wz-K)/(K+wp)` and `a1 = (wp-K)/(K+wp)`. The `0.49*rate` cap is the
-domain's edge for tubes beyond the data; on the delivered sounds at 48 kHz `f_z` reaches at most 16.0 kHz.
-
-The carried shelves in series are applied in parallel form, `C + sum R_k/(1+a1_k*z^-1)`: the poles `a1_k` are shared
-by every tube (`wallLossPoles`) and each tube carries the weights `C = prod b1_k/a1_k` and the residues `R_k` at
-`z^-1 = -1/a1_k` (`wallLossWeights`), computed once when the kernel is built. A shelf whose pole lies off the unit
-circle (`|a1| >= 1`: its corner at or above half the rate, as 10240 Hz at a kernel rate of 12 or 6 kHz) is not carried:
-its pole is 0 and its weight 0, and the other shelves are applied as they are. A traversal updates
-`u_k = x - a1_k*u_k` for k = 0..3 and writes `y = C*x + R_0*u_0 + R_1*u_1 + R_2*u_2 + R_3*u_3`, summed left to right.
-For every delivered tube at 44.1 and 48 kHz the loss is 0.89–1.10 times Kirchhoff's from 50 Hz to 8 kHz, the DC gain is
-1 within 1e-12 and the parallel form matches the series within 1e-12.
-
-A pipe's `wool`, glass wool lining it `t` thick (K, 2026-11-22), makes its wall a yielding one: the wool's flow
-resistance `R = sigma*t` stands before the spring of the gas within the wool's thickness, `gamma*p0/t`, so a slow wave
-cannot enter the wall and loses nothing, and a fast one loses what the resistance takes. With `rho*c = gamma*p0/c`, they
-balance at `f0 = gamma*p0/(2*pi*R*t)`, and one traversal loses `A*f²/(f0²+f²)` nepers, at most
-`A = (2*L/(D-2t))*(rho*c/R)`, where `D-2t` is the bore the gas runs straight through; a pipe twice as thick in wool
-starts losing at a quarter of the frequency and, the narrower bore aside, half as deep. `sigma` (`WOOL.resistivity`) is
-30,000 Pa s/m², an estimate, not a measurement: light building glass wool measures 3,000–6,000 (Tarnow 2002), a
-silencer's packing is denser, and hot exhaust is more viscous; `p0` is `REFLECTION_REFERENCE`'s 101,325 Pa. Each of the
-pipe's two lines, never a primary's, carries one more first-order shelf after its wall loss (`woolShelf`): its pole
-`f_p = f0*sqrt((1-exp(-2A))/(2A))`, where its loss far below matches `A*f²/f0²`, and its zero
-`f_z = min(f_p*exp(A), 0.49*rate)`, where its loss far above is `A`, through the bilinear transform as the wall loss's
-shelves; a rate below `f_p/0.49` does not carry it. The shelf's gain is at most 1. The wool changes the loss alone:
-the pipe's junction area and delay stay those of its `diameter` and `length`, because the wool is mostly gas, through
-which a slow wave fills the whole body. Not represented: a loss that grows with the wave's height, and the volume within
-the wool.
+Derived values follow from physics and are never DEV settings: the light kernel's tubes' temperature, choked flow, wall
+loss and mouths' corner ([the light kernel](#the-light-kernel)), the rival inverse-distance law and the rival pan
+geometry.
 
 A vehicle's mechanics give its engine sound two values ([vehicle engine sound](../src/audio/vehicle-engine-sound.ts)):
 one cylinder's swept volume, the displacement over the cylinders, and the geometric compression ratio.
@@ -289,9 +169,8 @@ one cylinder's swept volume, the displacement over the cylinders, and the geomet
 sound (`createVehicleDefinition`), and the vehicle's `sound` carries them; when DEV's ENGINE SOUNDS panel changes a
 sound, the audio lifetime pairs it again for each vehicle using it.
 
-Two values are the owner's, chosen by listening, and the code keeps them (`EXHAUST_LISTENING`, not DEV settings): each
-firing's charge varies by up to `chargeVariation` 0.03 of a full charge, and an afterfire's charge burns over
-`afterfireSeconds` 1.5 ms. Every other value is a DEV setting in one of the groups MIX (`MixSettings`), TIMING
+The light kernel's two listened values (`LISTENED`) are the owner's, kept by the code, not DEV settings. Every other
+value is a DEV setting in one of the groups MIX (`MixSettings`), TIMING
 (`ControlSettings`), RIVAL (`RivalSettings`), IMPACT (`ImpactSettings`) and the tire groups UNIFIED (`UnifiedSettings`)
 and ROLLING (`RollingSettings`); they are the implementer's, and [Calibration](calibration.md) lists them. DEV has no
 ENGINE group (K, 2026-11-21).
