@@ -418,7 +418,7 @@ two 4.44 m runs are one tube each
 - C3-1: the vehicle added (definition, sound, listing, the set baked from K's model, SHA-256 `bc6733bd…`, on
   `codex/corvette-c3-1970-glb-source`, never on main), the engine loudness measured again; no series runs it.
 - C3-2: OUT RUN's traffic takes the Corvette Stingray in the C4 1984's place, of the same weight and place in each of
-  the six classes.
+  the six classes; no measured product changes.
 - The stage auditor's choices, awaiting K: the names `C3`, `CORVETTE_C3_1970` and `corvette-c3-1970`; the eight base
   colors and MONZA RED the default (no source gives the colors' sales); the net power's estimate; the definition's
   estimates; the exhaust's lengths; the tyre radius 0.332 m from GM's 772 revolutions a mile; the two PRs.

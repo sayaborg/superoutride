@@ -1076,11 +1076,12 @@ up to 150 km/h (provisional). The original's turbo is not made.
 ARCADE TRIBUTE - OUTRUN is delivered on the same terms (K, 2026-11-10), on its original roads A, B, C LEFT, C RIGHT, D
 and E, each one run. The player drives the TESTAROSSA alone, in ROSSO CORSA, from the grid's first slot (`own`), without
 rivals; the traffic drives its lanes, six vehicles of equal weight standing for the original's (the Beetle 1500 of
-1968, in the Mini 850's place since K's decision of 2026-11-24, a GOLF GTI 16V for the BMW cabriolet, the 1984
-Corvette, the 911 Turbo 3.3, the F-150 of 1975 for the truck, in the Toyota pickup's place since K's decision of
-2026-11-25, and a 928 S), at 4 a kilometre and up to 90 km/h
-(provisional). B to E have a margin of 1.35; A has no clock for now, since its reference run ends off the pavement past
-its GOAL. The reference runs recover 9 to 16 times a road, so the clocks are generous until the driving is mended.
+1968, in the Mini 850's place since K's decision of 2026-11-24, a GOLF GTI 16V for the BMW cabriolet, the Corvette
+Stingray of 1970, in the 1984 Corvette's place since K's decision of 2026-11-25, the 911 Turbo 3.3, the F-150 of 1975
+for the truck, in the Toyota pickup's place since K's decision of 2026-11-25, and a 928 S), at 4 a kilometre and up to
+90 km/h (provisional). B to E have a margin of 1.35; A has no clock for now, since its reference run ends off the
+pavement past its GOAL. The reference runs recover 9 to 16 times a road, so the clocks are generous until the driving
+is mended.
 
 ARCADE TRIBUTE - TURBO OUTRUN is delivered on the same terms (K, 2026-11-10), on its original SECTION 1 to 4, each one
 run with a margin of 1.35. The player drives the F40, in ROSSO CORSA, beside its one rival, the Porsche 959 of 1987 in GRAND
