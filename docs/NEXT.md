@@ -457,7 +457,8 @@ mirrored), the wheels' discs grey, one yellow step, in eight colors
   set changes.
 - F700-1: the vehicle added (definition, sound, listing, the set baked from K's model, SHA-256 `89b21b24…`, on
   `codex/ford-f-700-1980-glb-source`, never on main), the engine loudness measured again; no series runs it.
-- F700-2: OUT RUN's traffic takes the F-700 as its seventh vehicle, of weight 1, in each of the six classes.
+- F700-2: OUT RUN's traffic takes the F-700 as its seventh vehicle, of weight 1, in each of the six classes; no measured
+  product changes.
 - The stage auditor's choices, awaiting K: the names `F700`, `FORD_F_700_1980` and `ford-f-700-1980`; the eight
   colors' base colors and names, WHITE the default; the ramps (red 3, blue 2, yellow 1, white 3, glass 2, greys 3); the
   brake lamps the lower lamps' red alone; the definition's estimates; the exhaust's form; the weight 1; the three PRs.

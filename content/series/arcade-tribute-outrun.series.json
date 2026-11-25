@@ -57,6 +57,10 @@
           {
             "vehicle": "PORSCHE_928_S_1984",
             "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_700_1980",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -110,6 +114,10 @@
           },
           {
             "vehicle": "PORSCHE_928_S_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_700_1980",
             "weight": 1
           }
         ],
@@ -165,6 +173,10 @@
           {
             "vehicle": "PORSCHE_928_S_1984",
             "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_700_1980",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -218,6 +230,10 @@
           },
           {
             "vehicle": "PORSCHE_928_S_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_700_1980",
             "weight": 1
           }
         ],
@@ -273,6 +289,10 @@
           {
             "vehicle": "PORSCHE_928_S_1984",
             "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_700_1980",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -326,6 +346,10 @@
           },
           {
             "vehicle": "PORSCHE_928_S_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_700_1980",
             "weight": 1
           }
         ],
