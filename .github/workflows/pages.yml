@@ -75,7 +75,10 @@ jobs:
         env:
           BUILD_ID: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          python3 -m http.server 8000 --bind 127.0.0.1 --directory _site >/dev/null 2>&1 &
+          # HTTP/1.1 keeps each connection open: Python's HTTP/1.0 server closes the socket after every response, and when
+          # Node's fetch has paused a large body for backpressure, that close fails undici's internal assertion and ends
+          # the check outside its retries.
+          python3 -m http.server 8000 --protocol HTTP/1.1 --bind 127.0.0.1 --directory _site >/dev/null 2>&1 &
           node --import tsx tools/build/verify-published-site.ts "http://127.0.0.1:8000/" "${BUILD_ID}"
 
       - name: Setup Pages
