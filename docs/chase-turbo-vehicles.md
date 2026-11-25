@@ -2,8 +2,10 @@
 
 This ledger owns the fourteen additional vehicle definitions selected from the supplied arcade-vehicle report, and
 the [Mazda RX-7 Turbo II of 1987](#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored), and OUT RUN's traffic cars,
-the [Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-versus-authored) and the
-[Ford F-150 of 1975](#ford-f-150-of-1975-sources-versus-authored), authored by its conventions.
+the [Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-versus-authored), the
+[Ford F-150 of 1975](#ford-f-150-of-1975-sources-versus-authored) and the
+[Chevrolet Corvette Stingray of 1970](#chevrolet-corvette-stingray-of-1970-sources-versus-authored), authored by its
+conventions.
 The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored).
 It records the chosen real-car specification, the limits of the evidence, the provisional authoring inputs and
 validation. Shared physics, images, sound and selection behavior retain their existing owners.
@@ -790,3 +792,79 @@ and 76BB908; the 1976 edition, of the same body) and web pages for the engine's 
 and cam. The service manual's tables, the primary source for the engine, and the height table 76BB060 were not read.
 Not decided, for K ([NEXT](NEXT.md#stage-f150--the-f-150-of-1975-in-out-runs-traffic)): the height, the estimates
 above, the power (120 or 101 hp), the valves and cam (a later year's and an enthusiast's) and the exhaust's lengths.
+
+## Chevrolet Corvette Stingray of 1970: sources versus authored
+
+K takes OUT RUN's traffic Corvette for the Chevrolet Corvette Stingray of 1970 (K, 2026-11-25); nothing here claims the
+original says so. `CORVETTE_C3_1970` is the 1970 model year's C3 Sport Coupe, Model 19437, as sold in the US: the ZQ3
+Turbo-Fire 350 V8 (300 hp SAE gross), the Muncie M20 wide-ratio four-speed manual and rear drive. Its listing selects
+the ZQ3 350, the M20 4-speed and the Sport Coupe; its engine is shown as `V8`. FREE PLAY's classes offer it through
+catalog membership, as every vehicle. Its numbers follow this ledger's
+[conventions](#numerical-conventions-and-remaining-uncertainty); the estimates among them add no formula or rule and no
+exception for this car.
+
+K's decisions (2026-11-25) are the year and the specification, that it replaces the CORVETTE C4 1984 in OUT RUN's
+traffic (the C4 1984 stays, in no series), the shape as the model has it, the outer two rear lamps alone as brake
+lamps, the power taken net as every car's and the eight colors. The source column is the stage auditor's reading
+(2026-11-25), not read for the PRs that wrote this section, of GM Heritage Center's 1970 Chevrolet Corvette Vehicle
+Information Kit (an image PDF of 159 pages: the February 1970 specifications and the AMA specifications; the pages in
+brackets), and for the net power of GM's 1971 catalogue (K's copy).
+
+| Item                  | Source (auditor's reading)                                                                                      | Authored `CORVETTE_C3_1970`                                                                                                                                                                                                                     | Class               |
+| --------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| Length, width, height | 182.5 in (4,636 mm); widest 69.2 in (1,758 mm), front fender 69.0, rear 68.8 in; coupe 47.8 in (1,214 mm) (118) | 4.636 / 1.758 / 1.214 m                                                                                                                                                                                                                         | source              |
+| Wheelbase, overhangs  | 98.0 in (2,489 mm); 40.6 / 43.9 in (1,031 / 1,115 mm) (118)                                                     | Axles **1.3028 / 1.1862 m** from the CG: rear share 0.5234 (below)                                                                                                                                                                              | source, calculated  |
+| Tracks                | 58.7 / 59.4 in (1,491 / 1,509 mm) (118)                                                                         | 1.491 / 1.509 m                                                                                                                                                                                                                                 | source              |
+| Mass                  | Coupe 1,598 front + 1,687 rear = 3,285 lb (1,490 kg); occupants' weight 28 % front, 72 % rear (155)             | **1,565 kg**: 1,490 + the 75 kg driver, the driver 28 % front; rear share 0.5234                                                                                                                                                                | source, calculated  |
+| Engine                | 350 cu in OHV V8, 4.00 × 3.48 in, 10.25:1 (92, 134); idle 700 rpm, manual in neutral (92, 140)                  | 5,733 cc, `cycle` 4, 10.25, idle 700                                                                                                                                                                                                            | source              |
+| Power, torque         | 300 hp gross at 4,800 rpm, 380 lb-ft at 3,200 rpm (92); 1971: 270 hp gross, 210 hp SAE net (catalogue)          | Net estimated by 210 / 270: point 2 400.719527 N m at 3,200; point 3 346.15537 N m at 4,800                                                                                                                                                     | source, K, estimate |
+| Curve's other points  | —                                                                                                               | 232.417326 at 700 and 340.611598 at 1,950 (0.58 and 0.85 of point 2's), 283.847403 at 5,300 (0.82 of 3's)                                                                                                                                       | estimate            |
+| Redline               | Not found                                                                                                       | **5,300 rpm** (the auditor's recollection, not checked)                                                                                                                                                                                         | estimate            |
+| Transmission          | 2.52 / 1.88 / 1.46 / 1.00; final 3.36 standard (133, 92)                                                        | As the source                                                                                                                                                                                                                                   | source              |
+| Tires                 | F70-15B on 15 × 8.00; loaded radius 12.6 in, 772 revolutions a mile at 45 mph (110)                             | Radii **0.332 m** (1,609.344 m / 772 / 2π); inertias `25r²` / `27r²` = 2.756 / 2.976                                                                                                                                                            | source, calculated  |
+| Drag                  | —                                                                                                               | `q = 0.5 × 1.225 × 0.47 × 1.75 m²` = **0.5038 kg/m**; Cd and the frontal area are estimates                                                                                                                                                     | estimate            |
+| CG height             | —                                                                                                               | 0.46 m, as the C4 1984's                                                                                                                                                                                                                        | estimate            |
+| Inertias              | —                                                                                                               | Box estimates **3,206 / 2,995 kg m²**                                                                                                                                                                                                           | calculated          |
+| Brakes                | —                                                                                                               | 1,565 × 11.5 m/s², 65:35, × 0.332 m, to 25 N m: **3,875 / 2,100 N m**                                                                                                                                                                           | game design         |
+| Suspension            | —                                                                                                               | 1.5 Hz, 0.4, 0.3 m                                                                                                                                                                                                                              | game design         |
+| Valves                | Exhaust head 1.495–1.505 in, lift 0.4100 in; exhaust 78° BBDC to 30° ATDC (288°) (137)                          | `valve` 0.0381 m, `open` 0.4 (288 / 720)                                                                                                                                                                                                        | source              |
+| Firing                | 1-8-4-3-6-5-7-2; left bank 1-3-5-7, right 2-4-6-8 (134)                                                         | `firingPhases` by eighths; left bank to junction 0, right to 1                                                                                                                                                                                  | source              |
+| `exhaust.diameter`    | GM gives the pipes 2.00 in outside (100, 138)                                                                   | **0.043 m**: the cast manifold's branch, about 38 mm, × 1.14                                                                                                                                                                                    | estimate            |
+| `exhaust.tubes`       | Dual; two reverse-flow silencers (body 17.00 × 9.25 × 5.00 in); pipes 2.00 in outside; 2 in tails (100, 138)    | Each bank four from the valves to its junction, 0.10 m for the middle two and 0.20 m for the end two; one of **4.44 m** from each junction to the open (about 3.0 m of pipe, 1.30 m within the silencer, 0.14 m of tail, measured on the model) | source, estimate    |
+
+### The Corvette Stingray in the current model
+
+- Its four forward gears are shifted by the existing automatic shifts, as every car's; its tire is the default tire.
+- Its power is net, as every car's (K): the 1970 car has only gross figures, so the 1971 catalogue's ratio for the same
+  basic engine (8.5:1), 210 hp net to 270 hp gross, is laid on the 1970 gross power and torque at GM's speeds: 233.3 hp
+  (174.0 kW) at 4,800 rpm and 295.6 lb-ft (400.7 N m) at 3,200 rpm. It is an estimate.
+- Its engine sound is written as the exhaust kernel reads it, its sources in its own note
+  ([Audio](audio.md#observations-and-engine-sounds)): two banks apart (GM: dual, without a crossover), no expansion
+  chamber, each bank's centre-outlet manifold's four tubes and the run after it one tube; the run within the
+  reverse-flow silencer is counted in its length, as for the Beetle (K).
+- Its pictures are baked from K's model in eight 1970 colors, MONZA RED the default
+  ([Model solids](image-assets.md#model-solids)); its wheels are drawn at the radius its driving uses, 0.332 m.
+
+### The Corvette Stingray on the flat
+
+The existing solver on this ledger's flat, dry, windless straight with the automatic shifts, not compared with the real
+car's figures, which were not looked up, and not tuned:
+
+| Measure                         | Measured                                                                            |
+| ------------------------------- | ----------------------------------------------------------------------------------- |
+| 0–100 km/h, 0–200 km/h          | 6.58 s (60 mph in about 6.3 s), 29.1 s                                              |
+| Quarter mile                    | About 14.9 s, at about 156 km/h (between the run's 1 s samples)                     |
+| Speed after 240 s               | 205 km/h in fourth at 5,530 rpm, above the 5,300 rpm redline, short of the fuel cut |
+| Redline speeds, first to fourth | 78, 105, 135, 197 km/h                                                              |
+| Shifts                          | 78, 105 and 135 km/h, at 4.7, 7.1 and 11.0 s                                        |
+| Braking from 100 km/h           | 2.48 s, 35.0 m                                                                      |
+
+It launches, shifts through all four gears and restarts from rest (113 km/h 8 s after stopping).
+
+### The Corvette Stingray's sources
+
+[GM Heritage Center's 1970 Chevrolet Corvette Vehicle Information Kit](https://www.gm.com/content/dam/company/no_search/heritage-archive-docs/vehicle-information-kits/chevrolet/1970-Chevrolet-Corvette.pdf)
+(an image PDF, 159 pages) and GM's 1971 catalogue (K's copy), read by the stage auditor (2026-11-25) on the pages
+cited above, not for these PRs. Not decided, for K
+([NEXT](NEXT.md#stage-c3--the-corvette-stingray-of-1970-in-out-runs-traffic)): the net power's estimate, the redline,
+the estimates above and the exhaust's lengths.

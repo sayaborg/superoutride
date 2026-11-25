@@ -1,0 +1,33 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 6,
+  "form": "car",
+  "selectionOrder": 49,
+  "visuals": {
+    "spriteSet": "corvette-c3-1970",
+    "palette": "monza-red",
+    "steeringPicture": "montecarlo",
+    "colorNames": {
+      "monza-red": "MONZA RED",
+      "classic-white": "CLASSIC WHITE",
+      "mulsanne-blue": "MULSANNE BLUE",
+      "bridgehampton-blue": "BRIDGEHAMPTON BLUE",
+      "donnybrooke-green": "DONNYBROOKE GREEN",
+      "daytona-yellow": "DAYTONA YELLOW",
+      "cortez-silver": "CORTEZ SILVER",
+      "ontario-orange": "ONTARIO ORANGE"
+    }
+  },
+  "sound": "CORVETTE_C3_1970",
+  "metadata": {
+    "manufacturer": "Chevrolet",
+    "model": "Corvette Stingray",
+    "period": "1970",
+    "mobileLabel": "C3",
+    "engine": "V8",
+    "engineKind": "4-stroke",
+    "identifier": { "officialLabel": "C3 / 19437", "shortLabel": "C3" },
+    "selectedSpecification": ["ZQ3 350", "M20 4-speed", "Sport Coupe"],
+    "physicsAnchor": { "modelYear": "1970", "market": "US" }
+  }
+}

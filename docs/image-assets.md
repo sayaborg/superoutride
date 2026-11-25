@@ -617,7 +617,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`nova-250-1977`): drawn by
@@ -1420,6 +1420,58 @@ CANDYAPPLE RED's base color is the other cars' red:
 The listing's default is `wind-blue`, the color of K's model and photographs (the stage auditor's). The model is K's
 `ford-f-150-1975.glb` (SHA-256 `1944c926…`), kept on K's branch `codex/ford-f-150-1975-glb-source`, never on main; it
 has no wheel nodes, and its front hub is (0, 0.371, 1.689).
+
+**The Corvette Stingray of 1970.** Its set, `corvette-c3-1970`, is baked from K's model of the 1970 Sport Coupe by the
+RX-7's recipe (K, 2026-11-25): the same steps (seven paint steps, three glass steps and four greys), light,
+reflections, glare, spacing (0.008 m; seen from behind it shows no speckle), 64 directions and brake lamp colors, none
+moved for this car. What differs is the model's, which K did not paint and keeps as it is: a door mirror each side
+(photographs show the left alone), a one-piece roof without the T-top's bar and seams, and all four round rear lamps
+red. The body's red (231, 10, 14) is its one paint, within 8, 69 of the model's own points that lay within 8 of it
+darkened to (210, 10, 14); the glass is (10, 10, 12), within 4 and of roughness below 0.5, four panes (the windscreen,
+the rear window and the doors'), made flat, the windscreen moving up to 68 mm (half of it within 3.8 mm); the magenta
+(255, 0, 255) is the brake lamp, the lenses of the outer two rear lamps, 56 mm in radius (K): the inner two, on the
+real car the reversing lamps, keep the model's red and are greys. Every black part is matt, (22, 22, 24) of roughness
+0.90: the tyres, the underside, the grille's depth, the number plate's place and the exhaust outlets; it is a grey,
+never glass. Both bumpers, the grille, the lamps' rims, the mirrors, the wheels, the window frames, the rocker trim, the
+markers and the badges keep the model's colors and roughness, greys like every color neither paint, glass nor lamp, the
+front indicators' amber and the side markers among them. No other color lies within 8 of the paint nor within 4 of the
+glass (the stage auditor counted). The body's faces are not smoothed; only the four windows were made flat. The model
+holds its roughness, 0.10 on the red, the glass and the brake lamp and 0.90 on the matt black.
+
+Its tyres follow K's one rule (round, the centre one radius up, the lowest point on the road): F70-15, radius 0.3319 to
+0.3320 m, the centres 0.332 m up and the lowest points 0.4 to 1.1 mm below the road. The radius is GM's rolling radius
+from 772 revolutions a mile (the stage auditor's choice): a reproduction F70-15's 26.9 in would cut 7 mm into the front
+fender. Its four wheels are spun at that size: centres (±0.7455, 0.332, 1.2445) m front and (±0.7545, 0.332, −1.2445) m
+rear, radius 0.332 and width 0.211; the rims are 0.21, the model's edge between wheel and tyre measured (0.20–0.23 m;
+the stage auditor's). The model is in metres, +y up, +z forward and +x to the left, its origin on the road, on the
+centreline, halfway between the axles (z +1.2445 and −1.2445). It is fitted to GM's figures: 4,634.9 mm long, 1,214 mm
+high, on its 2,489 mm wheelbase and 1,491 / 1,509 mm tracks (the model's tyres measure 1,499 and 1,518–1,519 mm), the
+overhangs 1,030.9 and 1,114.9 mm; its painted width 1,763 mm at the front fenders (the widest, 5 mm over GM's 69.2 in),
+1,728 mm at the doors and 1,745.5–1,748 mm at the rear fenders. Its height is scaled by 4.244 and its length by 4.731
+about the wheels, 4.821 between the axles and 4.904 and 4.397 in the overhangs; its width by 4.043 at and before the
+front axle and 4.237 at and behind the rear axle, straight between, to GM's 69.0 in front and 68.8 in rear fenders: the
+model came about 8 cm narrower at the rear, and one scale would have put the rear tyres outside the fenders. No painted
+vertex moved after the fitting. The tyres clear the fenders by 13 mm front and 20 mm rear.
+
+Its eight liveries are GM's February 1970 colors by their names, eight of its ten (LAGUNA GRAY and MARLBORO MAROON left
+out; K accepted the stage auditor's eight, 2026-11-25), the model's red first; the keys and base colors are the
+auditor's, provisional, not measured from paint samples, and no source gives how many cars each color sold. MONZA
+RED's base color is the other cars' red:
+
+| Palette              | Name               | Base color    |
+| -------------------- | ------------------ | ------------- |
+| `monza-red`          | MONZA RED          | 231, 10, 14   |
+| `classic-white`      | CLASSIC WHITE      | 240, 238, 228 |
+| `mulsanne-blue`      | MULSANNE BLUE      | 30, 84, 176   |
+| `bridgehampton-blue` | BRIDGEHAMPTON BLUE | 24, 40, 84    |
+| `donnybrooke-green`  | DONNYBROOKE GREEN  | 20, 74, 52    |
+| `daytona-yellow`     | DAYTONA YELLOW     | 246, 206, 48  |
+| `cortez-silver`      | CORTEZ SILVER      | 176, 180, 184 |
+| `ontario-orange`     | ONTARIO ORANGE     | 232, 96, 24   |
+
+The listing's default is `monza-red`, the color of K's model and photographs (the stage auditor's). The model is K's
+`corvette-c3-1970.glb` (SHA-256 `bc6733bd…`), kept on K's branch `codex/corvette-c3-1970-glb-source`, never on main; it
+has no wheel nodes, and its front hub is (0, 0.332, 1.2445).
 
 ## HUD picture generator
 

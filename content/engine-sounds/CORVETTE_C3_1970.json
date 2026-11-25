@@ -1,0 +1,25 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 3,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875],
+  "exhaust": {
+    "valve": { "diameter": 0.0381, "open": 0.4 },
+    "diameter": 0.043,
+    "tubes": [
+      { "from": null, "to": 0, "length": 0.2 },
+      { "from": null, "to": 1, "length": 0.2 },
+      { "from": null, "to": 1, "length": 0.1 },
+      { "from": null, "to": 0, "length": 0.1 },
+      { "from": null, "to": 1, "length": 0.1 },
+      { "from": null, "to": 0, "length": 0.1 },
+      { "from": null, "to": 0, "length": 0.2 },
+      { "from": null, "to": 1, "length": 0.2 },
+      { "from": 0, "to": null, "length": 4.44 },
+      { "from": 1, "to": null, "length": 4.44 }
+    ]
+  },
+  "metadata": {
+    "note": "1970 US Chevrolet Corvette Stingray Sport Coupe, ZQ3 350 (5,733 cc, 300 hp SAE gross): a V8, one exhaust valve a cylinder, firing 1-8-4-3-6-5-7-2 at even intervals; the tubes from the valves in that order, the left bank (1-3-5-7) to junction 0 and the right (2-4-6-8) to junction 1. Valve: 1.495-1.505 in (38.1 mm), lift 0.4100 in, which passes a quarter of the diameter, so the diameter as it is; open 288 / 720 = 0.4, from 78 BBDC / 30 ATDC (GM's 1970 Corvette Vehicle Information Kit, pp. 137, as the stage auditor read it). Dual exhaust without a crossover (GM, pp. 100, 138): each bank's cast manifold, its outlet at the middle, so the middle two cylinders' tubes 0.10 m and the end two 0.20 m (estimates from the 4.40 in bore spacing); from each outlet one tube of 4.44 m to the open (an estimate: about 3.0 m of pipe from the outlet, taken about 0.4 m behind the front axle, to the silencer's inlet, about 0.5 m behind the rear axle, with 0.4 m for the bends, measured on the model; 1.30 m within the reverse-flow silencer, three times its 17.00 in body, counted in the tube's length as for the Beetle (K); and a 0.14 m tail). No expansion chamber is written. Diameter 0.043 m: the cast manifold's branch, about 38 mm inside, times 1.14 (an estimate); GM gives the pipes 2.00 in outside."
+  }
+}

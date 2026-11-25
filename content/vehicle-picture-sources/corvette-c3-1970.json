@@ -1,0 +1,243 @@
+{
+  "format": "superoutride.vehicle-model-recipe",
+  "version": 1,
+  "vehicle": "CORVETTE_C3_1970",
+  "yawVariants": 64,
+  "model": {
+    "sha256": "bc6733bd71e958c674a1052062999ce27cb08e780040e7871c2200dfda6ab052",
+    "right": "-x",
+    "up": "+y",
+    "forward": "+z",
+    "frontHub": [
+      0,
+      0.332,
+      1.2445
+    ]
+  },
+  "spacing": 0.008,
+  "paints": {
+    "colors": [
+      [
+        231,
+        10,
+        14
+      ]
+    ],
+    "within": 8,
+    "lamp": [
+      255,
+      0,
+      255
+    ]
+  },
+  "glass": {
+    "color": [
+      10,
+      10,
+      12
+    ],
+    "within": 4,
+    "rough": 0.5
+  },
+  "ramps": {
+    "paints": [
+      7
+    ],
+    "glass": 3,
+    "grey": 4,
+    "sampleYaws": 16
+  },
+  "light": {
+    "main": [
+      -0.25,
+      0.85,
+      0.46
+    ],
+    "fill": [
+      0.6,
+      0.2,
+      0.5
+    ],
+    "ambient": 0.08,
+    "sky": 0.14,
+    "mainWeight": 0.92,
+    "fillWeight": 0.06,
+    "greyGain": 1.5
+  },
+  "reflection": {
+    "paint": {
+      "f0": 0.1,
+      "horizon": [
+        205,
+        218,
+        238
+      ],
+      "zenith": [
+        120,
+        160,
+        230
+      ],
+      "haze": [
+        70,
+        66,
+        68
+      ],
+      "ground": [
+        20,
+        18,
+        20
+      ],
+      "fall": 0.1,
+      "power": 0.6
+    },
+    "glass": {
+      "f0": 0.8,
+      "horizon": [
+        232,
+        240,
+        248
+      ],
+      "zenith": [
+        58,
+        120,
+        222
+      ],
+      "haze": [
+        205,
+        214,
+        224
+      ],
+      "ground": [
+        86,
+        88,
+        92
+      ],
+      "fall": 0.35,
+      "power": 0.6
+    }
+  },
+  "glare": [
+    {
+      "power": 30,
+      "strength": 2,
+      "glass": 1
+    },
+    {
+      "power": 220,
+      "strength": 4,
+      "glass": 1.5
+    }
+  ],
+  "wheels": [
+    {
+      "center": [
+        0.7455,
+        0.332,
+        1.2445
+      ],
+      "radius": 0.332,
+      "rim": 0.21,
+      "width": 0.211
+    },
+    {
+      "center": [
+        -0.7455,
+        0.332,
+        1.2445
+      ],
+      "radius": 0.332,
+      "rim": 0.21,
+      "width": 0.211
+    },
+    {
+      "center": [
+        0.7545,
+        0.332,
+        -1.2445
+      ],
+      "radius": 0.332,
+      "rim": 0.21,
+      "width": 0.211
+    },
+    {
+      "center": [
+        -0.7545,
+        0.332,
+        -1.2445
+      ],
+      "radius": 0.332,
+      "rim": 0.21,
+      "width": 0.211
+    }
+  ],
+  "liveries": {
+    "monza-red": [
+      [
+        231,
+        10,
+        14
+      ]
+    ],
+    "classic-white": [
+      [
+        240,
+        238,
+        228
+      ]
+    ],
+    "mulsanne-blue": [
+      [
+        30,
+        84,
+        176
+      ]
+    ],
+    "bridgehampton-blue": [
+      [
+        24,
+        40,
+        84
+      ]
+    ],
+    "donnybrooke-green": [
+      [
+        20,
+        74,
+        52
+      ]
+    ],
+    "daytona-yellow": [
+      [
+        246,
+        206,
+        48
+      ]
+    ],
+    "cortez-silver": [
+      [
+        176,
+        180,
+        184
+      ]
+    ],
+    "ontario-orange": [
+      [
+        232,
+        96,
+        24
+      ]
+    ]
+  },
+  "brakeLamp": {
+    "off": [
+      125,
+      12,
+      18
+    ],
+    "on": [
+      255,
+      70,
+      40
+    ]
+  }
+}

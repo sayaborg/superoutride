@@ -23,11 +23,13 @@ Each line is one area as it stands, with the document that owns it.
   to 35 vehicles before the M23 PP SPEC, 36 with it, 37 with the NSR500 of 1984, 38 with the XR600R of 1985 and 39 with
   the RX-7 Turbo II of 1987, K's TOP SPEED car, 38 again without the NSR500 of 1987 (Stage MF), 37 without the 911
   TURBO 3.3 of 1989, 38 with the Beetle 1500 of 1968
-  ([Stage VW113](#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)) and 39 with the F-150 of 1975
-  ([Stage F150](#stage-f150--the-f-150-of-1975-in-out-runs-traffic)), in the same ledger
+  ([Stage VW113](#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)), 39 with the F-150 of 1975
+  ([Stage F150](#stage-f150--the-f-150-of-1975-in-out-runs-traffic)) and 40 with the Corvette Stingray of 1970
+  ([Stage C3](#stage-c3--the-corvette-stingray-of-1970-in-out-runs-traffic)), in the same ledger
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored),
   [the Beetle's](chase-turbo-vehicles.md#volkswagen-beetle-1500-of-1968-sources-versus-authored),
-  [the F-150's](chase-turbo-vehicles.md#ford-f-150-of-1975-sources-versus-authored)). Among the fourteen, the
+  [the F-150's](chase-turbo-vehicles.md#ford-f-150-of-1975-sources-versus-authored),
+  [the Corvette Stingray's](chase-turbo-vehicles.md#chevrolet-corvette-stingray-of-1970-sources-versus-authored)). Among the fourteen, the
   928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)), and
   the Turbo Esprit of 1984 the car it chases ([Stage E82](#stage-e82--the-turbo-esprit-of-1984-chase-hqs-rival)), the
   Countach 5000 QV of 1985 the car it chases on the second stage
@@ -65,7 +67,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
 - **Pictures.** GOLF GTI 16V's pictures are a generated set, VFR750R's a 3D prototype,
-  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the M23 PP SPEC's, the NSR500 of 1984's and
+  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the M23 PP SPEC's, the NSR500 of 1984's and
   the XR600R of 1985's baked from K's models, the three cars' with a car's glossy finish, the other vehicles' converted provisional pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
@@ -402,6 +404,42 @@ Its 4.84 m run after the manifold is one tube
   road. Only the F-150 keeps it now; the other models' tyres float a few millimetres (the Beetle's 5 mm), their centres
   set from the round part. They are mended and baked again when every set is (the colors' adjustment), not in this
   stage.
+
+## Stage C3 — The Corvette Stingray of 1970 in OUT RUN's traffic
+
+K's decisions of 2026-11-25: the Chevrolet Corvette Stingray of 1970 (Sport Coupe, Model 19437, ZQ3 350 V8, Muncie M20
+four-speed, US) is a vehicle of its own, `CORVETTE_C3_1970`, and replaces the CORVETTE C4 1984 in OUT RUN's traffic;
+the C4 1984 stays, in no series. Its power is net, estimated from gross figures; its pictures are baked from K's model
+by the car baking, its shape as the model has it, the outer two rear lamps alone as brake lamps, in eight colors. Its
+two 4.44 m runs are one tube each
+([Arcade car selections](chase-turbo-vehicles.md#chevrolet-corvette-stingray-of-1970-sources-versus-authored),
+[Model solids](image-assets.md#model-solids)).
+
+- C3-1: the vehicle added (definition, sound, listing, the set baked from K's model, SHA-256 `bc6733bd…`, on
+  `codex/corvette-c3-1970-glb-source`, never on main), the engine loudness measured again; no series runs it.
+- C3-2: OUT RUN's traffic takes the Corvette Stingray in the C4 1984's place, of the same weight and place in each of
+  the six classes.
+- The stage auditor's choices, awaiting K: the names `C3`, `CORVETTE_C3_1970` and `corvette-c3-1970`; the eight base
+  colors and MONZA RED the default (no source gives the colors' sales); the net power's estimate; the definition's
+  estimates; the exhaust's lengths; the tyre radius 0.332 m from GM's 772 revolutions a mile; the two PRs.
+- To look at in DEV: SELECT VEHICLE's eight colors, MONZA RED the default; revving and driving's sound (a V8, two separate pipes); OUT RUN's traffic
+  with the Stingray and no C4 1984, and the Stingray small and far away; the tyres on the road and the fenders' gaps
+  (13 mm front, 20 mm rear), the shadow; from behind, the outer two lamps alone lighting under the brake; its size
+  beside the BEETLE, the GOLF and the 911 Turbo 3.3.
+- The power is an estimate: the 1971 gross-to-net ratio (210 / 270) laid on the 1970 gross figures; the 1970 car has no
+  net figures.
+- The redline, 5,300 rpm, is not checked against a source.
+- Estimates: the CG height, the CdA, the primaries' lengths and diameter and the run after each manifold (4.44 m; no
+  source gives the pipes' lengths).
+- The eight base colors are provisional. CORVETTE BRONZE is not in the February 1970 table (a later color).
+- Where the model differs from the car (K: as the model has it): a door mirror each side; all four rear lamps red (the
+  real inner two are reversing lamps); a one-piece roof (no T-top bar); the rear lamps 0.61–0.62 m high (GM: 27.1 in,
+  0.688 m).
+- The width is scaled differently front and rear; the widest point is 5 mm wider than GM's.
+- The windscreen was flattened by up to 68 mm (half of it within 3.8 mm).
+- The body's waves are not smoothed (only the four windows were made flat); how to smooth them is not decided.
+- Drawn grey: the inner rear lamps, the front indicators and the side markers.
+- The CORVETTE C4 1984 stays, in no series.
 
 ## Stage F120 — The F40 of 1988
 
