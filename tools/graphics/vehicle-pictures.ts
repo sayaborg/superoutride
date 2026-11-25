@@ -287,11 +287,12 @@ export function drawSize(
   const focal = camera.focalLength * sub;
   const scale = PLAYER_DEPTH_PIXELS_PER_METER / texel; // texels per metre at the base point
   // The frame, in texels about the anchor, holds the solid at any yaw: its nearest point is `reach` nearer than the
-  // base point, its farthest as much farther.
+  // base point, its farthest as much farther. Its top shows highest at its farthest point when the solid is lower than
+  // the camera, at its nearest when it is taller.
   const reach = Math.min(solid.reach, distance * 0.9);
   const halfWidth = Math.ceil(((reach * distance) / Math.sqrt(distance * distance - reach * reach) + 0.1) * scale) + 1;
-  const above =
-    Math.ceil((camera.height - ((camera.height - solid.height) * distance) / (distance + reach) + 0.1) * scale) + 1;
+  const top = (depth: number) => camera.height - ((camera.height - solid.height) * distance) / depth;
+  const above = Math.ceil((Math.max(top(distance - reach), top(distance + reach)) + 0.1) * scale) + 1;
   const below = Math.ceil(((camera.height * reach) / (distance - reach) + 0.1) * scale) + 1;
   const width = 2 * halfWidth,
     height = above + below;

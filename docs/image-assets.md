@@ -728,7 +728,10 @@ camera pixels per texel side at full size and twice as many at each smaller size
 half of it is covered, and paint, glass or lamp when at least half of its covered part is. If an entire silhouette
 falls below half coverage, its fullest covered texel remains opaque in its ordinary classified palette color;
 ties choose the first texel in row order. This keeps a distant narrow vehicle visible without changing its camera
-or anchor. The shadow is the solid's outline seen from above, on the road, drawn the same way.
+or anchor. The shadow is the solid's outline seen from above, on the road, drawn the same way. A picture is drawn in a
+frame that holds the solid at any direction, its nearest point the solid's reach nearer than the base point and its
+farthest as much farther: its top is where the solid's top shows highest, at its farthest point when the solid is lower
+than the camera and at its nearest when it is taller, so that no picture is cut; the frame's empty edges are trimmed.
 
 The generator's fixed values are author values, neither derived from a model nor recipe fields: a mirror part covers
 more than 40 cells (40 cm²) of a facing outline; the wheels are the solid within 0.37 m of the body's side and within 1.05
