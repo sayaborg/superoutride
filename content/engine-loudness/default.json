@@ -243,6 +243,12 @@
       "vehicleSha256": "deb45b8e2c5a4f2a349488ac0bbc575626b69838ff3ff514f47a1a03f713de56",
       "soundSha256": "f819214e4ad8a8f0c0cc0d7bc95dfae36ee9891f8e9217fd8e1d1c702a64bcfe",
       "lufs": -43.59195786277476
+    },
+    {
+      "vehicleId": "FORD_F_700_1980",
+      "vehicleSha256": "68374f418f9ae5dde76d1017aeeb1963fc732a9d424893143d98bc3db55a0e57",
+      "soundSha256": "2aba3da1af2d528e673f37eba8d6cfd03963734bc6c2917d941d22123b7491c8",
+      "lufs": -43.83714669057509
     }
   ]
 }

@@ -24,12 +24,14 @@ Each line is one area as it stands, with the document that owns it.
   the RX-7 Turbo II of 1987, K's TOP SPEED car, 38 again without the NSR500 of 1987 (Stage MF), 37 without the 911
   TURBO 3.3 of 1989, 38 with the Beetle 1500 of 1968
   ([Stage VW113](#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)), 39 with the F-150 of 1975
-  ([Stage F150](#stage-f150--the-f-150-of-1975-in-out-runs-traffic)) and 40 with the Corvette Stingray of 1970
-  ([Stage C3](#stage-c3--the-corvette-stingray-of-1970-in-out-runs-traffic)), in the same ledger
+  ([Stage F150](#stage-f150--the-f-150-of-1975-in-out-runs-traffic)), 40 with the Corvette Stingray of 1970
+  ([Stage C3](#stage-c3--the-corvette-stingray-of-1970-in-out-runs-traffic)) and 41 with the F-700 of 1980
+  ([Stage F700](#stage-f700--the-f-700-of-1980-in-out-runs-traffic)), in the same ledger
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored),
   [the Beetle's](chase-turbo-vehicles.md#volkswagen-beetle-1500-of-1968-sources-versus-authored),
   [the F-150's](chase-turbo-vehicles.md#ford-f-150-of-1975-sources-versus-authored),
-  [the Corvette Stingray's](chase-turbo-vehicles.md#chevrolet-corvette-stingray-of-1970-sources-versus-authored)). Among the fourteen, the
+  [the Corvette Stingray's](chase-turbo-vehicles.md#chevrolet-corvette-stingray-of-1970-sources-versus-authored),
+  [the F-700's](chase-turbo-vehicles.md#ford-f-700-of-1980-sources-versus-authored)). Among the fourteen, the
   928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)), and
   the Turbo Esprit of 1984 the car it chases ([Stage E82](#stage-e82--the-turbo-esprit-of-1984-chase-hqs-rival)), the
   Countach 5000 QV of 1985 the car it chases on the second stage
@@ -67,7 +69,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
 - **Pictures.** GOLF GTI 16V's pictures are a generated set, VFR750R's a 3D prototype,
-  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the M23 PP SPEC's, the NSR500 of 1984's and
+  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the F-700 of 1980's, the M23 PP SPEC's, the NSR500 of 1984's and
   the XR600R of 1985's baked from K's models, the three cars' with a car's glossy finish, the other vehicles' converted provisional pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
@@ -440,6 +442,49 @@ two 4.44 m runs are one tube each
 - The body's waves are not smoothed (only the four windows were made flat); how to smooth them is not decided.
 - Drawn grey: the inner rear lamps, the front indicators and the side markers.
 - The CORVETTE C4 1984 stays, in no series.
+
+## Stage F700 — The F-700 of 1980 in OUT RUN's traffic
+
+K's decisions of 2026-11-25: the Ford F-700 of 1980 (F70, 4×2 Regular Cab, 171 in, the 370-4V gasoline V8, 5MT and a
+two-speed axle written as its high range, a 14 ft × 96 in dry van, US) is a vehicle of its own, `FORD_F_700_1980`, and
+OUT RUN's traffic takes it as a seventh vehicle, none replaced. Its pictures are baked from K's model by the car baking
+at a spacing of 0.004 m, in four key colors (red, blue, yellow, white; the box's right side the original, the left
+mirrored), the wheels' discs grey, one yellow step, in eight colors
+([Arcade car selections](chase-turbo-vehicles.md#ford-f-700-of-1980-sources-versus-authored),
+[Model solids](image-assets.md#model-solids)).
+
+- F700-0: a vehicle taller than the camera is framed from its nearest point, so its picture's top is not cut; no saved
+  set changes.
+- F700-1: the vehicle added (definition, sound, listing, the set baked from K's model, SHA-256 `89b21b24…`, on
+  `codex/ford-f-700-1980-glb-source`, never on main), the engine loudness measured again; no series runs it.
+- F700-2: OUT RUN's traffic takes the F-700 as its seventh vehicle, of weight 1, in each of the six classes.
+- The stage auditor's choices, awaiting K: the names `F700`, `FORD_F_700_1980` and `ford-f-700-1980`; the eight
+  colors' base colors and names, WHITE the default; the ramps (red 3, blue 2, yellow 1, white 3, glass 2, greys 3); the
+  brake lamps the lower lamps' red alone; the definition's estimates; the exhaust's form; the weight 1; the three PRs.
+- To look at in DEV: SELECT VEHICLE's eight colors, WHITE the default; revving and driving's sound (a V8, one outlet,
+  low revs); OUT RUN's traffic with the F-700 and the other six, and the F-700 small and far away; its back whole to
+  the top, without speckle, and the eight boxes told apart; the tyres on the road and the shadow; the brake lamps; how
+  it sits in the lanes, and the view from behind it.
+- The box's frame height, 1,099 mm (K's source), was not checked by the auditor; the 1986 truck measured 3,435 mm high
+  (its box's height not given).
+- The 1980 370-4V's power is not found; the 1990 net figures are used, and the 1980 gross reads as 197 hp (an
+  estimate).
+- Estimates: the gear and axle ratios, the compression, idle and redline (the axle's low range not written, K); the
+  empty mass, the CG height, the rear share, the wheel radius and the CdA; every exhaust number; the tyres' 1.019 m,
+  from which the cab's 2.35 m height follows (no primary source for the cab's width and height).
+- The front fenders' 2,457 mm has no source (it follows the 1986 truck's front track); the auctioned truck's bumper
+  looks narrower than its fenders, the model's about as wide; not changed.
+- The rear track is the model's 1.823 m (measured 1.840 m); the rear inner tyres are about 3 mm smaller in radius.
+- The rear doors open as two leaves (K's source shows a roll-up door); the left side's lettering is mirrored.
+- The brake lamps are the lower lamps alone; the box's round red corner lamps and reflectors are drawn grey.
+- The white looks grey on the rear face and the sides (lit from the front, three steps); the yellow band is one step
+  (K).
+- The eight colors' base colors and names are provisional.
+- The windscreen keeps its wipers: 71 % of it lies within 3 mm of the flat face.
+- Whether a vehicle over 5 m may be the player's own (pending since Stage F150) holds for the F-700 too; nothing is
+  built for it in this stage.
+- The pictures' spacing: 0.004 m for the F-150 and the F-700, 0.008 m for the others, until the baker chooses it when
+  every set is baked again (K, Stage F150).
 
 ## Stage F120 — The F40 of 1988
 

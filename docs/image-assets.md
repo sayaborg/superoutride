@@ -617,7 +617,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `ford-f-700-1980`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`nova-250-1977`): drawn by
@@ -1475,6 +1475,66 @@ RED's base color is the other cars' red:
 The listing's default is `monza-red`, the color of K's model and photographs (the stage auditor's). The model is K's
 `corvette-c3-1970.glb` (SHA-256 `bc6733bd…`), kept on K's branch `codex/corvette-c3-1970-glb-source`, never on main; it
 has no wheel nodes, and its front hub is (0, 0.332, 1.2445).
+
+**The F-700 of 1980.** Its set, `ford-f-700-1980`, is baked from K's model of the 1980 van truck by the Beetle's recipe
+(K, 2026-11-25): the same light, reflections, glare, 64 directions and brake lamp colors, none moved for this truck. It
+differs in its four key colors, each its own paint ramp, its ramps and its spacing, 0.004 m as the F-150's: at 0.008 m
+the rear doors seen from behind were speckled, the far side showing through (the stage auditor baked both). Its ramps
+are three steps of red, two of blue, one of yellow (K: one is enough) and three of white, two glass steps and three
+greys, fourteen in all. It is the first vehicle taller than the camera, 3.377 m against 2 m, so its frame is sized from
+its nearest point ([Drawing](#vehicle-picture-generator)).
+
+Its key colors, which K did not paint: the cab, the front bumper and the box's top band (the model's red and orange)
+are the red (231, 10, 14); the box's lettering and its lower band, and the rear face's lower band, are the blue (24,
+40, 130); the box's middle band and the amber markers and lamp sections are the yellow (245, 180, 20); the box's ground,
+its sides, roof, front wall and rear doors with their fittings, is the white (236, 236, 232); each within 8. The glass
+is (10, 10, 12), within 4 and of roughness below 0.5, three panes (the windscreen and the doors'), made flat, the
+windscreen's wipers left in it (71 % of it within 3 mm of the flat face); the magenta (255, 0, 255) is the brake lamp,
+the red of the lower left and right lamps alone. Every black part is matt, (22, 22, 24) of roughness 0.90: the tyres,
+the chassis, the grille and the mudflaps. The rims' discs and hubs are grey, the model's shading kept without its hue
+(K); the headlamps, mirrors, steps, the box's reflectors and its round red lamps keep the model's colors, greys like
+every color neither paint, glass nor lamp. No other color lies within 8 of a paint nor within 4 of the glass (the
+stage auditor counted). The box's right side, where "Super Outride" reads, is the original; its left side is its mirror
+image, lettering included (K). The rear doors open as two leaves, as the model has them.
+
+The model is in metres, +y up, +z forward and +x to the left, its origin on the road, on the centreline, halfway between
+the axles (z +2.1714 and −2.1714). It is 7,181.9 mm long from the front bumper to the rear doors' fittings, 3,377 mm
+high to the roof's corner fittings (3,370 mm to the roof) and 2,545.6 mm across the mirrors, on a 4,342.9 mm wheelbase,
+the front overhang 837.9 mm and the bumper to the cab's back 2,592.3 mm. The box is 4,413.2 mm long, 2,438 mm wide and
+stands 1,202.5 mm up, 98.6 mm behind the cab (K: as it falls); the cab is 1,966.2 mm wide at the doors and 2,352.2 mm
+high at the roof, the front fenders 2,456.8 mm wide. The chassis and cab are scaled by the tyres' 1.019 m, the box by
+its own scale to the body maker's size and height, the two joined below the box's floor; the frame behind the rear
+wheels is lengthened, and the mudflaps, lamps and underride bar stand at the box's rear end, as on the auctioned truck.
+Its width is scaled to the box's width at and behind the rear axle and to the 1986 truck's 2,000 mm front track at and
+before the front axle, straight between (K). Where the cab's rear wall served as the box's front wall, 1,150 triangles
+joining them were removed and one flat panel added as the box's front wall.
+
+Its tyres follow K's rule (round, the centre one radius up, the lowest point on the road): 9.00-20, the centres 0.5095
+m up, the outer four 0.5095–0.5097 m in radius and the rear inner two 0.5063–0.5068 m, the lowest points 0.1 to 1.9 mm
+above the road, their tracks and widths the model's. Its six wheels are spun: centres (0.9998, 0.5095, 2.1714) and
+(−1.0002, 0.5095, 2.1714) front, 0.2667 wide; (0.7721, …) and (−0.7725, …) inner and (1.0364, …) and (−1.0369, …) outer
+at z −2.1714, 0.2366 and 0.2644 wide; radius 0.5095, the rims 0.272, a 20-inch rim's radius with an edge (an estimate).
+
+Its eight colors are named by the box's color, a body builder's paint and so without a Ford name; the cab takes four
+colors (red, navy, white and yellow: Ford's Candyapple Red, Midnight Blue, Wimbledon White and Bright Yellow, the first
+two checked as 1980 medium truck colors). The keys, names and base colors are the stage auditor's, which K accepted
+(2026-11-25), provisional:
+
+| Palette      | Name       | Cab and top band | Lettering and lower band | Middle band and markers | Box           |
+| ------------ | ---------- | ---------------- | ------------------------ | ----------------------- | ------------- |
+| `white`      | WHITE      | 231, 10, 14      | 24, 40, 130              | 245, 180, 20            | 236, 236, 232 |
+| `ivory`      | IVORY      | 231, 10, 14      | 24, 40, 130              | 245, 180, 20            | 232, 224, 200 |
+| `aluminum`   | ALUMINUM   | 24, 40, 130      | 196, 22, 30              | 245, 180, 20            | 186, 190, 192 |
+| `yellow`     | YELLOW     | 240, 190, 40     | 24, 40, 130              | 236, 236, 232           | 240, 190, 40  |
+| `orange`     | ORANGE     | 236, 236, 232    | 24, 40, 130              | 245, 180, 20            | 226, 110, 30  |
+| `light-blue` | LIGHT BLUE | 236, 236, 232    | 24, 40, 130              | 245, 180, 20            | 140, 180, 214 |
+| `dark-green` | DARK GREEN | 231, 10, 14      | 236, 236, 232            | 245, 180, 20            | 30, 84, 60    |
+| `navy`       | NAVY       | 26, 40, 100      | 236, 236, 232            | 245, 180, 20            | 26, 40, 100   |
+
+In `yellow` and `navy` the cab and box are one color and the top band melts into the box; in `yellow` alone the
+markers are white. The listing's default is `white`, the model's own. The model is K's `ford-f-700-1980.glb` (SHA-256
+`89b21b24…`), kept on K's branch `codex/ford-f-700-1980-glb-source`, never on main; it has no wheel nodes, and its front
+hub is (0, 0.5095, 2.1714).
 
 ## HUD picture generator
 

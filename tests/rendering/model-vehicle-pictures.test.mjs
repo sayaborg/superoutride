@@ -561,3 +561,26 @@ for (const [vehicle, name, liveries, count] of [
     // Every slot of the three ramps shows at size 0, and so does the lamp.
     assert.deepEqual([...used].sort(), [...'0123456789abcdef']);
   });
+
+test('the F-700 of 1980’s saved set: four paints of 3, 2, 1 and 3 steps, two glass steps, three greys, eight liveries', async () => {
+  const name = 'ford-f-700-1980';
+  const value = JSON.parse(await readFile(new URL(`../../content/sprites/${name}.json`, import.meta.url), 'utf8'));
+  const { set } = readVehicleSpriteSetDocument(value, name);
+  assert.equal(set.yawVariants, 64);
+  assert.equal(set.bankVariants, 1);
+  const palettes = Object.values(value.palettes);
+  assert.equal(palettes.length, 8);
+  // The glass (slots 10–11), the greys (12–14) and the lamp are every livery's; the four paints (1–9) are its own.
+  for (const palette of palettes) assert.deepEqual(palette.slice(9), palettes[0].slice(9));
+  assert.equal(new Set(palettes.map((p) => p.slice(0, 9).join())).size, 8, 'the paints');
+  // No palette color, nor the lamp's, is the model's magenta.
+  const magenta = 0x7c1f;
+  for (const color of [...palettes.flat(), value.brakeLamp.off, value.brakeLamp.on]) assert.notEqual(color, magenta);
+  const used = new Set();
+  for (const picture of value.pictures) {
+    assert.equal(picture.sizes.length, 6);
+    for (const row of picture.sizes[0].rows) for (const digit of row) used.add(digit);
+  }
+  // Every slot of the six ramps shows at size 0, and so does the lamp.
+  assert.deepEqual([...used].sort(), [...'0123456789abcdef']);
+});

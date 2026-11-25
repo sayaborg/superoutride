@@ -3,9 +3,9 @@
 This ledger owns the fourteen additional vehicle definitions selected from the supplied arcade-vehicle report, and
 the [Mazda RX-7 Turbo II of 1987](#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored), and OUT RUN's traffic cars,
 the [Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-versus-authored), the
-[Ford F-150 of 1975](#ford-f-150-of-1975-sources-versus-authored) and the
-[Chevrolet Corvette Stingray of 1970](#chevrolet-corvette-stingray-of-1970-sources-versus-authored), authored by its
-conventions.
+[Ford F-150 of 1975](#ford-f-150-of-1975-sources-versus-authored), the
+[Chevrolet Corvette Stingray of 1970](#chevrolet-corvette-stingray-of-1970-sources-versus-authored) and the
+[Ford F-700 of 1980](#ford-f-700-of-1980-sources-versus-authored), authored by its conventions.
 The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored).
 It records the chosen real-car specification, the limits of the evidence, the provisional authoring inputs and
 validation. Shared physics, images, sound and selection behavior retain their existing owners.
@@ -868,3 +868,80 @@ It launches, shifts through all four gears and restarts from rest (113 km/h 8 s 
 cited above, not for these PRs. Not decided, for K
 ([NEXT](NEXT.md#stage-c3--the-corvette-stingray-of-1970-in-out-runs-traffic)): the net power's estimate, the redline,
 the estimates above and the exhaust's lengths.
+
+## Ford F-700 of 1980: sources versus authored
+
+K takes a medium van truck for OUT RUN's traffic, the Ford F-700 of 1980 (K, 2026-11-25), added to the six, not in
+place of one; nothing here claims the original says so. `FORD_F_700_1980` is the 1980 US F-700 (F70) 4×2 Regular Cab
+on the 171 in wheelbase, the 370-4V gasoline V8 (gasoline for its sound, K), a five-speed manual and a two-speed rear
+axle, with a 14 ft × 96 in dry van body. Its listing selects the 370-4V, the 4x2 / 171 in / 5MT and the 14 ft van
+body; its engine is shown as `V8`. FREE PLAY's classes offer it through catalog membership, as every vehicle. Its
+numbers follow this ledger's [conventions](#numerical-conventions-and-remaining-uncertainty); the estimates among them
+add no formula or rule and no exception for this car, and its paired rear wheels add none to the wheels' inertia.
+
+K's decisions (2026-11-25) are the year and the specification, that it is added to OUT RUN's traffic, the four key
+colors with the box's right side as the original and its left mirrored, the wheels' grey discs, the eight colors and
+the two-speed axle written as its high range alone (five forward gears). The source column is the stage auditor's
+reading (2026-11-25), not read for the PRs that wrote this section: Ford's 1980 Revised Broadcast Booklet (**F**), a
+1980 F-700 sold at auction, Purple Wave EA2806 (**P**, its listing and photographs), Commercial Car Journal of October
+1980, p. 236, listing the 1981 trucks (**J**), Morgan's dry freight aluminum bodies (**M**, July 2013), the TTI crash
+test report 404311-6, Figure 12, measuring a 1986 F700 van truck on a 5,245 mm wheelbase (**T**), and owners' forums
+(**W**). The box's frame height, 1,099 mm, is K's source's value, which the auditor could not check.
+
+| Item                  | Source (auditor's reading)                                                                                                       | Authored `FORD_F_700_1980`                                                                                                                                                    | Class              |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Identity              | F70, the F-700 gasoline (F); 370, eight cylinders, gasoline, manual "5, plus 2", GVWR 27,500 lb, 9-20 tyres (P)                  | The 370-4V, 5MT, the high range                                                                                                                                               | source, K          |
+| Length, width, height | Wheelbase 171 in (P); BBC 102 in, front axle to cab back 69 in (J); box 4,410 × 2,438 × 2,169 mm, 959 kg (M)                     | **7.182 / 2.457 / 3.377 m**, the model measured (3.1 in image assets); the width the front fender                                                                             | source, calculated |
+| Tracks                | 2,000 / 1,840 mm (T, the 1986 truck)                                                                                             | 2.0 / 1.823 m: the front as T, the rear the model's paired wheels' centre                                                                                                     | source, estimate   |
+| Mass                  | 5,135 kg empty, 2,309 front, 2,726 rear (T, the 1986 truck with a longer box and frame)                                          | **4,955 kg**: about 4,880 empty (T less about 190 for the box and 65 for the frame) + the driver                                                                              | estimate           |
+| Axles                 | Rear share 0.53 (T)                                                                                                              | **2.2149 / 2.1281 m** from the CG: a rear share of 0.51                                                                                                                       | estimate           |
+| Engine                | 370 cu in (6,063 cc) OHV V8, 4.05 × 3.59 in (W, reading Ford's 1990 specifications)                                              | 6,063 cc, `cycle` 4; compression 8.0, idle 650 and redline 4,000 rpm estimates                                                                                                | source, estimate   |
+| Power, torque         | 1990: 180 hp gross at 3,600, 286 lb-ft at 2,800; 163 hp, 270 lb-ft net (W); the 1980 370-4V's not found, J reads as 197 hp gross | Point 2: 366.070846 N m at 2,800; point 3: 322.419002 N m at 3,600 (163 hp, the 1990 net)                                                                                     | source, estimate   |
+| Curve's other points  | —                                                                                                                                | 212.321091 at 650 and 311.160219 at 1,725 (0.58 and 0.85 of point 2's), 264.383581 at 4,000 (0.82 of 3's)                                                                     | estimate           |
+| Transmission          | Five speeds, direct top, plus a two-speed axle (P); ratios not found                                                             | 6.99, 4.09, 2.24, 1.47, 1.00 (a forum's Clark 285V, "probably"); final 6.50, an Eaton two-speed's high range (6.50 / 9.04, another 1980 F-700); the low range not written (K) | estimate, K        |
+| Tires                 | 9.00-20, about 1,019 mm across                                                                                                   | Radii 0.488 m (nominal 0.5095 less the F-150's share of squash); inertias `25r²` / `27r²` = 5.954 / 6.43                                                                      | estimate           |
+| Drag                  | —                                                                                                                                | `q = 0.5 × 1.225 × 0.8 × 6.25 m²` = **3.0625 kg/m** (CdA 5.0 m²)                                                                                                              | estimate           |
+| CG height             | —                                                                                                                                | 1.25 m                                                                                                                                                                        | estimate           |
+| Inertias              | —                                                                                                                                | Box estimates **23,791 / 26,008 kg m²**                                                                                                                                       | calculated         |
+| Brakes                | Hydraulic (P)                                                                                                                    | 4,955 × 11.5 m/s², 65:35, × 0.488 m, to 25 N m: **18,075 / 9,725 N m**                                                                                                        | game design        |
+| Suspension            | Leaf springs (P)                                                                                                                 | 1.5 Hz, 0.4, 0.3 m                                                                                                                                                            | game design        |
+| Firing                | 1-5-4-2-6-3-7-8; right bank 1-2-3-4, left 5-6-7-8 (W)                                                                            | `firingPhases` by eighths; the right bank to junction 0, the left to 1                                                                                                        | source             |
+| `exhaust.valve`       | —                                                                                                                                | 0.042 m (the 385 family's exhaust valve, about 1.66 in), `open` 0.375 (270 / 720)                                                                                             | estimate           |
+| `exhaust.diameter`    | —                                                                                                                                | **0.049 m**: the manifold's branch, about 43 mm, × 1.14                                                                                                                       | estimate           |
+| `exhaust.tubes`       | No exhaust drawing of the 370 was read                                                                                           | Each bank 0.44 / 0.32 / 0.20 / 0.08 m to a rear outlet; 1.0 m (right) and 1.5 m (left) to junction 2; one of **2.7 m** to the open                                            | estimate           |
+
+### The F-700 in the current model
+
+- Its five forward gears, the two-speed axle's high range (K), are shifted by the existing automatic shifts, as every
+  car's; its tire is the default tire. Its redline speed in fifth is about 113 km/h; OUT RUN's traffic at 90 km/h runs
+  at about 3,180 rpm in fifth.
+- Its engine sound is written as the exhaust kernel reads it, its sources in its own note
+  ([Audio](audio.md#observations-and-engine-sounds)): the two banks' tubes meet in one tube to a single outlet, no
+  expansion chamber, every number an estimate.
+- Its pictures are baked from K's model in four key colors and eight colors, WHITE the default, at a spacing of
+  0.004 m ([Model solids](image-assets.md#model-solids)); the wheels drawn are the tyre's nominal size, 0.5095 m, while
+  its driving keeps 0.488 m. It is the first vehicle taller than the camera (3.377 m against 2 m), so its pictures are
+  framed from its nearest point (F700-0).
+
+### The F-700 on the flat
+
+The existing solver on this ledger's flat, dry, windless straight with the automatic shifts, not compared with the real
+car's figures, which were not looked up, and not tuned:
+
+| Measure                        | Measured                                                       |
+| ------------------------------ | -------------------------------------------------------------- |
+| 0–100 km/h                     | 37.5 s (60 mph in about 32.5 s)                                |
+| Quarter mile                   | About 23.7 s, at about 88 km/h (between the run's 1 s samples) |
+| Speed after 240 s              | 108 km/h in fifth at 3,840 rpm, below the redline              |
+| Redline speeds, first to fifth | 16, 28, 51, 77, 113 km/h                                       |
+| Shifts                         | 16, 28, 51 and 77 km/h, at 1.2, 2.4, 6.7 and 16.0 s            |
+| Braking from 100 km/h          | 2.55 s, 35.4 m                                                 |
+
+It launches, shifts through all five gears and restarts from rest (55 km/h 8 s after stopping).
+
+### The F-700's sources
+
+The stage auditor's reading (2026-11-25), not read for these PRs: Ford's 1980 Revised Broadcast Booklet, the Purple
+Wave auction EA2806, Commercial Car Journal of October 1980, Morgan's dry freight bodies, the TTI report 404311-6 and
+owners' forums, as above. No primary source for the 1980 370-4V's power, the gear and axle ratios, or the exhaust was
+read. Not decided, for K ([NEXT](NEXT.md#stage-f700--the-f-700-of-1980-in-out-runs-traffic)): the estimates above.

@@ -1,0 +1,26 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 3,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875],
+  "exhaust": {
+    "valve": { "diameter": 0.042, "open": 0.375 },
+    "diameter": 0.049,
+    "tubes": [
+      { "from": null, "to": 0, "length": 0.44 },
+      { "from": null, "to": 1, "length": 0.44 },
+      { "from": null, "to": 0, "length": 0.08 },
+      { "from": null, "to": 0, "length": 0.32 },
+      { "from": null, "to": 1, "length": 0.32 },
+      { "from": null, "to": 0, "length": 0.2 },
+      { "from": null, "to": 1, "length": 0.2 },
+      { "from": null, "to": 1, "length": 0.08 },
+      { "from": 0, "to": 2, "length": 1 },
+      { "from": 1, "to": 2, "length": 1.5 },
+      { "from": 2, "to": null, "length": 2.7 }
+    ]
+  },
+  "metadata": {
+    "note": "1980 US Ford F-700 (F70) with the 370-4V gasoline V8 (6,063 cc), a 5-speed manual and a two-speed axle written as its high range: one exhaust valve a cylinder, firing 1-5-4-2-6-3-7-8 at even intervals (an owners' forum); the tubes from the valves in that order, the right bank (1-4) to junction 0 and the left bank (5-8) to junction 1. Every exhaust number is an estimate: no exhaust drawing of the 370 was read. Valve: 0.042 m, the 385 family's exhaust valve of about 1.66 in; open 0.375 (270 / 720). Diameter 0.049 m: the manifold's branch, about 43 mm inside, times 1.14. Each bank's cast manifold has its outlet at the rear, so the cylinders' tubes from the front are 0.44, 0.32, 0.20 and 0.08 m (from the 4.90 in bore spacing). The banks' pipes, 1.0 m on the right and 1.5 m on the left (crossing under the truck to the right), meet at junction 2, and one tube of 2.7 m runs to the open, the run within the silencer counted in it, out before the right rear wheel (a single outlet). No expansion chamber is written."
+  }
+}

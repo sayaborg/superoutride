@@ -1,0 +1,33 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 6,
+  "form": "car",
+  "selectionOrder": 50,
+  "visuals": {
+    "spriteSet": "ford-f-700-1980",
+    "palette": "white",
+    "steeringPicture": "montecarlo",
+    "colorNames": {
+      "white": "WHITE",
+      "ivory": "IVORY",
+      "aluminum": "ALUMINUM",
+      "yellow": "YELLOW",
+      "orange": "ORANGE",
+      "light-blue": "LIGHT BLUE",
+      "dark-green": "DARK GREEN",
+      "navy": "NAVY"
+    }
+  },
+  "sound": "FORD_F_700_1980",
+  "metadata": {
+    "manufacturer": "Ford",
+    "model": "F-700",
+    "period": "1980",
+    "mobileLabel": "F-700",
+    "engine": "V8",
+    "engineKind": "4-stroke",
+    "identifier": { "officialLabel": "F-700", "shortLabel": "F-700" },
+    "selectedSpecification": ["370-4V", "4x2 / 171 in / 5MT", "14 ft van body"],
+    "physicsAnchor": { "modelYear": "1980", "market": "USA" }
+  }
+}
