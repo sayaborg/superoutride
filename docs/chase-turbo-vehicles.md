@@ -7,13 +7,15 @@ the [Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-ver
 [Chevrolet Corvette Stingray of 1970](#chevrolet-corvette-stingray-of-1970-sources-versus-authored) and the
 [Ford F-700 of 1980](#ford-f-700-of-1980-sources-versus-authored), authored by its conventions.
 The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored), and the
-ordinary Nova [the 1975 Nova 4-Door Sedan](#chevrolet-nova-of-1975-sources-versus-authored).
+two Novas [the 1975 Nova 4-Door Sedan](#chevrolet-nova-of-1975-sources-versus-authored) and
+[its police car](#the-police-nova-of-1975).
 It records the chosen real-car specification, the limits of the evidence, the provisional authoring inputs and
 validation. Shared physics, images, sound and selection behavior retain their existing owners.
 
 The existing 1989 Corvette C4 remains a separate, byte-for-byte unchanged vehicle; the 1989 Porsche 930 has been
 removed, the 1986 car taking its place (MF-6c, K 2026-11-22).
-The 1977 Nova 250 has been removed, the 1975 Nova 4-Door Sedan taking its place (NV-1, K 2026-11-26).
+The 1977 Nova 250 and police Nova have been removed, the 1975 Nova 4-Door Sedan and its police car taking their places
+(NV-1, NV-2, K 2026-11-26).
 The unidentified box truck is deferred. These fourteen additions bring the selectable catalog from 21 to 35.
 They enter existing FREE PLAY car/all pools through catalog membership; no course, series, traffic policy,
 pursuit behavior, HUD, gear label or physics mechanism is added. They use ordinary contact and recovery.
@@ -27,29 +29,28 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 
 ## Fixed identities
 
-| Runtime ID            | Chosen specification                                 | Engine / transmission                                           | Appearance anchor                                                       |
-| --------------------- | ---------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| PORSCHE_928_S4_1987   | 1987 MY US 928 S4                                    | M28.41, 4957 cc DOHC 32-valve V8; G28.13 5MT                    | Black, later bumpers, large rear lamps and raised spoiler               |
-| TURBO_ESPRIT_1984     | 1984 UK Turbo Esprit, Type 82                        | 910 low-compression 2174 cc carburetted turbo four; Citroen 5MT | White Giugiaro wedge, rear louvers; not the Stevens X180                |
-| COUNTACH_5000_QV_1985 | 1985 European carburetted 5000 Quattrovalvole        | 5167 cc DOHC 48-valve V12; 5MT                                  | Yellow, rear wing and wide rear tires; not the 25th Anniversary body    |
-| 911_TURBO_3_3_1986    | 1986 MY European 911 Turbo 3.3 Coupe                 | 3299 cc air-cooled turbo flat six (930/66, 300 PS); 4MT         | Silver metallic, round headlights, wide rear fenders, black-rimmed tray |
-| FERRARI_GTO_1984      | 1984 European GTO, Tipo F114                         | F114B, 2855.08 cc twin-turbo flat-plane V8; 5MT                 | Rosso Corsa or H.Q. BLUE, K's model; paired round rear lamps            |
-| PORSCHE_928_S_1984    | 1984 MY US 928 S                                     | M28.19, 4664 cc SOHC 16-valve V8; 5MT                           | Red early body, rubber bumper trim and small spoiler                    |
-| TOYOTA_PICKUP_1980    | 1980 MY US 49-state RN42, regular cab, long bed, 2WD | 2189 cc 20R SOHC four; 4MT                                      | Open long bed, separate upright cab, rectangular lamps                  |
-| FERRARI_F40_1988      | 1988 European F40, non-catalyst, fixed ride height   | F120-family 2936.25 cc twin-turbo flat-plane V8; 5MT            | Red, high fixed wing, round rear lamps, three exhaust outlets           |
-| PORSCHE_959_1987      | 1987 European 959 Komfort, left-hand drive           | 2849 cc twin-turbo flat six; G59.01 G+5 MT, AWD                 | White, covered oval lamps and integrated rear wing                      |
-| CORVETTE_C4_1984      | 1984 MY US Base Coupe, 1YY07                         | L83 5733 cc Cross-Fire V8; Doug Nash 4+3                        | Blue early C4, four round rear lamps, no high-mounted stop lamp         |
-| AUSTIN_MINI_850_1964  | Early 1964 UK standard Austin Mini 850, A-A2S7       | 848 cc A-series OHV four; 4MT, rubber-cone suspension           | Green, short upright two-door saloon; not a Cooper                      |
-| WRANGLER_YJ_1995      | 1995 MY US Wrangler S YJ, soft top                   | 2464 cc MPI four; AX-5 5MT                                      | Tan, rectangular headlights, family cage, rear spare and high stop lamp |
-| CHEVROLET_NOVA_1975   | 1975 MY US Nova 4-Door Sedan, 1XX69                  | LM1 5735 cc OHV V8, 4-bbl; Turbo Hydra-Matic, 3.08 axle         | Red, K's model; four-door body, chrome bumpers, no plates or badges     |
-| NOVA_9C1_1977         | 1977 MY US Nova four-door COPO 9C1 basis             | LG3 5001 cc OHV V8; game 3MT conversion                         | Black/white police recolor and static roof lights                       |
+| Runtime ID                 | Chosen specification                                 | Engine / transmission                                           | Appearance anchor                                                       |
+| -------------------------- | ---------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| PORSCHE_928_S4_1987        | 1987 MY US 928 S4                                    | M28.41, 4957 cc DOHC 32-valve V8; G28.13 5MT                    | Black, later bumpers, large rear lamps and raised spoiler               |
+| TURBO_ESPRIT_1984          | 1984 UK Turbo Esprit, Type 82                        | 910 low-compression 2174 cc carburetted turbo four; Citroen 5MT | White Giugiaro wedge, rear louvers; not the Stevens X180                |
+| COUNTACH_5000_QV_1985      | 1985 European carburetted 5000 Quattrovalvole        | 5167 cc DOHC 48-valve V12; 5MT                                  | Yellow, rear wing and wide rear tires; not the 25th Anniversary body    |
+| 911_TURBO_3_3_1986         | 1986 MY European 911 Turbo 3.3 Coupe                 | 3299 cc air-cooled turbo flat six (930/66, 300 PS); 4MT         | Silver metallic, round headlights, wide rear fenders, black-rimmed tray |
+| FERRARI_GTO_1984           | 1984 European GTO, Tipo F114                         | F114B, 2855.08 cc twin-turbo flat-plane V8; 5MT                 | Rosso Corsa or H.Q. BLUE, K's model; paired round rear lamps            |
+| PORSCHE_928_S_1984         | 1984 MY US 928 S                                     | M28.19, 4664 cc SOHC 16-valve V8; 5MT                           | Red early body, rubber bumper trim and small spoiler                    |
+| TOYOTA_PICKUP_1980         | 1980 MY US 49-state RN42, regular cab, long bed, 2WD | 2189 cc 20R SOHC four; 4MT                                      | Open long bed, separate upright cab, rectangular lamps                  |
+| FERRARI_F40_1988           | 1988 European F40, non-catalyst, fixed ride height   | F120-family 2936.25 cc twin-turbo flat-plane V8; 5MT            | Red, high fixed wing, round rear lamps, three exhaust outlets           |
+| PORSCHE_959_1987           | 1987 European 959 Komfort, left-hand drive           | 2849 cc twin-turbo flat six; G59.01 G+5 MT, AWD                 | White, covered oval lamps and integrated rear wing                      |
+| CORVETTE_C4_1984           | 1984 MY US Base Coupe, 1YY07                         | L83 5733 cc Cross-Fire V8; Doug Nash 4+3                        | Blue early C4, four round rear lamps, no high-mounted stop lamp         |
+| AUSTIN_MINI_850_1964       | Early 1964 UK standard Austin Mini 850, A-A2S7       | 848 cc A-series OHV four; 4MT, rubber-cone suspension           | Green, short upright two-door saloon; not a Cooper                      |
+| WRANGLER_YJ_1995           | 1995 MY US Wrangler S YJ, soft top                   | 2464 cc MPI four; AX-5 5MT                                      | Tan, rectangular headlights, family cage, rear spare and high stop lamp |
+| CHEVROLET_NOVA_1975        | 1975 MY US Nova 4-Door Sedan, 1XX69                  | LM1 5735 cc OHV V8, 4-bbl; Turbo Hydra-Matic, 3.08 axle         | Red, K's model; four-door body, chrome bumpers, no plates or badges     |
+| CHEVROLET_NOVA_POLICE_1975 | The Nova of 1975 as a police car (1XX69, not 9C1)    | The Nova of 1975's, the same file's values                      | Black and white, K's model; door stars, a roof lamp                     |
 
 The supplied report's year choices are selections, not new identifications of the arcade sprites. In particular, The
 Countach's 1985 is K's choice (2026-11-22), not a claim about the arcade original; the GTO's 1984, its debut year, is
 K's choice (2026-11-22) likewise; YJ 1995 postdates the games. The F40 is K's 1988 choice. The 1984 C4 intentionally
 substitutes a production-volume choice for an arcade appearance that may be 1986 or later. No annual production count is
-asserted by these runtime definitions. The 9C1 manual gearbox is explicitly a game conversion: the supplied police
-specification called for an automatic in the real car.
+asserted by these runtime definitions.
 
 K takes CHASE H.Q.'s rival for the Lotus Turbo Esprit of 1984, United Kingdom, Type 82 (K, 2026-11-22);
 nothing here claims the original says so.
@@ -61,10 +62,10 @@ K takes the car chased in CHASE H.Q.'s fourth stage for the Ferrari GTO of 1984,
 (K, 2026-11-23); nothing here claims the original says so.
 
 Except the 959's, the 928 S4's, the F40's, the Turbo Esprit's, the Countach's, the 911 Turbo 3.3's, the GTO's and the
-Nova of 1975's, the four palettes are game colors, without verified period paint codes; the police livery is especially
-not a claim of a factory delivery color. The stock-named palette key means the default game palette. The GTO has two colors: ROSSO
-CORSA, the real car's, and H.Q. BLUE, the arcade original's blue, which is not a factory color
-([item 18](#evidence-actually-consulted)).
+two Novas of 1975's, the four palettes are game colors, without verified period paint codes; the police car's four
+liveries are K's, not claims of any department's colors. The stock-named palette key means the default game palette.
+The GTO has two colors: ROSSO CORSA, the real car's, and H.Q. BLUE, the arcade original's blue, which is not a factory
+color ([item 18](#evidence-actually-consulted)).
 
 ## Representation within the current model
 
@@ -80,7 +81,7 @@ CORSA, the real car's, and H.Q. BLUE, the arcade original's blue, which is not a
   are game behavior, not evidence that the original cars had automatic transmissions or modern traction aids.
 - Wings and spoilers are visual geometry only. Turbo engines use steady full-throttle torque envelopes;
   boost transients, downforce, clutch simulation and new control displays are outside this vehicle addition.
-- Roof lamps on the police Nova are fixed colored geometry. They do not introduce flashing, sirens or pursuit AI.
+- The police Nova's roof lamp is part of its pictures. It does not introduce flashing, sirens or pursuit AI.
 
 ## Numerical conventions and remaining uncertainty
 
@@ -90,7 +91,7 @@ Ferrari's dry mass is converted using 120 L fuel at an estimated 0.75 kg/L plus 
 then the driver. The F40's 1,235 kg is K's base ([below](#ferrari-f40-of-1988-sources-versus-authored)). Consumption and changing fuel mass are not simulated.
 
 Mass bases before the driver are S4 1590, Esprit 1220, Countach 1490, 930 1335, GTO 1265, early 928 S 1520,
-Pickup 1118.1, F40 1235, 959 Komfort 1600 (K's, [below](#porsche-959-of-1987-sources-versus-authored)), C4 1370, Mini 630, YJ 1331, Nova of 1975 1616 and police Nova 1500 kg.
+Pickup 1118.1, F40 1235, 959 Komfort 1600 (K's, [below](#porsche-959-of-1987-sources-versus-authored)), C4 1370, Mini 630, YJ 1331 and the two Novas of 1975 1616 kg.
 S4 is a factory-table curb anchor; Pickup is 2465 lb converted from the exact long-bed column; C4 and YJ are
 rounded secondary curb values. Other non-Ferrari masses remain estimates or uncertain secondary-market
 interpretations. They must not be relabelled as verified dry weights.
@@ -114,7 +115,7 @@ converted to station torque by its rolling radius and rounded to 25 Nm. Actual b
 unchanged tire, load and protection rules. This is not a reconstruction of period hydraulic brake pressure,
 ABS, spring rates, bump travel, tire temperature, handling limits or stopping-distance tests.
 
-The 928 S, Mini, Toyota and the police Nova still lack a read, exact-year primary gearbox ratio table (the Esprit's
+The 928 S, Mini and Toyota still lack a read, exact-year primary gearbox ratio table (the Esprit's
 ratios are Autocar's road-test tables, and the Countach's the period catalogue's, below). Their provisional ratios are explicit engineering estimates, not borrowed verified facts from
 another year. The F40 uses gear pairs 2.769/1.722/1.227/0.963/0.767 and the European effective final reduction
 `(30/11)*(28/21)`; the transfer reduction is folded into the existing single final-drive field. The GTO manual's
@@ -123,14 +124,14 @@ The 928 final reductions distinguish US S4 2.20 and 1984 US S 2.36. The S4's gea
 4.067/2.714/1.934/1.463/1.000 ([below](#porsche-928-s4-of-1987-sources-versus-authored)), which already include the
 gearbox's 33/21 countershaft pair and must not receive it again; the 928 S's intermediate gear set remains
 provisional. The 959's six ratios are its G59.01's tooth counts as the stage auditor read them
-([below](#porsche-959-of-1987-sources-versus-authored)). The Nova of 1975's three ratios and axle are GM's
+([below](#porsche-959-of-1987-sources-versus-authored)). The two Novas of 1975's three ratios and axle are GM's
 ([below](#chevrolet-nova-of-1975-sources-versus-authored)).
 
 ## Evidence actually consulted
 
 Accessed 2026-10-23 UTC. Search snippets, blocked URLs and unread manuals are not treated as source verification.
 The numeric ledger distinguishes `source verified`, `calculated`, `engineering estimate` and `game design`, and for
-the 959, the 928 S4, the F40 of 1988 and the Nova of 1975 `source (auditor)`: the stage auditor's reading, not read for
+the 959, the 928 S4, the F40 of 1988 and the Novas of 1975 `source (auditor)`: the stage auditor's reading, not read for
 the PR that wrote it ([959](#porsche-959-of-1987-sources-versus-authored),
 [928 S4](#porsche-928-s4-of-1987-sources-versus-authored), [F40](#ferrari-f40-of-1988-sources-versus-authored),
 [Nova](#chevrolet-nova-of-1975-sources-versus-authored)); the 911 Turbo 3.3's colors (item 17) and the GTO's (item 18)
@@ -184,10 +185,9 @@ A source-verified secondary value means that page was read, not that it has prim
    Mixed-market page supports the 848 cc OHV family and approximate envelope, but is not an exact early-1964
    UK homologation. The 34 hp/5500, 44 lb-ft/2900, 8.3:1, curb mass and gearbox choices remain estimates.
    The contradictory SOHC description and later/Australian gear ratios are not adopted as verified UK data.
-10. **Nova production records**, [NovaResource](https://www.novaresource.org/production.htm), support the supplied
-    1977 family/engine selection of the police Nova only. They do not establish the adopted 305 V8 145 hp/3800,
-    245 lb-ft/2400 engine curve, mass, track or gearbox ratios. Those are provisional engineering inputs pending an
-    exact engine/market factory sheet. The police conversion does not claim an original 9C1 manual option.
+10. **Nova production records**, [NovaResource](https://www.novaresource.org/production.htm), supported the supplied
+    1977 family/engine selection of the two Novas of 1977, which the Novas of 1975 replaced (NV-1, NV-2); no value now
+    rests on them.
 
 11. **Turbo Esprit, UK, road tests and parts** (MF-4, 2026-11-22). Autocar's December 1984 road test of the UK
     Turbo Esprit ([text](https://www.lotusespritturbo.com/Lotus_Turbo_Esprit_Road_Test_1984.htm)): 210 bhp at 6,250,
@@ -286,14 +286,15 @@ are not evidence for the selected 1988 non-catalyst road specification.
 
 ## Pictures and sound
 
-[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for six of the
+[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for five of the
 cars; the 959's pictures are baked from K's model instead, in its four period colors, the 928 S4's in eight Porsche
 colors, the F40's in one, ROSSO CORSA, the Turbo Esprit's in four Lotus colors, MONACO WHITE the default, the Countach's
 in its four real colors, GIALLO FLY the default, the 911 TURBO 3.3 of 1986's in four Porsche colors
-([below](#porsche-911-turbo-33-of-1986-the-third-stages-car)) and the GTO's in two, ROSSO CORSA the default
-([below](#ferrari-gto-of-1984-the-fourth-stages-car)) and the Nova of 1975's in eight GM colors, RED the default
-([below](#chevrolet-nova-of-1975-sources-versus-authored); [Model solids](image-assets.md#model-solids)). Those
-samples go through the existing shared camera, palette, shadows, sprite and six-LOD baker. Each of the six has 64 yaw
+([below](#porsche-911-turbo-33-of-1986-the-third-stages-car)), the GTO's in two, ROSSO CORSA the default
+([below](#ferrari-gto-of-1984-the-fourth-stages-car)), the Nova of 1975's in eight GM colors, RED the default, and its
+police car's in four, BLACK & WHITE the default ([below](#chevrolet-nova-of-1975-sources-versus-authored);
+[Model solids](image-assets.md#model-solids)). Those samples go through the existing shared camera, palette, shadows,
+sprite and six-LOD baker. Each of the five has 64 yaw
 pictures, one bank, four palettes and the existing brake-lamp slot. No source photograph, ROM image or downloaded manual
 image is redistributed. Facet locations, window proportions, lights, rims, paint and details are visual estimates; this
 is not a dimensioned CAD reconstruction. Dimensions include a provisional visual envelope, so tiny mirrors, lamps or the
@@ -301,7 +302,7 @@ spare can extend slightly beyond the nominal body panel dimensions.
 
 Each car has its own sound with its cylinder count and evenly spaced firing phases. Ferrari flat-plane banks alternate;
 the two 928s route 1-3-7-2-6-5-4-8 by banks 1–4/5–8, while Chevy V8s route 1-8-4-3-6-5-7-2 by odd/even banks. Flat
-sixes and V12 use alternating banks. Except the S4's, the F40's and the Nova of 1975's, whose sources are given below,
+sixes and V12 use alternating banks. Except the S4's, the F40's and the Novas of 1975's, whose sources are given below,
 all valve openings and diameters are estimates. They are synthesized approximations, not recordings. No siren, turbo
 sound process or physics is added.
 
@@ -618,6 +619,15 @@ car's figures and not tuned:
 | Braking from 100 km/h          | 2.48 s, 35.0 m                                             |
 
 It launches, shifts through all three gears and restarts from rest (86 km/h 8 s after stopping).
+
+### The police Nova of 1975
+
+`CHEVROLET_NOVA_POLICE_1975` is the Nova of 1975 as a police car (K, 2026-11-26), in the place of the police Nova of
+1977: its definition is a second file of the same values, which a test holds equal, its listing names the Nova's sound,
+and it keeps its predecessor's place in the selection order (45). 9C1's equipment, tyres, brakes and added mass are not
+followed (K), so on the flat it measures as the Nova. It differs in its pictures alone: baked from K's second model, the
+Nova's body with five boxes of roof lamp, in four liveries, BLACK & WHITE the default
+([Model solids](image-assets.md#model-solids)). No series runs it yet.
 
 ## Mazda RX-7 Turbo II of 1987: sources versus authored
 

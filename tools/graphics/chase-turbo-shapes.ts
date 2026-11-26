@@ -5,7 +5,7 @@ import { createProceduralVehicleSolid, type Point3, type SurfaceColor } from './
 
 /**
  * Original, provisional authoring geometry. Dimensions and limitations are recorded in chase-turbo-vehicles.md. The
- * ledger's Porsche 959, 928 S4, F40, Turbo Esprit, Countach, 911 Turbo 3.3, GTO and Nova of 1975 have none: their
+ * ledger's Porsche 959, 928 S4, F40, Turbo Esprit, Countach, 911 Turbo 3.3, GTO and two Novas of 1975 have none: their
  * pictures are baked from K's models.
  */
 export const CHASE_TURBO_PICTURES = {
@@ -14,7 +14,6 @@ export const CHASE_TURBO_PICTURES = {
   CORVETTE_C4_1984: 'corvette-c4-1984',
   AUSTIN_MINI_850_1964: 'austin-mini-850-1964',
   WRANGLER_YJ_1995: 'wrangler-yj-1995',
-  NOVA_9C1_1977: 'nova-9c1-1977',
 } as const;
 export type ChaseTurboId = keyof typeof CHASE_TURBO_PICTURES;
 const black: Rgb = [18, 20, 23],
@@ -32,7 +31,6 @@ const bodies: Record<ChaseTurboId, Rgb> = {
   CORVETTE_C4_1984: blue,
   AUSTIN_MINI_850_1964: [45, 115, 75],
   WRANGLER_YJ_1995: [180, 150, 95],
-  NOVA_9C1_1977: black,
 };
 
 export function chaseTurboPictureStyle(id: ChaseTurboId): VehiclePictureStyle {
@@ -82,23 +80,19 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     c4 = id === 'CORVETTE_C4_1984',
     mini = id === 'AUSTIN_MINI_850_1964',
     pickup = id === 'TOYOTA_PICKUP_1980',
-    jeep = id === 'WRANGLER_YJ_1995',
-    police = id === 'NOVA_9C1_1977',
-    nova = police;
+    jeep = id === 'WRANGLER_YJ_1995';
   const mix = (a: Point3, b: Point3, t: number): Point3 => [
     a[0] + (b[0] - a[0]) * t,
     a[1] + (b[1] - a[1]) * t,
     a[2] + (b[2] - a[2]) * t,
   ];
-  const bodyColor: SurfaceColor = (p) => (police && Math.abs(p[2]) < 0.32 * z ? white : paint);
-  const material = (p: Point3) => (police && Math.abs(p[2]) < 0.32 * z ? ('plain' as const) : ('paint' as const));
   // Sample authored quadrilateral panels with the same spacing as the shared solid. Wheel openings are geometry.
   const quad = (
     a: Point3,
     b: Point3,
     c: Point3,
     d: Point3,
-    color: SurfaceColor = bodyColor,
+    color: SurfaceColor = paint,
     kind: 'paint' | 'glass' | 'plain' = 'paint',
     arches = false,
     windowOpening = false,
@@ -131,7 +125,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
           )
         )
           continue;
-        s.point(p, normal, color, kind === 'paint' ? material : kind);
+        s.point(p, normal, color, kind);
       }
   };
   const window = (a: Point3, b: Point3, c: Point3, d: Point3) => {
@@ -171,34 +165,27 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
           [0.72, 1, 0.62, 0.64],
           [1, 0.88, 0.53, 0.55],
         ]
-      : nova
+      : pickup
         ? [
-            [-1, 0.91, 0.5, 0.53],
-            [-0.8, 1, 0.55, 0.57],
-            [0.6, 1, 0.54, 0.57],
-            [1, 0.92, 0.49, 0.51],
+            [-1, 0.94, 0.55, 0.55],
+            [0.3, 0.94, 0.55, 0.55],
+            [0.55, 0.92, 0.54, 0.55],
+            [1, 0.88, 0.48, 0.5],
           ]
-        : pickup
+        : jeep
           ? [
-              [-1, 0.94, 0.55, 0.55],
-              [0.3, 0.94, 0.55, 0.55],
-              [0.55, 0.92, 0.54, 0.55],
-              [1, 0.88, 0.48, 0.5],
+              [-0.9, 0.88, 0.48, 0.5],
+              [0.15, 0.88, 0.5, 0.53],
+              [0.45, 0.65, 0.57, 0.59],
+              [0.9, 0.65, 0.57, 0.59],
             ]
-          : jeep
-            ? [
-                [-0.9, 0.88, 0.48, 0.5],
-                [0.15, 0.88, 0.5, 0.53],
-                [0.45, 0.65, 0.57, 0.59],
-                [0.9, 0.65, 0.57, 0.59],
-              ]
-            : [
-                [-1, 0.88, 0.45, 0.49],
-                [-0.7, 1, 0.55, 0.58],
-                [0.05, 0.94, 0.54, 0.59],
-                [0.65, 0.97, 0.49, 0.55],
-                [1, 0.78, 0.32, 0.36],
-              ];
+          : [
+              [-1, 0.88, 0.45, 0.49],
+              [-0.7, 1, 0.55, 0.58],
+              [0.05, 0.94, 0.54, 0.59],
+              [0.65, 0.97, 0.49, 0.55],
+              [1, 0.78, 0.32, 0.36],
+            ];
   const bottom = jeep ? 0.25 * h : pickup ? 0.18 * h : 0.13 * h;
   for (let i = 1; i < stations.length; i++) {
     const a = stations[i - 1]!,
@@ -206,7 +193,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     for (const side of [-1, 1]) {
       const aa: Point3 = [side * a[1] * x, a[2] * h, a[0] * z],
         bb: Point3 = [side * b[1] * x, b[2] * h, b[0] * z];
-      quad([aa[0], bottom, aa[2]], [bb[0], bottom, bb[2]], bb, aa, bodyColor, 'paint', true);
+      quad([aa[0], bottom, aa[2]], [bb[0], bottom, bb[2]], bb, aa, paint, 'paint', true);
       // An open pickup bed has a floor and thin side rails, not a painted solid deck.
       if (pickup && b[0] <= 0.3) {
         quad(aa, bb, [bb[0] * 0.88, bb[1], bb[2]], [aa[0] * 0.88, aa[1], aa[2]]);
@@ -232,15 +219,15 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
   }
   if (pickup) slab([0, 0.29 * h, -0.36 * z], [0.8 * x, 0.025, 0.62 * z], dark, 'plain');
   // A separate cabin with framed front, rear and side glazing. Positive z faces the road ahead.
-  const floor = (mini ? 0.63 : jeep ? 0.54 : pickup ? 0.56 : nova ? 0.56 : 0.56) * h;
-  const roofFront = (mini ? 0.52 : jeep ? 0.21 : pickup ? 0.35 : nova ? 0.03 : -0.03) * z;
-  const roofRear = (mini ? -0.62 : jeep ? -0.75 : pickup ? -0.02 : nova ? -0.42 : -0.4) * z;
+  const floor = (mini ? 0.63 : jeep ? 0.54 : 0.56) * h;
+  const roofFront = (mini ? 0.52 : jeep ? 0.21 : pickup ? 0.35 : -0.03) * z;
+  const roofRear = (mini ? -0.62 : jeep ? -0.75 : pickup ? -0.02 : -0.4) * z;
   const baseFront = roofFront + (jeep ? 0.07 : pickup ? 0.16 : mini ? 0.13 : 0.3) * z,
-    baseRear = roofRear - (jeep ? 0.06 : pickup ? 0.04 : mini ? 0.13 : nova ? 0.18 : 0.34) * z;
-  const roofY = (police ? 0.92 : 1) * h,
-    roofX = (jeep ? 0.8 : pickup ? 0.83 : mini ? 0.85 : nova ? 0.72 : 0.68) * x;
-  const roofColor = jeep ? black : police ? white : paint;
-  const roofKind = jeep || police ? 'plain' : 'paint';
+    baseRear = roofRear - (jeep ? 0.06 : pickup ? 0.04 : mini ? 0.13 : 0.34) * z;
+  const roofY = h,
+    roofX = (jeep ? 0.8 : pickup ? 0.83 : mini ? 0.85 : 0.68) * x;
+  const roofColor = jeep ? black : paint;
+  const roofKind = jeep ? 'plain' : 'paint';
   quad(
     [-roofX, roofY, roofRear],
     [roofX, roofY, roofRear],
@@ -274,7 +261,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     ];
     quad(points[0]!, points[1]!, points[2]!, points[3]!, roofColor, roofKind, false, true);
     window(points[0]!, points[1]!, points[2]!, points[3]!);
-    if (nova || mini || p928)
+    if (mini || p928)
       s.cylinder(
         [side * 0.875 * x, floor + 0.02, -0.17 * z],
         [side * roofX, roofY, -0.17 * z],
@@ -289,15 +276,15 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
         m.frontAxle,
         m.frontTrack,
         m.frontWheelRadius,
-        mini ? 0.13 : jeep ? 0.205 : pickup ? 0.165 : nova ? 0.185 : 0.225,
-        mini ? 10 : pickup || nova ? 14 : jeep ? 15 : 16,
+        mini ? 0.13 : jeep ? 0.205 : pickup ? 0.165 : 0.225,
+        mini ? 10 : pickup ? 14 : jeep ? 15 : 16,
       ],
       [
         -m.rearAxle,
         m.rearTrack,
         m.rearWheelRadius,
-        mini ? 0.13 : jeep ? 0.205 : pickup ? 0.165 : nova ? 0.185 : p928 ? 0.225 : 0.245,
-        mini ? 10 : pickup || nova ? 14 : jeep ? 15 : 16,
+        mini ? 0.13 : jeep ? 0.205 : pickup ? 0.165 : p928 ? 0.225 : 0.245,
+        mini ? 10 : pickup ? 14 : jeep ? 15 : 16,
       ],
     ])
       s.wheel(
@@ -305,16 +292,16 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
         radius!,
         width!,
         metal,
-        c4 ? 16 : pickup || jeep ? 6 : mini || nova ? 12 : 5,
+        c4 ? 16 : pickup || jeep ? 6 : mini ? 12 : 5,
         (rim! * 0.0254) / 2,
       );
   }
   // Lamps and trim remain fixed colors; the rear brake lamps use the existing reserved palette slot.
   const tailZ = stations[0]![0] * z - 0.012,
     noseZ = stations.at(-1)![0] * z + 0.012;
-  const bumperY = (jeep ? 0.33 : pickup ? 0.23 : mini ? 0.27 : nova ? 0.29 : 0.22) * h;
-  slab([0, bumperY, noseZ], [0.86 * x, 0.035, 0.045], mini || nova || pickup ? metal : black, 'plain');
-  slab([0, bumperY, tailZ], [0.84 * x, 0.035, 0.04], mini || nova || pickup ? metal : black, 'plain');
+  const bumperY = (jeep ? 0.33 : pickup ? 0.23 : mini ? 0.27 : 0.22) * h;
+  slab([0, bumperY, noseZ], [0.86 * x, 0.035, 0.045], mini || pickup ? metal : black, 'plain');
+  slab([0, bumperY, tailZ], [0.84 * x, 0.035, 0.04], mini || pickup ? metal : black, 'plain');
   slab([0, bumperY + 0.08, tailZ - 0.045], [0.16, 0.055, 0.007], white, 'plain');
   const roundLamp = (cx: number, cy: number, cz: number, r: number, brake = false) =>
     s.cylinder([cx, cy, cz + 0.008], [cx, cy, cz - 0.012], r, brake ? red : white, brake ? 'lamp' : 'plain');
@@ -327,7 +314,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
         red,
         'lamp',
       );
-    if (mini || nova) roundLamp(side * 0.68 * x, (mini ? 0.57 : nova ? 0.44 : 0.5) * h, noseZ, 0.09);
+    if (mini) roundLamp(side * 0.68 * x, 0.57 * h, noseZ, 0.09);
     else if (p928) s.ellipsoid([side * 0.65 * x, 0.45 * h, 0.78 * z], [0.13, 0.025, 0.16], white);
     else
       slab(
@@ -337,10 +324,9 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
         'plain',
       );
     slab([side * 0.72 * x, bumperY + 0.055, noseZ + 0.015], [0.055, 0.025, 0.012], amber, 'plain');
-    if (!(mini || pickup || jeep || nova))
-      slab([side * 0.2 * x, 0.15 * h, tailZ - 0.02], [0.045, 0.035, 0.07], metal, 'plain');
+    if (!(mini || pickup || jeep)) slab([side * 0.2 * x, 0.15 * h, tailZ - 0.02], [0.045, 0.035, 0.07], metal, 'plain');
   }
-  if (mini || nova || pickup || jeep) {
+  if (mini || pickup || jeep) {
     slab(
       [0, (jeep ? 0.48 : mini ? 0.48 : pickup ? 0.43 : 0.44) * h, noseZ],
       [jeep ? 0.3 * x : 0.48 * x, jeep ? 0.1 * h : 0.075, 0.01],
@@ -375,10 +361,5 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
   }
   if (p928) slab([0, 0.52 * h, -0.82 * z], [0.79 * x, 0.035, 0.09 * z], black, 'plain');
   if (c4) slab([0, 0.46 * h, tailZ], [0.36, 0.08, 0.008], black, 'plain');
-  if (police) {
-    slab([0, 0.94 * h, -0.18 * z], [0.6 * x, 0.025, 0.11], metal, 'plain');
-    for (const side of [-1, 1])
-      slab([side * 0.43 * x, 0.975 * h, -0.18 * z], [0.14, 0.025 * h, 0.1], side < 0 ? red : blue, 'plain');
-  }
   return [s.finish()];
 }

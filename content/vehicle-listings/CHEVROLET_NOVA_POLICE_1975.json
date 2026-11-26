@@ -1,0 +1,29 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 6,
+  "form": "car",
+  "selectionOrder": 45,
+  "visuals": {
+    "spriteSet": "chevrolet-nova-police-1975",
+    "palette": "black-and-white",
+    "steeringPicture": "montecarlo",
+    "colorNames": {
+      "black-and-white": "BLACK & WHITE",
+      "green-and-white": "GREEN & WHITE",
+      "yellow-and-white": "YELLOW & WHITE",
+      "red-and-white": "RED & WHITE"
+    }
+  },
+  "sound": "CHEVROLET_NOVA_1975",
+  "metadata": {
+    "manufacturer": "Chevrolet",
+    "model": "Nova 4-Door Sedan Police Car",
+    "period": "1975",
+    "mobileLabel": "NOVA POLICE",
+    "engine": "V8",
+    "engineKind": "4-stroke",
+    "identifier": { "officialLabel": "Nova Police", "shortLabel": "Nova Police" },
+    "selectedSpecification": ["LM1 350 4-bbl", "Turbo Hydra-Matic", "3.08 axle"],
+    "physicsAnchor": { "modelYear": "1975", "market": "US" }
+  }
+}

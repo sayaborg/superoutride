@@ -215,10 +215,10 @@
       "lufs": -43.4599387332131
     },
     {
-      "vehicleId": "NOVA_9C1_1977",
-      "vehicleSha256": "c2bdf9c749ed63810316815853c97b74eb74cd727ce80f8530af98e972ca3b54",
-      "soundSha256": "534c8326910a10dd229e88f8f3f1ea39ad0d8ea28dcab8f5092dcbfe00736fa2",
-      "lufs": -42.79055546962991
+      "vehicleId": "CHEVROLET_NOVA_POLICE_1975",
+      "vehicleSha256": "9a8cb00f1680aecf5e3d29839e86c7c5fbc404ccf0934bf5079d142fb91b8383",
+      "soundSha256": "9c926bb5a34fab8fa0fcb98d5532bd9c8cd831d1a5d4f8369c40593154971f30",
+      "lufs": -43.4599387332131
     },
     {
       "vehicleId": "RX_7_TURBO_II_1987",
