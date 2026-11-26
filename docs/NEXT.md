@@ -1251,10 +1251,13 @@ K decided (2026-11-12):
   tables run straight through. A road turning 90° is not seen from before it: a row's width falls as the road heads
   away from the camera and is none at 90°. So the course lays each as a corner of a smaller angle, as tight as its
   inside limit allows, where two streets cross, each running on through: the street it leaves ahead of the corner and
-  the street it takes back from it, each a road not taken, a picture beside the course's road. It is tried first (K,
-  2026-11-27) at 45° in STAGE 1 and at 60° in STAGE 2, the other stages' kept at 90° until K has driven those two;
-  there the street across is no longer painted as ground and no limit is widened. Its tables' own jumps, STAGE 1's two
-  of 10° among them, stay as the tables give them (K, 2026-11-15).
+  the street it takes back from it, each a road not taken, a picture beside the course's road. What the original stands
+  across the street ahead stands beyond the course's limit: its arrow board on the street ahead where it first clears
+  that limit, and where a row of objects crosses it instead (STAGE 1's wharf, STAGE 4's hedge) the corner is a T, no
+  street drawn ahead, the row along the far side of the street taken. It is tried first (K, 2026-11-27) at 45° in
+  STAGE 1 and at 60° in STAGE 2, the other stages' kept at 90° until K has driven those two; there the street across
+  is no longer painted as ground and no limit is widened. Its tables' own jumps, STAGE 1's two of 10° among them, stay
+  as the tables give them (K, 2026-11-15).
 
 The stage starts by reading how its screen draws its two roads where their order changes, which one's paint shows over
 the other's, and its courses' PR measures its own car's width again.

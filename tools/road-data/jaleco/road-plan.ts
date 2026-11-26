@@ -55,12 +55,14 @@ export function twoRoadPlan(
 
 /**
  * A turn the original shows at right angles (K, 2026-11-15): about the start of the record at `at`, to `side`, laid at
- * `degrees` (90, or less where its two streets are drawn: a trial, K, 2026-11-27).
+ * `degrees` (90, or less where its two streets are drawn: a trial, K, 2026-11-27), the street it leaves drawn on ahead
+ * of it unless it is a T (`ahead`).
  */
 export interface RightAngle {
   readonly at: number;
   readonly side: 'left' | 'right';
   readonly degrees: number;
+  readonly ahead: boolean;
 }
 
 /**

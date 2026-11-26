@@ -16147,10 +16147,10 @@
           "kind": "sprite",
           "image": "ciscoheat-0ff0-15-mirrored",
           "palette": "p098",
-          "at": { "joint": "s1", "offset": -0.178241 },
-          "lateral": -4.755727,
+          "at": { "joint": "s1", "offset": 2.80324 },
+          "lateral": 10.466804,
           "groundOffset": 0,
-          "body": null
+          "body": [{ "across": 4.838088, "width": 9.071416, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -19981,10 +19981,10 @@
           "kind": "sprite",
           "image": "ciscoheat-0ff0-15",
           "palette": "p098",
-          "at": { "joint": "s1", "offset": 1.652778 },
-          "lateral": -4.755727,
+          "at": { "joint": "end", "offset": -1.814815 },
+          "lateral": -20.090521,
           "groundOffset": 0,
-          "body": null
+          "body": [{ "across": 4.838088, "width": 9.071416, "movable": null }]
         }
       ],
       "environments": [
@@ -40642,10 +40642,10 @@
           "kind": "sprite",
           "image": "ciscoheat-0ff0-15-mirrored",
           "palette": "p098",
-          "at": { "joint": "s1", "offset": 9.041666 },
-          "lateral": -4.755727,
+          "at": { "joint": "s1", "offset": 2.80324 },
+          "lateral": 10.466804,
           "groundOffset": 0,
-          "body": null
+          "body": [{ "across": 4.838088, "width": 9.071416, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -45716,10 +45716,10 @@
           "kind": "sprite",
           "image": "ciscoheat-0ff0-15",
           "palette": "p098",
-          "at": { "joint": "s1", "offset": 1.280092 },
-          "lateral": -4.755727,
+          "at": { "joint": "s1", "offset": 2.868055 },
+          "lateral": -20.090521,
           "groundOffset": 0,
-          "body": null
+          "body": [{ "across": 4.838088, "width": 9.071416, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -55452,15 +55452,6 @@
         },
         {
           "kind": "sprite",
-          "image": "ciscoheat-0ff0-15",
-          "palette": "p098",
-          "at": { "joint": "s1", "offset": 3.905092 },
-          "lateral": -4.755727,
-          "groundOffset": 0,
-          "body": null
-        },
-        {
-          "kind": "sprite",
           "image": "ciscoheat-12d8-15-mirrored",
           "palette": "p048",
           "at": { "joint": "s1", "offset": 15.247685 },
@@ -58014,15 +58005,6 @@
           "lateral": 3.804582,
           "groundOffset": 0,
           "body": [{ "across": 2.056188, "width": 4.112375, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-0ff0-15-mirrored",
-          "palette": "p098",
-          "at": { "joint": "s1", "offset": -0.210648 },
-          "lateral": -4.755727,
-          "groundOffset": 0,
-          "body": null
         },
         {
           "kind": "sprite",
@@ -64323,10 +64305,10 @@
           "kind": "sprite",
           "image": "ciscoheat-0ff0-15-mirrored",
           "palette": "p098",
-          "at": { "joint": "s1", "offset": 3.192129 },
-          "lateral": -4.755727,
+          "at": { "joint": "s1", "offset": 2.80324 },
+          "lateral": 10.466804,
           "groundOffset": 0,
-          "body": null
+          "body": [{ "across": 4.838088, "width": 9.071416, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -75966,10 +75948,10 @@
           "kind": "sprite",
           "image": "ciscoheat-0ff0-15",
           "palette": "p098",
-          "at": { "joint": "s1", "offset": -0.064815 },
-          "lateral": -3.035571,
+          "at": { "joint": "s1", "offset": 3.840278 },
+          "lateral": -20.054303,
           "groundOffset": 0,
-          "body": null
+          "body": [{ "across": 4.838088, "width": 9.071416, "movable": null }]
         },
         {
           "kind": "sprite",

@@ -19863,10 +19863,10 @@
           "kind": "sprite",
           "image": "ciscoheat-0ff0-15-mirrored",
           "palette": "p098",
-          "at": { "joint": "s1", "offset": 0.842593 },
-          "lateral": -4.755727,
+          "at": { "joint": "s1", "offset": 10.824074 },
+          "lateral": 10.37539,
           "groundOffset": 0,
-          "body": null
+          "body": [{ "across": 4.838088, "width": 9.071416, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -34232,15 +34232,6 @@
       "sprites": [
         {
           "kind": "sprite",
-          "image": "ciscoheat-0ff0-15-mirrored",
-          "palette": "p098",
-          "at": { "joint": "s1", "offset": 0.972223 },
-          "lateral": -4.755727,
-          "groundOffset": 0,
-          "body": null
-        },
-        {
-          "kind": "sprite",
           "image": "ciscoheat-57e4-15",
           "palette": "p075",
           "at": { "joint": "s1", "offset": 5.914352 },
@@ -34274,6 +34265,15 @@
           "lateral": -7.082998,
           "groundOffset": 0,
           "body": [{ "across": 3.552971, "width": 6.803562, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "ciscoheat-0ff0-15-mirrored",
+          "palette": "p098",
+          "at": { "joint": "s1", "offset": 10.824074 },
+          "lateral": 10.37539,
+          "groundOffset": 0,
+          "body": [{ "across": 4.838088, "width": 9.071416, "movable": null }]
         },
         {
           "kind": "sprite",
@@ -36419,6 +36419,15 @@
         },
         {
           "kind": "sprite",
+          "image": "ciscoheat-5610-5",
+          "palette": "p067",
+          "at": { "joint": "c2", "offset": -3.643968 },
+          "lateral": -14.022153,
+          "groundOffset": 0,
+          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
+        },
+        {
+          "kind": "sprite",
           "image": "ciscoheat-4d10-15-mirrored",
           "palette": "p099",
           "at": { "joint": "c2", "offset": -2.398148 },
@@ -36443,6 +36452,24 @@
           "lateral": -0.789248,
           "groundOffset": 2.01215,
           "body": null
+        },
+        {
+          "kind": "sprite",
+          "image": "ciscoheat-5610-5",
+          "palette": "p067",
+          "at": { "joint": "c2", "offset": -2.212986 },
+          "lateral": -12.591171,
+          "groundOffset": 0,
+          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
+        },
+        {
+          "kind": "sprite",
+          "image": "ciscoheat-5610-5",
+          "palette": "p067",
+          "at": { "joint": "c2", "offset": -0.782004 },
+          "lateral": -11.160189,
+          "groundOffset": 0,
+          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
         }
       ],
       "environments": [
@@ -36532,143 +36559,6 @@
               "lateral": 0
             }
           ]
-        },
-        {
-          "id": "street-2-ahead",
-          "knots": [
-            {
-              "at": { "joint": "c0", "offset": 0 },
-              "lateral": -0.856724
-            },
-            {
-              "at": { "joint": "c0", "offset": 0.510417 },
-              "lateral": -1.104362
-            },
-            {
-              "at": { "joint": "c0", "offset": 1.020833 },
-              "lateral": -1.392185
-            },
-            {
-              "at": { "joint": "c0", "offset": 1.53125 },
-              "lateral": -1.724736
-            },
-            {
-              "at": { "joint": "s1", "offset": -2.041666 },
-              "lateral": -2.107593
-            },
-            {
-              "at": { "joint": "s1", "offset": -1.53125 },
-              "lateral": -2.547626
-            },
-            {
-              "at": { "joint": "s1", "offset": -1.020833 },
-              "lateral": -3.053342
-            },
-            {
-              "at": { "joint": "s1", "offset": -0.510416 },
-              "lateral": -3.635357
-            },
-            {
-              "at": { "joint": "s1", "offset": 0 },
-              "lateral": -4.307044
-            },
-            {
-              "at": { "joint": "s1", "offset": 4.018519 },
-              "lateral": -8.325562
-            },
-            {
-              "at": { "joint": "s1", "offset": 12.120371 },
-              "lateral": -16.427414
-            },
-            {
-              "at": { "joint": "s1", "offset": 20.222223 },
-              "lateral": -24.529266
-            },
-            {
-              "at": { "joint": "s1", "offset": 28.324074 },
-              "lateral": -32.631118
-            },
-            {
-              "at": { "joint": "s1", "offset": 36.425926 },
-              "lateral": -40.732969
-            },
-            {
-              "at": { "joint": "s1", "offset": 44.527778 },
-              "lateral": -48.834821
-            },
-            {
-              "at": { "joint": "s1", "offset": 52.62963 },
-              "lateral": -56.936673
-            },
-            {
-              "at": { "joint": "s1", "offset": 60.731482 },
-              "lateral": -65.038525
-            },
-            {
-              "at": { "joint": "s1", "offset": 68.833334 },
-              "lateral": -73.140377
-            },
-            {
-              "at": { "joint": "s1", "offset": 76.935186 },
-              "lateral": -81.242229
-            },
-            {
-              "at": { "joint": "s1", "offset": 85.037037 },
-              "lateral": -89.344081
-            },
-            {
-              "at": { "joint": "s1", "offset": 93.138889 },
-              "lateral": -97.445932
-            },
-            {
-              "at": { "joint": "s1", "offset": 101.240741 },
-              "lateral": -105.547784
-            },
-            {
-              "at": { "joint": "s1", "offset": 109.342593 },
-              "lateral": -113.649636
-            },
-            {
-              "at": { "joint": "s1", "offset": 117.444445 },
-              "lateral": -121.751488
-            },
-            {
-              "at": { "joint": "s1", "offset": 133.648148 },
-              "lateral": -137.955192
-            },
-            {
-              "at": { "joint": "s1", "offset": 141.75 },
-              "lateral": -146.057044
-            },
-            {
-              "at": { "joint": "s1", "offset": 149.851852 },
-              "lateral": -154.158895
-            },
-            {
-              "at": { "joint": "s1", "offset": 157.953704 },
-              "lateral": -162.260747
-            },
-            {
-              "at": { "joint": "s1", "offset": 166.055556 },
-              "lateral": -170.362599
-            },
-            {
-              "at": { "joint": "s1", "offset": 174.157408 },
-              "lateral": -178.464451
-            },
-            {
-              "at": { "joint": "s1", "offset": 182.25926 },
-              "lateral": -186.566303
-            },
-            {
-              "at": { "joint": "s1", "offset": 190.361111 },
-              "lateral": -194.668155
-            },
-            {
-              "at": { "joint": "s1", "offset": 195.916667 },
-              "lateral": -200.22371
-            }
-          ]
         }
       ],
       "strips": [
@@ -36689,15 +36579,6 @@
           "right": { "lane": "f", "side": "right", "offset": 0 },
           "color": null,
           "material": "ASPHALT"
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "c0", "offset": 0 },
-          "end": { "joint": "s1", "offset": 0.972223 },
-          "left": { "boundary": "street-2-ahead", "offset": -10.361414 },
-          "right": { "boundary": "street-2-ahead", "offset": 10.361414 },
-          "color": 18993,
-          "material": null
         },
         {
           "kind": "strip",
@@ -36756,52 +36637,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
-          "left": { "boundary": "street-2-ahead", "offset": -6.313987 },
-          "right": { "boundary": "street-2-ahead", "offset": -5.666398 },
-          "color": 32224,
-          "material": null
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
-          "left": { "boundary": "street-2-ahead", "offset": -5.666398 },
-          "right": { "boundary": "street-2-ahead", "offset": 5.666398 },
-          "color": 18993,
-          "material": null
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
-          "left": { "boundary": "street-2-ahead", "offset": -5.342604 },
-          "right": { "boundary": "street-2-ahead", "offset": -5.099759 },
-          "color": 32480,
-          "material": null
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
-          "left": { "boundary": "street-2-ahead", "offset": 5.099759 },
-          "right": { "boundary": "street-2-ahead", "offset": 5.342604 },
-          "color": 32480,
-          "material": null
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
-          "left": { "boundary": "street-2-ahead", "offset": 5.666398 },
-          "right": { "boundary": "street-2-ahead", "offset": 8.256752 },
-          "color": 32697,
-          "material": null
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
+          "end": { "joint": "end", "offset": 0 },
           "left": -10.341177,
           "right": -6.313987,
           "color": null,
@@ -36810,7 +36646,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
+          "end": { "joint": "end", "offset": 0 },
           "left": null,
           "right": -6.313987,
           "color": "transparent",
@@ -36819,7 +36655,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
+          "end": { "joint": "end", "offset": 0 },
           "left": -6.313987,
           "right": 8.256752,
           "color": 18993,
@@ -36837,7 +36673,7 @@
         {
           "kind": "repeat",
           "every": 8.263889,
-          "count": 23,
+          "count": 101,
           "elements": [
             {
               "kind": "strip",
@@ -36853,7 +36689,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
+          "end": { "joint": "end", "offset": 0 },
           "left": -6.313987,
           "right": -5.666398,
           "color": 32224,
@@ -36862,7 +36698,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
+          "end": { "joint": "end", "offset": 0 },
           "left": -5.342604,
           "right": -5.099759,
           "color": 32480,
@@ -36880,7 +36716,7 @@
         {
           "kind": "repeat",
           "every": 8.263889,
-          "count": 23,
+          "count": 101,
           "elements": [
             {
               "kind": "strip",
@@ -36896,7 +36732,7 @@
         {
           "kind": "strip",
           "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
+          "end": { "joint": "end", "offset": 0 },
           "left": 5.099759,
           "right": 5.342604,
           "color": 32480,
@@ -36914,7 +36750,7 @@
         {
           "kind": "repeat",
           "every": 8.263889,
-          "count": 23,
+          "count": 101,
           "elements": [
             {
               "kind": "strip",
@@ -36930,135 +36766,6 @@
         {
           "kind": "strip",
           "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
-          "left": 5.666398,
-          "right": 8.256752,
-          "color": 32697,
-          "material": null
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
-          "left": 8.256752,
-          "right": 10.341177,
-          "color": null,
-          "material": "GRASS"
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 0.972223 },
-          "end": { "joint": "s1", "offset": 195.916667 },
-          "left": 8.256752,
-          "right": null,
-          "color": 20173,
-          "material": null
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 195.916667 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": -10.341177,
-          "right": -6.313987,
-          "color": null,
-          "material": "ASPHALT"
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 195.916667 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": null,
-          "right": -6.313987,
-          "color": "transparent",
-          "material": null
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 195.916667 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": -6.313987,
-          "right": 8.256752,
-          "color": 18993,
-          "material": "ASPHALT"
-        },
-        {
-          "kind": "repeat",
-          "every": 8.263889,
-          "count": 78,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s1", "offset": 197.847223 },
-              "end": { "joint": "s1", "offset": 201.736111 },
-              "left": -6.313987,
-              "right": 8.256752,
-              "color": 15822,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 195.916667 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": -6.313987,
-          "right": -5.666398,
-          "color": 32224,
-          "material": null
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 195.916667 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": -5.342604,
-          "right": -5.099759,
-          "color": 32480,
-          "material": null
-        },
-        {
-          "kind": "repeat",
-          "every": 8.263889,
-          "count": 78,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s1", "offset": 197.847223 },
-              "end": { "joint": "s1", "offset": 201.736111 },
-              "left": -5.342604,
-              "right": -5.099759,
-              "color": 32384,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 195.916667 },
-          "end": { "joint": "end", "offset": 0 },
-          "left": 5.099759,
-          "right": 5.342604,
-          "color": 32480,
-          "material": null
-        },
-        {
-          "kind": "repeat",
-          "every": 8.263889,
-          "count": 78,
-          "elements": [
-            {
-              "kind": "strip",
-              "start": { "joint": "s1", "offset": 197.847223 },
-              "end": { "joint": "s1", "offset": 201.736111 },
-              "left": 5.099759,
-              "right": 5.342604,
-              "color": 32384,
-              "material": null
-            }
-          ]
-        },
-        {
-          "kind": "strip",
-          "start": { "joint": "s1", "offset": 195.916667 },
           "end": { "joint": "end", "offset": 0 },
           "left": 5.666398,
           "right": 8.256752,
@@ -37067,7 +36774,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s1", "offset": 195.916667 },
+          "start": { "joint": "s1", "offset": 0.972223 },
           "end": { "joint": "end", "offset": 0 },
           "left": 8.256752,
           "right": 10.341177,
@@ -37076,7 +36783,7 @@
         },
         {
           "kind": "strip",
-          "start": { "joint": "s1", "offset": 195.916667 },
+          "start": { "joint": "s1", "offset": 0.972223 },
           "end": { "joint": "end", "offset": 0 },
           "left": 8.256752,
           "right": null,
@@ -37104,150 +36811,6 @@
       ],
       "walls": [],
       "sprites": [
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": -10.928054,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": -8.90434,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": -6.880627,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": -4.856913,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": -2.833199,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": 0,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": 2.023714,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": 4.047427,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": 6.071141,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": 8.094855,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": 10.118569,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": 12.142282,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": 14.165996,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": 16.18971,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": 18.213424,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
-        {
-          "kind": "sprite",
-          "image": "ciscoheat-5610-5",
-          "palette": "p067",
-          "at": { "joint": "s1", "offset": -0.486111 },
-          "lateral": 20.237137,
-          "groundOffset": 0,
-          "body": [{ "across": 0.201587, "width": 0.302381, "movable": null }]
-        },
         {
           "kind": "sprite",
           "image": "ciscoheat-5610-5",

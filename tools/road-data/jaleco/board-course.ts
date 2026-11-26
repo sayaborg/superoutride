@@ -128,6 +128,19 @@ export interface BoardCourseRoads {
   original(road: RoadNumber, p: number): RoadNumber;
 }
 
+/**
+ * A street drawn where two cross at a corner of less than 90° (a trial, K, 2026-11-27): its corner, whether it is the one
+ * the course leaves (`ahead`) or the one it takes (`back`), the positions it is drawn over and its centre there, units
+ * across P.
+ */
+export interface BoardStreet {
+  readonly corner: RightAngle;
+  readonly side: 'ahead' | 'back';
+  readonly from: number;
+  readonly to: number;
+  readonly lateral: PiecewiseLinear;
+}
+
 /** What a course's hooks are given once it is laid out: its stations and its roads' places and drawing. */
 export interface BoardCourseContext {
   /** A position's station, metres, and a station's position. */
@@ -143,6 +156,9 @@ export interface BoardCourseContext {
   /** Whether the course's road `road` (2 P, 1 the other) is drawn at position `p`. */
   drawn(road: RoadNumber, p: number): boolean;
   readonly roads: BoardCourseRoads;
+  /** Its streets, and its limit on side `side` (-1 left, 1 right) at position `p`, units across P. */
+  readonly streets: readonly BoardStreet[];
+  limit(p: number, side: -1 | 1): number;
 }
 
 /** A stage of an original on the board, as its course is laid from it. */
@@ -423,7 +439,7 @@ export function layBoardCourse(stage: BoardStage) {
   const farthest = RENDER_FAR_DEPTH_METERS / metres;
   const streets = corners
     .filter((c) => c.degrees < 90)
-    .flatMap((c, k) => {
+    .flatMap((c, k): (BoardStreet & { id: string; stops: number[]; runs(p: number): ColoredRun[] })[] => {
       const lines = plan.streets(c.turn);
       const half = (c.turn.to - c.turn.from) / 2;
       const past = road2.plan.find((r) => r.start > c.at) ?? pictureAt(2, c.at);
@@ -461,7 +477,8 @@ export function layBoardCourse(stage: BoardStage) {
           corner: c,
         };
       };
-      return [street('ahead'), street('back')].flat();
+      // A T draws no street ahead of it.
+      return [...(c.ahead ? [street('ahead')] : []), street('back')].flat();
     });
   const pictureChanges = [...changes(road1.plan), ...changes(road2.plan), ...streets.flatMap((t) => [t.from, t.to])];
   const sectionCuts = [
@@ -482,7 +499,24 @@ export function layBoardCourse(stage: BoardStage) {
   // Whether road `road` is drawn at `p`, at the course's height however far apart the original holds the two (K,
   // 2026-11-13): the road not taken as far as its picture goes, every other road everywhere.
   const drawn = (road: RoadNumber, p: number) => road === 2 || p < leavesAt || road === heldOn(p) || p < notTakenEnd;
-  const context: BoardCourseContext = { station, positionOf, back, path, shown1, leavesAt, notTakenEnd, drawn, roads };
+  // The course's limit on a side, LIMIT_UNITS beyond the outermost road's centre there.
+  const limit = (p: number, side: -1 | 1) => {
+    const c = [0, ...(p < leavesAt ? [lateral1.at(p)] : [])];
+    return side < 0 ? Math.min(...c) - LIMIT_UNITS : Math.max(...c) + LIMIT_UNITS;
+  };
+  const context: BoardCourseContext = {
+    station,
+    positionOf,
+    back,
+    path,
+    shown1,
+    leavesAt,
+    notTakenEnd,
+    drawn,
+    roads,
+    streets,
+    limit,
+  };
   const placed = stage.sprites(context);
   const runsOf = (road: RoadNumber, p: number) => stage.runsOf(original(road, p), pictureAt(road, p), p);
   // Where its pictures change within a Section, the Sections cut at as few of them as keep each one's strips within

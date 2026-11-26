@@ -185,7 +185,17 @@ Its five courses (`cisco-heat-course`, each laid as the board's, `jaleco/board-c
   a road not taken's picture beneath the course's, road 2's painted runs between its edges, each its stripe's most
   common color, with no material, so that its strips keep within the format's 64 over the course's two roads; the
   course's limits there are as on either side of it. At 60° a street heads at that rule's limit wherever P runs
-  straight on: those of STAGE 2's 425,224 and 446,268 are refused where their turns end. At 90° its turn is a Section on each side of its middle and, outside it, the
+  straight on: those of STAGE 2's 425,224 and 446,268 are refused where their turns end. What the original stands
+  across the street ahead, past the corner and before the next, stands beyond the course's limit: its arrow board
+  (descriptor 0x0FF0, at 26 of the 29) on the street ahead, at its own lateral from that street's centre, where its
+  picture first lies wholly beyond the limit, its hit kept, and none where that street ends first (STAGE 2's 425,224
+  and 446,268); where it stands no board, the first position's objects of
+  which more than one stand within the road's picture on both sides of its middle are a row across it (STAGE 1's 16
+  posts at 299,928 and STAGE 4's at 173,744), the corner a T, no street drawn ahead of it. Each of a T's objects stands
+  as far from the corner as it stands from the road's middle, along the course's road past the corner on the side it
+  turns to and along the street back on the other, across as the next object of its picture past it stands (STAGE 1's
+  road 2's 300 units left), and none stands within the course's limits. Where neither stands (STAGE 5's 185,732), the
+  corner is a cross with nothing moved. At 90° its turn is a Section on each side of its middle and, outside it, the
   street across, its road's surface, reaches three limits' reach beyond the course's limit. Its objects stand at their
   stations, its sky turns with the road. Its tables' own jumps, STAGE 1's two of 10° at 147,760 and 155,760 among
   them, are laid as its tables give them. All 29 are laid: STAGE 1's 3, STAGE 2's 8, STAGE 3's 12, STAGE 4's 4 and

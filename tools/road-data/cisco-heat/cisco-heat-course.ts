@@ -15,7 +15,7 @@ import { placedChanges, screenPieces } from '../shared/screen-pieces.js';
 import { micrometre } from '../shared/section-writing.js';
 import { bakeSky, sectionYawOrigin, skyYawOrigin } from '../shared/sky-baking.js';
 import { lanesOverTwoRoads } from '../shared/two-roads.js';
-import { layBoardCourse, type BoardCourseRoads, type BoardSkyKnot } from '../jaleco/board-course.js';
+import { layBoardCourse, LIMIT_UNITS, type BoardCourseRoads, type BoardSkyKnot } from '../jaleco/board-course.js';
 import { boardScenes, boardSky, SKY_MIDDLE, type BoardScene } from '../jaleco/ms1-skies.js';
 import { boardUses, zoomBoards } from '../jaleco/zoom-boards.js';
 import { spritePen } from '../jaleco/zoom-sprites.js';
@@ -73,6 +73,12 @@ const PLAN_LIMITS = Object.freeze({ heading: (0.03 * Math.PI) / 180, position: 1
  * the others' at 90° until K has driven those two (a trial, K, 2026-11-27).
  */
 const CORNER_DEGREES = [45, 60, 90, 90, 90] as const;
+
+/** The arrow board the original stands across the street ahead of most of its right angles. */
+const ARROW_BOARD = 0x0ff0;
+
+/** Positions between a board's trial places on the street ahead. */
+const BOARD_STEP = 4;
 
 /** Its own car, the sedan: the Ford LTD Crown Victoria of 1990's width, metres (Edmunds). */
 const CAR_METRES = 1.969;
@@ -162,6 +168,30 @@ function courseHeights(
     return change === 0 ? [] : [{ at: p, change }];
   });
   return { bends, kinks, apart: (p: number) => Math.abs(roads[0].height(p * metres) - roads[1].height(p * metres)) };
+}
+
+/**
+ * What the original stands across the street ahead of a right angle at `at`, past it and before the next at `next` (K,
+ * 2026-11-27): its arrow board, the first of `ARROW_BOARD`; or where it stands none, a row, the first position's objects
+ * where more than one stand within the road's picture, `half` units either side of its middle, on both sides of it.
+ */
+function aheadOfCorner(
+  plain: readonly CiscoHeatObject[],
+  at: number,
+  next: number,
+  width: (o: CiscoHeatObject) => number,
+  half: number,
+) {
+  const past = plain.filter((o) => o.position > at && o.position < next);
+  const board = past.find((o) => o.descriptor === ARROW_BOARD) ?? null;
+  if (board) return { board, row: [] };
+  for (const p of [...new Set(past.map((o) => o.position))].sort((a, b) => a - b)) {
+    const here = past.filter((o) => o.position === p);
+    const within = here.filter((o) => o.lateral < half && o.lateral + width(o) > -half);
+    if (within.length > 1 && within.some((o) => o.lateral < 0) && within.some((o) => o.lateral + width(o) > 0))
+      return { board: null, row: here };
+  }
+  return { board: null, row: [] };
 }
 
 /** Heights' 10, 50 and 90 % points, metres, and how many lie above 1 m. */
@@ -259,6 +289,20 @@ export function ciscoHeatCourses(set: RomSet) {
     // Its own car on road 2 at its start, at the centre of the lane right of the road's middle.
     const grid = [{ lateral: lanes.lanes(0).e / 2, road: 2 as RoadNumber, position: 0 }];
     const held = ciscoHeatHeld(main, stage).filter((h) => h.from < end);
+    // Its right angles, each with what the original stands across the street ahead of it: a corner whose row crosses
+    // that street, with no arrow board, is a T, no street drawn ahead of it.
+    const angles = ciscoHeatRightAngles(main, stage).filter((a) => a.at < end);
+    const widthOf = (o: CiscoHeatObject) => ciscoHeatPlace(main, o, pixel).width;
+    const stands = angles.map((a, i) =>
+      aheadOfCorner(objects[stage]!.plain, a.at, angles[i + 1]?.at ?? Infinity, widthOf, LIMIT_UNITS),
+    );
+    const corners = angles.map((a, i) => ({
+      ...a,
+      degrees: CORNER_DEGREES[stage]!,
+      ahead: !(stands[i]!.board === null && stands[i]!.row.length > 0),
+    }));
+    // Where each corner's board and row stand, filled as its sprites are placed.
+    const across: { at: number; board: number | null; row: [number, number] }[] = [];
     const {
       laid,
       plan,
@@ -275,9 +319,7 @@ export function ciscoHeatCourses(set: RomSet) {
       name,
       tables: CISCO_HEAT_TABLES,
       planLimits: PLAN_LIMITS,
-      rightAngles: ciscoHeatRightAngles(main, stage)
-        .filter((a) => a.at < end)
-        .map((a) => ({ ...a, degrees: CORNER_DEGREES[stage]! })),
+      rightAngles: corners,
       roads,
       goal,
       end,
@@ -353,19 +395,67 @@ export function ciscoHeatCourses(set: RomSet) {
         return { knots, yawOf };
       },
       // Each object's place: its road's centre, its lateral its picture's left edge, its height its picture's bottom
-      // edge over its road, at the course's height as its road is, and none past the road not taken; a hit where its program meets the car with it, within its picture.
-      sprites: ({ station, shown1, leavesAt, notTakenEnd, roads: on }) =>
-        objects[stage]!.plain.flatMap((o) => {
-          const p = o.position;
+      // edge over its road, at the course's height as its road is, and none past the road not taken; a hit where its
+      // program meets the car with it, within its picture. At a corner of less than 90°, what stands across the street
+      // ahead stands beyond the course's limit (K, 2026-11-27): its arrow board on the street ahead where its picture
+      // first lies wholly beyond it; a T's row along the far side of the street taken, each object as far from the
+      // corner as it stands from the road's middle, on the course's road past the corner on the side it turns to and
+      // on the street back on the other, across as the next object of its picture past it stands, none within the
+      // course's limits.
+      sprites: ({ station, shown1, leavesAt, notTakenEnd, roads: on, streets, limit }) => {
+        const centreOf = (road: RoadNumber, p: number) => (on.original(2, p) === road ? 0 : shown1.at(p));
+        const moved = new Map<CiscoHeatObject, { p: number; lateral: number } | null>();
+        const clear = (p: number, left: number, right: number) => left > limit(p, 1) || right < limit(p, -1);
+        corners.forEach((c, i) => {
+          if (c.degrees >= 90) return;
+          const { board, row } = stands[i]!;
+          const street = (side: 'ahead' | 'back') => streets.find((t) => t.corner.at === c.at && t.side === side);
+          let stood: number | null = null;
+          if (board) {
+            const ahead = street('ahead');
+            let place: { p: number; lateral: number } | null = null;
+            for (let p = c.at; ahead && p <= ahead.to && !place; p += BOARD_STEP) {
+              if (p < ahead.from) continue;
+              const left = ahead.lateral.at(p) + board.lateral;
+              if (clear(p, left, left + widthOf(board))) place = { p, lateral: left };
+            }
+            moved.set(board, place);
+            stood = place ? round1((place.p - c.at) * metres) : null;
+          }
+          let placed = 0;
+          const later = (o: CiscoHeatObject) =>
+            objects[stage]!.plain.find((q) => q.descriptor === o.descriptor && q.position > o.position);
+          for (const o of row) {
+            const next = later(o);
+            if (!next) throw contractUnmet(`${name}'s row at ${o.position} has no ${o.descriptor} past it`);
+            const far = (Math.abs(o.lateral) * ACROSS) / metres;
+            const turning = c.side === 'right' ? o.lateral >= 0 : o.lateral <= 0;
+            const back = street('back');
+            const p = turning ? c.at + far : c.at - far * Math.cos((c.degrees * Math.PI) / 180);
+            const lateral = turning
+              ? centreOf(next.road, p) + next.lateral
+              : back && back.from <= p && p <= back.to
+                ? back.lateral.at(p) + next.lateral
+                : null;
+            const place = lateral !== null && clear(p, lateral, lateral + widthOf(o)) ? { p, lateral } : null;
+            moved.set(o, place);
+            if (place) placed++;
+          }
+          across.push({ at: c.at, board: stood, row: [placed, row.length - placed] });
+        });
+        return objects[stage]!.plain.flatMap((o) => {
+          const to = moved.get(o);
+          if (to === null) return [];
+          const p = to?.p ?? o.position;
           const road: RoadNumber = on.original(2, p) === o.road ? 2 : 1;
-          if (road === 1 && p >= leavesAt && p >= notTakenEnd) return [];
+          if (!to && road === 1 && p >= leavesAt && p >= notTakenEnd) return [];
           const place = ciscoHeatPlace(main, o, pixel);
           const lift = place.bottom * UP;
           const board = boards.get(boardOf(o).name);
           if (!board) return [];
           // A hit within its picture's columns, as the course format holds a solid part; none for a descriptor whose
-          // hit would close the road (`OPEN`).
-          const meets = !OPEN.has(o.descriptor) &&
+          // hit would close the road (`OPEN`) where it stands on it.
+          const meets = (to || !OPEN.has(o.descriptor)) &&
             place.meets && {
               from: Math.max(place.meets.from, 0),
               to: Math.min(place.meets.to, place.width),
@@ -375,7 +465,7 @@ export function ciscoHeatCourses(set: RomSet) {
               s: station(p),
               image: board.name,
               palette: uses.paletteOf(board.name, stage, o.color),
-              lateral: ((road === 2 ? 0 : shown1.at(p)) + o.lateral) * ACROSS,
+              lateral: (to ? to.lateral : (road === 2 ? 0 : shown1.at(p)) + o.lateral) * ACROSS,
               groundOffset: lift,
               body:
                 meets && meets.to > meets.from
@@ -383,7 +473,8 @@ export function ciscoHeatCourses(set: RomSet) {
                   : null,
             },
           ];
-        }),
+        });
+      },
     });
     outputs.course(id, laid.document);
     outputs.crestTrials(id, crestTrials(laid.heights, laid.write));
@@ -428,6 +519,9 @@ export function ciscoHeatCourses(set: RomSet) {
         return [[corner.at, corner.side, CORNER_DEGREES[stage]!, round1(length), round1(length / Math.abs(t.turn))]];
       }),
       streets: streets.map((t) => [t.corner.at, t.side, round1(station(t.from)), round1(station(t.to))]),
+      // What stands across each such corner's street ahead: how far on its board stands, metres, and its row's objects
+      // placed and not.
+      across,
       // Its objects: placed, their hits, those not placed (other kinds, above the course, past the road not taken), and
       // where their pictures' bottom edges lie over their roads, metres: at 10, 50 and 90 %, and how many above 1 m.
       objects: {
