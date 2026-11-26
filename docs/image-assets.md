@@ -617,7 +617,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `ford-f-700-1980`, `chevrolet-nova-1975`, `chevrolet-nova-police-1975`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `ford-f-700-1980`, `chevrolet-nova-1975`, `chevrolet-nova-police-1975`, `bmw-325i-convertible-1987`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`corvette-c4-1984`): drawn by
@@ -1588,6 +1588,46 @@ stage auditor's, provisional:
 The listing's default is `black-and-white`. SELECT VEHICLE offers the colors in the set's order, the table's. The model
 is K's `chevrolet-nova-police-1975.glb` (SHA-256 `4ed46430…`), kept on K's branch
 `codex/chevrolet-nova-police-1975-glb-source`, never on main.
+
+**The 325i Convertible of 1987.** Its set, `bmw-325i-convertible-1987`, is baked from K's model of the 1987 US E30 325i
+Convertible, its top folded and a driver in the left seat, by the F-700's recipe (K, 2026-11-27): the same light,
+reflections, glare, glass key, 64 directions and brake lamp colors, none moved for this car. It differs in its one key
+color, the red (200, 28, 26) within 8, its ramps (seven paint steps, three glass steps and four greys) and its
+spacing, 0.004 m as the F-150's, the F-700's and the Novas'. The key is the body and the driver's clothes, which take
+each livery's color with it (K); a white key would have baked the other colors whitish. The round badges and the
+`325i` lettering stay (K). The body's sides, from the doors to the rear, have the front fender's section (K). The
+magenta (255, 0, 255) is the brake lamp: the red of the rear lamps and the lamp above the boot lid. The rear
+indicators' amber is no key color and falls in the greys, so it barely shows.
+
+The model is in metres, +y up, +z forward and +x to the left, its origin on the road, on the centreline, halfway between
+the axles (z +1.2853 and −1.2853, the catalogue's 101.2 in wheelbase). It is 4,490.5 mm long (176.8 in), 1,366 mm high
+to the windscreen's frame (the catalogue's 53.9 in, 1,369 mm, is with the top raised, which the definition keeps) and
+1,792 mm across the mirrors; the front overhang is 861 mm and the rear 1,059 mm. Its tyres are 195/65 VR14 at 0.6092 m
+across, and its four wheels are spun at that size: centres (±0.7036, 0.3046, 1.2853) m front and (±0.7074, 0.3046,
+−1.2853) m rear, the catalogue's 55.4 and 55.7 in tracks, radius 0.3046 and width 0.195; the rims are 0.185 (an
+estimate). The front tyres' lowest points stand 2 mm above the road.
+
+Its eight liveries are BMW's paint names by their codes (146, 138, 086, 139, 184, 198, 189 and 203), checked as 1987
+325 colors in refinish charts (DuPont's of 1987, PaintScratch's 1987 325 list); BMW's 1987 color catalogue was not
+read, nor whether the Convertible offered all eight. The two blues are a dark and a light one, to be told apart (K).
+The base colors are the stage auditor's, provisional, not measured from paint samples:
+
+| Palette                  | Name                   | Base color    |
+| ------------------------ | ---------------------- | ------------- |
+| `cinnabar-red`           | CINNABAR RED           | 200, 28, 26   |
+| `alpine-white`           | ALPINE WHITE           | 236, 236, 232 |
+| `black`                  | BLACK                  | 30, 30, 34    |
+| `bronzit-beige-metallic` | BRONZIT BEIGE METALLIC | 150, 128, 100 |
+| `delphin-metallic`       | DELPHIN METALLIC       | 112, 118, 122 |
+| `royal-blue-metallic`    | ROYAL BLUE METALLIC    | 24, 36, 84    |
+| `cirrus-blue-metallic`   | CIRRUS BLUE METALLIC   | 128, 156, 184 |
+| `salmon-silver-metallic` | SALMON SILVER METALLIC | 172, 162, 152 |
+
+The listing's default is `alpine-white`, the color of K's model; the recipe's first livery is the key's red, and
+SELECT VEHICLE offers the colors in the set's order, so it opens on ALPINE WHITE as 2/8, CINNABAR RED first. The model
+is K's `bmw-325i-convertible-1987.glb` (SHA-256 `95834f1d…`), kept on K's branch
+`codex/bmw-325i-convertible-1987-glb-source`, never on main; it has no wheel nodes, and its front hub is (0, 0.3046,
+1.2853).
 
 ## HUD picture generator
 

@@ -25,8 +25,9 @@ Each line is one area as it stands, with the document that owns it.
   TURBO 3.3 of 1989, 38 with the Beetle 1500 of 1968
   ([Stage VW113](#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)), 39 with the F-150 of 1975
   ([Stage F150](#stage-f150--the-f-150-of-1975-in-out-runs-traffic)), 40 with the Corvette Stingray of 1970
-  ([Stage C3](#stage-c3--the-corvette-stingray-of-1970-in-out-runs-traffic)) and 41 with the F-700 of 1980
-  ([Stage F700](#stage-f700--the-f-700-of-1980-in-out-runs-traffic)), in the same ledger; the Nova 250 of 1977 is now
+  ([Stage C3](#stage-c3--the-corvette-stingray-of-1970-in-out-runs-traffic)), 41 with the F-700 of 1980
+  ([Stage F700](#stage-f700--the-f-700-of-1980-in-out-runs-traffic)) and 42 with the 325i Convertible of 1987
+  ([Stage E30](#stage-e30--the-325i-convertible-of-1987-in-out-runs-traffic)), in the same ledger; the Nova 250 of 1977 is now
   the Nova of 1975, and the police Nova of 1977 the Nova of 1975's police car
   ([Stage NV](#stage-nv--the-nova-of-1975-and-its-police-car))
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored),
@@ -34,7 +35,8 @@ Each line is one area as it stands, with the document that owns it.
   [the F-150's](chase-turbo-vehicles.md#ford-f-150-of-1975-sources-versus-authored),
   [the Corvette Stingray's](chase-turbo-vehicles.md#chevrolet-corvette-stingray-of-1970-sources-versus-authored),
   [the F-700's](chase-turbo-vehicles.md#ford-f-700-of-1980-sources-versus-authored),
-  [the Nova of 1975's](chase-turbo-vehicles.md#chevrolet-nova-of-1975-sources-versus-authored)). Among the fourteen, the
+  [the Nova of 1975's](chase-turbo-vehicles.md#chevrolet-nova-of-1975-sources-versus-authored),
+  [the 325i Convertible's](chase-turbo-vehicles.md#bmw-325i-convertible-of-1987-sources-versus-authored)). Among the fourteen, the
   928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)), and
   the Turbo Esprit of 1984 the car it chases ([Stage E82](#stage-e82--the-turbo-esprit-of-1984-chase-hqs-rival)), the
   Countach 5000 QV of 1985 the car it chases on the second stage
@@ -72,7 +74,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
 - **Pictures.** GOLF GTI 16V's pictures are a generated set, VFR750R's a 3D prototype,
-  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the F-700 of 1980's, the two Novas of 1975's, the M23 PP SPEC's, the NSR500 of 1984's and
+  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the F-700 of 1980's, the two Novas of 1975's, the 325i Convertible of 1987's, the M23 PP SPEC's, the NSR500 of 1984's and
   the XR600R of 1985's baked from K's models, the three cars' with a car's glossy finish, the other vehicles' converted provisional pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
@@ -521,6 +523,32 @@ and white the default, with a star on the doors and a lamp on the roof; the Nova
   colors' base colors.
 - The measuring tool's `generate` is killed for want of memory in a 16 GB container (each worker compiles the content
   again, about 6 GB); NV-1's and NV-2's loudness was measured by the same plan and jobs run in one process.
+
+## Stage E30 — The 325i Convertible of 1987 in OUT RUN's traffic
+
+K's decisions of 2026-11-27: the BMW 325i Convertible of 1987 (E30, US, left-hand drive, the M20B25, 5MT), its top
+folded and a driver in the left seat, is a vehicle of its own, `BMW_325I_CONVERTIBLE_1987`, and OUT RUN's traffic takes
+it, none replaced; other US courses are to take it later. Its pictures are baked from K's model at a spacing of 0.004 m
+in one key color, the body and the driver's clothes, in eight BMW colors, a dark and a light blue among them; the round
+badges and the `325i` lettering stay, and the body's sides from the doors back have the front fender's section
+([Arcade car selections](chase-turbo-vehicles.md#bmw-325i-convertible-of-1987-sources-versus-authored),
+[Model solids](image-assets.md#model-solids)).
+
+- E30-1: the vehicle added (definition, sound, listing, the set baked from K's model, SHA-256 `95834f1d…`, on
+  `codex/bmw-325i-convertible-1987-glb-source`, never on main), the engine loudness measured again; no series runs it.
+- E30-2: OUT RUN's traffic takes the 325i Convertible after its vehicles, of weight 1, in each of the six classes.
+- Its exhaust is the first with two tubes between the same two junctions (the pipes from the converter to the rear
+  silencer); the loudness measurement runs it to −42.2 LUFS, not heard.
+- SELECT VEHICLE opens on ALPINE WHITE, the default, as 2/8: the colors are offered in the set's order, CINNABAR RED,
+  the key's, first. Not changed.
+- To look at in DEV: revving and driving's sound; the eight colors, the two blues told apart; the rear indicators'
+  amber, a grey step that barely shows; the brake lamps (the rear lamps' red and the lamp above the boot lid); the
+  front tyres 2 mm above the road.
+- Estimates: the axles (a front share of 0.51), the CG height, springs, damping, travel, the frontal area (1.86 m²),
+  idle and redline; the cam's lift and duration (not BMW's); every exhaust tube's length and the diameter; the colors'
+  base colors. Its height is the catalogue's with the top raised (1.369 m); the pictures' top is the windscreen's
+  frame, 1.366 m.
+- Not checked: BMW's 1987 color catalogue, and whether the Convertible offered all eight colors.
 
 ## Stage F120 — The F40 of 1988
 

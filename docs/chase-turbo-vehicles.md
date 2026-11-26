@@ -4,8 +4,9 @@ This ledger owns the fourteen additional vehicle definitions selected from the s
 the [Mazda RX-7 Turbo II of 1987](#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored), and OUT RUN's traffic cars,
 the [Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-versus-authored), the
 [Ford F-150 of 1975](#ford-f-150-of-1975-sources-versus-authored), the
-[Chevrolet Corvette Stingray of 1970](#chevrolet-corvette-stingray-of-1970-sources-versus-authored) and the
-[Ford F-700 of 1980](#ford-f-700-of-1980-sources-versus-authored), authored by its conventions.
+[Chevrolet Corvette Stingray of 1970](#chevrolet-corvette-stingray-of-1970-sources-versus-authored), the
+[Ford F-700 of 1980](#ford-f-700-of-1980-sources-versus-authored) and the
+[BMW 325i Convertible of 1987](#bmw-325i-convertible-of-1987-sources-versus-authored), authored by its conventions.
 The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored), and the
 two Novas [the 1975 Nova 4-Door Sedan](#chevrolet-nova-of-1975-sources-versus-authored) and
 [its police car](#the-police-nova-of-1975).
@@ -1016,3 +1017,73 @@ The stage auditor's reading (2026-11-25), not read for these PRs: Ford's 1980 Re
 Wave auction EA2806, Commercial Car Journal of October 1980, Morgan's dry freight bodies, the TTI report 404311-6 and
 owners' forums, as above. No primary source for the 1980 370-4V's power, the gear and axle ratios, or the exhaust was
 read. Not decided, for K ([NEXT](NEXT.md#stage-f700--the-f-700-of-1980-in-out-runs-traffic)): the estimates above.
+
+## BMW 325i Convertible of 1987: sources versus authored
+
+K takes a convertible for OUT RUN's traffic, the BMW 325i Convertible of 1987 (K, 2026-11-27), added to the others,
+not in place of one; nothing here claims the original says so. `BMW_325I_CONVERTIBLE_1987` is the 1987 US E30 325i
+Convertible, left-hand drive, with the M20B25 in-line six and a five-speed manual, its top folded and a driver in the
+left seat. Its listing selects the M20B25, the 5MT and the 3.73 axle; its engine is shown as `I6`, its name as `325i`
+(`325i Convertible` passes the 20-character limit of the year, two spaces and the name by two). FREE PLAY's classes
+offer it through catalog membership, as every vehicle. Its numbers follow this ledger's
+[conventions](#numerical-conventions-and-remaining-uncertainty); the estimates among them add no formula or rule and no
+exception for this car.
+
+The source column is the stage auditor's reading (2026-11-27) of BMW of North America's 1987 325i Convertible
+catalogue ([PDF](https://www.auto-brochures.com/makes/BMW/3%20Series/BMW_US%203SeriesConvertible_1987.pdf)), BMW's
+technical data for the M20 B 25 and a specification site (**S**), not read for the PR that wrote this section.
+
+| Item                  | Source (auditor's reading)                                                   | Authored `BMW_325I_CONVERTIBLE_1987`                                                                                                                 | Class            |
+| --------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Length, width, height | 176.8 / 64.8 / 53.9 in (the height with the top raised)                      | 4.491 / 1.646 / 1.369 m                                                                                                                              | source           |
+| Tracks, wheelbase     | 55.4 / 55.7 in; 101.2 in                                                     | 1.407 / 1.415 m; 2.5705 m                                                                                                                            | source           |
+| Mass                  | 3,015 lb unladen                                                             | **1,443 kg**: 1,368 kg + the driver                                                                                                                  | source           |
+| Axles                 | —                                                                            | **1.2595 / 1.311 m** from the CG: a front share of 0.51                                                                                              | estimate         |
+| Engine                | 152.2 cu in (2,494 cc), 84 × 75 mm, 8.8:1                                    | 2,494 cc, `cycle` 4, 8.8; idle 760 and redline 6,400 rpm estimates                                                                                   | source, estimate |
+| Power, torque         | 168 hp at 5,800, 164 lb-ft at 4,300 (SAE net)                                | Point 2: 222.354143 N m at 4,300; point 3: 206.256377 N m at 5,800                                                                                   | source           |
+| Curve's other points  | —                                                                            | 128.965403 at 760 and 189.001022 at 2,530 (0.58 and 0.85 of point 2's), 169.130229 at 6,400 (0.82 of 3's)                                            | estimate         |
+| Transmission          | 3.83 / 2.20 / 1.40 / 1.00 / 0.81; axle 3.73                                  | The same five ratios and final, shifted by the existing automatic shifts                                                                             | source           |
+| Tires                 | 195/65 VR14                                                                  | Radii 0.3046 m (0.6092 m across); inertias `25r²` / `27r²` = 2.32 / 2.505                                                                            | calculated       |
+| Drag                  | Cd 0.40                                                                      | `q = 0.5 × 1.225 × 0.40 × 1.86 m²` = 0.4557 kg/m; the frontal area **1.86 m²**                                                                       | source, estimate |
+| CG height             | —                                                                            | 0.5 m                                                                                                                                                | estimate         |
+| Inertias              | —                                                                            | Box estimates 2,751 / 2,651 kg m²                                                                                                                    | calculated       |
+| Brakes                | —                                                                            | 1,443 × 11.5 m/s², 65:35, × 0.3046 m, to 25 N m: 3,275 / 1,775 N m                                                                                   | game design      |
+| Suspension            | —                                                                            | 1.5 Hz, 0.4, 0.3 m                                                                                                                                   | game design      |
+| Firing                | 1-5-3-6-2-4                                                                  | `firingPhases` by sixths; cylinders 1–3 to junction 0, 4–6 to junction 1                                                                             | source           |
+| `exhaust.valve`       | 36 mm (BMW); lift 10.1 mm, 256° (S)                                          | 0.036 m, `open` 0.3556 (256 / 720)                                                                                                                   | source           |
+| `exhaust.diameter`    | Pipes 45 mm (an owners' site)                                                | **0.041 m**: the manifold's branch, the valve's 36 mm, × 1.14                                                                                        | estimate         |
+| `exhaust.tubes`       | "Twin-tube exhaust with twin tailpipes, catalytic converter" (the catalogue) | Each bank 0.25 / 0.17 / 0.10 m; two down pipes of 0.75 m to the converter; two parallel tubes of **4.1 m** to the rear silencer; two tails of 0.25 m | estimate         |
+
+### The 325i Convertible in the current model
+
+- Its five forward gears are shifted by the existing automatic shifts, as every car's; its tire is the default tire.
+- Its engine sound is written as the exhaust kernel reads it, its sources in its own note
+  ([Audio](audio.md#observations-and-engine-sounds)): the two pipes from the converter to the rear silencer are two
+  tubes between the same two junctions, the first exhaust so written; every length is an estimate.
+- Its pictures are baked from K's model in eight BMW colors, ALPINE WHITE the default, at a spacing of 0.004 m
+  ([Model solids](image-assets.md#model-solids)). Its height is the catalogue's with the top raised, 1.369 m; the
+  pictures show the top folded, the windscreen's frame at 1.366 m.
+
+### The 325i Convertible on the flat
+
+The existing solver on this ledger's flat, dry, windless straight with the automatic shifts, not compared with the real
+car's figures and not tuned:
+
+| Measure                        | Measured                                               |
+| ------------------------------ | ------------------------------------------------------ |
+| 0–100 km/h, 0–200 km/h         | 8.03 s (60 mph in 7 to 8 s), 46.8 s                    |
+| 0–400 m, 0–1,000 m             | 15.9 s, 29.1 s (between 1 s samples)                   |
+| Speed after 240 s              | 216.6 km/h in fifth at 5,734 rpm, below the redline    |
+| Redline speeds, first to fifth | 51, 90, 141, 197, 243 km/h                             |
+| Shifts                         | 52, 90, 141 and 197 km/h, at 2.9, 6.5, 15.3 and 42.8 s |
+| Braking from 100 km/h          | 2.57 s, 36.0 m                                         |
+
+It launches, shifts through all five gears and restarts from rest (100 km/h 8 s after stopping).
+
+### The 325i Convertible's sources
+
+The stage auditor's reading (2026-11-27), not read for these PRs: BMW of North America's 1987 325i Convertible
+catalogue, BMW's technical data for the M20 B 25, a specification site for the cam's lift and duration, a parts seller
+and an owners' site for the exhaust, and refinish color charts for the colors
+([Model solids](image-assets.md#model-solids)). No exhaust drawing was read. Not decided, for K
+([NEXT](NEXT.md#stage-e30--the-325i-convertible-of-1987-in-out-runs-traffic)): the estimates above.

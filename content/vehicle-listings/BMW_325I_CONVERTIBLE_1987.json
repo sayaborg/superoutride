@@ -1,0 +1,33 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 6,
+  "form": "car",
+  "selectionOrder": 51,
+  "visuals": {
+    "spriteSet": "bmw-325i-convertible-1987",
+    "palette": "alpine-white",
+    "steeringPicture": "montecarlo",
+    "colorNames": {
+      "alpine-white": "ALPINE WHITE",
+      "cinnabar-red": "CINNABAR RED",
+      "black": "BLACK",
+      "bronzit-beige-metallic": "BRONZIT BEIGE METALLIC",
+      "delphin-metallic": "DELPHIN METALLIC",
+      "royal-blue-metallic": "ROYAL BLUE METALLIC",
+      "cirrus-blue-metallic": "CIRRUS BLUE METALLIC",
+      "salmon-silver-metallic": "SALMON SILVER METALLIC"
+    }
+  },
+  "sound": "BMW_325I_CONVERTIBLE_1987",
+  "metadata": {
+    "manufacturer": "BMW",
+    "model": "325i Convertible",
+    "period": "1987",
+    "mobileLabel": "325i",
+    "engine": "I6",
+    "engineKind": "4-stroke",
+    "identifier": { "officialLabel": "325i", "shortLabel": "325i" },
+    "selectedSpecification": ["M20B25 2.5 L", "5MT", "3.73 axle"],
+    "physicsAnchor": { "modelYear": "1987", "market": "US" }
+  }
+}

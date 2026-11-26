@@ -1,0 +1,27 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 3,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.16666666666666666, 0.3333333333333333, 0.5, 0.6666666666666666, 0.8333333333333334],
+  "exhaust": {
+    "valve": { "diameter": 0.036, "open": 0.3556 },
+    "diameter": 0.041,
+    "tubes": [
+      { "from": null, "to": 0, "length": 0.25 },
+      { "from": null, "to": 1, "length": 0.17 },
+      { "from": null, "to": 0, "length": 0.1 },
+      { "from": null, "to": 1, "length": 0.25 },
+      { "from": null, "to": 0, "length": 0.17 },
+      { "from": null, "to": 1, "length": 0.1 },
+      { "from": 0, "to": 2, "length": 0.75 },
+      { "from": 1, "to": 2, "length": 0.75 },
+      { "from": 2, "to": 3, "length": 4.1 },
+      { "from": 2, "to": 3, "length": 4.1 },
+      { "from": 3, "to": null, "length": 0.25 },
+      { "from": 3, "to": null, "length": 0.25 }
+    ]
+  },
+  "metadata": {
+    "note": "1987 US BMW 325i Convertible (E30), M20B25 (2,494 cc, 168 hp SAE net at 5,800 rpm), 5-speed manual: an in-line six, one exhaust valve a cylinder, firing 1-5-3-6-2-4 at even intervals; the tubes from the valves in that order, cylinders 1-3 to junction 0 and 4-6 to junction 1. Valve: 36 mm (BMW's technical data for the M20 B 25, plate diameter, exhaust); lift 10.1 mm, which passes a quarter of the diameter, so the diameter as it is; open 256 / 720 = 0.3556 (lift and duration from a specification site, not from BMW). BMW's US catalogue of 1987 says only 'twin-tube exhaust with twin tailpipes, catalytic converter'; a parts seller says these cars carry a double pipe from the converter's outlet to the rear silencer. Written so: the cast manifold's six branches end in two outlets, the tubes of each three 0.25, 0.17 and 0.10 m from the far cylinder to the near (estimates from the 91 mm bore spacing); two down pipes of 0.75 m meet in the converter (junction 2); two tubes of 4.1 m each run from it to the rear silencer (junction 3) (an estimate: about 2.3 m of pipe, 0.3 m for the bends, and 1.5 m within the transverse silencer, three times a 0.5 m body, counted in the tube's length as for the Beetle (K)); two tail pipes of 0.25 m. No expansion chamber is written. Diameter 0.041 m: the manifold's branch, taken as the valve's 36 mm inside, times 1.14 (an estimate); an owners' site gives the system's pipes 45 mm. Every length is an estimate: no exhaust drawing was read."
+  }
+}

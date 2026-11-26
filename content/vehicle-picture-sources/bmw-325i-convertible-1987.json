@@ -1,0 +1,103 @@
+{
+  "format": "superoutride.vehicle-model-recipe",
+  "version": 1,
+  "vehicle": "BMW_325I_CONVERTIBLE_1987",
+  "yawVariants": 64,
+  "model": {
+    "sha256": "95834f1de4bd06aa7a7ba874676f80528e8fbb44f5346e992d1f8aa529ca8308",
+    "right": "-x",
+    "up": "+y",
+    "forward": "+z",
+    "frontHub": [0, 0.3046, 1.2853]
+  },
+  "spacing": 0.004,
+  "paints": {
+    "colors": [[200, 28, 26]],
+    "within": 8,
+    "lamp": [255, 0, 255]
+  },
+  "glass": {
+    "color": [10, 10, 12],
+    "within": 4,
+    "rough": 0.5
+  },
+  "ramps": {
+    "paints": [7],
+    "glass": 3,
+    "grey": 4,
+    "sampleYaws": 16
+  },
+  "light": {
+    "main": [-0.25, 0.85, 0.46],
+    "fill": [0.6, 0.2, 0.5],
+    "ambient": 0.08,
+    "sky": 0.14,
+    "mainWeight": 0.92,
+    "fillWeight": 0.06,
+    "greyGain": 1.5
+  },
+  "reflection": {
+    "paint": {
+      "f0": 0.1,
+      "horizon": [205, 218, 238],
+      "zenith": [120, 160, 230],
+      "haze": [70, 66, 68],
+      "ground": [20, 18, 20],
+      "fall": 0.1,
+      "power": 0.6
+    },
+    "glass": {
+      "f0": 0.8,
+      "horizon": [232, 240, 248],
+      "zenith": [58, 120, 222],
+      "haze": [205, 214, 224],
+      "ground": [86, 88, 92],
+      "fall": 0.35,
+      "power": 0.6
+    }
+  },
+  "glare": [
+    { "power": 30, "strength": 2, "glass": 1 },
+    { "power": 220, "strength": 4, "glass": 1.5 }
+  ],
+  "wheels": [
+    {
+      "center": [0.7036, 0.3046, 1.2853],
+      "radius": 0.3046,
+      "rim": 0.185,
+      "width": 0.195
+    },
+    {
+      "center": [-0.7036, 0.3046, 1.2853],
+      "radius": 0.3046,
+      "rim": 0.185,
+      "width": 0.195
+    },
+    {
+      "center": [0.7074, 0.3046, -1.2853],
+      "radius": 0.3046,
+      "rim": 0.185,
+      "width": 0.195
+    },
+    {
+      "center": [-0.7074, 0.3046, -1.2853],
+      "radius": 0.3046,
+      "rim": 0.185,
+      "width": 0.195
+    }
+  ],
+  "liveries": {
+    "cinnabar-red": [[200, 28, 26]],
+    "alpine-white": [[236, 236, 232]],
+    "black": [[30, 30, 34]],
+    "bronzit-beige-metallic": [[150, 128, 100]],
+    "delphin-metallic": [[112, 118, 122]],
+    "royal-blue-metallic": [[24, 36, 84]],
+    "cirrus-blue-metallic": [[128, 156, 184]],
+    "salmon-silver-metallic": [[172, 162, 152]]
+  },
+  "brakeLamp": {
+    "off": [125, 12, 18],
+    "on": [255, 70, 40]
+  }
+}
