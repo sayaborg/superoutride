@@ -13,7 +13,13 @@ import { createRaceSprites } from '../../src/view/race-sprites.js';
 import { courseStartGrid } from '../../src/course/compiler/course-rules.js';
 import { gridRouteS } from '../../src/course/course-route.js';
 import { SIM_DT } from '../../src/race/fixed-step.js';
-import { createCourseFilm, createDemoDirector, DEMO_FILM, tickerSteps } from '../../src/shell/demo-director.js';
+import {
+  createCourseFilm,
+  createDemoDirector,
+  DEMO_FILM,
+  DEMO_SHOTS,
+  tickerSteps,
+} from '../../src/shell/demo-director.js';
 import { RENDER_FAR_DEPTH_METERS } from '../../src/view/camera.js';
 import { routeCamera } from '../../src/view/route-camera.js';
 
@@ -101,6 +107,19 @@ async function film(id, { speed, finish, steps }) {
   }
   return shots;
 }
+
+test('every camera of the demo stands 1.5, 2, 3 or 4 m over the road, never below 1.5 m (K, 2026-11-27)', () => {
+  const heights = [
+    DEMO_FILM.intro.height,
+    ...DEMO_SHOTS.filter((row) => row.base !== 'PLAYER').map((row) => row.height),
+  ];
+  assert.ok(
+    heights.every((height) => [1.5, 2, 3, 4].includes(height)),
+    heights.join(' '),
+  );
+  assert.ok(Math.min(...heights) >= 1.5);
+  assert.ok(!DEMO_SHOTS.some((row) => row.name === 'LOW'));
+});
 
 // The shots in the order they came, each once for every run of it.
 const order = (shots) => shots.filter((shot, i) => shot !== shots[i - 1]);

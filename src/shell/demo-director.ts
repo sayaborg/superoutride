@@ -32,17 +32,20 @@ const shot = (
   back: boolean,
 ): DemoShot => Object.freeze({ name, base, ahead, aside, height, speed, back });
 
-/** The race film's shots: metres, and shares of the shown vehicle's speed. START opens it and GOAL closes it. */
+/**
+ * The race film's shots: metres, and shares of the shown vehicle's speed. START opens it and GOAL closes it. Every
+ * camera stands 1.5, 2, 3 or 4 m over the road (K, 2026-11-27): the vehicles' pictures are seen from 2 m, and from
+ * lower they look to drive uphill.
+ */
 export const DEMO_SHOTS: readonly DemoShot[] = Object.freeze([
   shot('START', 'REARMOST', [-10, 0, 3, 0], false),
   shot('FIXED', 'VEHICLE', [30, 3.5, 1.5, 0], false),
-  shot('PASSED', 'VEHICLE', [25, 2.5, 1.2, 0.7], false),
+  shot('PASSED', 'VEHICLE', [25, 2.5, 1.5, 0.7], false),
   shot('LEFT', 'VEHICLE', [-6, 0, 2, 0.8], false),
   shot('CHASE', 'PLAYER', [0, 0, 0, 0], false),
-  shot('LOW', 'VEHICLE', [-4, 0, 0.5, 1], false),
-  shot('QUARTER', 'VEHICLE', [-5, 3, 1.2, 1], false),
-  shot('FRONT', 'VEHICLE', [8, 0, 1.2, 1], true),
-  shot('FRONT QUARTER', 'VEHICLE', [6, 3, 1.2, 1], true),
+  shot('QUARTER', 'VEHICLE', [-5, 3, 1.5, 1], false),
+  shot('FRONT', 'VEHICLE', [8, 0, 1.5, 1], true),
+  shot('FRONT QUARTER', 'VEHICLE', [6, 3, 1.5, 1], true),
   shot('APPROACH', 'VEHICLE', [120, 3.5, 1.5, 0], true),
   shot('GOAL', 'GOAL', [-15, 3.5, 1.5, 0], false),
 ]);

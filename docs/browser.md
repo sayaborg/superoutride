@@ -390,8 +390,8 @@ and a shot's, is the demo's one change: the new picture thins in over the frame 
 
 TITLE's LEFT, RIGHT, UP and DOWN go to the demo and sound nothing; the demo has two choices and two operations, cutting
 to the next shot and choosing the next class, which chance calls by itself and these commands call by hand. LEFT and
-RIGHT cut the race film to the shot before or after the shown one in the table's order, passing over START, GOAL and any
-whose camera cannot stand; the cut lasts its time from there, and chance goes on after it. Over the course film they do
+RIGHT cut the race film to the shot before or after the shown one in the table's order (FIXED, PASSED, LEFT, CHASE,
+QUARTER, FRONT, FRONT QUARTER and APPROACH, round again), passing over START, GOAL and any whose camera cannot stand; the cut lasts its time from there, and chance goes on after it. Over the course film they do
 nothing. UP and DOWN choose the next class (K, 2026-11-14): the class before or after the shown one in SERIES and CLASS
 order, and pressed again, the one before or after the class so chosen. The demo still holds two reels, the shown one and
 the next: the chosen class replaces the drawn next one (a loaded reel is released, a loading one released once loaded),
@@ -411,19 +411,20 @@ toward the road's centre (the road's centre for the rearmost) and `height` over 
 forward or back; it travels at `speed` of the shown vehicle's speed (0 stands), following the vehicle's line. One rule
 sets every shot again: when the shown vehicle has left the picture, 120 m ahead of a camera looking forward or at a
 camera looking back, the shot is set again on its row, keeping its time. CHASE alone has no place: it is the player's
-camera, the one exception, showing the run as it is played.
+camera, the one exception, showing the run as it is played. Every camera of the demo stands 1.5, 2, 3 or 4 m over the
+road below it, the course film's 4 m (K, 2026-11-27): the vehicles' pictures are seen from 2 m, and from lower they
+look to drive uphill; LOW, 0.5 m over the road, is gone with that.
 
 | Shot          | Base                | Ahead m | Aside m | Height m | Speed | Looks   |
 | ------------- | ------------------- | ------: | ------: | -------: | ----: | ------- |
 | START         | Rearmost on grid    |     −10 |       0 |        3 |     0 | forward |
 | FIXED         | Shown vehicle       |      30 |     3.5 |      1.5 |     0 | forward |
-| PASSED        | Shown vehicle       |      25 |     2.5 |      1.2 |   0.7 | forward |
+| PASSED        | Shown vehicle       |      25 |     2.5 |      1.5 |   0.7 | forward |
 | LEFT          | Shown vehicle       |      −6 |       0 |        2 |   0.8 | forward |
 | CHASE         | The player's camera |         |         |          |       |         |
-| LOW           | Shown vehicle       |      −4 |       0 |      0.5 |     1 | forward |
-| QUARTER       | Shown vehicle       |      −5 |       3 |      1.2 |     1 | forward |
-| FRONT         | Shown vehicle       |       8 |       0 |      1.2 |     1 | back    |
-| FRONT QUARTER | Shown vehicle       |       6 |       3 |      1.2 |     1 | back    |
+| QUARTER       | Shown vehicle       |      −5 |       3 |      1.5 |     1 | forward |
+| FRONT         | Shown vehicle       |       8 |       0 |      1.5 |     1 | back    |
+| FRONT QUARTER | Shown vehicle       |       6 |       3 |      1.5 |     1 | back    |
 | APPROACH      | Shown vehicle       |     120 |     3.5 |      1.5 |     0 | back    |
 | GOAL          | Finishing line      |     −15 |     3.5 |      1.5 |     0 | forward |
 
