@@ -4,7 +4,15 @@
  * data](../../../docs/big-run-road-data.md#its-plan)): each road's table of arcs laid by the shared rule, road 2 P and
  * road 1 beside it from its own table.
  */
-import { arcPlan, meetingsWithP, secondRoad, type ArcPlanLimits, type ArcRecord } from '../shared/arc-plan.js';
+import {
+  arcPlan,
+  crossingStreets,
+  meetingsWithP,
+  secondRoad,
+  type ArcPlanLimits,
+  type ArcRecord,
+  type ArcTurn,
+} from '../shared/arc-plan.js';
 import { angleRadians, type RoadPlanRecord, type RoadTablesAt } from './road-tables.js';
 
 /**
@@ -23,7 +31,7 @@ export const arcRecord = (tables: RoadTablesAt, r: RoadPlanRecord): ArcRecord =>
 /**
  * A stage's plan to `end`: road 2's table laid as P (K, 2026-11-09), and road 1 beside it from its own table, each
  * record checked within `limits` but where road 1 jumps back onto P, no arc tighter than `least` (metres,
- * `leastLaneRadius`) at `metres` a position.
+ * `leastLaneRadius`) at `metres` a position; and the streets that cross at a turn of P's (`streets`).
  */
 export function twoRoadPlan(
   tables: RoadTablesAt,
@@ -37,19 +45,27 @@ export function twoRoadPlan(
   const [p, q] = [road2, road1].map((records) => records.map((r) => arcRecord(tables, r)));
   const pPlan = arcPlan(p!, end, metres, least, limits);
   const qPlan = arcPlan(q!, end, metres, least, limits, meetingsWithP(p!, q!, end));
-  return { p: pPlan, road1: qPlan, beside: secondRoad(p!, pPlan, q!, qPlan, end) };
-}
-
-/** A turn the original shows at right angles (K, 2026-11-15): about the start of the record at `at`, to `side`. */
-export interface RightAngle {
-  readonly at: number;
-  readonly side: 'left' | 'right';
+  return {
+    p: pPlan,
+    road1: qPlan,
+    beside: secondRoad(p!, pPlan, q!, qPlan, end),
+    streets: (turn: ArcTurn) => crossingStreets(p!, pPlan, turn),
+  };
 }
 
 /**
- * A road's records with each right angle a quarter turn to its side: the records from its record on turned a quarter
- * turn about that record's start, so that the plan lays the corner as a turn about it and the road on from it as its
- * tables run.
+ * A turn the original shows at right angles (K, 2026-11-15): about the start of the record at `at`, to `side`, laid at
+ * `degrees` (90, or less where its two streets are drawn: a trial, K, 2026-11-27).
+ */
+export interface RightAngle {
+  readonly at: number;
+  readonly side: 'left' | 'right';
+  readonly degrees: number;
+}
+
+/**
+ * A road's records with each right angle turned by its degrees to its side: the records from its record on turned about
+ * that record's start, so that the plan lays the corner as a turn about it and the road on from it as its tables run.
  */
 export function rightAngled(
   records: readonly RoadPlanRecord[],
@@ -61,7 +77,7 @@ export function rightAngled(
   for (const angle of angles) {
     const k = out.findIndex((r) => r.start === angle.at);
     if (k < 1) throw new RangeError(`No record starts a right angle at ${angle.at}`);
-    const by = angle.side === 'right' ? units / 4 : -units / 4;
+    const by = ((angle.side === 'right' ? 1 : -1) * units * angle.degrees) / 360;
     const [px, py] = [out[k]!.x, out[k]!.y];
     const [c, s] = [Math.cos(by * angleRadians(tables)), Math.sin(by * angleRadians(tables))];
     out = out.map((r, i) =>

@@ -68,6 +68,12 @@ export const CISCO_HEAT_CONVERSION_VERSION = 3;
 /** How far a record may depart from its table's next heading and position: BIG RUN's (K, 2026-11-09). */
 const PLAN_LIMITS = Object.freeze({ heading: (0.03 * Math.PI) / 180, position: 14 });
 
+/**
+ * The angle each stage lays its right angles at, degrees: STAGE 1's at 45° and STAGE 2's at 60°, their two streets drawn,
+ * the others' at 90° until K has driven those two (a trial, K, 2026-11-27).
+ */
+const CORNER_DEGREES = [45, 60, 90, 90, 90] as const;
+
 /** Its own car, the sedan: the Ford LTD Crown Victoria of 1990's width, metres (Edmunds). */
 const CAR_METRES = 1.969;
 
@@ -263,12 +269,15 @@ export function ciscoHeatCourses(set: RomSet) {
       roads: taken,
       leavesAt,
       heights,
+      streets,
     } = layBoardCourse({
       id,
       name,
       tables: CISCO_HEAT_TABLES,
       planLimits: PLAN_LIMITS,
-      rightAngles: ciscoHeatRightAngles(main, stage).filter((a) => a.at < end),
+      rightAngles: ciscoHeatRightAngles(main, stage)
+        .filter((a) => a.at < end)
+        .map((a) => ({ ...a, degrees: CORNER_DEGREES[stage]! })),
       roads,
       goal,
       end,
@@ -410,6 +419,15 @@ export function ciscoHeatCourses(set: RomSet) {
       // Where the course follows road 1 from, and where the other road is the road not taken from.
       follows: taken.switchAt < Infinity ? [1, taken.switchAt] : [2, 0],
       notTaken: leavesAt < Infinity ? leavesAt : null,
+      // Its right angles' turns: where, to which side, at what angle, how long and of what radius, metres; and the
+      // streets drawn where two cross, from where to where along the course, metres.
+      corners: plan.p.turns.flatMap((t) => {
+        const corner = ciscoHeatRightAngles(main, stage).find((a) => t.from <= a.at && a.at <= t.to);
+        if (!corner) return [];
+        const length = (t.to - t.from) * metres;
+        return [[corner.at, corner.side, CORNER_DEGREES[stage]!, round1(length), round1(length / Math.abs(t.turn))]];
+      }),
+      streets: streets.map((t) => [t.corner.at, t.side, round1(station(t.from)), round1(station(t.to))]),
       // Its objects: placed, their hits, those not placed (other kinds, above the course, past the road not taken), and
       // where their pictures' bottom edges lie over their roads, metres: at 10, 50 and 90 %, and how many above 1 m.
       objects: {

@@ -491,6 +491,10 @@ its records draw (`arcPlan`, `arc-plan`) (K, 2026-11-09):
   cut there (K, 2026-11-09). Where the two start apart, the second is laid from its own first point and heading, in the
   tables' plane as P is, its miss where they first meet spread the same way. Its lateral at a station of P is taken
   across P, and is refused where it heads more than 60° from P (a road that leaves).
+- **Streets crossing at a turn** (`crossingStreets`; CISCO HEAT's corners): the two straight lines a turn of P's turns
+  between, each running on through the point where they meet, which lies abreast of the turn's middle: the one P leaves
+  on ahead from the turn's middle, the one it takes back from it. Each one's lateral at a station of P is taken across
+  P as a second road's, and is refused where it heads more than 60° from P.
 - **Stops.** The conversion stops where a turn takes more than the records either side of it hold, two
   turns overlap, a turn reaches the table's start or end, or an arc turns tighter than its lanes' least radius, as a
   curve table's does.

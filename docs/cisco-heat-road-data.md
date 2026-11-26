@@ -170,17 +170,26 @@ Its five courses (`cisco-heat-course`, each laid as the board's, `jaleco/board-c
   the road not taken, drawn as far as it heads within 60° of road 1. As a rule of the board's: where the original holds
   the car on road 1 after it has left P for good, the course follows it from where it left, and the other road is not
   taken from where the car is held on the course's road.
-- **Its right angles** ([Stage CS](NEXT.md#stage-cs--cisco-heat-from-the-roms), K, 2026-11-15). Its main program's
-  first plan list marks them (`ciscoHeatRightAngles`, [research](research/cisco-heat.md#its-right-angles)): a record
-  whose last word has bit 14 set is a turn of 90° about its start, left with bit 11 and right with bit 10, where its
-  road tables run straight. Its two roads' records from that record on are turned a quarter turn about its start, so
-  that the plan lays the corner as one 90° turn, its middle at the record's start, and the road on from it as its
-  tables run. The turn is as tight as the course's limits allow: its inside's limit alone (10.4 m) where both sides'
-  (21 m) bound every other turn, and the Sections near it, cut at its middle and its ends, reach their inside's limit
-  alone. Outside it the street across, its road's surface, reaches three limits' reach beyond the course's limit. Its
-  objects stand at their stations, its sky turns with the road. Its tables' own jumps, STAGE 1's two of 10° at 147,760
-  and 155,760 among them, are laid as its tables give them. All 29 are laid: STAGE 1's 3, STAGE 2's 8, STAGE 3's 12,
-  STAGE 4's 4 and STAGE 5's 2.
+- **Its right angles** ([Stage CS](NEXT.md#stage-cs--cisco-heat-from-the-roms), K, 2026-11-15 and 2026-11-27). Its
+  main program's first plan list marks them (`ciscoHeatRightAngles`, [research](research/cisco-heat.md#its-right-angles)):
+  a record whose last word has bit 14 set is a turn of 90° about its start, left with bit 11 and right with bit 10, where
+  its road tables run straight. Its two roads' records from that record on are turned about its start by the stage's
+  angle, 45° in STAGE 1 and 60° in STAGE 2 (a trial, K, 2026-11-27) and 90° in the others, so that the plan lays the
+  corner as one turn, its middle at the record's start, and the road on from it as its tables run. The turn is as tight
+  as the course's limits allow: its inside's limit alone (10.4 m) where both sides' (21 m) bound every other turn, so
+  8.2 m long at 45°, 10.9 m at 60° and 16.3 m at 90°; the Sections near it, cut at its middle, reach their inside's
+  limit alone. A corner of 45° or 60° is where two streets cross ([streets crossing at a
+  turn](original-road-data.md#plan-from-a-tables-arcs)), each drawn as far as it heads within 60° of P, from the
+  corner's middle out to 200 m along the course (the screen's farthest) or to the next corner: the one it leaves on
+  ahead in the course's own picture there, the one it takes back from it in its picture just past the corner. Each is
+  a road not taken's picture beneath the course's, road 2's painted runs between its edges, each its stripe's most
+  common color, with no material, so that its strips keep within the format's 64 over the course's two roads; the
+  course's limits there are as on either side of it. At 60° a street heads at that rule's limit wherever P runs
+  straight on: those of STAGE 2's 425,224 and 446,268 are refused where their turns end. At 90° its turn is a Section on each side of its middle and, outside it, the
+  street across, its road's surface, reaches three limits' reach beyond the course's limit. Its objects stand at their
+  stations, its sky turns with the road. Its tables' own jumps, STAGE 1's two of 10° at 147,760 and 155,760 among
+  them, are laid as its tables give them. All 29 are laid: STAGE 1's 3, STAGE 2's 8, STAGE 3's 12, STAGE 4's 4 and
+  STAGE 5's 2.
 - **Its lanes** are its most common picture's ([its road across](#its-road-across)) over its two roads, each at its
   own centre ([two roads](original-road-data.md#two-roads)).
 - **Its pictures.** Each road's picture across, its nearest line's runs, is laid at its centre as BIG RUN's are, road 2's

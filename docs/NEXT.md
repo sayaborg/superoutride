@@ -1248,9 +1248,13 @@ K decided (2026-11-12):
   goal; road 2 is the road not taken from there, drawn clear to 515,706 and going on 16° right of road 1 from 556,330.
 - **Its right-angle turns.** The main program's first plan list marks them: a record whose last word has bit 14 set is a
   turn of 90° about that record's start, left with bit 11 and right with bit 10, 29 over its five stages, which its road
-  tables run straight through. The course lays a 90° arc there, as tight as its inside limit allows, the street across
-  painted as ground. Its tables' own jumps, STAGE 1's two of 10° among them, stay as the tables give them (K,
-  2026-11-15, replacing the trial of 2026-11-13 at those two).
+  tables run straight through. A road turning 90° is not seen from before it: a row's width falls as the road heads
+  away from the camera and is none at 90°. So the course lays each as a corner of a smaller angle, as tight as its
+  inside limit allows, where two streets cross, each running on through: the street it leaves ahead of the corner and
+  the street it takes back from it, each a road not taken, a picture beside the course's road. It is tried first (K,
+  2026-11-27) at 45° in STAGE 1 and at 60° in STAGE 2, the other stages' kept at 90° until K has driven those two;
+  there the street across is no longer painted as ground and no limit is widened. Its tables' own jumps, STAGE 1's two
+  of 10° among them, stay as the tables give them (K, 2026-11-15).
 
 The stage starts by reading how its screen draws its two roads where their order changes, which one's paint shows over
 the other's, and its courses' PR measures its own car's width again.

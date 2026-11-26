@@ -14,7 +14,7 @@ import type {
 } from '../../../src/course/course-document.js';
 import { COURSE_DOCUMENT_LIMITS } from '../../../src/course/course-limits.js';
 import { CAMERA_DEFINITION } from '../../../src/view/camera-definition.js';
-import { cameraDistance } from '../../../src/view/camera.js';
+import { cameraDistance, RENDER_FAR_DEPTH_METERS } from '../../../src/view/camera.js';
 import type { ArcPlanLimits } from '../shared/arc-plan.js';
 import { contractUnmet } from '../shared/conversion-errors.js';
 import { CoursePath } from '../shared/course-path.js';
@@ -41,7 +41,7 @@ const SAMPLE = 500;
 /** A turn's inside read at this many even steps over it, and the plan laid at most this many times to keep it. */
 const INSIDE_SAMPLES = 8;
 const PLAN_PASSES = 8;
-/** How far the street across a right angle reaches beyond its limits outside it, units (a trial's, K, 2026-11-13). */
+/** How far the street across a 90° right angle reaches beyond its limits outside it, units (a trial's, K, 2026-11-13). */
 const CROSS_UNITS = 3 * LIMIT_UNITS;
 /** A stripe's part: the stripes' runs are whole multiples of it, positions. */
 const STRIPE_PART = 15;
@@ -153,7 +153,7 @@ export interface BoardStage {
   readonly planLimits: ArcPlanLimits;
   /** Its two roads' tables to `end`, road 1's and road 2's. */
   readonly roads: readonly [RoadTables, RoadTables];
-  /** The turns its original shows at right angles, each a quarter turn about its record's start (K, 2026-11-15). */
+  /** The turns its original shows at right angles, each turned by its degrees about its record's start (K, 2026-11-15). */
   readonly rightAngles: readonly RightAngle[];
   readonly goal: number;
   readonly end: number;
@@ -397,9 +397,73 @@ export function layBoardCourse(stage: BoardStage) {
     records
       .filter((r, i) => i > 0 && (r.kind !== records[i - 1]!.kind || r.variant !== records[i - 1]!.variant))
       .map((r) => r.start);
-  const pictureChanges = [...changes(road1.plan), ...changes(road2.plan)];
-  // Each right angle's turn on P, a Section on each side of its middle.
-  const cornerTurns = plan.p.turns.filter((t) => stage.rightAngles.some((r) => t.from <= r.at && r.at <= t.to));
+  // Each right angle with its turn on P; one at 90° has the street across painted as ground, its turn a Section on each
+  // side of its middle.
+  const corners = stage.rightAngles.flatMap((r) => {
+    const turn = plan.p.turns.find((t) => t.from <= r.at && r.at <= t.to);
+    return turn ? [{ ...r, turn }] : [];
+  });
+  const cornerTurns = corners.map((c) => c.turn);
+  const paintedTurns = corners.filter((c) => c.degrees >= 90).map((c) => c.turn);
+  // A corner of less than 90° draws its two streets (a trial, K, 2026-11-27): the one it leaves on ahead of its middle
+  // in P's picture there, the one it takes back from it in P's picture just past the corner, each a road not taken's
+  // picture beside the course's, with no material, from the corner's middle out as far as the screen draws or to the
+  // next corner, as far as it heads within 60° of P. A street's picture is its painted runs between its edges, each
+  // its stripe's most common color, so that it keeps within the format's active strips over the course's two roads.
+  const plain = (runs: readonly ColoredRun[]) =>
+    runs
+      .filter(({ run }) => run.pen !== null && run.paint !== 'outside')
+      .map((r) => {
+        const count = new Map<number | null, number>();
+        for (const c of r.colors) count.set(c, (count.get(c) ?? 0) + 1);
+        const most = [...count].sort((x, y) => y[1] - x[1])[0]![0];
+        return { ...r, colors: r.colors.map(() => most) };
+      });
+  const marks = stage.rightAngles.map((a) => a.at);
+  const farthest = RENDER_FAR_DEPTH_METERS / metres;
+  const streets = corners
+    .filter((c) => c.degrees < 90)
+    .flatMap((c, k) => {
+      const lines = plan.streets(c.turn);
+      const half = (c.turn.to - c.turn.from) / 2;
+      const past = road2.plan.find((r) => r.start > c.at) ?? pictureAt(2, c.at);
+      const street = (side: 'ahead' | 'back') => {
+        const way = side === 'ahead' ? 1 : -1;
+        const bound =
+          way > 0
+            ? Math.min(end, c.at + farthest, ...marks.filter((m) => m > c.at))
+            : Math.max(0, c.at - farthest, ...marks.filter((m) => m < c.at));
+        const at = [
+          ...Array.from({ length: INSIDE_SAMPLES + 1 }, (_, j) => c.at + (way * half * j) / INSIDE_SAMPLES),
+          ...Array.from(
+            { length: Math.ceil(Math.abs(bound - c.at) / SAMPLE) },
+            (_, j) => c.at + way * (j + 1) * SAMPLE,
+          ),
+        ].map((p) => (way > 0 ? Math.min(p, bound) : Math.max(p, bound)));
+        const knots: [number, number][] = [];
+        for (const p of [...new Set(at)]) {
+          try {
+            knots.push([p, (lines[side](p) * metres) / ACROSS]);
+          } catch {
+            break;
+          }
+        }
+        knots.sort((x, y) => x[0] - y[0]);
+        if (knots.length < 2) return [];
+        return {
+          id: `street-${k}-${side}`,
+          from: knots[0]![0],
+          to: knots.at(-1)![0],
+          stops: knots.map(([p]) => p),
+          lateral: straightThrough(knots),
+          runs: (p: number) => plain(stage.runsOf(original(2, p), way > 0 ? pictureAt(2, p) : past, p)),
+          side,
+          corner: c,
+        };
+      };
+      return [street('ahead'), street('back')].flat();
+    });
+  const pictureChanges = [...changes(road1.plan), ...changes(road2.plan), ...streets.flatMap((t) => [t.from, t.to])];
   const sectionCuts = [
     ...(stage.cutAtPictures ? pictureChanges : []),
     ...plan.beside.partings.flatMap((g) => [g.from, g.to]),
@@ -407,7 +471,7 @@ export function layBoardCourse(stage: BoardStage) {
     ...stage.cuts,
     // A right angle: the road on either side of it comes near itself.
     ...stage.rightAngles.map((a) => a.at),
-    ...cornerTurns.flatMap((t) => [t.from, t.to]),
+    ...paintedTurns.flatMap((t) => [t.from, t.to]),
     ...(leavesAt < end ? [notTakenEnd] : []),
   ].filter((p) => p > 0 && p < end);
   // Where a Section's pictures' stretches are cut: its own cuts and every picture change, each once and in order, so
@@ -428,19 +492,20 @@ export function layBoardCourse(stage: BoardStage) {
     const bounds = [...new Set([0, ...sectionCuts, ...changesAt, end])].sort((a, b) => a - b);
     const stripsOver = (a: number, b: number) => {
       const at = (a + b) / 2;
-      return ([1, 2] as const)
-        .filter((road) => drawn(road, at))
-        .reduce(
-          (sum, road) =>
-            sum +
-            runsOf(road, at).reduce((n, { colors }) => {
-              let parts = 0;
-              for (let k = STRIPE_PART; k < colors.length; k += STRIPE_PART)
-                if (colors[k] !== colors[k - STRIPE_PART]) parts++;
-              return n + 1 + 3 * parts;
-            }, 2),
-          4,
-        );
+      return [
+        ...([1, 2] as const).filter((road) => drawn(road, at)).map((road) => runsOf(road, at)),
+        ...streets.filter((t) => t.from <= at && at <= t.to).map((t) => t.runs(at)),
+      ].reduce(
+        (sum, runs) =>
+          sum +
+          runs.reduce((n, { colors }) => {
+            let parts = 0;
+            for (let k = STRIPE_PART; k < colors.length; k += STRIPE_PART)
+              if (colors[k] !== colors[k - STRIPE_PART]) parts++;
+            return n + 1 + 3 * parts;
+          }, 2),
+        4,
+      );
     };
     let filled = 0;
     for (let i = 0; i + 1 < bounds.length; i++) {
@@ -479,9 +544,9 @@ export function layBoardCourse(stage: BoardStage) {
       ground: stage.clearGround,
     };
   };
-  // A Section's limits at `mid` outside a right angle, the street across reaching out `CROSS_UNITS` beyond them.
+  // A Section's limits at `mid` outside a 90° right angle, the street across reaching out `CROSS_UNITS` beyond them.
   const crossing = (limits: ProgramLimits, mid: number): ProgramLimits => {
-    const corner = cornerTurns.find((t) => t.from <= mid && mid < t.to);
+    const corner = paintedTurns.find((t) => t.from <= mid && mid < t.to);
     if (!corner) return limits;
     const out = (knots: ProgramLimits['left'], by: number) =>
       knots.map(([s, v]) => [s, v + by * CROSS_UNITS * ACROSS] as const);
@@ -601,7 +666,7 @@ export function layBoardCourse(stage: BoardStage) {
               [s, micrometre(shownIn(Math.max(0, positionOf(s)), positionOf(span.to)) * ACROSS)] as [number, number],
           ),
       );
-      const fromCentre = (road: RoadNumber, x: number): Lateral =>
+      const roadLateral = (road: RoadNumber, x: number): Lateral =>
         road === 2 ? micrometre(x * ACROSS) : { boundary: 'road-1-centre', offset: micrometre(x * ACROSS) };
       // Its pictures' stretches: cut where either road's picture changes or one is drawn or not.
       const within = [
@@ -615,12 +680,15 @@ export function layBoardCourse(stage: BoardStage) {
         const at = (Math.max(positionOf(a), 0) + positionOf(b)) / 2;
         // Road 2's clear runs first, road 1's picture over them, then road 2's own: where road 2 is clear the
         // picture beneath it shows, or none.
-        const layer = (road: RoadNumber, clear: boolean) => {
-          if (!drawn(road, at)) return [];
-          // The road not taken's picture has no material: the car never reaches it.
-          const away = road === 1 && at >= leavesAt;
+        // A road's layer, or a street's, P's picture at its centre, its outer runs its picture's own width.
+        const layer = (road: RoadNumber, clear: boolean, street?: (typeof streets)[number]) => {
+          if (!street && !drawn(road, at)) return [];
+          // The road not taken's picture and a street's have no material: the car never reaches them.
+          const away = street !== undefined || (road === 1 && at >= leavesAt);
           const groundOf = (material: Material | null) => (away ? null : (material ?? stage.clearGround));
-          const runs = runsOf(road, at);
+          const runs = street ? street.runs(at) : runsOf(road, at);
+          const fromCentre = (road: RoadNumber, x: number): Lateral =>
+            street ? { boundary: street.id, offset: micrometre(x * ACROSS) } : roadLateral(road, x);
           // Its inner runs of this layer that are painted: the most common of them across, its stripe and ground, is
           // laid beneath each stretch of them, and each over it only where it differs, so that a picture keeps within
           // the format's active strips.
@@ -671,8 +739,8 @@ export function layBoardCourse(stage: BoardStage) {
             const colored = bandStrips(
               colors,
               outerRun ? null : ground,
-              k === 0 ? null : fromCentre(road, run.from),
-              k === all.length - 1 ? null : fromCentre(road, run.to),
+              k === 0 && !street ? null : fromCentre(road, run.from),
+              k === all.length - 1 && !street ? null : fromCentre(road, run.to),
               a,
               b,
               positionAt,
@@ -696,7 +764,9 @@ export function layBoardCourse(stage: BoardStage) {
         };
         // The original's second road over its first, whichever is P.
         const [under, over] = original(2, at) === 2 ? ([1, 2] as const) : ([2, 1] as const);
-        return [...layer(over, true), ...layer(under, false), ...layer(over, false)];
+        // The streets beneath the course's roads.
+        const crossing = streets.filter((t) => t.from <= at && at <= t.to).flatMap((t) => layer(2, false, t));
+        return [...crossing, ...layer(over, true), ...layer(under, false), ...layer(over, false)];
       });
       const inForce = [...skyKnots].reverse().find((k) => k.s <= span.from + 1e-6)!;
       const environment = (k: BoardSkyKnot, s: number): EnvironmentDocument => ({
@@ -716,8 +786,8 @@ export function layBoardCourse(stage: BoardStage) {
         const { run, colors } = side < 0 ? runs[0]! : runs.at(-1)!;
         const centre = road === 1 ? lateral1.at(mid) : 0;
         const [from, to] = side < 0 ? [1 - LIMIT_UNITS, run.to] : [run.from, LIMIT_UNITS - 1];
-        // Outside a right angle the street across, its road's surface, reaches out.
-        const corner = cornerTurns.find((t) => t.from <= mid && mid < t.to);
+        // Outside a 90° right angle the street across, its road's surface, reaches out.
+        const corner = paintedTurns.find((t) => t.from <= mid && mid < t.to);
         const across = corner && side === (corner.turn < 0 ? -1 : 1);
         const color = across
           ? (runsOf(road, mid).find((r) => r.run.paint === 'surface')?.colors[0] ?? colors[0])
@@ -729,8 +799,8 @@ export function layBoardCourse(stage: BoardStage) {
             colors: [color ?? 0],
             material: across || color === null || color === undefined ? stage.clearGround : groundMaterial(color),
           },
-          left: fromCentre(road, from),
-          right: fromCentre(road, to),
+          left: roadLateral(road, from),
+          right: roadLateral(road, to),
         };
       };
       return {
@@ -768,6 +838,17 @@ export function layBoardCourse(stage: BoardStage) {
             id: 'road-1-centre',
             knots: road1Knots.map(([s, lateral]) => ({ at: positionAt(s), lateral })),
           },
+          // Each street's centre over the part of it within the Section.
+          ...streets.flatMap((t) => {
+            const [a, b] = [Math.max(t.from, positionOf(span.from)), Math.min(t.to, positionOf(span.to))];
+            if (!(b - a > 1e-6)) return [];
+            const knots = simplified(
+              [a, ...t.stops.filter((p) => p > a && p < b), b].map(
+                (p) => [station(p), micrometre(t.lateral.at(p) * ACROSS)] as [number, number],
+              ),
+            );
+            return [{ id: t.id, knots: knots.map(([s, lateral]) => ({ at: positionAt(s), lateral })) }];
+          }),
         ],
         sprites: placed
           .filter((t) => t.s >= span.from && (t.s < span.to || (span.to >= laidLength - 1e-6 && t.s <= span.to)))
@@ -789,5 +870,5 @@ export function layBoardCourse(stage: BoardStage) {
       };
     },
   });
-  return { laid, plan, path, station, placed, skyKnots, roads, leavesAt, heights };
+  return { laid, plan, path, station, placed, skyKnots, roads, leavesAt, heights, streets };
 }

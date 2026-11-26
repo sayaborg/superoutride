@@ -313,6 +313,24 @@ export function meetingsWithP(p: readonly ArcRecord[], q: readonly ArcRecord[], 
 const ACROSS = 0.5;
 
 /**
+ * A road's lateral beside P at P's station `s`, P's pose there `at`: where the line across P there meets the road whose
+ * pose at its own station `t` is `pose(t)`, found from `t = s` (positions right of P, across P); refused where the road
+ * heads more than 60° from P.
+ */
+function across(s: number, at: ArcPose, pose: (t: number) => ArcPose) {
+  const [ux, uy] = [Math.cos(at.heading), Math.sin(at.heading)];
+  let t = s;
+  for (let n = 0; n < 8; n++) {
+    const o = pose(t);
+    const cos = Math.cos(o.heading - at.heading);
+    if (cos < ACROSS) throw contractUnmet(`A road beside P heads more than 60° from P at ${s}`);
+    t -= ((o.x - at.x) * ux + (o.y - at.y) * uy) / cos;
+  }
+  const o = pose(t);
+  return (o.x - at.x) * uy - (o.y - at.y) * ux;
+}
+
+/**
  * A second road from its own table `q` beside P's `p` ([Plan from a table's arcs](../../../docs/original-road-data.md#plan-from-a-tables-arcs)),
  * each table's plan its `arcPlan` (`pPlan`, `qPlan`) and P laid from its first record:
  * - where the two tables hold one record (start, arc, pose and end), the two roads are one;
@@ -362,24 +380,41 @@ export function secondRoad(
     const f = (s - g.from) / (g.to - g.from);
     return { x: own.x - g.dx * f, y: own.y - g.dy * f, heading: own.heading };
   };
-  const lateralAt = (s: number) => {
-    if (!partingAt(s)) return 0;
-    const at = P.pose(s);
-    const [ux, uy] = [Math.cos(at.heading), Math.sin(at.heading)];
-    // The second's station abreast of P's: where the line across P at `s` meets it.
-    let t = s;
-    for (let n = 0; n < 8; n++) {
-      const o = pose(t);
-      const cos = Math.cos(o.heading - at.heading);
-      if (cos < ACROSS) throw contractUnmet(`A second road heads more than 60° from P at ${s}`);
-      t -= ((o.x - at.x) * ux + (o.y - at.y) * uy) / cos;
-    }
-    const o = pose(t);
-    return (o.x - at.x) * uy - (o.y - at.y) * ux;
-  };
+  const lateralAt = (s: number) => (partingAt(s) ? across(s, P.pose(s), pose) : 0);
   return {
     partings: partings.map(({ from, to, meets, jumps, miss }): ArcParting => ({ from, to, meets, jumps, miss })),
     pose,
     lateralAt,
+  };
+}
+
+/**
+ * The two streets that cross where the plan `pPlan` of P's records `p` turns by `turn` ([Plan from a table's
+ * arcs](../../../docs/original-road-data.md#plan-from-a-tables-arcs)): the straight lines it turns between, each running
+ * on through the point where they meet, the turn's middle abreast of it. The one it leaves runs on ahead (`ahead`, from
+ * the turn's middle on), the one it takes back before it (`back`, to its middle); each one's lateral at P's station `s`
+ * is taken across P as a second road's (positions right of P), and is refused where it heads more than 60° from P.
+ */
+export function crossingStreets(p: readonly ArcRecord[], pPlan: ReturnType<typeof arcPlan>, turn: ArcTurn) {
+  const P = new PlanWalk(pPlan.elements, p[0]!.start, poseOf(p[0]!));
+  const [a, b] = [P.pose(turn.from), P.pose(turn.to)];
+  // Where the line P leaves along meets the one it takes: `k` positions on from where the turn starts.
+  const [ax, ay, bx, by] = [Math.cos(a.heading), Math.sin(a.heading), Math.cos(b.heading), Math.sin(b.heading)];
+  const k = ((b.x - a.x) * by - (b.y - a.y) * bx) / (ax * by - ay * bx);
+  const [mx, my] = [a.x + ax * k, a.y + ay * k];
+  const middle = (turn.from + turn.to) / 2;
+  /** A street along `heading` through where they meet, its station `middle` there. */
+  const street =
+    (heading: number) =>
+    (t: number): ArcPose => ({
+      x: mx + Math.cos(heading) * (t - middle),
+      y: my + Math.sin(heading) * (t - middle),
+      heading,
+    });
+  const [ahead, back] = [street(a.heading), street(b.heading)];
+  return {
+    middle,
+    ahead: (s: number) => across(s, P.pose(s), ahead),
+    back: (s: number) => across(s, P.pose(s), back),
   };
 }
