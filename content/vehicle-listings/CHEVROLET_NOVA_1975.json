@@ -1,0 +1,33 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 6,
+  "form": "car",
+  "selectionOrder": 44,
+  "visuals": {
+    "spriteSet": "chevrolet-nova-1975",
+    "palette": "red",
+    "steeringPicture": "montecarlo",
+    "colorNames": {
+      "red": "RED",
+      "white": "WHITE",
+      "silver-metallic": "SILVER METALLIC",
+      "medium-blue": "MEDIUM BLUE",
+      "dark-green-metallic": "DARK GREEN METALLIC",
+      "cream-beige": "CREAM-BEIGE",
+      "bright-yellow": "BRIGHT YELLOW",
+      "persimmon-metallic": "PERSIMMON METALLIC"
+    }
+  },
+  "sound": "CHEVROLET_NOVA_1975",
+  "metadata": {
+    "manufacturer": "Chevrolet",
+    "model": "Nova 4-Door Sedan",
+    "period": "1975",
+    "mobileLabel": "NOVA",
+    "engine": "V8",
+    "engineKind": "4-stroke",
+    "identifier": { "officialLabel": "Nova", "shortLabel": "Nova" },
+    "selectedSpecification": ["LM1 350 4-bbl", "Turbo Hydra-Matic", "3.08 axle"],
+    "physicsAnchor": { "modelYear": "1975", "market": "US" }
+  }
+}

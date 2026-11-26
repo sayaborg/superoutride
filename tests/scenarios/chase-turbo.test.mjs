@@ -16,7 +16,7 @@ scenarioTests({
     'CORVETTE_C4_1984',
     'AUSTIN_MINI_850_1964',
     'WRANGLER_YJ_1995',
-    'NOVA_250_1977',
+    'CHEVROLET_NOVA_1975',
     'NOVA_9C1_1977',
   ].map((vehicleId) => ({
     name: `${vehicleId}: FREE PLAY drive and render`,

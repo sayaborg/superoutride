@@ -5,8 +5,8 @@ import { createProceduralVehicleSolid, type Point3, type SurfaceColor } from './
 
 /**
  * Original, provisional authoring geometry. Dimensions and limitations are recorded in chase-turbo-vehicles.md. The
- * ledger's Porsche 959, 928 S4, F40, Turbo Esprit, Countach, 911 Turbo 3.3 and GTO have none: their pictures are
- * baked from K's models.
+ * ledger's Porsche 959, 928 S4, F40, Turbo Esprit, Countach, 911 Turbo 3.3, GTO and Nova of 1975 have none: their
+ * pictures are baked from K's models.
  */
 export const CHASE_TURBO_PICTURES = {
   PORSCHE_928_S_1984: 'porsche-928-s-1984',
@@ -14,7 +14,6 @@ export const CHASE_TURBO_PICTURES = {
   CORVETTE_C4_1984: 'corvette-c4-1984',
   AUSTIN_MINI_850_1964: 'austin-mini-850-1964',
   WRANGLER_YJ_1995: 'wrangler-yj-1995',
-  NOVA_250_1977: 'nova-250-1977',
   NOVA_9C1_1977: 'nova-9c1-1977',
 } as const;
 export type ChaseTurboId = keyof typeof CHASE_TURBO_PICTURES;
@@ -33,7 +32,6 @@ const bodies: Record<ChaseTurboId, Rgb> = {
   CORVETTE_C4_1984: blue,
   AUSTIN_MINI_850_1964: [45, 115, 75],
   WRANGLER_YJ_1995: [180, 150, 95],
-  NOVA_250_1977: [120, 170, 190],
   NOVA_9C1_1977: black,
 };
 
@@ -86,7 +84,7 @@ export function chaseTurboSolids(id: ChaseTurboId, m: VehicleMechanicsDocument) 
     pickup = id === 'TOYOTA_PICKUP_1980',
     jeep = id === 'WRANGLER_YJ_1995',
     police = id === 'NOVA_9C1_1977',
-    nova = police || id === 'NOVA_250_1977';
+    nova = police;
   const mix = (a: Point3, b: Point3, t: number): Point3 => [
     a[0] + (b[0] - a[0]) * t,
     a[1] + (b[1] - a[1]) * t,

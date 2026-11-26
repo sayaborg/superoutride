@@ -617,10 +617,10 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `ford-f-700-1980`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `ford-f-700-1980`, `chevrolet-nova-1975`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
-sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`nova-250-1977`): drawn by
+sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`corvette-c4-1984`): drawn by
 code, original, for an earlier camera, and converted mechanically until generated sets replace them. Their size `k` is the reduction at
 octave `k` of a full-size picture whose anchor sits at the vehicle's base point (where a camera 1.75 m up and 6 m
 behind its ground line sees half the vehicle's width behind it), each reduced texel taking the set slot nearest its
@@ -1535,6 +1535,37 @@ In `yellow` and `navy` the cab and box are one color and the top band melts into
 markers are white. The listing's default is `white`, the model's own. The model is K's `ford-f-700-1980.glb` (SHA-256
 `89b21b24…`), kept on K's branch `codex/ford-f-700-1980-glb-source`, never on main; it has no wheel nodes, and its front
 hub is (0, 0.5095, 2.1714).
+
+**The Nova of 1975.** Its set, `chevrolet-nova-1975`, is baked from K's model of the 1975 Nova 4-Door Sedan by the
+F-700's recipe (K, 2026-11-26): the same light, reflections, glare, glass key, 64 directions and brake lamp colors, none
+moved for this car. It differs in its one key color, the body's red (200, 20, 26) within 8, its ramps (seven paint
+steps, three glass steps and four greys) and its spacing, 0.004 m as the F-150's and the F-700's: at 0.008 m pixels
+that no sample reached showed the dark inside, speckling the pictures (the stage auditor baked both). The magenta (255,
+0, 255) is the brake lamp. The number plates and badges are flat and blank (K).
+
+The model is in metres, +y up, +z forward and +x to the left, its origin on the road, on the centreline, halfway between
+the axles (z +1.4097 and −1.4097, GM's 111.0 in wheelbase). It is 4,996 mm long (GM's 196.7 in), 1,361 mm high (53.6
+in) and 1,947 mm across the mirrors; the front overhang is 861 mm and the rear 1,316 mm. Its tyres are FR78-14 at 0.663
+m across, and its four wheels are spun at that size: centres (±0.7785, 0.3316, 1.4097) m front and (±0.7495, 0.3316,
+−1.4097) m rear, GM's 61.3 and 59.0 in tracks, radius 0.3316 and width 0.205; the rims are 0.19 (an estimate).
+
+Its eight liveries are GM's 1975 colors by their names (codes 75, 11, 13, 24, 49, 50, 51 and 64), the model's red
+first; the base colors are the stage auditor's, provisional, not measured from paint samples:
+
+| Palette               | Name                | Base color    |
+| --------------------- | ------------------- | ------------- |
+| `red`                 | RED                 | 200, 20, 26   |
+| `white`               | WHITE               | 236, 234, 226 |
+| `silver-metallic`     | SILVER METALLIC     | 168, 172, 176 |
+| `medium-blue`         | MEDIUM BLUE         | 70, 110, 170  |
+| `dark-green-metallic` | DARK GREEN METALLIC | 36, 70, 52    |
+| `cream-beige`         | CREAM-BEIGE         | 226, 212, 176 |
+| `bright-yellow`       | BRIGHT YELLOW       | 236, 200, 50  |
+| `persimmon-metallic`  | PERSIMMON METALLIC  | 190, 84, 40   |
+
+The listing's default is `red`, the model's own. The model is K's `chevrolet-nova-1975.glb` (SHA-256 `46d411d3…`), kept
+on K's branch `codex/chevrolet-nova-1975-glb-source`, never on main; it has no wheel nodes, and its front hub is (0,
+0.3316, 1.4097).
 
 ## HUD picture generator
 

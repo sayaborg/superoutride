@@ -26,12 +26,14 @@ Each line is one area as it stands, with the document that owns it.
   ([Stage VW113](#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)), 39 with the F-150 of 1975
   ([Stage F150](#stage-f150--the-f-150-of-1975-in-out-runs-traffic)), 40 with the Corvette Stingray of 1970
   ([Stage C3](#stage-c3--the-corvette-stingray-of-1970-in-out-runs-traffic)) and 41 with the F-700 of 1980
-  ([Stage F700](#stage-f700--the-f-700-of-1980-in-out-runs-traffic)), in the same ledger
+  ([Stage F700](#stage-f700--the-f-700-of-1980-in-out-runs-traffic)), in the same ledger; the Nova 250 of 1977 is now
+  the Nova of 1975 ([Stage NV](#stage-nv--the-nova-of-1975-and-its-police-car))
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored),
   [the Beetle's](chase-turbo-vehicles.md#volkswagen-beetle-1500-of-1968-sources-versus-authored),
   [the F-150's](chase-turbo-vehicles.md#ford-f-150-of-1975-sources-versus-authored),
   [the Corvette Stingray's](chase-turbo-vehicles.md#chevrolet-corvette-stingray-of-1970-sources-versus-authored),
-  [the F-700's](chase-turbo-vehicles.md#ford-f-700-of-1980-sources-versus-authored)). Among the fourteen, the
+  [the F-700's](chase-turbo-vehicles.md#ford-f-700-of-1980-sources-versus-authored),
+  [the Nova of 1975's](chase-turbo-vehicles.md#chevrolet-nova-of-1975-sources-versus-authored)). Among the fourteen, the
   928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)), and
   the Turbo Esprit of 1984 the car it chases ([Stage E82](#stage-e82--the-turbo-esprit-of-1984-chase-hqs-rival)), the
   Countach 5000 QV of 1985 the car it chases on the second stage
@@ -69,7 +71,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
 - **Pictures.** GOLF GTI 16V's pictures are a generated set, VFR750R's a 3D prototype,
-  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the F-700 of 1980's, the M23 PP SPEC's, the NSR500 of 1984's and
+  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the F-700 of 1980's, the Nova of 1975's, the M23 PP SPEC's, the NSR500 of 1984's and
   the XR600R of 1985's baked from K's models, the three cars' with a car's glossy finish, the other vehicles' converted provisional pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
@@ -486,6 +488,33 @@ mirrored), the wheels' discs grey, one yellow step, in eight colors
   built for it in this stage.
 - The pictures' spacing: 0.004 m for the F-150 and the F-700, 0.008 m for the others, until the baker chooses it when
   every set is baked again (K, Stage F150).
+
+## Stage NV — The Nova of 1975 and its police car
+
+K's decisions of 2026-11-26: the catalog's two Novas of 1977, drawn by code, become the 1975 US Chevrolet Nova 4-Door
+Sedan (1XX69, the LM1 350 4-barrel, the Turbo Hydra-Matic, a 3.08 axle) and its police car, both baked from K's models.
+The two have the same mechanics and sound, the police car differing in looks alone; 9C1's equipment is not followed.
+Each has its own definition, the two files the same, and the police car's listing names the Nova's sound. The number
+plates and badges are flat and blank. The police car's four colors are black, green, yellow and red with white, black
+and white the default, with a star on the doors and a lamp on the roof; the Nova's eight are GM's 1975 colors
+([Arcade car selections](chase-turbo-vehicles.md#chevrolet-nova-of-1975-sources-versus-authored),
+[Model solids](image-assets.md#model-solids)).
+
+- NV-1: the Nova 250 of 1977 replaced by `CHEVROLET_NOVA_1975` (definition, sound, listing, the set baked from K's model,
+  SHA-256 `46d411d3…`, on `codex/chevrolet-nova-1975-glb-source`, never on main), in its selection order and in TURBO
+  OUTRUN's traffic; the engine loudness measured again.
+- NV-2: the police Nova of 1977 replaced by `CHEVROLET_NOVA_POLICE_1975`, its definition the Nova's, its sound the Nova's; the
+  procedural Novas' shapes removed.
+- NV-3: OUT RUN's traffic takes `CHEVROLET_NOVA_1975` as its eighth vehicle, of weight 1, in each of the six classes.
+- Not built in this stage (K's plans): the police car as CISCO HEAT's own car and TURBO OUTRUN's police, and the Nova in
+  CHASE H.Q.'s traffic.
+- To look at in DEV: the Nova's sound (a V8 through one crossover, one silencer and two tails; its loudness measured,
+  not heard); SELECT VEHICLE's eight colors, RED the default; the Nova small and far away in TURBO OUTRUN's traffic.
+- Estimates: the axles (a front share of 0.543), the CG height, springs, damping, travel and drag (the Nova 250's), the
+  wheel radius (FR78-14 as 205/75-14), the redline (4,400 rpm), every exhaust tube's length and the diameter; the
+  colors' base colors.
+- The measuring tool's `generate` is killed for want of memory in a 16 GB container (each worker compiles the content
+  again, about 6 GB); NV-1's loudness was measured by the same plan and jobs run in one process.
 
 ## Stage F120 — The F40 of 1988
 

@@ -1,0 +1,27 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 3,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875],
+  "exhaust": {
+    "valve": { "diameter": 0.0381, "open": 0.4 },
+    "diameter": 0.043,
+    "tubes": [
+      { "from": null, "to": 0, "length": 0.2 },
+      { "from": null, "to": 1, "length": 0.2 },
+      { "from": null, "to": 1, "length": 0.1 },
+      { "from": null, "to": 0, "length": 0.1 },
+      { "from": null, "to": 1, "length": 0.1 },
+      { "from": null, "to": 0, "length": 0.1 },
+      { "from": null, "to": 0, "length": 0.2 },
+      { "from": null, "to": 1, "length": 0.2 },
+      { "from": 0, "to": 1, "length": 1 },
+      { "from": 1, "to": 2, "length": 5.03 },
+      { "from": 2, "to": null, "length": 0.35 },
+      { "from": 2, "to": null, "length": 0.35 }
+    ]
+  },
+  "metadata": {
+    "note": "1975 US Chevrolet Nova 4-Door Sedan, LM1 350 4-barrel (5,735 cc, 155 hp SAE net): a V8, one exhaust valve a cylinder, firing 1-8-4-3-6-5-7-2 at even intervals; the tubes from the valves in that order, the left bank (1-3-5-7) to junction 0 and the right (2-4-6-8) to junction 1. Valve: 1.495-1.505 in (38.1 mm), lift 0.4100 in, which passes a quarter of the diameter, so the diameter as it is; open 288 / 720 = 0.4, from 78 BBDC / 30 ATDC (GM's 1975 Nova Vehicle Information Kit, MVMA form p. 9). Single exhaust with a crossover, one converter, one reverse-flow silencer and dual tail pipes (GM, Power Trains p. 14; MVMA p. 10): each bank's cast manifold, the middle two cylinders' tubes 0.10 m and the end two 0.20 m (estimates from the 4.40 in bore spacing, as for the Corvette of 1970); the crossover from the left manifold to the right 1.0 m (estimate); from there one tube of 5.03 m (an estimate: about 2.8 m of pipe through the converter to the silencer behind the rear axle, 0.4 m for the bends, and 1.83 m within the reverse-flow silencer, three times its 24.00 in body, counted in the tube's length as for the Beetle (K)); two tail pipes of 0.35 m (estimate). No expansion chamber is written. Diameter 0.043 m: the cast manifold's branch, about 38 mm inside, times 1.14 (an estimate, as for the Corvette of 1970); GM gives the crossover 2.00 in and the pipes behind it 2.25 in outside."
+  }
+}

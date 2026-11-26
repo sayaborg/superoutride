@@ -195,45 +195,6 @@
     ]
   },
   {
-    "id": "NOVA_250_1977",
-    "sprite": "nova-250-1977",
-    "sha256": "248bbd6c53089c768d01aadc4c051e67728fee00bf2c090d420b53520ce4694e",
-    "yawVariants": 64,
-    "bankVariants": 1,
-    "lods": [
-      {
-        "lod": 0,
-        "transparent": 0,
-        "lampPictures": 31
-      },
-      {
-        "lod": 1,
-        "transparent": 0,
-        "lampPictures": 39
-      },
-      {
-        "lod": 2,
-        "transparent": 0,
-        "lampPictures": 40
-      },
-      {
-        "lod": 3,
-        "transparent": 0,
-        "lampPictures": 35
-      },
-      {
-        "lod": 4,
-        "transparent": 0,
-        "lampPictures": 29
-      },
-      {
-        "lod": 5,
-        "transparent": 0,
-        "lampPictures": 0
-      }
-    ]
-  },
-  {
     "id": "NOVA_9C1_1977",
     "sprite": "nova-9c1-1977",
     "sha256": "da74a414dc11de4c5e9e4ae826b406544a2286482d9854fe05be7cdcebe8817f",

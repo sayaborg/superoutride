@@ -1,0 +1,103 @@
+{
+  "format": "superoutride.vehicle-model-recipe",
+  "version": 1,
+  "vehicle": "CHEVROLET_NOVA_1975",
+  "yawVariants": 64,
+  "model": {
+    "sha256": "46d411d384d880dadcb05b91aad01de87d9f977f0988281350494970ab9251ee",
+    "right": "-x",
+    "up": "+y",
+    "forward": "+z",
+    "frontHub": [0, 0.3316, 1.4097]
+  },
+  "spacing": 0.004,
+  "paints": {
+    "colors": [[200, 20, 26]],
+    "within": 8,
+    "lamp": [255, 0, 255]
+  },
+  "glass": {
+    "color": [10, 10, 12],
+    "within": 4,
+    "rough": 0.5
+  },
+  "ramps": {
+    "paints": [7],
+    "glass": 3,
+    "grey": 4,
+    "sampleYaws": 16
+  },
+  "light": {
+    "main": [-0.25, 0.85, 0.46],
+    "fill": [0.6, 0.2, 0.5],
+    "ambient": 0.08,
+    "sky": 0.14,
+    "mainWeight": 0.92,
+    "fillWeight": 0.06,
+    "greyGain": 1.5
+  },
+  "reflection": {
+    "paint": {
+      "f0": 0.1,
+      "horizon": [205, 218, 238],
+      "zenith": [120, 160, 230],
+      "haze": [70, 66, 68],
+      "ground": [20, 18, 20],
+      "fall": 0.1,
+      "power": 0.6
+    },
+    "glass": {
+      "f0": 0.8,
+      "horizon": [232, 240, 248],
+      "zenith": [58, 120, 222],
+      "haze": [205, 214, 224],
+      "ground": [86, 88, 92],
+      "fall": 0.35,
+      "power": 0.6
+    }
+  },
+  "glare": [
+    { "power": 30, "strength": 2, "glass": 1 },
+    { "power": 220, "strength": 4, "glass": 1.5 }
+  ],
+  "wheels": [
+    {
+      "center": [0.7785, 0.3316, 1.4097],
+      "radius": 0.3316,
+      "rim": 0.19,
+      "width": 0.205
+    },
+    {
+      "center": [-0.7785, 0.3316, 1.4097],
+      "radius": 0.3316,
+      "rim": 0.19,
+      "width": 0.205
+    },
+    {
+      "center": [0.7495, 0.3316, -1.4097],
+      "radius": 0.3316,
+      "rim": 0.19,
+      "width": 0.205
+    },
+    {
+      "center": [-0.7495, 0.3316, -1.4097],
+      "radius": 0.3316,
+      "rim": 0.19,
+      "width": 0.205
+    }
+  ],
+  "liveries": {
+    "red": [[200, 20, 26]],
+    "white": [[236, 234, 226]],
+    "silver-metallic": [[168, 172, 176]],
+    "medium-blue": [[70, 110, 170]],
+    "dark-green-metallic": [[36, 70, 52]],
+    "cream-beige": [[226, 212, 176]],
+    "bright-yellow": [[236, 200, 50]],
+    "persimmon-metallic": [[190, 84, 40]]
+  },
+  "brakeLamp": {
+    "off": [125, 12, 18],
+    "on": [255, 70, 40]
+  }
+}

@@ -6,12 +6,14 @@ the [Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-ver
 [Ford F-150 of 1975](#ford-f-150-of-1975-sources-versus-authored), the
 [Chevrolet Corvette Stingray of 1970](#chevrolet-corvette-stingray-of-1970-sources-versus-authored) and the
 [Ford F-700 of 1980](#ford-f-700-of-1980-sources-versus-authored), authored by its conventions.
-The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored).
+The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored), and the
+ordinary Nova [the 1975 Nova 4-Door Sedan](#chevrolet-nova-of-1975-sources-versus-authored).
 It records the chosen real-car specification, the limits of the evidence, the provisional authoring inputs and
 validation. Shared physics, images, sound and selection behavior retain their existing owners.
 
 The existing 1989 Corvette C4 remains a separate, byte-for-byte unchanged vehicle; the 1989 Porsche 930 has been
 removed, the 1986 car taking its place (MF-6c, K 2026-11-22).
+The 1977 Nova 250 has been removed, the 1975 Nova 4-Door Sedan taking its place (NV-1, K 2026-11-26).
 The unidentified box truck is deferred. These fourteen additions bring the selectable catalog from 21 to 35.
 They enter existing FREE PLAY car/all pools through catalog membership; no course, series, traffic policy,
 pursuit behavior, HUD, gear label or physics mechanism is added. They use ordinary contact and recovery.
@@ -39,7 +41,7 @@ the ledger is an audit, not an input loader. Do not interpret a precise decimal 
 | CORVETTE_C4_1984      | 1984 MY US Base Coupe, 1YY07                         | L83 5733 cc Cross-Fire V8; Doug Nash 4+3                        | Blue early C4, four round rear lamps, no high-mounted stop lamp         |
 | AUSTIN_MINI_850_1964  | Early 1964 UK standard Austin Mini 850, A-A2S7       | 848 cc A-series OHV four; 4MT, rubber-cone suspension           | Green, short upright two-door saloon; not a Cooper                      |
 | WRANGLER_YJ_1995      | 1995 MY US Wrangler S YJ, soft top                   | 2464 cc MPI four; AX-5 5MT                                      | Tan, rectangular headlights, family cage, rear spare and high stop lamp |
-| NOVA_250_1977         | 1977 MY US standard Nova four-door sedan             | L22 4097 cc OHV inline six; 3MT                                 | Light blue four-door body, steel wheels and chrome bumpers              |
+| CHEVROLET_NOVA_1975   | 1975 MY US Nova 4-Door Sedan, 1XX69                  | LM1 5735 cc OHV V8, 4-bbl; Turbo Hydra-Matic, 3.08 axle         | Red, K's model; four-door body, chrome bumpers, no plates or badges     |
 | NOVA_9C1_1977         | 1977 MY US Nova four-door COPO 9C1 basis             | LG3 5001 cc OHV V8; game 3MT conversion                         | Black/white police recolor and static roof lights                       |
 
 The supplied report's year choices are selections, not new identifications of the arcade sprites. In particular, The
@@ -58,9 +60,9 @@ K takes the car chased in CHASE H.Q.'s second stage for the Lamborghini Countach
 K takes the car chased in CHASE H.Q.'s fourth stage for the Ferrari GTO of 1984, Europe
 (K, 2026-11-23); nothing here claims the original says so.
 
-Except the 959's, the 928 S4's, the F40's, the Turbo Esprit's, the Countach's, the 911 Turbo 3.3's and the GTO's, the
-four palettes are game colors, without verified period paint codes; the police livery is especially not a claim of a
-factory delivery color. The stock-named palette key means the default game palette. The GTO has two colors: ROSSO
+Except the 959's, the 928 S4's, the F40's, the Turbo Esprit's, the Countach's, the 911 Turbo 3.3's, the GTO's and the
+Nova of 1975's, the four palettes are game colors, without verified period paint codes; the police livery is especially
+not a claim of a factory delivery color. The stock-named palette key means the default game palette. The GTO has two colors: ROSSO
 CORSA, the real car's, and H.Q. BLUE, the arcade original's blue, which is not a factory color
 ([item 18](#evidence-actually-consulted)).
 
@@ -88,7 +90,7 @@ Ferrari's dry mass is converted using 120 L fuel at an estimated 0.75 kg/L plus 
 then the driver. The F40's 1,235 kg is K's base ([below](#ferrari-f40-of-1988-sources-versus-authored)). Consumption and changing fuel mass are not simulated.
 
 Mass bases before the driver are S4 1590, Esprit 1220, Countach 1490, 930 1335, GTO 1265, early 928 S 1520,
-Pickup 1118.1, F40 1235, 959 Komfort 1600 (K's, [below](#porsche-959-of-1987-sources-versus-authored)), C4 1370, Mini 630, YJ 1331, Nova six 1410 and police Nova 1500 kg.
+Pickup 1118.1, F40 1235, 959 Komfort 1600 (K's, [below](#porsche-959-of-1987-sources-versus-authored)), C4 1370, Mini 630, YJ 1331, Nova of 1975 1616 and police Nova 1500 kg.
 S4 is a factory-table curb anchor; Pickup is 2465 lb converted from the exact long-bed column; C4 and YJ are
 rounded secondary curb values. Other non-Ferrari masses remain estimates or uncertain secondary-market
 interpretations. They must not be relabelled as verified dry weights.
@@ -112,8 +114,8 @@ converted to station torque by its rolling radius and rounded to 25 Nm. Actual b
 unchanged tire, load and protection rules. This is not a reconstruction of period hydraulic brake pressure,
 ABS, spring rates, bump travel, tire temperature, handling limits or stopping-distance tests.
 
-The 928 S, Mini, Toyota and Novas still lack a read, exact-year primary gearbox ratio table (the Esprit's ratios
-are Autocar's road-test tables, and the Countach's the period catalogue's, below). Their provisional ratios are explicit engineering estimates, not borrowed verified facts from
+The 928 S, Mini, Toyota and the police Nova still lack a read, exact-year primary gearbox ratio table (the Esprit's
+ratios are Autocar's road-test tables, and the Countach's the period catalogue's, below). Their provisional ratios are explicit engineering estimates, not borrowed verified facts from
 another year. The F40 uses gear pairs 2.769/1.722/1.227/0.963/0.767 and the European effective final reduction
 `(30/11)*(28/21)`; the transfer reduction is folded into the existing single final-drive field. The GTO manual's
 published ratios already include its transfer gears and therefore must not receive that factor a second time.
@@ -121,17 +123,18 @@ The 928 final reductions distinguish US S4 2.20 and 1984 US S 2.36. The S4's gea
 4.067/2.714/1.934/1.463/1.000 ([below](#porsche-928-s4-of-1987-sources-versus-authored)), which already include the
 gearbox's 33/21 countershaft pair and must not receive it again; the 928 S's intermediate gear set remains
 provisional. The 959's six ratios are its G59.01's tooth counts as the stage auditor read them
-([below](#porsche-959-of-1987-sources-versus-authored)). The ordinary Nova's exact gearbox/axle option combination
-remains unverified.
+([below](#porsche-959-of-1987-sources-versus-authored)). The Nova of 1975's three ratios and axle are GM's
+([below](#chevrolet-nova-of-1975-sources-versus-authored)).
 
 ## Evidence actually consulted
 
 Accessed 2026-10-23 UTC. Search snippets, blocked URLs and unread manuals are not treated as source verification.
 The numeric ledger distinguishes `source verified`, `calculated`, `engineering estimate` and `game design`, and for
-the 959, the 928 S4 and the F40 of 1988 `source (auditor)`: the stage auditor's reading, not read for the PR that
-wrote it ([959](#porsche-959-of-1987-sources-versus-authored), [928 S4](#porsche-928-s4-of-1987-sources-versus-authored),
-[F40](#ferrari-f40-of-1988-sources-versus-authored)); the 911 Turbo 3.3's colors (item 17) and the GTO's (item 18) are
-the auditor's reading likewise.
+the 959, the 928 S4, the F40 of 1988 and the Nova of 1975 `source (auditor)`: the stage auditor's reading, not read for
+the PR that wrote it ([959](#porsche-959-of-1987-sources-versus-authored),
+[928 S4](#porsche-928-s4-of-1987-sources-versus-authored), [F40](#ferrari-f40-of-1988-sources-versus-authored),
+[Nova](#chevrolet-nova-of-1975-sources-versus-authored)); the 911 Turbo 3.3's colors (item 17) and the GTO's (item 18)
+are the auditor's reading likewise.
 A source-verified secondary value means that page was read, not that it has primary-document authority.
 
 1. **928 S4 factory-table transcription**, [general/engine](https://www.jenniskens.eu/Technical/TechSpecs/TechSpecs1.htm)
@@ -182,10 +185,9 @@ A source-verified secondary value means that page was read, not that it has prim
    UK homologation. The 34 hp/5500, 44 lb-ft/2900, 8.3:1, curb mass and gearbox choices remain estimates.
    The contradictory SOHC description and later/Australian gear ratios are not adopted as verified UK data.
 10. **Nova production records**, [NovaResource](https://www.novaresource.org/production.htm), support the supplied
-    1977 family/engine selection only. They do not establish the adopted six-cylinder 110 hp/3800,
-    195 lb-ft/1600 or 305 V8 145 hp/3800, 245 lb-ft/2400 engine curves, mass, track or gearbox ratios.
-    Those are provisional engineering inputs pending an exact engine/market factory sheet. The police
-    conversion does not claim an original 9C1 manual option.
+    1977 family/engine selection of the police Nova only. They do not establish the adopted 305 V8 145 hp/3800,
+    245 lb-ft/2400 engine curve, mass, track or gearbox ratios. Those are provisional engineering inputs pending an
+    exact engine/market factory sheet. The police conversion does not claim an original 9C1 manual option.
 
 11. **Turbo Esprit, UK, road tests and parts** (MF-4, 2026-11-22). Autocar's December 1984 road test of the UK
     Turbo Esprit ([text](https://www.lotusespritturbo.com/Lotus_Turbo_Esprit_Road_Test_1984.htm)): 210 bhp at 6,250,
@@ -284,13 +286,14 @@ are not evidence for the selected 1988 non-catalyst road specification.
 
 ## Pictures and sound
 
-[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for seven of the
+[Shape authoring](../tools/graphics/chase-turbo-shapes.ts) creates original surface samples in metres for six of the
 cars; the 959's pictures are baked from K's model instead, in its four period colors, the 928 S4's in eight Porsche
 colors, the F40's in one, ROSSO CORSA, the Turbo Esprit's in four Lotus colors, MONACO WHITE the default, the Countach's
 in its four real colors, GIALLO FLY the default, the 911 TURBO 3.3 of 1986's in four Porsche colors
 ([below](#porsche-911-turbo-33-of-1986-the-third-stages-car)) and the GTO's in two, ROSSO CORSA the default
-([below](#ferrari-gto-of-1984-the-fourth-stages-car); [Model solids](image-assets.md#model-solids)). Those
-samples go through the existing shared camera, palette, shadows, sprite and six-LOD baker. Each of the seven has 64 yaw
+([below](#ferrari-gto-of-1984-the-fourth-stages-car)) and the Nova of 1975's in eight GM colors, RED the default
+([below](#chevrolet-nova-of-1975-sources-versus-authored); [Model solids](image-assets.md#model-solids)). Those
+samples go through the existing shared camera, palette, shadows, sprite and six-LOD baker. Each of the six has 64 yaw
 pictures, one bank, four palettes and the existing brake-lamp slot. No source photograph, ROM image or downloaded manual
 image is redistributed. Facet locations, window proportions, lights, rims, paint and details are visual estimates; this
 is not a dimensioned CAD reconstruction. Dimensions include a provisional visual envelope, so tiny mirrors, lamps or the
@@ -298,9 +301,9 @@ spare can extend slightly beyond the nominal body panel dimensions.
 
 Each car has its own sound with its cylinder count and evenly spaced firing phases. Ferrari flat-plane banks alternate;
 the two 928s route 1-3-7-2-6-5-4-8 by banks 1–4/5–8, while Chevy V8s route 1-8-4-3-6-5-7-2 by odd/even banks. Flat
-sixes and V12 use alternating banks. Except the S4's and the F40's, whose sources are given below, all valve openings
-and diameters are estimates. They are synthesized approximations, not recordings. No siren, turbo sound process or
-physics is added.
+sixes and V12 use alternating banks. Except the S4's, the F40's and the Nova of 1975's, whose sources are given below,
+all valve openings and diameters are estimates. They are synthesized approximations, not recordings. No siren, turbo
+sound process or physics is added.
 
 The exhausts are written as the exhaust kernel reads them: one diameter and tubes that have only a length
 ([Audio](audio.md#observations-and-engine-sounds)). The exhausts as first written, and their sources, are in
@@ -557,6 +560,64 @@ claims the original says so. It is the existing `FERRARI_GTO_1984`, the 1984 Eur
   Their base colors are the auditor's, provisional.
 - The outer tail lamps' amber is drawn grey, as every color that is neither paint, glass nor brake lamp; the grille's
   horse is rough, as the model has it.
+
+## Chevrolet Nova of 1975: sources versus authored
+
+`CHEVROLET_NOVA_1975` is the 1975 US Chevrolet Nova 4-Door Sedan (1XX69) with the LM1 350 4-barrel V8, the Turbo
+Hydra-Matic and a 3.08 axle (K, 2026-11-26), in the place of the 1977 Nova 250; nothing here claims the arcade
+original says so. Its listing selects the LM1, the Turbo Hydra-Matic and the 3.08 axle; its engine is shown as `V8`. It
+keeps the Nova 250's place in the selection order and in TURBO OUTRUN's traffic. Its numbers follow this ledger's
+[conventions](#numerical-conventions-and-remaining-uncertainty); the estimates among them add no formula or rule and no
+exception for this car.
+
+The source column is the stage auditor's reading (2026-11-26) of GM's 1975 Chevrolet Nova Vehicle Information Kit
+(September 1974, GM Heritage Archive, [PDF](https://www.gm.com/content/dam/company/no_search/heritage-archive-docs/vehicle-information-kits/chevrolet/1975-Chevrolet-Nova.pdf)),
+not read for the PR that wrote this section.
+
+| Item                  | Source (auditor's reading)                                                    | Authored `CHEVROLET_NOVA_1975`                                                                 | Class       |
+| --------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------- |
+| Length, width, height | 196.7 / 72.2 / 53.6 in (L103, W103, H101; four-door)                          | 4.996 / 1.834 / 1.361 m                                                                        | source      |
+| Tracks, wheelbase     | 61.3 / 59.0 in (W101, W102); 111.0 in (L101)                                  | 1.557 / 1.499 m; 2.8194 m                                                                      | source      |
+| Mass                  | 1XX69 curb 3,416 lb (1,810 front, 1,606 rear); LM1 and Turbo Hydra-Matic +147 | **1,691 kg**: 3,563 lb (1,616 kg) + the driver                                                 | source      |
+| Axles                 | —                                                                             | **1.2882 / 1.5312 m** from the CG: front share 0.543, the 147 lb taken 85 % on the front       | estimate    |
+| Engine                | 350 cu in (5,735 cc), 4.00 × 3.48 in, 8.5:1; idle 600 rpm in D                | 5,735 cc, `cycle` 4, 8.5, idle 600 rpm                                                         | source      |
+| Power, torque         | 155 hp at 3,800, 250 lb-ft at 2,400 (SAE net)                                 | Point 2: 338.954487 N m at 2,400; point 3: 290.451884 N m at 3,800                             | source      |
+| Curve's other points  | —                                                                             | 196.593602 at 600 and 288.111314 at 1,500 (0.58 and 0.85 of point 2's), 238.170545 at 4,400    | estimate    |
+| Redline               | —                                                                             | **4,400 rpm**: at 4,500 the curve's greatest power would not fall at 3,800 rpm                 | estimate    |
+| Transmission          | Turbo Hydra-Matic 2.52 / 1.52 / 1.00; axle 3.08 (MVMA p. 19; Power Trains)    | The same three ratios and final, shifted by the existing automatic shifts                      | source      |
+| Tires                 | FR78-14                                                                       | Radii **0.3316 m** (0.663 m across, as a 205/75-14); inertias `25r²` / `27r²` = 2.749 / 2.969  | estimate    |
+| Drag, CG height       | —                                                                             | `q = 0.5 × 1.225 × 1.0 m²` = 0.6125 kg/m; 0.55 m, as the Nova 250's                            | estimate    |
+| Inertias              | —                                                                             | Box estimates 3,991 / 3,778 kg m²                                                              | calculated  |
+| Brakes                | —                                                                             | 1,691 × 11.5 m/s², 65:35, × 0.3316 m, to 25 N m: 4,200 / 2,250 N m                             | game design |
+| Suspension            | —                                                                             | 1.5 Hz, 0.4, 0.3 m                                                                             | game design |
+| Firing                | 1-8-4-3-6-5-7-2; left bank 1-3-5-7, right 2-4-6-8                             | `firingPhases` by eighths; the left bank to junction 0, the right to 1                         | source      |
+| `exhaust.valve`       | 1.495–1.505 in, lift 0.4100 in; 78 BBDC / 30 ATDC (MVMA p. 9)                 | 0.0381 m, `open` 0.4 (288 / 720)                                                               | source      |
+| `exhaust.diameter`    | Crossover 2.00 in, the pipes behind it 2.25 in, outside                       | **0.043 m**: the cast manifold's branch, about 38 mm inside, × 1.14                            | estimate    |
+| `exhaust.tubes`       | Single exhaust, crossover, one converter, a reverse-flow silencer, two tails  | Each bank 0.20 / 0.10 / 0.10 / 0.20 m; crossover 1.0 m; one of **5.03 m**; two tails of 0.35 m | estimate    |
+
+### The Nova of 1975 in the current model
+
+- Its three forward gears are shifted by the existing automatic shifts, as every car's; the torque converter is not
+  represented, and its tire is the default tire. Its sound's note gives every exhaust number's basis; the tubes' lengths
+  and the diameter are estimates.
+- Its pictures are baked from K's model in eight GM colors, RED the default, at a spacing of 0.004 m
+  ([Model solids](image-assets.md#model-solids)); the number plates and badges are flat and blank.
+
+### The Nova of 1975 on the flat
+
+The existing solver on this ledger's flat, dry, windless straight with the automatic shifts, not compared with the real
+car's figures and not tuned:
+
+| Measure                        | Measured                                                   |
+| ------------------------------ | ---------------------------------------------------------- |
+| 0–100 km/h                     | 10.25 s (60 mph in 9 to 10 s)                              |
+| 0–400 m, 0–1,000 m             | 17.6 s, 32.0 s (between 1 s samples)                       |
+| Speed after 240 s              | 185.2 km/h in third at 4,589 rpm, above the 4,400 rpm line |
+| Redline speeds, first to third | 71, 117, 179 km/h                                          |
+| Shifts                         | 71 and 118 km/h, at 5.9 and 13.7 s                         |
+| Braking from 100 km/h          | 2.48 s, 35.0 m                                             |
+
+It launches, shifts through all three gears and restarts from rest (86 km/h 8 s after stopping).
 
 ## Mazda RX-7 Turbo II of 1987: sources versus authored
 

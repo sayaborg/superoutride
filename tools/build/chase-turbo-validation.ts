@@ -9,7 +9,7 @@ import { VEHICLE_SUBSTEPS } from '../../src/vehicle/physics/vehicle-model.js';
 /**
  * The fourteen vehicles the [ledger](../../docs/chase-turbo-vehicles.md) validates, in its order: those with procedural
  * pictures, and those whose pictures are baked from models: the Porsche 959 and 928 S4 of 1987, the F40 of 1988, the
- * Turbo Esprit of 1984, the Countach 5000 QV of 1985, the 911 Turbo 3.3 of 1986 and the GTO of 1984.
+ * Turbo Esprit of 1984, the Countach 5000 QV of 1985, the 911 Turbo 3.3 of 1986, the GTO of 1984 and the Nova of 1975.
  */
 const CHASE_TURBO_VEHICLE_IDS = Object.freeze([
   'PORSCHE_928_S4_1987',
@@ -24,7 +24,7 @@ const CHASE_TURBO_VEHICLE_IDS = Object.freeze([
   'CORVETTE_C4_1984',
   'AUSTIN_MINI_850_1964',
   'WRANGLER_YJ_1995',
-  'NOVA_250_1977',
+  'CHEVROLET_NOVA_1975',
   'NOVA_9C1_1977',
 ]);
 

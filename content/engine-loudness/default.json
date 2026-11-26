@@ -209,10 +209,10 @@
       "lufs": -43.4385759487545
     },
     {
-      "vehicleId": "NOVA_250_1977",
-      "vehicleSha256": "3b2df86643576482dec819e810b49423aec49db3338f9a4aae32fccb64420070",
-      "soundSha256": "b95d90682c780ad7a0b00b2f2e50a7d6f9c7cf2bf409929989cfed870e924fa2",
-      "lufs": -45.85039236584784
+      "vehicleId": "CHEVROLET_NOVA_1975",
+      "vehicleSha256": "9a8cb00f1680aecf5e3d29839e86c7c5fbc404ccf0934bf5079d142fb91b8383",
+      "soundSha256": "9c926bb5a34fab8fa0fcb98d5532bd9c8cd831d1a5d4f8369c40593154971f30",
+      "lufs": -43.4599387332131
     },
     {
       "vehicleId": "NOVA_9C1_1977",
