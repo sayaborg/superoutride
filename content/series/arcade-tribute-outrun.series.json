@@ -65,6 +65,10 @@
           {
             "vehicle": "CHEVROLET_NOVA_1975",
             "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -126,6 +130,10 @@
           },
           {
             "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
             "weight": 1
           }
         ],
@@ -189,6 +197,10 @@
           {
             "vehicle": "CHEVROLET_NOVA_1975",
             "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -250,6 +262,10 @@
           },
           {
             "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
             "weight": 1
           }
         ],
@@ -313,6 +329,10 @@
           {
             "vehicle": "CHEVROLET_NOVA_1975",
             "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -374,6 +394,10 @@
           },
           {
             "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
             "weight": 1
           }
         ],

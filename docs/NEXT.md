@@ -536,7 +536,8 @@ badges and the `325i` lettering stay, and the body's sides from the doors back h
 
 - E30-1: the vehicle added (definition, sound, listing, the set baked from K's model, SHA-256 `95834f1d…`, on
   `codex/bmw-325i-convertible-1987-glb-source`, never on main), the engine loudness measured again; no series runs it.
-- E30-2: OUT RUN's traffic takes the 325i Convertible after its vehicles, of weight 1, in each of the six classes.
+- E30-2: OUT RUN's traffic takes the 325i Convertible after its vehicles, of weight 1, in each of the six classes; no
+  measured product changes.
 - Its exhaust is the first with two tubes between the same two junctions (the pipes from the converter to the rear
   silencer); the loudness measurement runs it to −42.2 LUFS, not heard.
 - SELECT VEHICLE opens on ALPINE WHITE, the default, as 2/8: the colors are offered in the set's order, CINNABAR RED,
