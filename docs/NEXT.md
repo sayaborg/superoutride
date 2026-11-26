@@ -507,7 +507,8 @@ and white the default, with a star on the doors and a lamp on the roof; the Nova
 - NV-2: the police Nova of 1977 replaced by `CHEVROLET_NOVA_POLICE_1975` (the set baked from K's second model, SHA-256
   `4ed46430…`, on `codex/chevrolet-nova-police-1975-glb-source`, never on main), its definition the Nova's, held equal
   by a test, its sound the Nova's; the procedural Novas' shapes removed.
-- NV-3: OUT RUN's traffic takes `CHEVROLET_NOVA_1975` as its eighth vehicle, of weight 1, in each of the six classes.
+- NV-3: OUT RUN's traffic takes `CHEVROLET_NOVA_1975` as its eighth vehicle, of weight 1, in each of the six classes;
+  no measured product changes.
 - Not built in this stage (K's plans): the police car as CISCO HEAT's own car and TURBO OUTRUN's police, and the Nova in
   CHASE H.Q.'s traffic.
 - SELECT VEHICLE offers the police car's colors in its set's order, RED & WHITE first, not K's order (BLACK & WHITE,

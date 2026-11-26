@@ -61,6 +61,10 @@
           {
             "vehicle": "FORD_F_700_1980",
             "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -118,6 +122,10 @@
           },
           {
             "vehicle": "FORD_F_700_1980",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
             "weight": 1
           }
         ],
@@ -177,6 +185,10 @@
           {
             "vehicle": "FORD_F_700_1980",
             "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -234,6 +246,10 @@
           },
           {
             "vehicle": "FORD_F_700_1980",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
             "weight": 1
           }
         ],
@@ -293,6 +309,10 @@
           {
             "vehicle": "FORD_F_700_1980",
             "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -350,6 +370,10 @@
           },
           {
             "vehicle": "FORD_F_700_1980",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
             "weight": 1
           }
         ],
