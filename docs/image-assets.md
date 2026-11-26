@@ -551,7 +551,9 @@ generator follow this contract; this section is its only statement:
 - **Anchor.** A picture's anchor is the projection of its base point. The picture may extend below it: what it shows
   there is the body's near side, drawn on the ground before the base point.
 - **Direction.** A picture is chosen by the body's yaw less the direction from the camera to the base point, in true
-  perspective (`atan(x / d)` for the base point's camera-right distance `x` and depth `d`); the set's yaw images
+  perspective (`atan(x / d)` for the base point's camera-right distance `x` and depth `d`, its station on the camera's
+  ruler less the camera's, the reversed ruler's for a camera looking back: K, 2026-11-27, one rule for either ruler,
+  `cameraRulerStation`); the set's yaw images
   divide the turn evenly, image 0 seen from behind and each next one turned right by one step. Their number is the
   set's own (`yawVariants`), the same at every size; generated sets have 64 (5.625° apart).
 - **Shadow.** Each size has a shadow: the vehicle cast straight down onto a level road through its base point, seen by
@@ -576,8 +578,9 @@ sprite hardware flips one. A camera looking back along the road ([Architecture](
 reads the road on a reversed ruler, and two separate properties follow. First, as that ruler's consequence and no
 rule of a board's, every picture without its own image for each direction, standing or lying (a course image, a tire
 puff, an explosion, a strip lying on the road), is read flipped and extending sideways the other way (`mirrored`); a
-picture with an image for each direction, a vehicle's, is chosen by the direction rule above, and the front of a
-vehicle is its own picture. Second, a standing board seen from behind shows its back at half brightness, its palettes
+picture with an image for each direction, a vehicle's, is chosen by the direction rule above, its depth on the reversed
+ruler, so that a vehicle off to one side of a camera looking back shows that side's flank as it truly would, and the
+front of a vehicle is its own picture; a bike's bank and a vehicle's shadow are its yaw image's own. Second, a standing board seen from behind shows its back at half brightness, its palettes
 halved once by the one half-brightness operation of RGB555 (`halfBright`); a picture lying on the ground keeps its
 brightness.
 

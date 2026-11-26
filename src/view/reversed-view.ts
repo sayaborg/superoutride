@@ -35,6 +35,14 @@ const FACING_BISECTIONS = 20;
 const roads = new WeakMap<RoadReaders, RoadReaders>();
 
 /**
+ * A route station on the ruler `camera` reads the road by: on a camera looking back, the reversed ruler's
+ * (`reverseRoad`), else its own. A depth along the road is a station on that ruler less the camera's.
+ */
+export function cameraRulerStation(camera: { readonly reversed?: true }, s: number): number {
+  return camera.reversed ? -s : s;
+}
+
+/**
  * The same road read the other way (K, 2026-11-14): station s reversed, lateral l mirrored and the heading turned half
  * round, so that a forward camera on it is a camera looking back along the road. World points are the road's own.
  */
