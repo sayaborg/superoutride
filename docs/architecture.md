@@ -388,6 +388,11 @@ ends. Each interval projects with the line of the polyline segment that
 contains it, independent of chainage rounding at its ends, so adjacent projected intervals meet.
 Forward visibility depends on road heading and camera direction. Terrain draws far to near, allowing
 hills to overdraw earlier rows. A degenerate thin span occupies one row with its complete source footprint.
+Ground rows begin at the near depth, 2.5 m, or nearer, where the road there lies above the frame's bottom edge while
+the camera stands above the road: then they begin where the road reaches that edge, found on the polyline's segments
+from the near depth toward the camera (K, 2026-11-27: a level camera low over the road, or looking up a slope, shows
+the road to the frame's foot rather than what lies beyond it). A camera whose road reaches the bottom edge at 2.5 m,
+the player's at its 2 m on a road that does not climb steeply right before it, draws as before.
 
 ## Camera and fixed metric
 

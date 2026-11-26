@@ -140,7 +140,7 @@ export function generateTerrainLines(
     parameters.extent,
     camera.yaw,
     camera.s,
-    parameters.dMin,
+    nearDepth(camera, parameters, workspace.height),
     parameters.dMax,
     workspace.visible,
   );
@@ -225,6 +225,40 @@ export function generateTerrainLines(
   // Core Painter order. Hills/dips may produce multiple TerrainLines on the same output row.
   lines.sort(painterOrder);
   return frame;
+}
+
+/**
+ * A frame's nearest ground depth (K, 2026-11-27: while the camera stands above the road, the road reaches the frame's
+ * bottom edge): `dMin`, or nearer, where the road there lies above that edge, the depth at which the road reaches it.
+ * It is found on the drawn height's line segment by segment from `dMin` toward the camera, where a segment's road
+ * projects to the row `aY + bY / d`. A camera at or below a segment's line keeps the depth reached so far.
+ */
+function nearDepth(
+  camera: PseudoCamera,
+  parameters: TerrainRenderParameters,
+  sample: { y: number; grade: number },
+): number {
+  const { dMin, screenHeight, height } = parameters;
+  const yH = horizonY(camera),
+    f = camera.focalLength,
+    cosPitch = Math.cos(camera.pitch);
+  let far = dMin;
+  for (;;) {
+    // The segment nearer than `far`: from the last vertex before it, or from the camera.
+    const sFar = camera.s + far;
+    let i = stationIndexAt(height.vertices, 's', sFar);
+    if (height.vertices[i]!.s >= sFar && i > 0) i -= 1;
+    const near = Math.max(0, height.vertices[i]!.s - camera.s);
+    if (near >= far) return far;
+    const dMid = (near + far) / 2;
+    const line = height.sample(camera.s + dMid, sample);
+    const aY = yH - f * line.grade * cosPitch;
+    const bY = -f * (line.y - line.grade * dMid - camera.y) * cosPitch;
+    if (!(bY > 0) || aY + bY / far >= screenHeight) return far;
+    const reach = bY / (screenHeight - aY);
+    if (reach >= near) return reach;
+    far = near;
+  }
 }
 
 /** Projected vertical span of one clipped segment in destination-row units. */
