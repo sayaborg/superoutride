@@ -391,9 +391,10 @@ export function secondRoad(
 /**
  * The two streets that cross where the plan `pPlan` of P's records `p` turns by `turn` ([Plan from a table's
  * arcs](../../../docs/original-road-data.md#plan-from-a-tables-arcs)): the straight lines it turns between, each running
- * on through the point where they meet, the turn's middle abreast of it. The one it leaves runs on ahead (`ahead`, from
- * the turn's middle on), the one it takes back before it (`back`, to its middle); each one's lateral at P's station `s`
- * is taken across P as a second road's (positions right of P), and is refused where it heads more than 60° from P.
+ * on through the point where they meet, the turn's middle abreast of it, the one it leaves (`leaves`) and the one it
+ * takes (`takes`). A line `offset` positions right of one is taken at P's station `s` across P as a second road's
+ * (positions right of P), and is refused where it heads more than 60° from P; `slant` is how many positions across P
+ * a position across the street spans there, the secant of the angle between them.
  */
 export function crossingStreets(p: readonly ArcRecord[], pPlan: ReturnType<typeof arcPlan>, turn: ArcTurn) {
   const P = new PlanWalk(pPlan.elements, p[0]!.start, poseOf(p[0]!));
@@ -403,18 +404,18 @@ export function crossingStreets(p: readonly ArcRecord[], pPlan: ReturnType<typeo
   const k = ((b.x - a.x) * by - (b.y - a.y) * bx) / (ax * by - ay * bx);
   const [mx, my] = [a.x + ax * k, a.y + ay * k];
   const middle = (turn.from + turn.to) / 2;
-  /** A street along `heading` through where they meet, its station `middle` there. */
-  const street =
-    (heading: number) =>
-    (t: number): ArcPose => ({
-      x: mx + Math.cos(heading) * (t - middle),
-      y: my + Math.sin(heading) * (t - middle),
+  /** A street along `heading`, `offset` right of the line through where they meet, its station `middle` abreast. */
+  const street = (heading: number, offset: number) => {
+    const [ux, uy] = [Math.cos(heading), Math.sin(heading)];
+    return (t: number): ArcPose => ({
+      x: mx + offset * uy + ux * (t - middle),
+      y: my - offset * ux + uy * (t - middle),
       heading,
     });
-  const [ahead, back] = [street(a.heading), street(b.heading)];
-  return {
-    middle,
-    ahead: (s: number) => across(s, P.pose(s), ahead),
-    back: (s: number) => across(s, P.pose(s), back),
   };
+  const line = (heading: number) => ({
+    lateral: (s: number, offset = 0) => across(s, P.pose(s), street(heading, offset)),
+    slant: (s: number) => 1 / Math.cos(heading - P.pose(s).heading),
+  });
+  return { middle, leaves: line(a.heading), takes: line(b.heading) };
 }

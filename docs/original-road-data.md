@@ -491,10 +491,13 @@ its records draw (`arcPlan`, `arc-plan`) (K, 2026-11-09):
   cut there (K, 2026-11-09). Where the two start apart, the second is laid from its own first point and heading, in the
   tables' plane as P is, its miss where they first meet spread the same way. Its lateral at a station of P is taken
   across P, and is refused where it heads more than 60° from P (a road that leaves).
-- **Streets crossing at a turn** (`crossingStreets`; CISCO HEAT's corners): the two straight lines a turn of P's turns
-  between, each running on through the point where they meet, which lies abreast of the turn's middle: the one P leaves
-  on ahead from the turn's middle, the one it takes back from it. Each one's lateral at a station of P is taken across
-  P as a second road's, and is refused where it heads more than 60° from P.
+- **Streets crossing at a turn** (`crossingStreets`; CISCO HEAT's crossings): the two straight lines a turn of P's
+  turns between, each running on through the point where they meet, abreast of the turn's middle: the one P leaves and
+  the one it takes. A line at any offset across either is taken at a station of P across P as a second road's, and is
+  refused where it heads more than 60° from P; a unit across the street there spans the secant of the angle between
+  them across P. Such a line is written as knots within a tolerance of it (`knotsWithin`), and a picture drawn along a
+  street is read from as few lines at offsets across it as keep each of its edges, at its own offset from the nearest
+  times the mean of the spans there, within that tolerance (`readingLines`).
 - **Stops.** The conversion stops where a turn takes more than the records either side of it hold, two
   turns overlap, a turn reaches the table's start or end, or an arc turns tighter than its lanes' least radius, as a
   curve table's does.

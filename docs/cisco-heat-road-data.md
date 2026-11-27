@@ -174,32 +174,39 @@ Its five courses (`cisco-heat-course`, each laid as the board's, `jaleco/board-c
   main program's first plan list marks them (`ciscoHeatRightAngles`, [research](research/cisco-heat.md#its-right-angles)):
   a record whose last word has bit 14 set is a turn of 90° about its start, left with bit 11 and right with bit 10, where
   its road tables run straight. Its two roads' records from that record on are turned about its start by the stage's
-  angle, 45° in STAGE 1 and 60° in STAGE 2 (a trial, K, 2026-11-27) and 90° in the others, so that the plan lays the
-  corner as one turn, its middle at the record's start, and the road on from it as its tables run. The turn is as tight
-  as the course's limits allow: its inside's limit alone (10.4 m) where both sides' (21 m) bound every other turn, so
-  8.2 m long at 45°, 10.9 m at 60° and 16.3 m at 90°; the Sections near it, cut at its middle, reach their inside's
-  limit alone. A corner of 45° or 60° is where two streets cross ([streets crossing at a
-  turn](original-road-data.md#plan-from-a-tables-arcs)), each drawn as far as it heads within 60° of P, from the
-  corner's middle out to 200 m along the course (the screen's farthest) or to the next corner: the one it leaves on
-  ahead in the course's own picture there, the one it takes back from it in its picture just past the corner. Each is
-  a road not taken's picture beneath the course's, road 2's painted runs between its edges, each its stripe's most
-  common color, with no material, so that its strips keep within the format's 64 over the course's two roads; the
-  course's limits there are as on either side of it. At 60° a street heads at that rule's limit wherever P runs
-  straight on: those of STAGE 2's 425,224 and 446,268 are refused where their turns end. What the original stands
-  across the street ahead, past the corner and before the next, stands beyond the course's limit: its arrow board
-  (descriptor 0x0FF0, at 26 of the 29) on the street ahead, at its own lateral from that street's centre, where its
-  picture first lies wholly beyond the limit, its hit kept, and none where that street ends first (STAGE 2's 425,224
-  and 446,268); where it stands no board, the first position's objects of
-  which more than one stand within the road's picture on both sides of its middle are a row across it (STAGE 1's 16
-  posts at 299,928 and STAGE 4's at 173,744), the corner a T, no street drawn ahead of it. Each of a T's objects stands
-  as far from the corner as it stands from the road's middle, along the course's road past the corner on the side it
-  turns to and along the street back on the other, across as the next object of its picture past it stands (STAGE 1's
-  road 2's 300 units left), and none stands within the course's limits. Where neither stands (STAGE 5's 185,732), the
-  corner is a cross with nothing moved. At 90° its turn is a Section on each side of its middle and, outside it, the
-  street across, its road's surface, reaches three limits' reach beyond the course's limit. Its objects stand at their
-  stations, its sky turns with the road. Its tables' own jumps, STAGE 1's two of 10° at 147,760 and 155,760 among
-  them, are laid as its tables give them. All 29 are laid: STAGE 1's 3, STAGE 2's 8, STAGE 3's 12, STAGE 4's 4 and
-  STAGE 5's 2.
+  angle, so that the plan lays the corner as one turn, its middle at the record's start, and the road on from it as its
+  tables run. In STAGES 1, 2 and 3 (a trial, K, 2026-11-27) each is where two straight streets cross at 45°, 60° and
+  90° ([streets crossing at a turn](original-road-data.md#plan-from-a-tables-arcs)): P rounds the corner on their
+  inside at 100 m, or where its table's straight either side, with one heading, or a Section's cut (where the roads
+  part or meet, a hold changes or another corner lies) comes nearer at the largest radius whose turn reaches no nearer
+  (STAGE 2's 92,476 at 40.6 m and 160,213 at 19.3 m, STAGE 3's 26,418 at 12.9 m). Within the turn the course's road
+  lies along the street it comes on to the corner and along the one it takes from it: its lanes, `centerLateral`, limits,
+  pictures and objects at their places on that street taken across P, a unit across it spanning the secant of its angle
+  to P, their corners sharp and its limits widened nowhere; its tables' pictures of a street across (kind 22) and of a
+  patterned surface (kind 14) are not drawn there, the course's road in its picture before the turn to the corner and in
+  its picture after it from there, and road 1 is not drawn. The halves of the two streets the course does not take, the
+  one it leaves on ahead of the corner in its picture before the turn and the one it takes back from it in its picture
+  after, are drawn as far as a road not taken is, from the corner out to 200 m along the course (the screen's farthest)
+  or to the next corner, as far as each heads within 60° of P, with no material. Where two are drawn at a station, both
+  are drawn as two roads are: the course's road's sides first (its runs outside its road and its edges, its outermost
+  reaching out), then the half's sides and road, then the course's road over them, so that a half's road opens the
+  course's kerb and its kerb never lies on the course's road. Each Section within the turn reads its pictures from lines
+  within 2 cm of their true places and each edge within 2 cm of its own, the turn cut evenly into as many Sections as
+  keep their lines within the format's Boundaries; road 1 is not drawn either where a half is and it lies with P, so
+  that the Sections' active strips keep within the format's. What the original stands across the street ahead, past
+  the corner and before the next, stands beyond the course's limit: its arrow boards (descriptor 0x0FF0, at 26 of the
+  29; the first, and any within 100 positions of it) on the street ahead, each at its own lateral from that street's
+  centre, where its picture first lies wholly beyond the limit, its hit kept, and none where that street ends first;
+  where it stands no board, the first position's objects of which more than one stand within the road's picture on
+  both sides of its middle are a row across it (STAGE 1's 16 posts at 299,928 and STAGE 4's at 173,744), the corner a
+  T, no street drawn ahead of it. Each of a T's objects stands as far from the corner as it stands from the road's
+  middle, along the course's road past the corner on the side it turns to and along the street back on the other,
+  across as the next object of its picture past it stands (STAGE 1's road 2's 300 units left), and none stands within
+  the course's limits. STAGES 4 and 5 lay each as a turn of 90° as tight as the course's limits allow, its inside's
+  limit alone (10.4 m), a Section on each side of its middle, and outside it the street across, its road's surface,
+  reaches three limits' reach beyond the course's limit. Its objects stand at their stations, its sky turns with the
+  road. Its tables' own jumps, STAGE 1's two of 10° at 147,760 and 155,760 among them, are laid as its tables give
+  them. All 29 are laid: STAGE 1's 3, STAGE 2's 8, STAGE 3's 12, STAGE 4's 4 and STAGE 5's 2.
 - **Its lanes** are its most common picture's ([its road across](#its-road-across)) over its two roads, each at its
   own centre ([two roads](original-road-data.md#two-roads)).
 - **Its pictures.** Each road's picture across, its nearest line's runs, is laid at its centre as BIG RUN's are, road 2's

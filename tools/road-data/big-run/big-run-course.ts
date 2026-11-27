@@ -279,6 +279,7 @@ export function bigRunCourses(set: RomSet) {
       cuts: town0 ? [town0] : [],
       cutAtPictures: true,
       rightAngles: [],
+      acrossKinds: new Set(),
       stripePeriod: STRIPE_PERIOD,
       clearGround: CLEAR_GROUND,
       laneGround: 'DIRT',

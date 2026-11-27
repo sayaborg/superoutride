@@ -1285,16 +1285,19 @@ K decided (2026-11-12):
   goal; road 2 is the road not taken from there, drawn clear to 515,706 and going on 16° right of road 1 from 556,330.
 - **Its right-angle turns.** The main program's first plan list marks them: a record whose last word has bit 14 set is a
   turn of 90° about that record's start, left with bit 11 and right with bit 10, 29 over its five stages, which its road
-  tables run straight through. A road turning 90° is not seen from before it: a row's width falls as the road heads
-  away from the camera and is none at 90°. So the course lays each as a corner of a smaller angle, as tight as its
-  inside limit allows, where two streets cross, each running on through: the street it leaves ahead of the corner and
-  the street it takes back from it, each a road not taken, a picture beside the course's road. What the original stands
-  across the street ahead stands beyond the course's limit: its arrow board on the street ahead where it first clears
-  that limit, and where a row of objects crosses it instead (STAGE 1's wharf, STAGE 4's hedge) the corner is a T, no
-  street drawn ahead, the row along the far side of the street taken. It is tried first (K, 2026-11-27) at 45° in
-  STAGE 1 and at 60° in STAGE 2, the other stages' kept at 90° until K has driven those two; there the street across
-  is no longer painted as ground and no limit is widened. Its tables' own jumps, STAGE 1's two of 10° among them, stay
-  as the tables give them (K, 2026-11-15).
+  tables run straight through. Each is laid as two straight streets crossing at that start, each running on through,
+  made for the eye as OUTRUN's forks are and not read from its road's pictures there: the course comes on one and
+  leaves on the other, their centre lines, edges and limits straight and their corners sharp, while the Section's
+  centreline rounds the corner at 100 m, the road lying off it by its `centerLateral`. Both streets are drawn as two
+  roads are, each in its own picture at its true width, the halves the course does not take with no material and as
+  far as a road not taken is drawn, and its tables' rows of a street across and of a patterned surface are not drawn
+  there. What the original stands across the street ahead stands beyond the course's limit: its arrow board on the
+  street ahead where it first clears that limit, and where a row of objects crosses it instead (STAGE 1's wharf, STAGE
+  4's hedge) the corner is a T, no street drawn ahead, the row along the far side of the street taken. The streets'
+  angle is tried (K, 2026-11-27) at 45° in STAGE 1, 60° in STAGE 2 and 90° in STAGE 3, where the camera, turning 45° at
+  most from the centreline, stops at its limit through the corner, which K takes as the corner's own; STAGES 4 and 5
+  keep their turns of 90° with the street across painted as ground until K has driven the three. Its tables' own
+  jumps, STAGE 1's two of 10° among them, stay as the tables give them (K, 2026-11-15).
 
 The stage starts by reading how its screen draws its two roads where their order changes, which one's paint shows over
 the other's, and its courses' PR measures its own car's width again.
