@@ -26,8 +26,9 @@ Each line is one area as it stands, with the document that owns it.
   ([Stage VW113](#stage-vw113--the-beetle-1500-of-1968-in-out-runs-traffic)), 39 with the F-150 of 1975
   ([Stage F150](#stage-f150--the-f-150-of-1975-in-out-runs-traffic)), 40 with the Corvette Stingray of 1970
   ([Stage C3](#stage-c3--the-corvette-stingray-of-1970-in-out-runs-traffic)), 41 with the F-700 of 1980
-  ([Stage F700](#stage-f700--the-f-700-of-1980-in-out-runs-traffic)) and 42 with the 325i Convertible of 1987
-  ([Stage E30](#stage-e30--the-325i-convertible-of-1987-in-out-runs-traffic)), in the same ledger; the Nova 250 of 1977 is now
+  ([Stage F700](#stage-f700--the-f-700-of-1980-in-out-runs-traffic)), 42 with the 325i Convertible of 1987
+  ([Stage E30](#stage-e30--the-325i-convertible-of-1987-in-out-runs-traffic)) and 43 with the 300ZX 2+2 of 1984
+  ([Stage Z31](#stage-z31--the-300zx-22-of-1984-and-its-police-car)), in the same ledger; the Nova 250 of 1977 is now
   the Nova of 1975, and the police Nova of 1977 the Nova of 1975's police car
   ([Stage NV](#stage-nv--the-nova-of-1975-and-its-police-car))
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored),
@@ -36,7 +37,8 @@ Each line is one area as it stands, with the document that owns it.
   [the Corvette Stingray's](chase-turbo-vehicles.md#chevrolet-corvette-stingray-of-1970-sources-versus-authored),
   [the F-700's](chase-turbo-vehicles.md#ford-f-700-of-1980-sources-versus-authored),
   [the Nova of 1975's](chase-turbo-vehicles.md#chevrolet-nova-of-1975-sources-versus-authored),
-  [the 325i Convertible's](chase-turbo-vehicles.md#bmw-325i-convertible-of-1987-sources-versus-authored)). Among the fourteen, the
+  [the 325i Convertible's](chase-turbo-vehicles.md#bmw-325i-convertible-of-1987-sources-versus-authored),
+  [the 300ZX 2+2's](chase-turbo-vehicles.md#nissan-300zx-22-of-1984-sources-versus-authored)). Among the fourteen, the
   928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)), and
   the Turbo Esprit of 1984 the car it chases ([Stage E82](#stage-e82--the-turbo-esprit-of-1984-chase-hqs-rival)), the
   Countach 5000 QV of 1985 the car it chases on the second stage
@@ -74,7 +76,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
 - **Pictures.** GOLF GTI 16V's pictures are a generated set, VFR750R's a 3D prototype,
-  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the F-700 of 1980's, the two Novas of 1975's, the 325i Convertible of 1987's, the M23 PP SPEC's, the NSR500 of 1984's and
+  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the F-700 of 1980's, the two Novas of 1975's, the 325i Convertible of 1987's, the 300ZX 2+2 of 1984's, the M23 PP SPEC's, the NSR500 of 1984's and
   the XR600R of 1985's baked from K's models, the three cars' with a car's glossy finish, the other vehicles' converted provisional pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
@@ -550,6 +552,33 @@ badges and the `325i` lettering stay, and the body's sides from the doors back h
   base colors. Its height is the catalogue's with the top raised (1.369 m); the pictures' top is the windscreen's
   frame, 1.366 m.
 - Not checked: BMW's 1987 color catalogue, and whether the Convertible offered all eight colors.
+
+## Stage Z31 — The 300ZX 2+2 of 1984 and its police car
+
+K's decisions of 2026-11-27: the Nissan 300ZX 2+2 of 1984 (Z31, `KHLG-JU`: US 49-state, T-bar roof, GL, the VG30E
+without a turbocharger, 5MT) is a vehicle of its own, `NISSAN_300ZX_2PLUS2_1984`, and its police car another, none
+replaced. K's model had a turbocharger's bonnet scoop; Nissan gives the US 2+2 no turbo, so K chose the non-turbo car
+and the scoop is taken off. The strip joining the brake lamps is a red lens that does not light, red in every color.
+The police car has the 300ZX's mechanics and sound and differs in looks alone, held as the Novas are: two ids, two
+definition files of the same values, one sound
+([Arcade car selections](chase-turbo-vehicles.md#nissan-300zx-22-of-1984-sources-versus-authored),
+[Model solids](image-assets.md#model-solids)). K plans the 300ZX for TOP SPEED's traffic and the police car as a
+second CISCO HEAT car beside the police Nova; those series and that choice are not on main, so neither car runs in a
+series in this stage.
+
+- Z31-1: the 300ZX added (definition, sound, listing, the set baked from K's model, SHA-256 `add6a67c…`, on
+  `codex/nissan-300zx-2plus2-1984-glb-source`, never on main), the engine loudness measured again; no series runs it.
+- Z31-2: the police car added.
+- The loudness measurement runs its sound to −42.5 LUFS, not heard.
+- To look at in DEV: revving and driving's sound; the eight colors and REGATTA RED the default; the windows and the top
+  shining white in the side pictures (the recipe's light is every car's); the strip's dark red; the brake lamps; the
+  rear tyres 3 mm above the road (the front 1 mm); the faint shade where the bonnet's scoop was.
+- Estimates and secondary sources: the mass (an Australian car's, no US 1984 figure found), the axles (a front share of
+  0.52), the CG height, springs, damping, travel, the Cd (the turbo two-seater's, secondary) and the frontal area
+  (1.80 m²), the power and torque (secondary; the manual gives none), idle and redline; the valve's lift (not in the
+  manual), every exhaust tube's length and the diameter; the colors' base colors.
+- Measured on the model, the tracks are 1.417 and 1.429 m (Nissan's 1.415 and 1.435).
+- Not checked: Nissan's 1984 color catalogue, and whether the names carry METALLIC (written with it).
 
 ## Stage F120 — The F40 of 1988
 

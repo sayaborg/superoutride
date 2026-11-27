@@ -1,0 +1,33 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 6,
+  "form": "car",
+  "selectionOrder": 52,
+  "visuals": {
+    "spriteSet": "nissan-300zx-2plus2-1984",
+    "palette": "regatta-red",
+    "steeringPicture": "montecarlo",
+    "colorNames": {
+      "regatta-red": "REGATTA RED",
+      "mint-white": "MINT WHITE",
+      "thunder-black": "THUNDER BLACK",
+      "light-pewter-metallic": "LIGHT PEWTER METALLIC",
+      "dark-pewter-metallic": "DARK PEWTER METALLIC",
+      "blue-mist-metallic": "BLUE MIST METALLIC",
+      "gold-mist-metallic": "GOLD MIST METALLIC",
+      "dark-green-metallic": "DARK GREEN METALLIC"
+    }
+  },
+  "sound": "NISSAN_300ZX_2PLUS2_1984",
+  "metadata": {
+    "manufacturer": "Nissan",
+    "model": "300ZX 2+2",
+    "period": "1984",
+    "mobileLabel": "300ZX",
+    "engine": "V6",
+    "engineKind": "4-stroke",
+    "identifier": { "officialLabel": "300ZX 2+2", "shortLabel": "300ZX 2+2" },
+    "selectedSpecification": ["VG30E 3.0 L", "5MT", "3.70 axle"],
+    "physicsAnchor": { "modelYear": "1984", "market": "US" }
+  }
+}

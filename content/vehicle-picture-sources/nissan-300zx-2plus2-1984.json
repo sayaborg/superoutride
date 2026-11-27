@@ -1,0 +1,130 @@
+{
+  "format": "superoutride.vehicle-model-recipe",
+  "version": 1,
+  "vehicle": "NISSAN_300ZX_2PLUS2_1984",
+  "yawVariants": 64,
+  "model": {
+    "sha256": "add6a67c034acd054b7effe95711c56c45ff9adee4b95e25ea27f41e41392369",
+    "right": "-x",
+    "up": "+y",
+    "forward": "+z",
+    "frontHub": [0, 0.3195, 1.26]
+  },
+  "spacing": 0.004,
+  "paints": {
+    "colors": [
+      [200, 20, 26],
+      [240, 20, 10]
+    ],
+    "within": 8,
+    "lamp": [255, 0, 255]
+  },
+  "glass": {
+    "color": [10, 10, 12],
+    "within": 4,
+    "rough": 0.5
+  },
+  "ramps": {
+    "paints": [6, 1],
+    "glass": 3,
+    "grey": 4,
+    "sampleYaws": 16
+  },
+  "light": {
+    "main": [-0.25, 0.85, 0.46],
+    "fill": [0.6, 0.2, 0.5],
+    "ambient": 0.08,
+    "sky": 0.14,
+    "mainWeight": 0.92,
+    "fillWeight": 0.06,
+    "greyGain": 1.5
+  },
+  "reflection": {
+    "paint": {
+      "f0": 0.1,
+      "horizon": [205, 218, 238],
+      "zenith": [120, 160, 230],
+      "haze": [70, 66, 68],
+      "ground": [20, 18, 20],
+      "fall": 0.1,
+      "power": 0.6
+    },
+    "glass": {
+      "f0": 0.8,
+      "horizon": [232, 240, 248],
+      "zenith": [58, 120, 222],
+      "haze": [205, 214, 224],
+      "ground": [86, 88, 92],
+      "fall": 0.35,
+      "power": 0.6
+    }
+  },
+  "glare": [
+    { "power": 30, "strength": 2, "glass": 1 },
+    { "power": 220, "strength": 4, "glass": 1.5 }
+  ],
+  "wheels": [
+    {
+      "center": [0.7075, 0.3195, 1.26],
+      "radius": 0.3195,
+      "rim": 0.19,
+      "width": 0.215
+    },
+    {
+      "center": [-0.7075, 0.3195, 1.26],
+      "radius": 0.3195,
+      "rim": 0.19,
+      "width": 0.215
+    },
+    {
+      "center": [0.7175, 0.3195, -1.26],
+      "radius": 0.3195,
+      "rim": 0.19,
+      "width": 0.215
+    },
+    {
+      "center": [-0.7175, 0.3195, -1.26],
+      "radius": 0.3195,
+      "rim": 0.19,
+      "width": 0.215
+    }
+  ],
+  "liveries": {
+    "regatta-red": [
+      [200, 20, 26],
+      [150, 14, 20]
+    ],
+    "mint-white": [
+      [236, 238, 232],
+      [150, 14, 20]
+    ],
+    "thunder-black": [
+      [30, 30, 34],
+      [150, 14, 20]
+    ],
+    "light-pewter-metallic": [
+      [176, 172, 164],
+      [150, 14, 20]
+    ],
+    "dark-pewter-metallic": [
+      [98, 94, 90],
+      [150, 14, 20]
+    ],
+    "blue-mist-metallic": [
+      [124, 152, 190],
+      [150, 14, 20]
+    ],
+    "gold-mist-metallic": [
+      [176, 150, 96],
+      [150, 14, 20]
+    ],
+    "dark-green-metallic": [
+      [30, 70, 56],
+      [150, 14, 20]
+    ]
+  },
+  "brakeLamp": {
+    "off": [125, 12, 18],
+    "on": [255, 70, 40]
+  }
+}

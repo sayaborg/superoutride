@@ -255,6 +255,12 @@
       "vehicleSha256": "39a2d66b4f02738d8fbe4370ab49475a33193515f8ddcf0cdbd6e03926c99372",
       "soundSha256": "24c055e95ddf9452ec4d0de4e48de62b0af2b8c0849132ee7a42348eb021546d",
       "lufs": -42.153282101057464
+    },
+    {
+      "vehicleId": "NISSAN_300ZX_2PLUS2_1984",
+      "vehicleSha256": "9220ecccfb11c286f590c9541d2bd1343a8555631e09f9947baf1b987d707b7b",
+      "soundSha256": "ff1d229f268c065248c04e5774c03c07f771f84c808afd93f95d8aace0bd0b82",
+      "lufs": -42.526165472475505
     }
   ]
 }

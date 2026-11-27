@@ -620,7 +620,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `ford-f-700-1980`, `chevrolet-nova-1975`, `chevrolet-nova-police-1975`, `bmw-325i-convertible-1987`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `ford-f-700-1980`, `chevrolet-nova-1975`, `chevrolet-nova-police-1975`, `bmw-325i-convertible-1987`, `nissan-300zx-2plus2-1984`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`corvette-c4-1984`): drawn by
@@ -1631,6 +1631,43 @@ SELECT VEHICLE offers the colors in the set's order, so it opens on ALPINE WHITE
 is K's `bmw-325i-convertible-1987.glb` (SHA-256 `95834f1d…`), kept on K's branch
 `codex/bmw-325i-convertible-1987-glb-source`, never on main; it has no wheel nodes, and its front hub is (0, 0.3046,
 1.2853).
+
+**The 300ZX 2+2 of 1984.** Its set, `nissan-300zx-2plus2-1984`, is baked from K's model of the 1984 US 300ZX 2+2 (Z31,
+T-bar roof, non-turbo) by the Nova's recipe (K, 2026-11-27): the same light, reflections, glare, glass key, 64
+directions and brake lamp colors, none moved for this car. It differs in its two key colors, the body's red (200, 20, 26) and the strip that joins the rear lamps (240, 20, 10), each within 8, its ramps (six paint steps for the body and
+one for the strip, three glass steps and four greys) and its spacing, 0.004 m as the Novas'. The strip is a red lens
+that does not light (K): every livery paints it (150, 14, 20), near an unlit brake lamp. The magenta (255, 0, 255) is
+the brake lamp: the red upper lenses of the rear lamps. K's model had a turbocharger's scoop on the bonnet; it is
+taken off, the bonnet's left half taking the right half's height (K chose the non-turbo car), and a very faint shade of
+it remains. The two black squares on the roof and the badge on the hatch's right are painted over (K).
+
+The model is in metres, +y up, +z forward and +x to the left, its origin on the road, on the centreline, halfway between
+the axles (z +1.26 and −1.26, Nissan's 2,520 mm wheelbase). It is 4,535 mm long, 1,307 mm high (Nissan's 1,310 mm; the
+height's scale is the tyres') and 1,894 mm across the mirrors; the front overhang is 945 mm and the rear 1,070 mm, as
+Nissan's. Its tyres are P215/60R15 at 0.639 m across, and its four wheels are spun at that size: centres (±0.7075,
+0.3195, 1.26) m front and (±0.7175, 0.3195, −1.26) m rear, Nissan's 1,415 and 1,435 mm tracks, radius 0.3195 and width
+0.215; the rims are 0.19 (an estimate). Measured on the model, the tracks are 1.417 and 1.429 m, and the rear tyres'
+lowest points stand 3 mm above the road, the front 1 mm (the stage auditor's).
+
+Its eight liveries are Nissan's 1984 300ZX paint names by their codes (013, 002, 505, 210, 218, 106, 226 and 235), checked
+in refinish charts (paintref.com's 1984 300ZX) and a Z31 color list (xenonzcar.com); Nissan's 1984 color catalogue was
+not read, and the sources differ on whether the names carry METALLIC, written with it. The base colors are the stage
+auditor's, provisional, not measured from paint samples:
+
+| Palette                 | Name                  | Base color    |
+| ----------------------- | --------------------- | ------------- |
+| `regatta-red`           | REGATTA RED           | 200, 20, 26   |
+| `mint-white`            | MINT WHITE            | 236, 238, 232 |
+| `thunder-black`         | THUNDER BLACK         | 30, 30, 34    |
+| `light-pewter-metallic` | LIGHT PEWTER METALLIC | 176, 172, 164 |
+| `dark-pewter-metallic`  | DARK PEWTER METALLIC  | 98, 94, 90    |
+| `blue-mist-metallic`    | BLUE MIST METALLIC    | 124, 152, 190 |
+| `gold-mist-metallic`    | GOLD MIST METALLIC    | 176, 150, 96  |
+| `dark-green-metallic`   | DARK GREEN METALLIC   | 30, 70, 56    |
+
+The listing's default is `regatta-red`, the model's own. The model is K's `nissan-300zx-2plus2-1984.glb` (SHA-256
+`add6a67c…`), kept on K's branch `codex/nissan-300zx-2plus2-1984-glb-source`, never on main; it has no wheel nodes, and
+its front hub is (0, 0.3195, 1.26).
 
 ## HUD picture generator
 

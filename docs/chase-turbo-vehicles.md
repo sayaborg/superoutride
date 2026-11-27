@@ -6,7 +6,9 @@ the [Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-ver
 [Ford F-150 of 1975](#ford-f-150-of-1975-sources-versus-authored), the
 [Chevrolet Corvette Stingray of 1970](#chevrolet-corvette-stingray-of-1970-sources-versus-authored), the
 [Ford F-700 of 1980](#ford-f-700-of-1980-sources-versus-authored) and the
-[BMW 325i Convertible of 1987](#bmw-325i-convertible-of-1987-sources-versus-authored), authored by its conventions.
+[BMW 325i Convertible of 1987](#bmw-325i-convertible-of-1987-sources-versus-authored), and the
+[Nissan 300ZX 2+2 of 1984](#nissan-300zx-22-of-1984-sources-versus-authored), which no series runs yet, authored by its
+conventions.
 The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored), and the
 two Novas [the 1975 Nova 4-Door Sedan](#chevrolet-nova-of-1975-sources-versus-authored) and
 [its police car](#the-police-nova-of-1975).
@@ -1087,3 +1089,74 @@ catalogue, BMW's technical data for the M20 B 25, a specification site for the c
 and an owners' site for the exhaust, and refinish color charts for the colors
 ([Model solids](image-assets.md#model-solids)). No exhaust drawing was read. Not decided, for K
 ([NEXT](NEXT.md#stage-e30--the-325i-convertible-of-1987-in-out-runs-traffic)): the estimates above.
+
+## Nissan 300ZX 2+2 of 1984: sources versus authored
+
+K takes the Nissan 300ZX 2+2 of 1984 as a vehicle of its own (K, 2026-11-27), added to the catalogue, in place of none
+and run by no series; nothing here claims an original says so. `NISSAN_300ZX_2PLUS2_1984` is the 1984 US 300ZX 2+2
+(Z31, Nissan's `KHLG-JU`): the 49-state car with the T-bar roof, GL trim, the VG30E V6 without a turbocharger and the
+FS5W71C five-speed manual. K's model had a turbocharger's bonnet scoop; Nissan's 1984 manual gives the US 2+2 no turbo,
+so K chose the non-turbo car and the scoop is taken off. Its listing selects the VG30E, the 5MT and the 3.70 axle; its
+engine is shown as `V6`, its name as `300ZX 2+2`. FREE PLAY's classes offer it through catalog membership, as every
+vehicle. Its numbers follow this ledger's [conventions](#numerical-conventions-and-remaining-uncertainty); the
+estimates among them add no formula or rule and no exception for this car.
+
+The source column is the stage auditor's reading (2026-11-27) of Nissan's 1984 300ZX service manual (the copy at
+[xenonzcar.com](https://www.xenonzcar.com/z31/z31fsm.php), by its page codes) and of secondary sources (**S**), not read
+for the PR that wrote this section.
+
+| Item                  | Source (auditor's reading)                                                                                                   | Authored `NISSAN_300ZX_2PLUS2_1984`                                                                                                                         | Class            |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Model                 | `KHLG-JU`: T-bar roof, US except California, 2+2, GL, VG30E, FS5W71C, R200                                                   | The same car                                                                                                                                                | source           |
+| Length, width, height | 4,535 / 1,725 (with the side molding) / 1,310 mm, 2+2 (GI-13)                                                                | 4.535 / 1.725 / 1.31 m                                                                                                                                      | source           |
+| Tracks, wheelbase     | 1,415 / 1,435 mm; 2,520 mm (GI-13)                                                                                           | 1.415 / 1.435 m; 2.52 m                                                                                                                                     | source           |
+| Mass                  | 1,385 kg, an Australian 2+2 T-bar 5MT (**S**, whichcar.com.au)                                                               | **1,460 kg**: 1,385 kg + the driver; no US 1984 figure was found                                                                                            | source, estimate |
+| Axles                 | —                                                                                                                            | **1.2096 / 1.3104 m** from the CG: a front share of 0.52                                                                                                    | estimate         |
+| Engine                | 2,960 cc, 87 × 83 mm, 9.0:1 (EM-38)                                                                                          | 2,960 cc, `cycle` 4, 9.0; idle 700 and redline 6,000 rpm estimates                                                                                          | source, estimate |
+| Power, torque         | 160 hp at 5,200, 174 lb-ft at 4,000 (**S**, conceptcarz.com and others)                                                      | Point 3: 235.912323 N m at 4,000; point 4: 219.1049 N m at 5,200                                                                                            | source           |
+| Curve's other points  | —                                                                                                                            | 136.829147 at 700 and 200.525475 at 2,350 (0.58 and 0.85 of point 3's), 179.666018 at 6,000 (0.82 of 4's)                                                   | estimate         |
+| Transmission          | 3.321 / 1.902 / 1.308 / 1.000 / 0.759 (MT-30); axle 3.700, non-turbo (PD-11)                                                 | The same five ratios and final, shifted by the existing automatic shifts                                                                                    | source           |
+| Tires                 | P215/60R15 (GI-9)                                                                                                            | Radii 0.3195 m (0.639 m across); inertias `25r²` / `27r²` = 2.552 / 2.756                                                                                   | calculated       |
+| Drag                  | Cd 0.31, the turbo two-seater's (**S**)                                                                                      | `q = 0.5 × 1.225 × 0.31 × 1.80 m²` = 0.3418 kg/m; the frontal area **1.80 m²**                                                                              | source, estimate |
+| CG height             | —                                                                                                                            | 0.5 m                                                                                                                                                       | estimate         |
+| Inertias              | —                                                                                                                            | Box estimates 2,864 / 2,711 kg m²                                                                                                                           | calculated       |
+| Brakes                | —                                                                                                                            | 1,460 × 11.5 m/s², 65:35, × 0.3195 m, to 25 N m: 3,475 / 1,875 N m                                                                                          | game design      |
+| Suspension            | —                                                                                                                            | 1.5 Hz, 0.4, 0.3 m                                                                                                                                          | game design      |
+| Firing                | 1-2-3-4-5-6; the right bank 1-3-5, the left 2-4-6 (EM-38)                                                                    | `firingPhases` by sixths; the right bank to junction 0, the left to junction 1                                                                              | source           |
+| `exhaust.valve`       | Head 35.0–35.2 mm; open from 62° BBDC to 10° ATDC (EM-38, EM-40)                                                             | 0.0351 m, `open` 0.35 (252 / 720); the manual gives the cam's height, not the valve's lift                                                                  | source           |
+| `exhaust.diameter`    | —                                                                                                                            | **0.040 m**: the manifold's branch, the valve's 35.1 mm, × 1.14                                                                                             | estimate         |
+| `exhaust.tubes`       | A front tube from the two manifolds into one, a converter, a centre tube and one muffler (FE-6); two tail pipes in K's model | Each bank 0.30 / 0.19 / 0.08 m; the front tube's branches 0.55 and 0.85 m; one tube of **4.45 m** (the muffler's 1.65 m counted in it); two tails of 0.25 m | estimate         |
+
+### The 300ZX 2+2 in the current model
+
+- Its five forward gears are shifted by the existing automatic shifts, as every car's; its tire is the default tire.
+- Its engine sound is written as the exhaust kernel reads it, its sources in its own note
+  ([Audio](audio.md#observations-and-engine-sounds)): one tube from the banks' junction to the muffler, then two tails,
+  no junction where only two tubes meet, as the Nova's; every length is an estimate. The loudness measurement runs it
+  to −42.5 LUFS, not heard.
+- Its pictures are baked from K's model in eight Nissan colors, REGATTA RED the default, at a spacing of 0.004 m
+  ([Model solids](image-assets.md#model-solids)).
+
+### The 300ZX 2+2 on the flat
+
+The existing solver on this ledger's flat, dry, windless straight with the automatic shifts, not compared with the real
+car's figures and not tuned:
+
+| Measure                        | Measured                                                |
+| ------------------------------ | ------------------------------------------------------- |
+| 0–100 km/h, 0–200 km/h         | 8.27 s (60 mph in 7.8 s), 38.6 s                        |
+| 0–400 m, 0–1,000 m             | 16.1 s, 29.1 s (between 1 s samples)                    |
+| Speed after 240 s              | 232.9 km/h in fifth at 5,461 rpm, below the redline     |
+| Redline speeds, first to fifth | 59, 103, 149, 195, 257 km/h                             |
+| Shifts                         | 59, 103, 149 and 195 km/h, at 3.8, 8.7, 17.6 and 35.1 s |
+| Braking from 100 km/h          | 2.55 s, 36.0 m                                          |
+
+It launches, shifts through all five gears and restarts from rest (98 km/h 8 s after stopping).
+
+### The 300ZX 2+2's sources
+
+The stage auditor's reading (2026-11-27), not read for these PRs: Nissan's 1984 300ZX service manual (GI-9, GI-11,
+GI-13, EM-38, EM-40, MT-30, PD-11, FE-6), a motoring site for the Australian car's mass, specification sites for the
+power, torque and Cd, and refinish color charts for the colors ([Model solids](image-assets.md#model-solids)). Nissan
+gives no power in the manual, and the manual's exhaust drawing has no dimensions. Not decided, for K
+([NEXT](NEXT.md#stage-z31--the-300zx-22-of-1984-and-its-police-car)): the estimates above.

@@ -1,0 +1,26 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 3,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.16666666666666666, 0.3333333333333333, 0.5, 0.6666666666666666, 0.8333333333333334],
+  "exhaust": {
+    "valve": { "diameter": 0.0351, "open": 0.35 },
+    "diameter": 0.04,
+    "tubes": [
+      { "from": null, "to": 0, "length": 0.3 },
+      { "from": null, "to": 1, "length": 0.3 },
+      { "from": null, "to": 0, "length": 0.19 },
+      { "from": null, "to": 1, "length": 0.19 },
+      { "from": null, "to": 0, "length": 0.08 },
+      { "from": null, "to": 1, "length": 0.08 },
+      { "from": 0, "to": 2, "length": 0.55 },
+      { "from": 1, "to": 2, "length": 0.85 },
+      { "from": 2, "to": 3, "length": 4.45 },
+      { "from": 3, "to": null, "length": 0.25 },
+      { "from": 3, "to": null, "length": 0.25 }
+    ]
+  },
+  "metadata": {
+    "note": "1984 US Nissan 300ZX 2+2 (Z31, KHLG-JU), VG30E (2,960 cc, 160 hp at 5,200 rpm), 5-speed manual: a V6, one exhaust valve a cylinder, firing 1-2-3-4-5-6 at even intervals; the tubes from the valves in that order, the right bank (1-3-5) to junction 0 and the left (2-4-6) to junction 1 (Nissan's 1984 300ZX service manual, EM-38). Valve: head 35.0-35.2 mm, taken 35.1 mm; open 252 / 720 = 0.35, from 62 BBDC to 10 ATDC (EM-38, EM-40); the manual gives the cam's height, not the valve's lift, so the diameter is written as it is (an estimate that the lift passes a quarter of it). Exhaust of the non-turbo car (FE-6): a front tube from the two manifolds into one, a catalytic converter, a centre tube and one muffler assembly; K's model shows two tail pipes. Written so: each bank's cast manifold, the tubes 0.30, 0.19 and 0.08 m from the front cylinder to the rear (estimates from the 108 mm bore spacing, the outlet at the rear); the front tube's branches 0.55 m (right) and 0.85 m (left) to where they join (junction 2) (estimates); one tube of 4.45 m from there (an estimate: about 2.5 m of pipe through the converter to the muffler at the tail, 0.3 m for the bends, and 1.65 m within the muffler, three times a 0.55 m body, counted in the tube's length as for the Beetle (K)); two tail pipes of 0.25 m (estimate). No expansion chamber is written. Diameter 0.040 m: the manifold's branch, taken as the valve's 35.1 mm inside, times 1.14 (an estimate). Every length is an estimate: the manual's drawing has no dimensions."
+  }
+}
