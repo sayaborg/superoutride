@@ -1,0 +1,11 @@
+import {MeshoptSimplifier} from 'meshoptimizer';
+import fs from 'node:fs';
+await MeshoptSimplifier.ready;
+const [,, dir, target] = process.argv;
+const rd=(n,T)=>{const b=fs.readFileSync(`${dir}/${n}`);return new T(b.buffer,b.byteOffset,b.byteLength/T.BYTES_PER_ELEMENT)};
+const idx=rd('idx.u32',Uint32Array), pos=rd('pos.f32',Float32Array), att=rd('att.f32',Float32Array);
+const na=att.length/(pos.length/3);
+const t0=Date.now();
+const [out,err]=MeshoptSimplifier.simplifyWithAttributes(idx,pos,3,att,na,new Array(na).fill(Number(process.argv[4]??1)),null,Number(target)*3,1.0,['LockBorder']);
+console.log('triangles',idx.length/3,'->',out.length/3,'error',err,'scale',MeshoptSimplifier.getScale(pos,3),'ms',Date.now()-t0);
+fs.writeFileSync(`${dir}/out.u32`,Buffer.from(out.buffer,out.byteOffset,out.byteLength));
