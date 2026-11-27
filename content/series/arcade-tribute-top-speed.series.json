@@ -1,0 +1,336 @@
+{
+  "format": "superoutride.series",
+  "version": 21,
+  "id": "arcade-tribute-top-speed",
+  "title": "ARCADE TRIBUTE - TOP SPEED",
+  "description": "TAITO, 1987, called Full Throttle in Japan. A red sports car across America in five stages, roads forking halfway through, and a nitro button for bursts past 400 km/h.",
+  "image": "arcade-tribute-top-speed",
+  "music": {
+    "title": "arcade-tribute-top-speed"
+  },
+  "dev": false,
+  "classes": [
+    {
+      "id": "a",
+      "title": "TOP SPEED A",
+      "course": "top-speed-a",
+      "laps": 1,
+      "vehicles": [
+        "RX_7_TURBO_II_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "RX_7_TURBO_II_1987",
+          "color": "sunrise-red",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "chase": null,
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "NISSAN_300ZX_2PLUS2_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    },
+    {
+      "id": "b",
+      "title": "TOP SPEED B",
+      "course": "top-speed-b",
+      "laps": 1,
+      "vehicles": [
+        "RX_7_TURBO_II_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "RX_7_TURBO_II_1987",
+          "color": "sunrise-red",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "chase": null,
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "NISSAN_300ZX_2PLUS2_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    },
+    {
+      "id": "c",
+      "title": "TOP SPEED C",
+      "course": "top-speed-c",
+      "laps": 1,
+      "vehicles": [
+        "RX_7_TURBO_II_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "RX_7_TURBO_II_1987",
+          "color": "sunrise-red",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "chase": null,
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "NISSAN_300ZX_2PLUS2_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    },
+    {
+      "id": "d",
+      "title": "TOP SPEED D",
+      "course": "top-speed-d",
+      "laps": 1,
+      "vehicles": [
+        "RX_7_TURBO_II_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "RX_7_TURBO_II_1987",
+          "color": "sunrise-red",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "chase": null,
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "NISSAN_300ZX_2PLUS2_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    },
+    {
+      "id": "e",
+      "title": "TOP SPEED E",
+      "course": "top-speed-e",
+      "laps": 1,
+      "vehicles": [
+        "RX_7_TURBO_II_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "RX_7_TURBO_II_1987",
+          "color": "sunrise-red",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "chase": null,
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "NISSAN_300ZX_2PLUS2_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    },
+    {
+      "id": "f",
+      "title": "TOP SPEED F",
+      "course": "top-speed-f",
+      "laps": 1,
+      "vehicles": [
+        "RX_7_TURBO_II_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "RX_7_TURBO_II_1987",
+          "color": "sunrise-red",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "chase": null,
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "NISSAN_300ZX_2PLUS2_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    },
+    {
+      "id": "g",
+      "title": "TOP SPEED G",
+      "course": "top-speed-g",
+      "laps": 1,
+      "vehicles": [
+        "RX_7_TURBO_II_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "RX_7_TURBO_II_1987",
+          "color": "sunrise-red",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "own",
+      "chase": null,
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "NISSAN_300ZX_2PLUS2_1984",
+            "weight": 1
+          },
+          {
+            "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    }
+  ]
+}

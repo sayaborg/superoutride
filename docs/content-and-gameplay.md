@@ -1085,6 +1085,14 @@ of 2026-11-27), at 4 a kilometre and up to 90 km/h (provisional). B to E have a 
 since its reference run ends off the pavement past its GOAL. The reference runs recover 9 to 16 times a road, so the
 clocks are generous until the driving is mended.
 
+ARCADE TRIBUTE - TOP SPEED is delivered on OUTRUN's terms (K, 2026-11-27), on its original roads A to G, each one run
+without a clock. The player drives the RX-7 Turbo II of 1987 alone, in SUNRISE RED (`fixedColors`), from the grid's
+first slot (`own`), without rivals; the original's nitro is not made. The traffic drives its lanes, for now four
+vehicles of equal weight in the original's traffic's places (K, 2026-11-27, for now): the 300ZX 2+2 of 1984 in its
+sports car's, the 325i Convertible of 1987 and the Nova of 1975 in its two saloons', and the F-150 of 1975 in its
+four-wheel drive's; its van's place is filled when a van of the original's kind is in the catalog's traffic, at 4 a
+kilometre and up to 90 km/h, OUTRUN's figures.
+
 ARCADE TRIBUTE - TURBO OUTRUN is delivered on the same terms (K, 2026-11-10), on its original SECTION 1 to 4, each one
 run with a margin of 1.35. The player drives the F40, in ROSSO CORSA, beside its one rival, the Porsche 959 of 1987 in GRAND
 PRIX WHITE (K's choice of the original's Porsche, 2026-11-19), both on the grid's first two slots (`own`); the traffic

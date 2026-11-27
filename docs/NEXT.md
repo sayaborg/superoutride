@@ -564,9 +564,8 @@ and the scoop is taken off. The strip joining the brake lamps is a red lens that
 The police car has the 300ZX's mechanics and sound and differs in looks alone, held as the Novas are: two ids, two
 definition files of the same values, one sound
 ([Arcade car selections](chase-turbo-vehicles.md#nissan-300zx-22-of-1984-sources-versus-authored),
-[Model solids](image-assets.md#model-solids)). K plans the 300ZX for TOP SPEED's traffic and the police car as a
-second CISCO HEAT car beside the police Nova; those series and that choice are not on main, so neither car runs in a
-series in this stage.
+[Model solids](image-assets.md#model-solids)). K plans the police car as a second CISCO HEAT car beside the police Nova; that series is not on
+main, so the police car runs in no series. The 300ZX runs in TOP SPEED's traffic (Stage TS, K, 2026-11-27).
 
 - Z31-1: the 300ZX added (definition, sound, listing, the set baked from K's model, SHA-256 `add6a67c…`, on
   `codex/nissan-300zx-2plus2-1984-glb-source`, never on main), the engine loudness measured again; no series runs it.
@@ -1635,9 +1634,9 @@ Left by the stages that raised them, beside what follows:
   the same driver. Its ARCADE TRIBUTE series runs its originals for now (K, 2026-11-10): the TESTAROSSA's reference
   runs recover 9 to 16 times a road, and outrun-a's ends off the pavement past its GOAL, so its class has no clock
   until the driver is mended; then its product courses, its vehicles and the original's traffic.
-- TOP SPEED: its ARCADE TRIBUTE series, of the classes [the product](product.md#arcade-tribute) names, is not made. How
-  it uses the RX-7 Turbo II of 1987, K's TOP SPEED car (the player's alone or rivals too, and nitro), is not decided,
-  nor the car's own tire values and steering picture
+- TOP SPEED: its ARCADE TRIBUTE series runs the RX-7 Turbo II of 1987 alone, without its nitro, which is not made (K,
+  2026-11-27), through four traffic vehicles for now; the Econoline E-150 of 1983 joins its traffic in its van's place
+  in the van's own stage. Not decided: the RX-7's own tire values and steering picture
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored)). Not
   drawn as the original draws them: its cloud banks' rows and size by their distance (each is a band across the road
   of one height and one size; the original lays it on the screen by its own curve, behind the ground), which needs a

@@ -639,8 +639,8 @@ K takes TOP SPEED's car for the Mazda RX-7 Turbo II of 1987 (K, 2026-11-19); not
 `RX_7_TURBO_II_1987` is the 1987 model year's FC Series 4 Turbo II as sold in the US: left-hand drive, the 13B
 two-rotor engine with an intercooled single turbocharger, a five-speed manual and rear drive. Its listing selects the
 5MT, the hood scoop and the 16-inch wheels; its engine is shown as `R2T`, a two-rotor turbo. FREE PLAY's classes offer
-it through catalog membership, as every vehicle; no other series runs it, and how TOP SPEED's series will use it is not
-decided. Its numbers follow this ledger's [conventions](#numerical-conventions-and-remaining-uncertainty).
+it through catalog membership, as every vehicle, and TOP SPEED's series runs it as the player's car, alone (K,
+2026-11-27). Its numbers follow this ledger's [conventions](#numerical-conventions-and-remaining-uncertainty).
 
 The source column has two kinds of reading, both the stage auditor's on 2026-11-19, none made for the PRs that
 wrote this section. Rows of class **source (T)** were read by the auditor in K's copy of Mazda's Turbo II training
