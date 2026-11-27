@@ -1,4 +1,4 @@
-"""Nova 1975: write the GLB. Variant 'civil': one paint key. Variant 'police': the same body, two paint keys (body, doors and roof),
+"""Nissan 300ZX 2+2 1984: write the GLB. Variant 'civil': one paint key. Variant 'police': the same body, two paint keys (body, doors and roof),
 a star on the front doors and a light bar on the roof (K 2026-11-26)."""
 import sys,io,os,hashlib,time; sys.path.insert(0,'tools')
 import glbio, ao, numpy as np
