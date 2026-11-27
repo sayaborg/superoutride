@@ -1,0 +1,103 @@
+{
+  "format": "superoutride.vehicle-model-recipe",
+  "version": 1,
+  "vehicle": "FORD_ECONOLINE_E_150_1983",
+  "yawVariants": 64,
+  "model": {
+    "sha256": "bbaddb6844fda0b31f471eb14da4f2ab3eaa68cceac00fad5110ef46906ff088",
+    "right": "-x",
+    "up": "+y",
+    "forward": "+z",
+    "frontHub": [0, 0.3593, 1.7526]
+  },
+  "spacing": 0.004,
+  "paints": {
+    "colors": [[200, 20, 26]],
+    "within": 8,
+    "lamp": [255, 0, 255]
+  },
+  "glass": {
+    "color": [10, 10, 12],
+    "within": 4,
+    "rough": 0.5
+  },
+  "ramps": {
+    "paints": [7],
+    "glass": 3,
+    "grey": 4,
+    "sampleYaws": 16
+  },
+  "light": {
+    "main": [-0.25, 0.85, 0.46],
+    "fill": [0.6, 0.2, 0.5],
+    "ambient": 0.08,
+    "sky": 0.14,
+    "mainWeight": 0.92,
+    "fillWeight": 0.06,
+    "greyGain": 1.5
+  },
+  "reflection": {
+    "paint": {
+      "f0": 0.1,
+      "horizon": [205, 218, 238],
+      "zenith": [120, 160, 230],
+      "haze": [70, 66, 68],
+      "ground": [20, 18, 20],
+      "fall": 0.1,
+      "power": 0.6
+    },
+    "glass": {
+      "f0": 0.8,
+      "horizon": [232, 240, 248],
+      "zenith": [58, 120, 222],
+      "haze": [205, 214, 224],
+      "ground": [86, 88, 92],
+      "fall": 0.35,
+      "power": 0.6
+    }
+  },
+  "glare": [
+    { "power": 30, "strength": 2, "glass": 1 },
+    { "power": 220, "strength": 4, "glass": 1.5 }
+  ],
+  "wheels": [
+    {
+      "center": [0.8814, 0.3593, 1.7526],
+      "radius": 0.3593,
+      "rim": 0.19,
+      "width": 0.225
+    },
+    {
+      "center": [-0.8814, 0.3593, 1.7526],
+      "radius": 0.3593,
+      "rim": 0.19,
+      "width": 0.225
+    },
+    {
+      "center": [0.8509, 0.3593, -1.7526],
+      "radius": 0.3593,
+      "rim": 0.19,
+      "width": 0.225
+    },
+    {
+      "center": [-0.8509, 0.3593, -1.7526],
+      "radius": 0.3593,
+      "rim": 0.19,
+      "width": 0.225
+    }
+  ],
+  "liveries": {
+    "candyapple-red": [[200, 20, 26]],
+    "light-desert-tan": [[222, 190, 138]],
+    "wimbledon-white": [[236, 234, 222]],
+    "silver-metallic": [[168, 172, 176]],
+    "midnight-blue-metallic": [[22, 30, 62]],
+    "light-cadet-blue": [[134, 162, 188]],
+    "dark-walnut-metallic": [[76, 50, 34]],
+    "raven-black": [[26, 26, 28]]
+  },
+  "brakeLamp": {
+    "off": [125, 12, 18],
+    "on": [255, 70, 40]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "format": "superoutride.engine-sound",
+  "version": 3,
+  "cycleRevolutions": 2,
+  "firingPhases": [0, 0.16666666666666666, 0.3333333333333333, 0.5, 0.6666666666666666, 0.8333333333333334],
+  "exhaust": {
+    "valve": { "diameter": 0.0396, "open": 0.3722 },
+    "diameter": 0.04,
+    "tubes": [
+      { "from": null, "to": 0, "length": 0.32 },
+      { "from": null, "to": 0, "length": 0.2 },
+      { "from": null, "to": 0, "length": 0.1 },
+      { "from": null, "to": 0, "length": 0.32 },
+      { "from": null, "to": 0, "length": 0.2 },
+      { "from": null, "to": 0, "length": 0.1 },
+      { "from": 0, "to": null, "length": 5 }
+    ]
+  },
+  "metadata": {
+    "note": "1983 US Ford Econoline E-150 Regular Van, 138 in wheelbase (4.9L I-6, 4,917 cc, 115 hp net, a secondary source): an inline six, one exhaust valve a cylinder, firing 1-5-3-6-2-4 at even intervals; the tubes from the valves in that order. The engine is the 300 Six of FORD_F_150_1975, so the valve, the opening and the log manifold are that definition's: valve 1.56 in (39.6 mm), a later year's value on the web; open 268 / 720 = 0.3722, from 54 BBDC / 34 ATDC at 0.006 in tappet lift (an enthusiast's measurement); the manifold's outlet between cylinders 3 and 4, each cylinder's tube its run along the log (1 and 6 0.32 m, 2 and 5 0.20 m, 3 and 4 0.10 m, estimates). The 1983 engine's own primary source was not read. From the outlet one tube of 5 m to the open, an estimate with no drawing read (+-0.3 m): the outlet beside the engine cover, about 0.2 m behind the front axle; down about 0.5 m, back under the floor through the catalyst and the silencer, each counted as its own length straight through, and out behind the right rear wheel, about 0.5 m behind the rear axle and 0.8 m right of the centreline, on a wheelbase of 3.505 m. The bodies and volumes of the catalyst and the silencer are not written. Diameter 0.04 m: as FORD_F_150_1975's (the manifold's branch, about 35 mm inside, times 1.14, an estimate)."
+  }
+}

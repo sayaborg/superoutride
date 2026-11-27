@@ -5,8 +5,9 @@ the [Mazda RX-7 Turbo II of 1987](#mazda-rx-7-turbo-ii-of-1987-sources-versus-au
 the [Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-versus-authored), the
 [Ford F-150 of 1975](#ford-f-150-of-1975-sources-versus-authored), the
 [Chevrolet Corvette Stingray of 1970](#chevrolet-corvette-stingray-of-1970-sources-versus-authored), the
-[Ford F-700 of 1980](#ford-f-700-of-1980-sources-versus-authored) and the
-[BMW 325i Convertible of 1987](#bmw-325i-convertible-of-1987-sources-versus-authored), and the
+[Ford F-700 of 1980](#ford-f-700-of-1980-sources-versus-authored), the
+[BMW 325i Convertible of 1987](#bmw-325i-convertible-of-1987-sources-versus-authored) and the
+[Ford Econoline E-150 of 1983](#ford-econoline-e-150-of-1983-sources-versus-authored), and the
 [Nissan 300ZX 2+2 of 1984](#nissan-300zx-22-of-1984-sources-versus-authored) and
 [its police car](#the-police-300zx-22-of-1984), which no series runs yet, authored by its conventions.
 The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored), and the
@@ -1169,3 +1170,75 @@ GI-13, EM-38, EM-40, MT-30, PD-11, FE-6), a motoring site for the Australian car
 power, torque and Cd, and refinish color charts for the colors ([Model solids](image-assets.md#model-solids)). Nissan
 gives no power in the manual, and the manual's exhaust drawing has no dimensions. Not decided, for K
 ([NEXT](NEXT.md#stage-z31--the-300zx-22-of-1984-and-its-police-car)): the estimates above.
+
+## Ford Econoline E-150 of 1983: sources versus authored
+
+K takes a van for OUT RUN's traffic, the Ford Econoline E-150 Regular Van of 1983 (K, 2026-11-27), added to the others,
+not in place of one; nothing here claims the original says so. `FORD_ECONOLINE_E_150_1983` is the 1983 US E-150 Regular
+Van on the 138 in wheelbase with the 4.9 L (300 cu in) inline six and the four-speed overdrive manual. Its listing
+selects the 4.9L I-6, the Regular Van on 138 in and the 4-speed overdrive MT; its engine is shown as `I6`, its name as
+`E-150` (`Econoline E-150` with the year passes the 20-character limit, as the F-150's). FREE PLAY's classes offer it
+through catalog membership, as every vehicle. Its numbers follow this ledger's
+[conventions](#numerical-conventions-and-remaining-uncertainty); the estimates among them add no formula or rule and no
+exception for this van.
+
+The source column is the stage auditor's reading (2026-11-27) of Ford's 1983 Econoline catalogue (**C**, pages 12 and
+13, [PDF](https://xr793.com/wp-content/uploads/2022/10/1983-Ford-Econoline.pdf)) and of web pages (**W**: carweek.com,
+bullnosegarage.com, fordgarage.com's table from Ford's 1983 TOD and SROD manuals, automobile-catalog.com), not read for
+the PR that wrote this section. No Ford source of 1983 for the engine, the gears or the axle was read.
+
+| Item                  | Source (auditor's reading)                                                                                                          | Authored `FORD_ECONOLINE_E_150_1983`                                                                                  | Class              |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| Length, width, height | 206.8 in (5,253 mm) bumper to bumper, 79.9 in (2,029 mm), 81.0 in (2,057 mm) empty, E-150 on 138 in (C)                             | 5.253 / 2.03 / 2.057 m                                                                                                | source             |
+| Tracks, wheelbase     | 69.4 / 67.0 in (1,763 / 1,702 mm); 138 in (3,505 mm) (C)                                                                            | 1.763 / 1.702 m; 3.5052 m                                                                                             | source             |
+| Mass                  | GVWR 5,850 lb less a payload of 1,940 lb (C): 3,910 lb (1,774 kg); 3,736 lb for a 124 in cargo van (W)                              | **1,849 kg**: 1,774 + the 75 kg driver; the engine and gearbox chosen are not allowed for                             | source, estimate   |
+| Axles                 | —                                                                                                                                   | **1.5773 / 1.9279 m** from the CG: a front share of 0.55 (the engine over the front axle, empty)                      | estimate           |
+| Engine                | 4.00 × 3.98 in six (W), 4,917 cc, 8.0:1 (W), the F-150 of 1975's engine                                                             | 4,917 cc, `cycle` 4, 8.0; idle **650** (the F-150's)                                                                  | source, estimate   |
+| Power, torque         | 115 hp at 3,000, 223 lb-ft at 1,600 (W, the 1983 E-150 and F-150); 117 hp at 3,400 and 122 hp at 3,000 with 255 lb-ft elsewhere (W) | Point 3: 302.347402 N m at 1,600; point 4: 272.968187 N m at 3,000 (115 hp)                                           | source             |
+| Curve's other points  | —                                                                                                                                   | 175.361493 at 650 and 256.995292 at 1,125 (0.58 and 0.85 of point 3's), 223.833914 at 3,500 (0.82 of 4's)             | estimate           |
+| Redline               | —                                                                                                                                   | **3,500 rpm**: the curve's check needs 3,540 or below for the power to peak at 3,000 rpm                              | estimate           |
+| Transmission          | 3.25 / 1.92 / 1.00 and 0.7837 or 0.7087 (W, Ford's TOD and SROD tables; 0.7087 the F-150 4.9L's usual)                              | 3.25 / 1.92 / 1.00 / **0.71**, shifted by the existing automatic shifts; final **3.50** (the F-150's; no source)      | source, estimate   |
+| Tires                 | P225/75R15SL, standard on the 5,850 lb GVWR (C)                                                                                     | Radii 0.3593 m (0.7185 m across); inertias `25r²` / `27r²` = 3.227 / 3.486                                            | source, calculated |
+| Drag                  | —                                                                                                                                   | `q = 0.5 × 1.225 × 0.50 × 3.4 m²` = **1.0413 kg/m**; Cd and the frontal area are estimates                            | estimate           |
+| CG height             | —                                                                                                                                   | **0.75 m**, above the F-150's 0.70                                                                                    | estimate           |
+| Inertias              | —                                                                                                                                   | Box estimates 4,887 / 4,904 kg m²                                                                                     | calculated         |
+| Brakes                | —                                                                                                                                   | 1,849 × 11.5 m/s², 65:35, × 0.3593 m, to 25 N m: 4,975 / 2,675 N m                                                    | game design        |
+| Suspension            | —                                                                                                                                   | 1.5 Hz, 0.4, 0.3 m                                                                                                    | game design        |
+| Valves, firing        | The F-150 of 1975's: exhaust 1.56 in, 54° BBDC to 34° ATDC; 1-5-3-6-2-4 (W)                                                         | `valve` 0.0396 m, `open` 0.3722; `firingPhases` by sixths                                                             | source, estimate   |
+| `exhaust.diameter`    | —                                                                                                                                   | **0.04 m**, the F-150's                                                                                               | estimate           |
+| `exhaust.tubes`       | —                                                                                                                                   | The F-150's six along the log manifold to junction 0; one of **5 m** to the open behind the right rear wheel (±0.3 m) | estimate           |
+
+### The Econoline E-150 in the current model
+
+- Its four forward gears are shifted by the existing automatic shifts, as every car's; its tire is the default tire.
+- Its engine sound is written as the exhaust kernel reads it, its sources in its own note
+  ([Audio](audio.md#observations-and-engine-sounds)): the F-150's manifold, then one tube of 5 m, the catalyst and
+  silencer counted in its length; no drawing was read. The loudness measurement runs it to −46.2 LUFS (the F-150's is
+  −45.9), not heard.
+- Its pictures are baked from K's model, a converted van, in eight Ford colors, LIGHT DESERT TAN the default, at a
+  spacing of 0.004 m ([Model solids](image-assets.md#model-solids)). Its length is Ford's bumper to bumper, 5.253 m; the
+  front guard and the rear spare tyre stand outside it.
+
+### The Econoline E-150 on the flat
+
+The existing solver on this ledger's flat, dry, windless straight with the automatic shifts, not compared with the real
+van's figures and not tuned:
+
+| Measure                         | Measured                                             |
+| ------------------------------- | ---------------------------------------------------- |
+| 0–100 km/h                      | 16.55 s (60 mph in 15.3 s); 200 km/h not reached     |
+| 0–400 m, 0–1,000 m              | 19.8 s, 37.4 s (between 1 s samples)                 |
+| Speed after 240 s               | 137.0 km/h in fourth at 2,525 rpm, below the redline |
+| Redline speeds, first to fourth | 42, 71, 135, 191 km/h                                |
+| Shifts                          | 42, 71 and 135 km/h, at 3.2, 7.2 and 43.0 s          |
+| Braking from 100 km/h           | 2.48 s, 35.1 m                                       |
+
+It launches, shifts through all four gears and restarts from rest (73 km/h 8 s after stopping).
+
+### The Econoline E-150's sources
+
+The stage auditor's reading (2026-11-27), not read for these PRs: Ford's 1983 Econoline catalogue, web pages for the
+engine's bore, stroke, compression, power and torque and for the overdrive's ratios, and refinish color charts for the
+colors ([Model solids](image-assets.md#model-solids)). No Ford source of 1983 for the engine, the gears, the axle or the
+exhaust, and no drawing of the exhaust, was read. Not decided, for K
+([NEXT](NEXT.md#stage-e150--the-econoline-e-150-of-1983-in-out-runs-traffic)): the estimates above.

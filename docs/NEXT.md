@@ -27,8 +27,9 @@ Each line is one area as it stands, with the document that owns it.
   ([Stage F150](#stage-f150--the-f-150-of-1975-in-out-runs-traffic)), 40 with the Corvette Stingray of 1970
   ([Stage C3](#stage-c3--the-corvette-stingray-of-1970-in-out-runs-traffic)), 41 with the F-700 of 1980
   ([Stage F700](#stage-f700--the-f-700-of-1980-in-out-runs-traffic)), 42 with the 325i Convertible of 1987
-  ([Stage E30](#stage-e30--the-325i-convertible-of-1987-in-out-runs-traffic)), 43 with the 300ZX 2+2 of 1984 and 44 with
-  its police car ([Stage Z31](#stage-z31--the-300zx-22-of-1984-and-its-police-car)), in the same ledger; the Nova 250 of 1977 is now
+  ([Stage E30](#stage-e30--the-325i-convertible-of-1987-in-out-runs-traffic)), 43 with the 300ZX 2+2 of 1984, 44 with
+  its police car ([Stage Z31](#stage-z31--the-300zx-22-of-1984-and-its-police-car)) and 45 with the Econoline E-150 of
+  1983 ([Stage E150](#stage-e150--the-econoline-e-150-of-1983-in-out-runs-traffic)), in the same ledger; the Nova 250 of 1977 is now
   the Nova of 1975, and the police Nova of 1977 the Nova of 1975's police car
   ([Stage NV](#stage-nv--the-nova-of-1975-and-its-police-car))
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored),
@@ -38,7 +39,8 @@ Each line is one area as it stands, with the document that owns it.
   [the F-700's](chase-turbo-vehicles.md#ford-f-700-of-1980-sources-versus-authored),
   [the Nova of 1975's](chase-turbo-vehicles.md#chevrolet-nova-of-1975-sources-versus-authored),
   [the 325i Convertible's](chase-turbo-vehicles.md#bmw-325i-convertible-of-1987-sources-versus-authored),
-  [the 300ZX 2+2's](chase-turbo-vehicles.md#nissan-300zx-22-of-1984-sources-versus-authored)). Among the fourteen, the
+  [the 300ZX 2+2's](chase-turbo-vehicles.md#nissan-300zx-22-of-1984-sources-versus-authored),
+  [the Econoline E-150's](chase-turbo-vehicles.md#ford-econoline-e-150-of-1983-sources-versus-authored)). Among the fourteen, the
   928 S4 of 1987 is K's CHASE H.Q. car, on the real car's values ([Stage P928](#stage-p928--the-928-s4-of-1987)), and
   the Turbo Esprit of 1984 the car it chases ([Stage E82](#stage-e82--the-turbo-esprit-of-1984-chase-hqs-rival)), the
   Countach 5000 QV of 1985 the car it chases on the second stage
@@ -76,7 +78,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
 - **Pictures.** GOLF GTI 16V's pictures are a generated set, VFR750R's a 3D prototype,
-  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the F-700 of 1980's, the two Novas of 1975's, the 325i Convertible of 1987's, the 300ZX 2+2 of 1984's and its police car's, the M23 PP SPEC's, the NSR500 of 1984's and
+  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the F-700 of 1980's, the two Novas of 1975's, the 325i Convertible of 1987's, the 300ZX 2+2 of 1984's and its police car's, the Econoline E-150 of 1983's, the M23 PP SPEC's, the NSR500 of 1984's and
   the XR600R of 1985's baked from K's models, the three cars' with a car's glossy finish, the other vehicles' converted provisional pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
@@ -587,6 +589,39 @@ series in this stage.
 - SELECT VEHICLE offers the police car's colors in its set's order, RED & WHITE first, as the police Nova's (the
   recipe's liveries are the police Nova's), not BLACK & WHITE, GREEN, YELLOW, RED; BLACK & WHITE stays the default. Not
   changed: reordering the liveries would change the bake.
+
+## Stage E150 — The Econoline E-150 of 1983 in OUT RUN's traffic
+
+K's decisions of 2026-11-27: the Ford Econoline E-150 Regular Van of 1983 (US, the 138 in wheelbase, the 4.9 L inline
+six, the four-speed overdrive manual) is a vehicle of its own, `FORD_ECONOLINE_E_150_1983`, and OUT RUN's traffic takes
+it as its tenth vehicle, none replaced; K plans it also as a car standing on CISCO HEAT's streets, which neither that
+series nor standing cars on main yet allow. The model is sized to the 3,505 mm wheelbase and the base van's 5,253 mm
+length. K's model is a converted van (a roof rack, a ladder and a spare tyre at the rear, a front guard); K had its
+wipers taken off, the right side's debris levelled, the ladder made chrome and the roof's ribs body colour, the garbled
+lettering and emblems kept
+([Arcade car selections](chase-turbo-vehicles.md#ford-econoline-e-150-of-1983-sources-versus-authored),
+[Model solids](image-assets.md#model-solids)).
+
+- E150-1: the van added (definition, sound, listing, the set baked from K's model, SHA-256 `bbaddb68…`, on
+  `codex/ford-econoline-e-150-1983-glb-source`, never on main), the engine loudness measured again; no series runs it.
+- E150-2: OUT RUN's traffic takes the van after its vehicles, of weight 1, in each of the six classes.
+- The loudness measurement runs its sound to −46.2 LUFS (the F-150's, the same engine, −45.9), not heard.
+- SELECT VEHICLE opens on LIGHT DESERT TAN, the default, as 2/8: the colors are offered in the set's order, CANDYAPPLE
+  RED, the key's, first. Not changed.
+- To look at in DEV: revving and driving's sound; the eight colors; the chrome (bumpers, guard, ladder, rack) in the
+  greys; the brake lamps; the van among the traffic, the largest after the F-700 (5.25 × 2.03 × 2.06 m); its pictures'
+  length, 5.488 m end to end with the guard and the spare tyre (the definition's 5.253 m is bumper to bumper); the rack's
+  top at 2.085 m; the tyres 0 to 1 mm above the road.
+- Estimates and secondary sources: the mass (the catalogue's GVWR less its payload), the axles (a front share of 0.55),
+  the CG height (0.75 m), springs, damping, travel, the Cd and frontal area (0.50, 3.4 m²); the bore, stroke,
+  compression, power and torque (web pages, which differ: 115 hp at 3,000, 117 hp at 3,400, 122 hp at 3,000); the
+  redline (3,500 rpm, chosen for the curve's check), idle (650) and final (3.50, both the F-150's); the overdrive's
+  0.71 (0.7837 also exists; which the van had was not checked); the exhaust after the manifold (one 5 m tube); the
+  colors' base colors. The overhangs (0.617 and 1.130 m) are the model's own share, Ford giving none.
+- Its yaw inertia is 4,887 kg m², the ledger's formula rounded to the nearest (4,886.7); the stage brief gave 4,886.
+- The model's own note (`extras.note`) is from before the ladder and the roof's ribs were changed; the branch's commit
+  message is the right account. The model is not remade (its SHA-256 would change).
+- Not checked: Ford's 1983 color catalogue.
 
 ## Stage F120 — The F40 of 1988
 

@@ -267,6 +267,12 @@
       "vehicleSha256": "9220ecccfb11c286f590c9541d2bd1343a8555631e09f9947baf1b987d707b7b",
       "soundSha256": "ff1d229f268c065248c04e5774c03c07f771f84c808afd93f95d8aace0bd0b82",
       "lufs": -42.526165472475505
+    },
+    {
+      "vehicleId": "FORD_ECONOLINE_E_150_1983",
+      "vehicleSha256": "1d145c218558587f937458e5caeaa230dd8ab0ae8d7e2aaabf1012ef125c3eeb",
+      "soundSha256": "dba45e26047a03b8d1622dd2f3128ce36df617f3c02806ce1bef8c9231ca4790",
+      "lufs": -46.161707553802366
     }
   ]
 }

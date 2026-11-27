@@ -1,0 +1,33 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 6,
+  "form": "car",
+  "selectionOrder": 54,
+  "visuals": {
+    "spriteSet": "ford-econoline-e-150-1983",
+    "palette": "light-desert-tan",
+    "steeringPicture": "montecarlo",
+    "colorNames": {
+      "candyapple-red": "CANDYAPPLE RED",
+      "light-desert-tan": "LIGHT DESERT TAN",
+      "wimbledon-white": "WIMBLEDON WHITE",
+      "silver-metallic": "SILVER METALLIC",
+      "midnight-blue-metallic": "MIDNIGHT BLUE METALLIC",
+      "light-cadet-blue": "LIGHT CADET BLUE",
+      "dark-walnut-metallic": "DARK WALNUT METALLIC",
+      "raven-black": "RAVEN BLACK"
+    }
+  },
+  "sound": "FORD_ECONOLINE_E_150_1983",
+  "metadata": {
+    "manufacturer": "Ford",
+    "model": "Econoline E-150 Regular Van",
+    "period": "1983",
+    "mobileLabel": "E-150",
+    "engine": "I6",
+    "engineKind": "4-stroke",
+    "identifier": { "officialLabel": "E-150", "shortLabel": "E-150" },
+    "selectedSpecification": ["4.9L I-6", "Regular Van / 138 in", "4-speed overdrive MT"],
+    "physicsAnchor": { "modelYear": "1983", "market": "USA" }
+  }
+}

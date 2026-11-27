@@ -620,7 +620,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `ford-f-700-1980`, `chevrolet-nova-1975`, `chevrolet-nova-police-1975`, `bmw-325i-convertible-1987`, `nissan-300zx-2plus2-1984`, `nissan-300zx-2plus2-police-1984`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `ford-f-700-1980`, `chevrolet-nova-1975`, `chevrolet-nova-police-1975`, `bmw-325i-convertible-1987`, `nissan-300zx-2plus2-1984`, `nissan-300zx-2plus2-police-1984`, `ford-econoline-e-150-1983`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`corvette-c4-1984`): drawn by
@@ -1691,6 +1691,50 @@ stage auditor's, provisional:
 The listing's default is `black-and-white`. SELECT VEHICLE offers the colors in the set's order, the table's. The model
 is K's `nissan-300zx-2plus2-police-1984.glb` (SHA-256 `2770aea7…`), kept on K's branch
 `codex/nissan-300zx-2plus2-police-1984-glb-source`, never on main.
+
+**The Econoline E-150 of 1983.** Its set, `ford-econoline-e-150-1983`, is baked from K's model of the 1983 US Econoline
+E-150 Regular Van on the 138 in wheelbase, a converted van with a roof rack, a ladder and a spare tyre on the rear doors
+and a guard on the front bumper, by the 325i Convertible's recipe (K, 2026-11-27): the same light, reflections, glare,
+glass key, ramps (seven paint steps, three glass steps and four greys), spacing (0.004 m), 64 directions and brake lamp
+colors, none moved for this van. It differs in its one key color, the body's red (200, 20, 26) within 8. K asked for
+the wipers to be taken off, the debris on the right side (two boxes and a plate) levelled and painted, the rear ladder
+chrome all over and the roof's lengthwise ribs body colour; the garbled lettering and emblems stay (K). The chrome (the
+bumpers, the guard, the ladder, the rack) and the wheels fall in the greys. The magenta (255, 0, 255) is the brake
+lamp: the red lenses on the rear face.
+
+The model is in metres, +y up, +z forward and +x to the left, its origin on the road, on the centreline, halfway between
+the axles (z +1.7526 and −1.7526, Ford's 138 in wheelbase). It is 5,253 mm long bumper to bumper (Ford's 206.8 in; the
+guard ahead and the spare tyre behind stand outside it, 5,488 mm end to end, and the definition keeps 5.253 m), 2,057 mm
+high to the painted roof (Ford's 81.0 in; the rack's top is 2,085 mm), 2,030 mm across the body (Ford's 79.9 in) and
+2,364 mm across the mirrors. The overhangs, 617 mm front and 1,130 mm rear, are the model's own share (Ford gives none).
+Its tyres are P225/75R15 at 0.7185 m across, and its four wheels are spun at that size: centres (±0.8814, 0.3593,
+1.7526) m front and (±0.8509, 0.3593, −1.7526) m rear, Ford's 69.4 and 67.0 in tracks, radius 0.3593 and width 0.225;
+the rims are 0.19 (an estimate). Measured on the model, the tracks are 1.769 and 1.707 m and the tyres' lowest points
+stand 0 to 1 mm above the road (the stage auditor's). The model's own note (`extras.note`) is from before the ladder and
+the roof's ribs were changed; the branch's commit message is the right account.
+
+Its eight liveries are Ford's 1983 Econoline paint names by their codes (2K, 9Q, 9A, 1G, 3L, 31, 5U and 1C), from a
+refinish chart of 1983 Econoline colors (paintscratch.com) and a table of 1983 Ford truck colors (paintref.com), whose
+names are taken where the two differ; Ford's 1983 color catalogue was not read. DARK WALNUT METALLIC (5U) stands for
+the brown because MEDIUM DARK BROWN METALLIC (5Q) passes the 24-character limit of a color's name. The base colors are
+the stage auditor's, provisional, not measured from paint samples:
+
+| Palette                  | Name                   | Base color    |
+| ------------------------ | ---------------------- | ------------- |
+| `candyapple-red`         | CANDYAPPLE RED         | 200, 20, 26   |
+| `light-desert-tan`       | LIGHT DESERT TAN       | 222, 190, 138 |
+| `wimbledon-white`        | WIMBLEDON WHITE        | 236, 234, 222 |
+| `silver-metallic`        | SILVER METALLIC        | 168, 172, 176 |
+| `midnight-blue-metallic` | MIDNIGHT BLUE METALLIC | 22, 30, 62    |
+| `light-cadet-blue`       | LIGHT CADET BLUE       | 134, 162, 188 |
+| `dark-walnut-metallic`   | DARK WALNUT METALLIC   | 76, 50, 34    |
+| `raven-black`            | RAVEN BLACK            | 26, 26, 28    |
+
+The listing's default is `light-desert-tan`, near the beige of K's model; the recipe's first livery is the key's red,
+and SELECT VEHICLE offers the colors in the set's order, so it opens on LIGHT DESERT TAN as 2/8, CANDYAPPLE RED first.
+The model is K's `ford-econoline-e-150-1983.glb` (SHA-256 `bbaddb68…`), kept on K's branch
+`codex/ford-econoline-e-150-1983-glb-source`, never on main; it has no wheel nodes, and its front hub is (0, 0.3593,
+1.7526).
 
 ## HUD picture generator
 
