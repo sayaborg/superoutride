@@ -1,0 +1,249 @@
+{
+  "format": "superoutride.series",
+  "version": 21,
+  "id": "arcade-tribute-chase-hq",
+  "title": "ARCADE TRIBUTE - CHASE H.Q.",
+  "description": "TAITO, 1988. Two undercover cops in a black turbo sports car, a call from headquarters, and sixty seconds to run a criminal down and ram his car to a stop. Five cases in all.",
+  "image": "arcade-tribute-chase-hq",
+  "music": {
+    "title": "arcade-tribute-chase-hq"
+  },
+  "dev": false,
+  "classes": [
+    {
+      "id": "stage-1-right",
+      "title": "CHASE H.Q. STAGE 1 RIGHT",
+      "course": "chase-hq-1-right",
+      "laps": 1,
+      "vehicles": [
+        "PORSCHE_928_S4_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "PORSCHE_928_S4_1987",
+          "color": "black",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "TURBO_ESPRIT_1984",
+          "color": "monaco-white",
+          "stages": null,
+          "slot": null,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "first",
+      "chase": {
+        "seconds": 3
+      },
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    },
+    {
+      "id": "stage-2-left",
+      "title": "CHASE H.Q. STAGE 2 LEFT",
+      "course": "chase-hq-2-left",
+      "laps": 1,
+      "vehicles": [
+        "PORSCHE_928_S4_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "PORSCHE_928_S4_1987",
+          "color": "black",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "COUNTACH_5000_QV_1985",
+          "color": "giallo-fly",
+          "stages": null,
+          "slot": null,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "first",
+      "chase": {
+        "seconds": 3
+      },
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    },
+    {
+      "id": "stage-3-left",
+      "title": "CHASE H.Q. STAGE 3 LEFT",
+      "course": "chase-hq-3-left",
+      "laps": 1,
+      "vehicles": [
+        "PORSCHE_928_S4_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "PORSCHE_928_S4_1987",
+          "color": "black",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "911_TURBO_3_3_1986",
+          "color": "silver",
+          "stages": null,
+          "slot": null,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "first",
+      "chase": {
+        "seconds": 3
+      },
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    },
+    {
+      "id": "stage-4-left",
+      "title": "CHASE H.Q. STAGE 4 LEFT",
+      "course": "chase-hq-4-left",
+      "laps": 1,
+      "vehicles": [
+        "PORSCHE_928_S4_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "PORSCHE_928_S4_1987",
+          "color": "black",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "FERRARI_GTO_1984",
+          "color": "hq-blue",
+          "stages": null,
+          "slot": null,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "first",
+      "chase": {
+        "seconds": 3
+      },
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    },
+    {
+      "id": "stage-5-left",
+      "title": "CHASE H.Q. STAGE 5 LEFT",
+      "course": "chase-hq-5-left",
+      "laps": 1,
+      "vehicles": [
+        "PORSCHE_928_S4_1987"
+      ],
+      "entries": [
+        {
+          "vehicle": "PORSCHE_928_S4_1987",
+          "color": "black",
+          "stages": null,
+          "slot": 0,
+          "ahead": null
+        },
+        {
+          "vehicle": "PORSCHE_928_S4_1987",
+          "color": "guards-red",
+          "stages": null,
+          "slot": null,
+          "ahead": null
+        }
+      ],
+      "playerSlot": "first",
+      "chase": {
+        "seconds": 3
+      },
+      "rankLimits": {},
+      "traffic": {
+        "density": 4,
+        "path": "lane",
+        "vehicles": [
+          {
+            "vehicle": "FORD_F_150_1975",
+            "weight": 1
+          },
+          {
+            "vehicle": "CHEVROLET_NOVA_1975",
+            "weight": 1
+          }
+        ],
+        "speedKilometersPerHour": 90
+      },
+      "timeMargin": null,
+      "fixedColors": true
+    }
+  ]
+}

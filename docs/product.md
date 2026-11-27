@@ -191,7 +191,10 @@ is drawn with sprites, SUPER MONACO GP among them, waits for a model of its own
 CONTINENTAL CIRCUS came out in Japan in 1988. OUTRUN's six SHORT roads are not in its tribute; they serve the game's own
 series (K, 2026-11-03). TOP SPEED's classes are its seven roads, TOP SPEED A to G ([its
 courses](top-speed-road-data.md#its-course-tables)); its series is made (K, 2026-11-27), the RX-7 Turbo II of 1987
-alone through the original's traffic, without its nitro ([its series](content-and-gameplay.md#series-documents)). CHASE H.Q.'s are one a stage, on the road the stage's arrow names
+alone through the original's traffic, without its nitro ([its series](content-and-gameplay.md#series-documents)). CHASE H.Q.'s series is made for now, provisional (K, 2026-11-27 and
+2026-11-28): the 928 S4 of 1987 in black chases each stage's car from a CHASE start, with none of the original's
+clock, turbo, beacon or ramming ([its series](content-and-gameplay.md#series-documents)). CHASE H.Q.'s classes are
+one a stage, on the road the stage's arrow names
 where the original fixes it (stage 1 right, stage 3 left) and on its left road where the original chooses at random
 (stages 2, 4 and 5); its other five courses serve the game's own series, as OUTRUN's SHORT roads do (K, 2026-11-05).
 BIG RUN's are its six stages ([its conversion](big-run-road-data.md#its-conversion); K, 2026-11-09).

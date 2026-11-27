@@ -5,7 +5,14 @@
   "procedureSha256": "c87fb0e52d3777eeaef955b433026d93b2912aec98f6dc4dcfaea56271728a71",
   "spacing": 5,
   "lengthWeight": 0,
-  "vehicles": [],
+  "vehicles": [
+    {
+      "vehicleId": "PORSCHE_928_S4_1987",
+      "vehicleSha256": "af87006982493cf25a45a1464327c7aa6e7bc77352917eb144f7db01bff68fd9",
+      "seconds": 201.358,
+      "minimumCurvatureSeconds": 201.358
+    }
+  ],
   "lines": [
     {
       "section": "chase-hq-3-left-1",

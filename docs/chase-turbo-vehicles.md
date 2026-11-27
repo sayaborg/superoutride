@@ -407,8 +407,8 @@ restarts from rest (158 km/h 8 s after stopping).
 
 K takes CHASE H.Q.'s car for the Porsche 928 S4 of 1987, United States, five-speed manual (K, 2026-11-20);
 nothing here claims the original says so. `PORSCHE_928_S4_1987` is the 1987 model year's US 928 S4: left-hand drive,
-the M28/41 32-valve V8, the G28/13 five-speed manual and rear drive. No series runs it yet; how CHASE H.Q.'s series
-uses it is not decided. Its numbers follow this ledger's
+the M28/41 32-valve V8, the G28/13 five-speed manual and rear drive. CHASE H.Q.'s series runs it as the player's car in
+black and as the fifth stage's car in GUARDS RED, for now (Stage HQ; K, 2026-11-24 and 2026-11-28). Its numbers follow this ledger's
 [conventions](#numerical-conventions-and-remaining-uncertainty); K asked for the real car's values (K, 2026-11-20),
 and the rows below are those Stage P928 checked.
 

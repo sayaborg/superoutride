@@ -1093,6 +1093,18 @@ sports car's, the 325i Convertible of 1987 and the Nova of 1975 in its two saloo
 four-wheel drive's; its van's place is filled when a van of the original's kind is in the catalog's traffic, at 4 a
 kilometre and up to 90 km/h, OUTRUN's figures.
 
+ARCADE TRIBUTE - CHASE H.Q. is made for now, provisional (K, 2026-11-27 and 2026-11-28), of CHASE classes alone and
+nothing new: STAGE 1 RIGHT, 2 LEFT, 3 LEFT, 4 LEFT and 5 LEFT, the roads [the product](product.md#arcade-tribute)
+names, each one run without a clock or rank limits. The player drives the 928 S4 of 1987, in BLACK (`fixedColors`),
+from the grid's first slot, and each stage's car passes it from behind as every CHASE's rival does, GO coming 3
+seconds after it passes in every class for now (`chase: { "seconds": 3 }`; K, 2026-11-28, each class's to be set):
+the Turbo Esprit of 1984 in MONACO WHITE, the Countach 5000 QV of 1985 in GIALLO FLY, the 911 Turbo 3.3 of 1986 in
+SILVER, the GTO of 1984 in H.Q. BLUE and the 928 S4 of 1987 in GUARDS RED (K, 2026-11-24: the player's own car in
+red; K's choice, not a reading of the original). It is won by being ahead of the car at the goal. The traffic drives
+its lanes, for now the F-150 of 1975 and the Nova of 1975 of equal weight (K, 2026-11-26 and 2026-11-28), at 4 a
+kilometre and up to 90 km/h. The original's clock, its time extensions, turbo, beacon and siren, and stopping the car
+by ramming are not made.
+
 ARCADE TRIBUTE - TURBO OUTRUN is delivered on the same terms (K, 2026-11-10), on its original SECTION 1 to 4, each one
 run with a margin of 1.35. The player drives the F40, in ROSSO CORSA, beside its one rival, the Porsche 959 of 1987 in GRAND
 PRIX WHITE (K's choice of the original's Porsche, 2026-11-19), both on the grid's first two slots (`own`); the traffic

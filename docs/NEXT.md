@@ -254,8 +254,8 @@ that: the G28/13's ratios, the 675 rpm idle and the 1,549 mm front track, and th
 - The pictures (P928-2): 4,521 mm long against the car's 4,523 mm, one exhaust outlet against the car's two; the flat
   panel between the tail lamps, in the body color, shines bright from behind, and K keeps it; the real car's PORSCHE
   lettering recessed in it is not in the model.
-- Not decided: CHASE H.Q.'s series (the player's car, the criminals' cars, turbo, the beacon), its own tire values and
-  its steering picture.
+- CHASE H.Q.'s series runs it, the player's car in black and the fifth stage's in GUARDS RED, for now (Stage HQ). Not
+  decided: CHASE H.Q.'s turbo and beacon, its own tire values and its steering picture.
 
 ## Stage P930 — The 911 TURBO 3.3 of 1986's pictures
 
@@ -286,7 +286,8 @@ driving and sound are unchanged.
   steps, not done in this stage. The turbo script and the band's lettering are rough, as the model has them.
 - The shelf below the rear window stands above the glass in places (painted as glass); the rear window's upper edge is
   a little jagged. The engine cover's grille, the front bumper's strip and the other small parts are as K painted them.
-- Not decided: CHASE H.Q.'s series (the player's car, the cars chased, turbo, the beacon).
+- CHASE H.Q.'s series runs it as the third stage's car in SILVER for now (Stage HQ). Not decided: CHASE H.Q.'s turbo
+  and beacon.
 
 ## Stage F114 — The GTO of 1984's pictures
 
@@ -326,8 +327,9 @@ changed, and no series runs it.
   upright rear window is a little jagged at its lower edge (wall and floor matt black), and the body's faces are not
   smoothed (only the windscreen, the rear window, the well's floor and part of the rear panel were flattened).
 - The front fenders are 10 mm a side narrower than the rear (K's model); the overhangs are not compared with a source.
-- Not decided: CHASE H.Q.'s series (the player's car, the cars chased, turbo, the beacon); the 928 S of 1984, the
-  fifth stage's car, keeps its procedural pictures.
+- CHASE H.Q.'s series runs it as the fourth stage's car in H.Q. BLUE for now (Stage HQ). Not decided: CHASE H.Q.'s
+  turbo and beacon; the 928 S of 1984 keeps its procedural pictures, the fifth stage's car being the 928 S4 in red (K,
+  2026-11-24).
 
 ## Stage VW113 — The Beetle 1500 of 1968 in OUT RUN's traffic
 
@@ -693,8 +695,8 @@ named by their real names, the default white for now; the four game colors go. I
   rear bumper's LOTUS lettering is not in the model. Secondary sources describe the early (Essex) Turbo's bumpers and
   rear louvre as matt black; K takes the louvre for a glossy dark grey and the bumpers for the body's color. The
   louvre is a flat, broad face that shines evenly by direction, as the 928 S4's panel between its tail lamps does.
-- Not decided: CHASE H.Q.'s series (the player's car, the rival, turbo, the beacon), the Esprit's own tire values and
-  its steering picture.
+- CHASE H.Q.'s series runs it as the first stage's car in MONACO WHITE for now (Stage HQ). Not decided: CHASE H.Q.'s
+  turbo and beacon, the Esprit's own tire values and its steering picture.
 
 ## Stage C5K — The Countach 5000 QV of 1985's pictures
 
@@ -728,8 +730,8 @@ sound are not changed, and no series runs it.
   narrower than at the rear. The real car's front width is not checked.
 - Where the diagonal bars were removed, each side keeps two small seams (about 5 cm). The finer black areas (the
   window frames, the running gear low at the rear) are as K painted them.
-- Not decided: CHASE H.Q.'s series (the player's car, the criminals' cars, turbo, the beacon); the Countach's own tire
-  values and its steering picture.
+- CHASE H.Q.'s series runs it as the second stage's car in GIALLO FLY for now (Stage HQ). Not decided: CHASE H.Q.'s
+  turbo and beacon; the Countach's own tire values and its steering picture.
 
 ## Stage MF — Silencers and turbines in the engine sounds
 
@@ -1674,8 +1676,16 @@ Left by the stages that raised them, beside what follows:
   product courses, sounds and race music, and the product's pictures drawn again. K adjusts its scale (2.15 m, its own
   car) by driving in DEV, its courses with a model then solved again, and sees JAPAN's underpass in DEV ([FINAL LAP 2's
   objects](final-lap-2-road-data.md#final-lap-2s-objects)). Its cells stay as they are (K, 2026-11-10).
-- CHASE H.Q.: its ARCADE TRIBUTE series, of the classes [the product](product.md#arcade-tribute) names, is not made; a
-  tribute's stage is to pass the criminal before its end ([its courses](chase-hq-road-data.md#chase-hqs-courses)). Not
+- CHASE H.Q.: its ARCADE TRIBUTE series is made for now, provisional (Stage HQ; K, 2026-11-27 and 2026-11-28), of
+  CHASE classes alone: a stage is won by passing its car before its end
+  ([its courses](chase-hq-road-data.md#chase-hqs-courses)). Each class's seconds from the car's pass to GO are K's to
+  set from Stage HQ's measurements (3 in every class for now); its traffic is the F-150 and the Nova of 1975 for now.
+  Stage HQ's runs (the player's standard driver, n = 3, with traffic): each car passes at 3.0 s and leads by 190 to
+  222 m at GO, at most by 597 to 1,855 m; it stops within 10 s of its pass on stages 2 to 5 (at 390 to 589 m), and
+  finishes 13.7 s (stage 5) to 43.0 s (stage 2) ahead; the player catches it only on stage 4, where it stopped. On
+  stage 1 two traffic vehicles stand where the road narrows from six lanes to three before the goal, and the player is
+  held behind them (without traffic it finishes 18.9 s behind). The cars recover 5 to 21 times a run.
+  Not made: the original's clock and time extensions, turbo, the beacon and siren, and stopping the car by ramming. Not
   drawn as the original draws them: event 2's banks of cloud (kind 0x681), bands across the road at their records' own
   distances ([its objects](chase-hq-road-data.md#chase-hqs-objects)); drawing them as the original does, as though
   0x400 + 0.75 d² / 65,536 positions away at a distance d, needs a rule by which a board is drawn at a depth other
