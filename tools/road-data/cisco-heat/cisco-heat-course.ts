@@ -68,18 +68,8 @@ export const CISCO_HEAT_CONVERSION_VERSION = 3;
 /** How far a record may depart from its table's next heading and position: BIG RUN's (K, 2026-11-09). */
 const PLAN_LIMITS = Object.freeze({ heading: (0.03 * Math.PI) / 180, position: 14 });
 
-/**
- * How each stage lays its right angles (a trial, K, 2026-11-27): two straight streets crossing at 45° in STAGE 1, 60° in
- * STAGE 2 and 90° in STAGE 3; turns of 90° with the street across painted as ground in STAGES 4 and 5 until K has driven
- * the three.
- */
-const CORNERS = [
-  { degrees: 45, crossing: true },
-  { degrees: 60, crossing: true },
-  { degrees: 90, crossing: true },
-  { degrees: 90, crossing: false },
-  { degrees: 90, crossing: false },
-] as const;
+/** The angle its right angles' two streets cross at, degrees (K, 2026-11-27). */
+const CORNER_DEGREES = 45;
 
 /** The kinds of its pictures its tables draw at a right angle: a street across (22) and a patterned surface (14). */
 const ACROSS_KINDS: ReadonlySet<number> = new Set([14, 22]);
@@ -87,8 +77,14 @@ const ACROSS_KINDS: ReadonlySet<number> = new Set([14, 22]);
 /** The arrow board the original stands across the street ahead of most of its right angles. */
 const ARROW_BOARD = 0x0ff0;
 
-/** A corner's arrow boards: its first past its mark and those standing within this many positions of it. */
-const BOARDS_TOGETHER = 100;
+/**
+ * How far past a right angle's mark the original stands what stands across the street ahead, positions: its boards
+ * stand at most 893 past.
+ */
+const ACROSS_REACH = 1000;
+
+/** Objects standing together across the street ahead: within this many positions of the first. */
+const TOGETHER = 100;
 
 /** Positions between a board's trial places on the street ahead. */
 const BOARD_STEP = 4;
@@ -184,10 +180,11 @@ function courseHeights(
 }
 
 /**
- * What the original stands across the street ahead of a right angle at `at`, past it and before the next at `next` (K,
- * 2026-11-27): its arrow boards, the first of `ARROW_BOARD` and those standing together with it, and every object
- * before them whose picture spans the road's middle; or where it stands none, a row, the first position's objects where
- * more than one stand within the road's picture, `half` units either side of its middle, on both sides of it.
+ * What the original stands across the street ahead of a right angle at `at`, within `ACROSS_REACH` past it and before
+ * the next at `next` (K, 2026-11-27): its arrow boards, the first of `ARROW_BOARD` and those standing together with it,
+ * and every object before them whose picture spans the road's middle; or where it stands none, a row: the first
+ * position's objects where more than one stand within the road's picture, `half` units either side of its middle, on
+ * both sides of it, and those standing together with them.
  */
 function aheadOfCorner(
   plain: readonly CiscoHeatObject[],
@@ -196,12 +193,12 @@ function aheadOfCorner(
   width: (o: CiscoHeatObject) => number,
   half: number,
 ) {
-  const past = plain.filter((o) => o.position > at && o.position < next);
+  const past = plain.filter((o) => o.position > at && o.position < Math.min(next, at + ACROSS_REACH));
   const first = past.find((o) => o.descriptor === ARROW_BOARD);
   if (first) {
     const boards = past.filter(
       (o) =>
-        (o.descriptor === ARROW_BOARD && o.position - first.position <= BOARDS_TOGETHER) ||
+        (o.descriptor === ARROW_BOARD && o.position - first.position <= TOGETHER) ||
         (o.position < first.position && o.lateral < 0 && o.lateral + width(o) > 0),
     );
     return { boards, row: [] };
@@ -210,7 +207,7 @@ function aheadOfCorner(
     const here = past.filter((o) => o.position === p);
     const within = here.filter((o) => o.lateral < half && o.lateral + width(o) > -half);
     if (within.length > 1 && within.some((o) => o.lateral < 0) && within.some((o) => o.lateral + width(o) > 0))
-      return { boards: [], row: here };
+      return { boards: [], row: past.filter((o) => o.position >= p && o.position - p <= TOGETHER) };
   }
   return { boards: [], row: [] };
 }
@@ -319,7 +316,7 @@ export function ciscoHeatCourses(set: RomSet) {
     );
     const corners = angles.map((a, i) => ({
       ...a,
-      ...CORNERS[stage]!,
+      degrees: CORNER_DEGREES,
       ahead: !(stands[i]!.boards.length === 0 && stands[i]!.row.length > 0),
     }));
     // Where each corner's board and row stand, filled as its sprites are placed.
@@ -429,7 +426,6 @@ export function ciscoHeatCourses(set: RomSet) {
         const moved = new Map<CiscoHeatObject, { p: number; lateral: number } | null>();
         const clear = (p: number, left: number, right: number) => left > limit(p, 1) || right < limit(p, -1);
         corners.forEach((c, i) => {
-          if (!c.crossing) return;
           const { boards, row } = stands[i]!;
           const street = (side: 'ahead' | 'back') => streets.find((t) => t.corner.at === c.at && t.side === side);
           const stood = boards.map((board) => {
@@ -447,21 +443,28 @@ export function ciscoHeatCourses(set: RomSet) {
           const later = (o: CiscoHeatObject) =>
             objects[stage]!.plain.find((q) => q.descriptor === o.descriptor && q.position > o.position);
           for (const o of row) {
+            // Across as the next object of its picture past it stands, or where none does, just beyond the course's
+            // limit on the far side of the street taken, the side away from its turn.
             const next = later(o);
-            if (!next) throw contractUnmet(`${name}'s row at ${o.position} has no ${o.descriptor} past it`);
+            const farSide = c.side === 'left' ? 1 : -1;
+            const across = next
+              ? { road: next.road, lateral: next.lateral }
+              : { road: o.road, lateral: farSide > 0 ? LIMIT_UNITS + 1 : -(LIMIT_UNITS + 1) - widthOf(o) };
             const far = (Math.abs(o.lateral) * ACROSS) / metres;
             const turning = c.side === 'right' ? o.lateral >= 0 : o.lateral <= 0;
             const back = street('back');
             const p = turning ? c.at + far : c.at - far * Math.cos((c.degrees * Math.PI) / 180);
             // Its picture's edges across P, along its street.
             const along = turning
-              ? (x: number) => bend(p, centreOf(next.road, p) + x)
+              ? (x: number) => bend(p, (next ? centreOf(across.road, p) : 0) + x)
               : back && back.from <= p && p <= back.to
                 ? (x: number) => back.lateral(p, x)
                 : null;
-            const lateral = along ? along(next.lateral) : null;
+            const lateral = along ? along(across.lateral) : null;
             const place =
-              along && lateral !== null && clear(p, lateral, along(next.lateral + widthOf(o))) ? { p, lateral } : null;
+              along && lateral !== null && clear(p, lateral, along(across.lateral + widthOf(o)))
+                ? { p, lateral }
+                : null;
             moved.set(o, place);
             if (place) placed++;
           }
@@ -540,7 +543,7 @@ export function ciscoHeatCourses(set: RomSet) {
         const corner = ciscoHeatRightAngles(main, stage).find((a) => t.from <= a.at && a.at <= t.to);
         if (!corner) return [];
         const length = (t.to - t.from) * metres;
-        return [[corner.at, corner.side, CORNERS[stage]!.degrees, round1(length), round1(length / Math.abs(t.turn))]];
+        return [[corner.at, corner.side, round1(length), round1(length / Math.abs(t.turn))]];
       }),
       streets: streets.map((t) => [t.corner.at, t.side, round1(station(t.from)), round1(station(t.to))]),
       // What stands across each such corner's street ahead: how far on its board stands, metres, and its row's objects

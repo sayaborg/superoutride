@@ -42,8 +42,6 @@ const SAMPLE = 500;
 /** A turn's inside read at this many even steps over it, and the plan laid at most this many times to keep it. */
 const INSIDE_SAMPLES = 8;
 const PLAN_PASSES = 8;
-/** How far the street across a 90° right angle reaches beyond its limits outside it, units (a trial's, K, 2026-11-13). */
-const CROSS_UNITS = 3 * LIMIT_UNITS;
 /** The radius a crossing's centreline rounds its corner at where its table leaves room, metres (K, 2026-11-27). */
 const CROSSING_RADIUS = 100;
 /** How far a crossing's lines may lie from straight, and its edges from their true places, metres. */
@@ -136,7 +134,7 @@ export interface BoardCourseRoads {
 }
 
 /**
- * A half of a street the course does not take where two cross at a right angle (a trial, K, 2026-11-27):
+ * A half of a street the course does not take where two cross at a right angle (K, 2026-11-27):
  * its corner, whether it is the street the course leaves, on ahead of the corner (`ahead`), or the one it takes, back
  * from it (`back`), the positions it is drawn over, and where a line `x` units right of its centre lies there, units
  * across P.
@@ -238,12 +236,12 @@ export function layBoardCourse(stage: BoardStage) {
   // How far the course reaches across, both sides' limits: no arc nor turn of its plan bends tighter, so that its road
   // never comes near itself where it turns (the plan's least radius, `leastLaneRadius` in its rule).
   const reach = LIMIT_UNITS * ACROSS * 2;
-  // A right angle at 90° as tight as its limits allow, its inside's limit alone; one where two streets cross at
-  // `CROSSING_RADIUS`, or as near it as its table leaves room (`radii`, once its plan's partings are known).
+  // A right angle's turn at `CROSSING_RADIUS`, or as near it as its table leaves room but no tighter than every other
+  // turn (`radii`, once its plan's partings are known; before, that least, for the plan that finds them).
   const radii = new Map<number, number>();
   const leastAt = (from: number, to: number) => {
     const corner = stage.rightAngles.find((a) => from <= a.at && a.at <= to);
-    return corner ? (radii.get(corner.at) ?? LIMIT_UNITS * ACROSS) : reach;
+    return corner ? (radii.get(corner.at) ?? reach) : reach;
   };
   const planOf = (one: readonly RoadPlanRecord[], p: readonly RoadPlanRecord[]) =>
     twoRoadPlan(stage.tables, one, p, end, metres, leastAt, stage.planLimits);
@@ -278,7 +276,7 @@ export function layBoardCourse(stage: BoardStage) {
     ...stage.held.flatMap((h) => [h.from, h.to]),
     ...stage.cuts,
   ];
-  for (const corner of stage.rightAngles.filter((a) => a.crossing)) {
+  for (const corner of stage.rightAngles) {
     const p = records[1];
     const i = p.findIndex((r) => r.start === corner.at);
     const straightOn = (a: RoadPlanRecord, b: RoadPlanRecord) =>
@@ -294,7 +292,7 @@ export function layBoardCourse(stage: BoardStage) {
     );
     // A turn of `degrees` over `room` whole positions either side, one spare, bends at this radius.
     const angle = (corner.degrees * Math.PI) / 180;
-    radii.set(corner.at, Math.max(LIMIT_UNITS * ACROSS, Math.min(CROSSING_RADIUS, (2 * (room - 1) * metres) / angle)));
+    radii.set(corner.at, Math.max(reach, Math.min(CROSSING_RADIUS, (2 * (room - 1) * metres) / angle)));
   }
   const once = planOf(...records);
   // The road the original holds the car on, where it does, as the course's road: P or the other.
@@ -463,15 +461,13 @@ export function layBoardCourse(stage: BoardStage) {
     records
       .filter((r, i) => i > 0 && (r.kind !== records[i - 1]!.kind || r.variant !== records[i - 1]!.variant))
       .map((r) => r.start);
-  // Each right angle with its turn on P; one at 90° has the street across painted as ground, its turn a Section on each
-  // side of its middle.
+  // Each right angle with its turn on P, a Section on each side of its middle.
   const corners = stage.rightAngles.flatMap((r) => {
     const turn = plan.p.turns.find((t) => t.from <= r.at && r.at <= t.to);
     return turn ? [{ ...r, turn }] : [];
   });
   const cornerTurns = corners.map((c) => c.turn);
-  const paintedTurns = corners.filter((c) => !c.crossing).map((c) => c.turn);
-  // A crossing corner is where two straight streets cross (a trial, K, 2026-11-27): P rounds it on their inside
+  // A right angle is where two straight streets cross (K, 2026-11-27): P rounds it on their inside
   // over its turn, the course's road on the street it leaves to the corner and on the one it takes from it, each in its
   // own picture there, its tables' pictures across a right angle (`acrossKinds`) not drawn.
   const ownPicture = (from: number, way: 1 | -1) => {
@@ -481,17 +477,15 @@ export function layBoardCourse(stage: BoardStage) {
     while (i >= 0 && i < p.length && stage.acrossKinds.has(p[i]!.kind)) i += way;
     return p[Math.max(0, Math.min(p.length - 1, i))]!;
   };
-  const crossings = corners
-    .filter((c) => c.crossing)
-    .map((c, k) => ({
-      k,
-      corner: c,
-      from: c.turn.from,
-      to: c.turn.to,
-      lines: plan.streets(c.turn),
-      leaving: ownPicture(c.turn.from, -1),
-      taking: ownPicture(c.turn.to, 1),
-    }));
+  const crossings = corners.map((c, k) => ({
+    k,
+    corner: c,
+    from: c.turn.from,
+    to: c.turn.to,
+    lines: plan.streets(c.turn),
+    leaving: ownPicture(c.turn.from, -1),
+    taking: ownPicture(c.turn.to, 1),
+  }));
   const crossingAt = (p: number) => crossings.find((x) => x.from <= p && p <= x.to);
   /** The line the course's road lies on at `p` within a crossing: the street it leaves to its corner, then the other. */
   const lineAt = (x: (typeof crossings)[number], p: number) => (p < x.corner.at ? x.lines.leaves : x.lines.takes);
@@ -507,8 +501,8 @@ export function layBoardCourse(stage: BoardStage) {
   };
   // The halves of its streets the course does not take, a road not taken's picture each with no material: the street
   // it leaves on ahead of the corner in its picture before it, none at a T, and the one it takes back from the corner
-  // in its picture after it, from the corner's middle out as far as the screen draws or to the next corner, as far as
-  // it heads within 60° of P.
+  // in its picture after it, from the corner's middle out as far as the screen draws or halfway to the next corner, so
+  // that no two corners' halves are drawn at one station, as far as it heads within 60° of P.
   const marks = stage.rightAngles.map((a) => a.at);
   const farthest = RENDER_FAR_DEPTH_METERS / metres;
   const streets = crossings.flatMap(
@@ -519,8 +513,8 @@ export function layBoardCourse(stage: BoardStage) {
         const line = side === 'ahead' ? x.lines.leaves : x.lines.takes;
         const bound =
           way > 0
-            ? Math.min(end, c.at + farthest, ...marks.filter((m) => m > c.at))
-            : Math.max(0, c.at - farthest, ...marks.filter((m) => m < c.at));
+            ? Math.min(end, c.at + farthest, ...marks.filter((m) => m > c.at).map((m) => (c.at + m) / 2))
+            : Math.max(0, c.at - farthest, ...marks.filter((m) => m < c.at).map((m) => (c.at + m) / 2));
         // As far as it is taken across P: to its bound, or to within a position of where it is refused.
         const taken = (p: number) => {
           try {
@@ -565,7 +559,15 @@ export function layBoardCourse(stage: BoardStage) {
   );
   // What a crossing draws along lines across P: its streets' halves, and the course's road within its turn.
   const lined = [
-    ...streets.map((t) => ({ id: t.id, line: t.line, from: t.from, to: t.to, picture: t.picture, course: false })),
+    ...streets.map((t) => ({
+      id: t.id,
+      line: t.line,
+      from: t.from,
+      to: t.to,
+      picture: t.picture,
+      course: false,
+      ends: false,
+    })),
     ...crossings.flatMap((x) => [
       {
         id: `crossing-${x.k}-in`,
@@ -574,8 +576,18 @@ export function layBoardCourse(stage: BoardStage) {
         to: x.corner.at,
         picture: x.leaving,
         course: true,
+        // At a T the street the course comes on ends at the corner.
+        ends: !x.corner.ahead,
       },
-      { id: `crossing-${x.k}-out`, line: x.lines.takes, from: x.corner.at, to: x.to, picture: x.taking, course: true },
+      {
+        id: `crossing-${x.k}-out`,
+        line: x.lines.takes,
+        from: x.corner.at,
+        to: x.to,
+        picture: x.taking,
+        course: true,
+        ends: false,
+      },
     ]),
   ];
   // The lines a picture drawn along a crossing's line over positions `[a, b]` is read from, and where its turn is cut so
@@ -733,14 +745,6 @@ export function layBoardCourse(stage: BoardStage) {
       ground: stage.clearGround,
     };
   };
-  // A Section's limits at `mid` outside a 90° right angle, the street across reaching out `CROSS_UNITS` beyond them.
-  const crossing = (limits: ProgramLimits, mid: number): ProgramLimits => {
-    const corner = paintedTurns.find((t) => t.from <= mid && mid < t.to);
-    if (!corner) return limits;
-    const out = (knots: ProgramLimits['left'], by: number) =>
-      knots.map(([s, v]) => [s, v + by * CROSS_UNITS * ACROSS] as const);
-    return corner.turn < 0 ? { ...limits, left: out(limits.left, -1) } : { ...limits, right: out(limits.right, 1) };
-  };
   const skies = stage.skies(context);
   const skyKnots = skies.knots;
   // A Section's strips: each road's picture drawn, road 1's beneath road 2's, each run striped by its colors.
@@ -809,16 +813,13 @@ export function layBoardCourse(stage: BoardStage) {
     return parts.filter((q) => q.color !== base).length;
   };
   // Each right angle's turn, stations along P.
-  const cornerStations = cornerTurns.map((t) => [station(t.from), station(t.to)] as const);
   const laid = layRoad({
     id,
     name,
     pieces,
     // Cut where a picture changes, but within its grid, whose stretch its first Section holds, and from its goal on.
     cuts: sectionCuts.filter((p) => p > Math.max(...grid.map((g) => g.position)) + GRID_CLEAR && p < goal).map(station),
-    // Near a right angle the course reaches its inside's limit alone, as the corner bends.
-    reach: (u: number) =>
-      cornerStations.some(([a, b]) => u >= a - reach && u <= b + reach) ? LIMIT_UNITS * ACROSS : reach,
+    reach,
     road: { bends, kinks },
     grids: stand(station(grid[0]!.position)),
     checkpoints: stage.checkpoint === null ? [] : [{ id: `${id}-CP1`, s: station(stage.checkpoint) }],
@@ -988,21 +989,30 @@ export function layBoardCourse(stage: BoardStage) {
             return [...reaching, ...colored];
           });
         };
-        // A street's picture along its line, as two roads are drawn where they cross (OUTRUN's forks): each one's sides
-        // (`sides`: its runs outside its road and its edges) first, then each one's road, the most common of its runs
-        // laid beneath them all and each other over it where it differs; a half the course does not take with no
-        // material.
-        const streetLayer = (d: (typeof readings)[number], sides: boolean) => {
+        // A street's picture along its line where two cross, the two drawn alike (K, 2026-11-28), its runs in three
+        // groups: its sides (`sides`: its runs outside its carriageway and its edges, and its outermost line on each
+        // side where it has lines on both, its edge lines), its carriageway's surface (`surface`: each stretch of it
+        // between its sides, the most common of its runs laid beneath the stretch and each other over it where it
+        // differs), and its paint within its edges (`inner`: its other lines, lane lines and rails). The course's
+        // outermost runs reach out on their sides as its road's do elsewhere, their material within its limits; a half
+        // the course does not take has no material.
+        const streetLayer = (d: (typeof readings)[number], group: 'sides' | 'surface' | 'inner') => {
           const groundOf = (material: Material | null) => (d.course ? (material ?? stage.clearGround) : null);
           const runs = stage
             .runsOf(original(2, at), d.picture, at)
-            .filter(({ run, colors }) => run.pen !== null && colors[0] !== null)
-            .filter(({ run }) => (run.paint === 'outside' || run.paint === 'edge') === sides);
-          // The course's outermost runs reach out on their sides as its road's do elsewhere, their material to their
-          // edges.
-          if (sides)
-            return runs.flatMap(({ run, colors, material }, k) => {
-              const [left, right] = [d.place(run.from), d.place(run.to)];
+            .filter(({ run, colors }) => run.pen !== null && colors[0] !== null);
+          const lines = runs.flatMap(({ run }, k) => (run.paint === 'line' ? [k] : []));
+          const groupOf = (k: number) => {
+            const { paint } = runs[k]!.run;
+            if (paint === 'outside' || paint === 'edge') return 'sides';
+            if (paint !== 'line') return 'surface';
+            return lines.length > 1 && (k === lines[0] || k === lines.at(-1)) ? 'sides' : 'inner';
+          };
+          const place = (k: number) => [d.place(runs[k]!.run.from), d.place(runs[k]!.run.to)] as const;
+          if (group === 'sides')
+            return runs.flatMap(({ colors, material }, k) => {
+              if (groupOf(k) !== 'sides') return [];
+              const [left, right] = place(k);
               const open = d.course && (k === 0 || k === runs.length - 1);
               if (!open) return bandStrips(colors, groundOf(material), left, right, a, b, positionAt);
               const [inner, outer] =
@@ -1021,63 +1031,81 @@ export function layBoardCourse(stage: BoardStage) {
                 ...bandStrips(colors, null, k === 0 ? null : left, k === 0 ? right : null, a, b, positionAt),
               ];
             });
-          if (runs.length === 0) return [];
-          const widths = new Map<string, number>();
-          for (const { run, colors, material } of runs) {
-            const key = JSON.stringify([colors, groundOf(material)]);
-            widths.set(key, (widths.get(key) ?? 0) + run.to - run.from);
-          }
-          const [baseColors, baseGround] = JSON.parse([...widths].sort((x, y) => y[1] - x[1])[0]![0]) as [
-            readonly (number | null)[],
-            Material | null,
-          ];
-          return [
-            ...bandStrips(
-              baseColors,
-              baseGround,
-              d.place(runs[0]!.run.from),
-              d.place(runs.at(-1)!.run.to),
-              a,
-              b,
-              positionAt,
-            ),
-            ...runs.flatMap(({ run, colors, material }) => {
-              const [left, right] = [d.place(run.from), d.place(run.to)];
-              const ground = groundOf(material);
-              const grounding =
-                ground === baseGround
-                  ? []
-                  : [stripElement(positionAt(a), positionAt(b), left, right, null, ground) as StripDocument];
-              const differing = stripeParts(colors, baseColors);
-              const over =
-                differing.length === 0
-                  ? []
-                  : 1 + ownParts(colors) <= differing.length
-                    ? bandStrips(colors, null, left, right, a, b, positionAt)
-                    : partStrips(differing, left, right, a, b, positionAt);
-              return [...grounding, ...over];
-            }),
-          ];
+          if (group === 'inner')
+            return runs.flatMap(({ colors, material }, k) =>
+              groupOf(k) === 'inner' ? bandStrips(colors, groundOf(material), ...place(k), a, b, positionAt) : [],
+            );
+          // Its carriageway's stretches between its sides.
+          const stretches: number[][] = [];
+          runs.forEach((_, k) => {
+            if (groupOf(k) === 'sides') return;
+            const last = stretches.at(-1);
+            if (last && last.at(-1) === k - 1) last.push(k);
+            else stretches.push([k]);
+          });
+          return stretches.flatMap((stretch) => {
+            const surfaces = stretch.filter((k) => groupOf(k) === 'surface');
+            if (surfaces.length === 0) return [];
+            const widths = new Map<string, number>();
+            for (const k of surfaces) {
+              const { run, colors, material } = runs[k]!;
+              const key = JSON.stringify([colors, groundOf(material)]);
+              widths.set(key, (widths.get(key) ?? 0) + run.to - run.from);
+            }
+            const [baseColors, baseGround] = JSON.parse([...widths].sort((x, y) => y[1] - x[1])[0]![0]) as [
+              readonly (number | null)[],
+              Material | null,
+            ];
+            return [
+              ...bandStrips(baseColors, baseGround, place(stretch[0]!)[0], place(stretch.at(-1)!)[1], a, b, positionAt),
+              ...surfaces.flatMap((k) => {
+                const { colors, material } = runs[k]!;
+                const [left, right] = place(k);
+                const ground = groundOf(material);
+                const grounding =
+                  ground === baseGround
+                    ? []
+                    : [stripElement(positionAt(a), positionAt(b), left, right, null, ground) as StripDocument];
+                const differing = stripeParts(colors, baseColors);
+                const over =
+                  differing.length === 0
+                    ? []
+                    : 1 + ownParts(colors) <= differing.length
+                      ? bandStrips(colors, null, left, right, a, b, positionAt)
+                      : partStrips(differing, left, right, a, b, positionAt);
+                return [...grounding, ...over];
+              }),
+            ];
+          });
         };
         const here = readings.filter((d) => d.from <= at && at <= d.to);
         const halves = here.filter((d) => !d.course);
-        const course = here.filter((d) => d.course);
-        // The original's second road over its first, whichever is P; where two streets cross, the course's road along
-        // its street as the other street is drawn, over it.
+        // The original's second road over its first, whichever is P.
         const [under, over] = original(2, at) === 2 ? ([1, 2] as const) : ([2, 1] as const);
-        const roads = course.length
-          ? [
-              ...course.flatMap((d) => streetLayer(d, true)),
-              ...halves.flatMap((d) => [...streetLayer(d, true), ...streetLayer(d, false)]),
-              ...course.flatMap((d) => streetLayer(d, false)),
-            ]
-          : [
-              ...halves.flatMap((d) => streetLayer(d, false)),
-              ...layer(over, true),
-              ...layer(under, false),
-              ...layer(over, false),
-            ];
-        return course.length ? roads : [...halves.flatMap((d) => streetLayer(d, true)), ...roads];
+        if (!here.some((d) => d.course))
+          return [
+            ...halves.flatMap((d) => [
+              ...streetLayer(d, 'sides'),
+              ...streetLayer(d, 'surface'),
+              ...streetLayer(d, 'inner'),
+            ]),
+            ...layer(over, true),
+            ...layer(under, false),
+            ...layer(over, false),
+          ];
+        // Within a crossing's turn, its two streets alike: their sides, then their carriageways' surfaces, then their
+        // paint within their edges, so that each one's lines run on across the other's carriageway and its sides stop
+        // at it; at a T the street the course comes on ends at the other's near edge, its paint beneath the other's
+        // surface.
+        const streetsHere = [...here.filter((d) => d.course), ...halves];
+        const ending = streetsHere.filter((d) => d.ends);
+        const crossing = streetsHere.filter((d) => !d.ends);
+        return [
+          ...streetsHere.flatMap((d) => streetLayer(d, 'sides')),
+          ...ending.flatMap((d) => [...streetLayer(d, 'surface'), ...streetLayer(d, 'inner')]),
+          ...crossing.flatMap((d) => streetLayer(d, 'surface')),
+          ...crossing.flatMap((d) => streetLayer(d, 'inner')),
+        ];
       });
       const inForce = [...skyKnots].reverse().find((k) => k.s <= span.from + 1e-6)!;
       const environment = (k: BoardSkyKnot, s: number): EnvironmentDocument => ({
@@ -1101,18 +1129,13 @@ export function layBoardCourse(stage: BoardStage) {
         const edge = along ? CROSSING_MARGIN : 1;
         const [from, to] = side < 0 ? [edge - LIMIT_UNITS, run.to] : [run.from, LIMIT_UNITS - edge];
         const place = (x: number) => (along ? along.place(x) : roadLateral(road, x));
-        // Outside a 90° right angle the street across, its road's surface, reaches out.
-        const corner = paintedTurns.find((t) => t.from <= mid && mid < t.to);
-        const across = corner && side === (corner.turn < 0 ? -1 : 1);
-        const color = across
-          ? (runsOf(road, mid).find((r) => r.run.paint === 'surface')?.colors[0] ?? colors[0])
-          : colors[0];
+        const color = colors[0];
         return {
           band: {
             left: bend(mid, centre + from) * ACROSS,
             right: bend(mid, centre + to) * ACROSS,
             colors: [color ?? 0],
-            material: across || color === null || color === undefined ? stage.clearGround : groundMaterial(color),
+            material: color === null || color === undefined ? stage.clearGround : groundMaterial(color),
           },
           left: place(from),
           right: place(to),
@@ -1147,7 +1170,7 @@ export function layBoardCourse(stage: BoardStage) {
           ...strips,
         ],
         outermost: [outer(-1), outer(1)],
-        limits: crossing(limitsTo(positionOf(span.to)), mid),
+        limits: limitsTo(positionOf(span.to)),
         boundaries: [
           {
             id: 'road-1-centre',
