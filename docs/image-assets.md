@@ -620,7 +620,7 @@ once and draws every picture with it, and it selects yaw/bank pictures. The imag
 sprite reader.
 
 `golf-gti-16v` and `vfr750r` are generated sets ([Vehicle picture generator](#vehicle-picture-generator)),
-and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `ford-f-700-1980`, `chevrolet-nova-1975`, `chevrolet-nova-police-1975`, `bmw-325i-convertible-1987`, `nissan-300zx-2plus2-1984`, `mclaren-m23-pp-spec`, `nsr500-1984` and
+and `testarossa`, `rx-7-turbo-ii-1987`, `porsche-959-1987`, `porsche-928-s4-1987`, `911-turbo-3-3-1986`, `ferrari-f40-1988`, `turbo-esprit-1984`, `countach-5000-qv-1985`, `ferrari-gto-1984`, `volkswagen-beetle-1500-1968`, `ford-f-150-1975`, `corvette-c3-1970`, `ford-f-700-1980`, `chevrolet-nova-1975`, `chevrolet-nova-police-1975`, `bmw-325i-convertible-1987`, `nissan-300zx-2plus2-1984`, `nissan-300zx-2plus2-police-1984`, `mclaren-m23-pp-spec`, `nsr500-1984` and
 `xr600r-1985` from models
 ([Model solids](#model-solids)). The other
 sets are provisional, one per vehicle, named by its id in lower case with `_` as `-` (`corvette-c4-1984`): drawn by
@@ -1668,6 +1668,29 @@ auditor's, provisional, not measured from paint samples:
 The listing's default is `regatta-red`, the model's own. The model is K's `nissan-300zx-2plus2-1984.glb` (SHA-256
 `add6a67c…`), kept on K's branch `codex/nissan-300zx-2plus2-1984-glb-source`, never on main; it has no wheel nodes, and
 its front hub is (0, 0.3195, 1.26).
+
+**The police 300ZX 2+2 of 1984.** Its set, `nissan-300zx-2plus2-police-1984`, is baked from K's second model by the
+police Nova's recipe (K, 2026-11-27): the 300ZX's body, vertex for vertex, with five boxes of roof lamp behind the
+roof's glass panels (120 vertices, standing to 1,430 mm), and its own texture. It differs in the police Nova's four key
+colors, each its own paint ramp: the body (214, 30, 30), the doors and roof, white (236, 236, 232), the doors' star,
+gold (214, 164, 44), and the red lens (240, 20, 10), each within 8; its ramps are four, three, one and one steps, two
+glass steps and three greys, fourteen in all. The red lens key is both the roof lamp and the strip joining the rear
+lamps, so the strip is a brighter red than the 300ZX's. The white doors end at z +0.57 and −0.72 m, read from the
+model's texture (the stage auditor's estimate). The star is a few pixels wide in the pictures.
+
+Its four liveries are K's, the white, the star's gold and the lens's red the same in each; the base colors are the
+stage auditor's, provisional:
+
+| Palette            | Name           | Body         |
+| ------------------ | -------------- | ------------ |
+| `red-and-white`    | RED & WHITE    | 214, 30, 30  |
+| `black-and-white`  | BLACK & WHITE  | 34, 34, 38   |
+| `green-and-white`  | GREEN & WHITE  | 30, 120, 62  |
+| `yellow-and-white` | YELLOW & WHITE | 240, 200, 40 |
+
+The listing's default is `black-and-white`. SELECT VEHICLE offers the colors in the set's order, the table's. The model
+is K's `nissan-300zx-2plus2-police-1984.glb` (SHA-256 `2770aea7…`), kept on K's branch
+`codex/nissan-300zx-2plus2-police-1984-glb-source`, never on main.
 
 ## HUD picture generator
 

@@ -1,0 +1,29 @@
+{
+  "format": "superoutride.vehicle-listing",
+  "version": 6,
+  "form": "car",
+  "selectionOrder": 53,
+  "visuals": {
+    "spriteSet": "nissan-300zx-2plus2-police-1984",
+    "palette": "black-and-white",
+    "steeringPicture": "montecarlo",
+    "colorNames": {
+      "black-and-white": "BLACK & WHITE",
+      "green-and-white": "GREEN & WHITE",
+      "yellow-and-white": "YELLOW & WHITE",
+      "red-and-white": "RED & WHITE"
+    }
+  },
+  "sound": "NISSAN_300ZX_2PLUS2_1984",
+  "metadata": {
+    "manufacturer": "Nissan",
+    "model": "300ZX 2+2 Police Car",
+    "period": "1984",
+    "mobileLabel": "300ZX POLICE",
+    "engine": "V6",
+    "engineKind": "4-stroke",
+    "identifier": { "officialLabel": "300ZX Police", "shortLabel": "300ZX Police" },
+    "selectedSpecification": ["VG30E 3.0 L", "5MT", "3.70 axle"],
+    "physicsAnchor": { "modelYear": "1984", "market": "US" }
+  }
+}

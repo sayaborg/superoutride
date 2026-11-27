@@ -27,8 +27,8 @@ Each line is one area as it stands, with the document that owns it.
   ([Stage F150](#stage-f150--the-f-150-of-1975-in-out-runs-traffic)), 40 with the Corvette Stingray of 1970
   ([Stage C3](#stage-c3--the-corvette-stingray-of-1970-in-out-runs-traffic)), 41 with the F-700 of 1980
   ([Stage F700](#stage-f700--the-f-700-of-1980-in-out-runs-traffic)), 42 with the 325i Convertible of 1987
-  ([Stage E30](#stage-e30--the-325i-convertible-of-1987-in-out-runs-traffic)) and 43 with the 300ZX 2+2 of 1984
-  ([Stage Z31](#stage-z31--the-300zx-22-of-1984-and-its-police-car)), in the same ledger; the Nova 250 of 1977 is now
+  ([Stage E30](#stage-e30--the-325i-convertible-of-1987-in-out-runs-traffic)), 43 with the 300ZX 2+2 of 1984 and 44 with
+  its police car ([Stage Z31](#stage-z31--the-300zx-22-of-1984-and-its-police-car)), in the same ledger; the Nova 250 of 1977 is now
   the Nova of 1975, and the police Nova of 1977 the Nova of 1975's police car
   ([Stage NV](#stage-nv--the-nova-of-1975-and-its-police-car))
   ([its section](chase-turbo-vehicles.md#mazda-rx-7-turbo-ii-of-1987-sources-versus-authored),
@@ -76,7 +76,7 @@ Each line is one area as it stands, with the document that owns it.
   ([Architecture](architecture.md#sprites-and-painter), [Camera](architecture.md#camera-and-fixed-metric),
   [Image assets](image-assets.md)).
 - **Pictures.** GOLF GTI 16V's pictures are a generated set, VFR750R's a 3D prototype,
-  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the F-700 of 1980's, the two Novas of 1975's, the 325i Convertible of 1987's, the 300ZX 2+2 of 1984's, the M23 PP SPEC's, the NSR500 of 1984's and
+  TESTAROSSA's, the RX-7 Turbo II of 1987's, the 911 TURBO 3.3 of 1986's, the GTO of 1984's, the Beetle 1500 of 1968's, the F-150 of 1975's, the Corvette Stingray of 1970's, the F-700 of 1980's, the two Novas of 1975's, the 325i Convertible of 1987's, the 300ZX 2+2 of 1984's and its police car's, the M23 PP SPEC's, the NSR500 of 1984's and
   the XR600R of 1985's baked from K's models, the three cars' with a car's glossy finish, the other vehicles' converted provisional pictures
   ([Vehicle picture generator](image-assets.md#vehicle-picture-generator), [Model solids](image-assets.md#model-solids)).
 - **Content and measured products.** One manifest verifies all delivered content; the build compiles it in one pass and
@@ -568,7 +568,10 @@ series in this stage.
 
 - Z31-1: the 300ZX added (definition, sound, listing, the set baked from K's model, SHA-256 `add6a67c…`, on
   `codex/nissan-300zx-2plus2-1984-glb-source`, never on main), the engine loudness measured again; no series runs it.
-- Z31-2: the police car added.
+- Z31-2: `NISSAN_300ZX_2PLUS2_POLICE_1984` added (the set baked from K's second model, SHA-256 `2770aea7…`, on
+  `codex/nissan-300zx-2plus2-police-1984-glb-source`, never on main), its definition the 300ZX's, held equal by a test,
+  its listing naming the 300ZX's sound; four liveries, BLACK & WHITE the default; the engine loudness measured again, its
+  entry the 300ZX's; no series runs it.
 - The loudness measurement runs its sound to −42.5 LUFS, not heard.
 - To look at in DEV: revving and driving's sound; the eight colors and REGATTA RED the default; the windows and the top
   shining white in the side pictures (the recipe's light is every car's); the strip's dark red; the brake lamps; the
@@ -579,6 +582,11 @@ series in this stage.
   manual), every exhaust tube's length and the diameter; the colors' base colors.
 - Measured on the model, the tracks are 1.417 and 1.429 m (Nissan's 1.415 and 1.435).
 - Not checked: Nissan's 1984 color catalogue, and whether the names carry METALLIC (written with it).
+- The police car's white doors end at z +0.57 and −0.72 m, read from the model's texture (an estimate); its red lens key
+  is the roof lamp's and the rear strip's, so its strip is brighter than the 300ZX's.
+- SELECT VEHICLE offers the police car's colors in its set's order, RED & WHITE first, as the police Nova's (the
+  recipe's liveries are the police Nova's), not BLACK & WHITE, GREEN, YELLOW, RED; BLACK & WHITE stays the default. Not
+  changed: reordering the liveries would change the bake.
 
 ## Stage F120 — The F40 of 1988
 

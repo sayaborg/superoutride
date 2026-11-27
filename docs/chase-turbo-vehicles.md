@@ -7,8 +7,8 @@ the [Volkswagen Beetle 1500 of 1968](#volkswagen-beetle-1500-of-1968-sources-ver
 [Chevrolet Corvette Stingray of 1970](#chevrolet-corvette-stingray-of-1970-sources-versus-authored), the
 [Ford F-700 of 1980](#ford-f-700-of-1980-sources-versus-authored) and the
 [BMW 325i Convertible of 1987](#bmw-325i-convertible-of-1987-sources-versus-authored), and the
-[Nissan 300ZX 2+2 of 1984](#nissan-300zx-22-of-1984-sources-versus-authored), which no series runs yet, authored by its
-conventions.
+[Nissan 300ZX 2+2 of 1984](#nissan-300zx-22-of-1984-sources-versus-authored) and
+[its police car](#the-police-300zx-22-of-1984), which no series runs yet, authored by its conventions.
 The F40 among the fourteen is now [the 1988 European car](#ferrari-f40-of-1988-sources-versus-authored), and the
 two Novas [the 1975 Nova 4-Door Sedan](#chevrolet-nova-of-1975-sources-versus-authored) and
 [its police car](#the-police-nova-of-1975).
@@ -1152,6 +1152,15 @@ car's figures and not tuned:
 | Braking from 100 km/h          | 2.55 s, 36.0 m                                          |
 
 It launches, shifts through all five gears and restarts from rest (98 km/h 8 s after stopping).
+
+### The police 300ZX 2+2 of 1984
+
+`NISSAN_300ZX_2PLUS2_POLICE_1984` is the 300ZX 2+2 of 1984 as a police car (K, 2026-11-27), added beside it: its
+definition is a second file of the same values, which a test holds equal, its listing names the 300ZX's sound, and on
+the flat it measures as the 300ZX; its selection order is 53. It differs in its pictures alone: baked from K's second
+model, the 300ZX's body with five boxes of roof lamp, in four liveries, BLACK & WHITE the default
+([Model solids](image-assets.md#model-solids)). Its roof lamp is part of its pictures; it does not introduce flashing,
+sirens or pursuit AI. No series runs it yet.
 
 ### The 300ZX 2+2's sources
 

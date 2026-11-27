@@ -261,6 +261,12 @@
       "vehicleSha256": "9220ecccfb11c286f590c9541d2bd1343a8555631e09f9947baf1b987d707b7b",
       "soundSha256": "ff1d229f268c065248c04e5774c03c07f771f84c808afd93f95d8aace0bd0b82",
       "lufs": -42.526165472475505
+    },
+    {
+      "vehicleId": "NISSAN_300ZX_2PLUS2_POLICE_1984",
+      "vehicleSha256": "9220ecccfb11c286f590c9541d2bd1343a8555631e09f9947baf1b987d707b7b",
+      "soundSha256": "ff1d229f268c065248c04e5774c03c07f771f84c808afd93f95d8aace0bd0b82",
+      "lufs": -42.526165472475505
     }
   ]
 }
