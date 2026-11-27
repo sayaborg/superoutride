@@ -69,6 +69,10 @@
           {
             "vehicle": "BMW_325I_CONVERTIBLE_1987",
             "weight": 1
+          },
+          {
+            "vehicle": "FORD_ECONOLINE_E_150_1983",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -134,6 +138,10 @@
           },
           {
             "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_ECONOLINE_E_150_1983",
             "weight": 1
           }
         ],
@@ -201,6 +209,10 @@
           {
             "vehicle": "BMW_325I_CONVERTIBLE_1987",
             "weight": 1
+          },
+          {
+            "vehicle": "FORD_ECONOLINE_E_150_1983",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -266,6 +278,10 @@
           },
           {
             "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_ECONOLINE_E_150_1983",
             "weight": 1
           }
         ],
@@ -333,6 +349,10 @@
           {
             "vehicle": "BMW_325I_CONVERTIBLE_1987",
             "weight": 1
+          },
+          {
+            "vehicle": "FORD_ECONOLINE_E_150_1983",
+            "weight": 1
           }
         ],
         "speedKilometersPerHour": 90
@@ -398,6 +418,10 @@
           },
           {
             "vehicle": "BMW_325I_CONVERTIBLE_1987",
+            "weight": 1
+          },
+          {
+            "vehicle": "FORD_ECONOLINE_E_150_1983",
             "weight": 1
           }
         ],

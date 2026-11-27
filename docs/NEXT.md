@@ -604,7 +604,8 @@ lettering and emblems kept
 
 - E150-1: the van added (definition, sound, listing, the set baked from K's model, SHA-256 `bbaddb68…`, on
   `codex/ford-econoline-e-150-1983-glb-source`, never on main), the engine loudness measured again; no series runs it.
-- E150-2: OUT RUN's traffic takes the van after its vehicles, of weight 1, in each of the six classes.
+- E150-2: OUT RUN's traffic takes the van after its vehicles, of weight 1, in each of the six classes; no measured
+  product changes.
 - The loudness measurement runs its sound to −46.2 LUFS (the F-150's, the same engine, −45.9), not heard.
 - SELECT VEHICLE opens on LIGHT DESERT TAN, the default, as 2/8: the colors are offered in the set's order, CANDYAPPLE
   RED, the key's, first. Not changed.
